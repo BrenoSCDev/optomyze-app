@@ -32,8 +32,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import optomyzeLogo from '@/assets/optomyze.png';
-import metaLogo from '@/assets/meta-logo.svg';
-import googleLogo from '@/assets/google-logo.svg';
+import metaLogo from '@/assets/meta-logo.png';
+import googleLogo from '@/assets/google-logo.png';
 
 interface SidebarProps {
   isCollapsed: boolean;
