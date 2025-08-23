@@ -1,3 +1,18 @@
+/**
+ * GOOGLE ADS DASHBOARD
+ * 
+ * Comprehensive Google Ads campaign analytics dashboard.
+ * Features:
+ * - 8 Google Ads specific KPIs including Quality Score
+ * - Keyword performance analysis
+ * - Campaign ROI comparisons
+ * - Geographic performance visualization
+ * - Time-of-day conversion patterns
+ * - Integration with Google Ads terminology and metrics
+ * 
+ * Designed to help marketers optimize their Google advertising campaigns.
+ */
+
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
 import KPICard from '@/components/KPICard';

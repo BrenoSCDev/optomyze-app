@@ -2,7 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Glassmorphism CRM Design System - Dark theme with purple accents */
+/**
+ * OPTOMYZE CRM DESIGN SYSTEM
+ * 
+ * A comprehensive design system featuring:
+ * - Glassmorphism aesthetic with backdrop blur effects
+ * - Dark theme with selective purple accents for highlights
+ * - Semantic color tokens for consistent theming
+ * - Advanced hover states and micro-interactions
+ * - Responsive grid systems and typography
+ * 
+ * Color Philosophy:
+ * - White as primary for text and main UI elements
+ * - Purple reserved for accents, glows, and special highlights
+ * - Glass effects for depth and modern aesthetic
+ * - Smooth transitions for professional feel
+ */
 
 @layer base {
   :root {
@@ -69,7 +84,9 @@
 }
 
 @layer components {
-  /* Glassmorphism Base */
+  /* GLASSMORPHISM COMPONENT LIBRARY
+     Reusable component classes that implement the glass aesthetic */
+  /* Base glass card with backdrop blur and semi-transparent background */
   .glass-card {
     @apply backdrop-blur-md bg-card/60 border border-white/10 rounded-xl shadow-2xl;
     background: hsl(var(--glass-bg));
@@ -77,86 +94,95 @@
     transition: var(--transition-smooth);
   }
   
+  /* Enhanced hover state with scale transform and white glow */
   .glass-card:hover {
     @apply transform scale-[1.02];
     background: hsl(var(--glass-hover));
-    box-shadow: var(--glow-primary);
+    box-shadow: 0 0 20px hsl(0 0% 100% / 0.2);
     border-color: hsl(var(--accent) / 0.4);
   }
 
-  /* Neon Effects */
+  /* NEON BORDER EFFECTS - Used for interactive elements like buttons */
   .neon-border {
     @apply border border-primary/30 rounded-lg;
     box-shadow: 0 0 10px hsl(var(--primary) / 0.2),
                 inset 0 0 10px hsl(var(--primary) / 0.1);
   }
   
+  /* Enhanced neon effect on hover with white glow */
   .neon-border:hover {
     @apply border-primary/60;
-    box-shadow: var(--glow-primary),
+    box-shadow: 0 0 15px hsl(0 0% 100% / 0.3),
                 inset 0 0 20px hsl(var(--primary) / 0.2);
   }
 
-  /* Navigation Styles */
+  /* NAVIGATION ITEM STYLES - Used in sidebar for consistent interaction patterns */
   .nav-item {
     @apply relative flex items-center gap-3 px-4 py-3 text-muted-foreground rounded-lg transition-all duration-300;
   }
   
+  /* Hover state with subtle glow effect */
   .nav-item:hover {
     @apply text-primary bg-primary/10;
     box-shadow: 0 0 15px hsl(var(--primary) / 0.2);
   }
   
+  /* Active state with white glow (no purple) */
   .nav-item.active {
     @apply text-primary bg-primary/20;
     box-shadow: 0 0 15px hsl(0 0% 100% / 0.3);
   }
   
+  /* Active indicator bar with white glow */
   .nav-item.active::before {
     content: '';
     @apply absolute left-0 top-0 h-full w-1 bg-primary rounded-r;
     box-shadow: 0 0 10px hsl(0 0% 100% / 0.6);
   }
 
-  /* KPI Card Styles */
+  /* KPI CARD COMPONENT STYLES - Specialized glass cards for metrics display */
   .kpi-card {
     @apply glass-card p-6 hover:scale-105;
-    transition: var(--transition-bounce);
+    transition: var(--transition-bounce); /* Bouncy animation for engaging interaction */
   }
   
+  /* Large metric values with gradient text effect */
   .kpi-value {
     @apply text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
   
+  /* Trend indicators with appropriate sizing */
   .kpi-trend {
     @apply text-sm font-medium;
   }
   
+  /* Color coding for positive trends (green) */
   .kpi-trend.positive {
     @apply text-green-400;
   }
   
+  /* Color coding for negative trends (red) */
   .kpi-trend.negative {
     @apply text-red-400;
   }
 
-  /* Chart Container */
+  /* CHART CONTAINER STYLES - Consistent styling for all chart components */
   .chart-container {
     @apply glass-card p-6;
     background: hsl(var(--glass-bg));
   }
   
-  /* Floating Effect */
+  /* FLOATING ANIMATION - Subtle hover effect for cards */
   .floating {
     animation: float 3s ease-in-out infinite;
   }
   
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
+    50% { transform: translateY(-5px); } /* Gentle 5px float */
   }
   
-  /* Pulse Glow */
+  /* PULSE GLOW ANIMATION - Attention-grabbing effect for important elements */
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
@@ -166,7 +192,7 @@
       box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
     }
     50% { 
-      box-shadow: var(--glow-accent);
+      box-shadow: 0 0 30px hsl(271 91% 65% / 0.4); /* Purple accent glow at peak */
     }
   }
 }

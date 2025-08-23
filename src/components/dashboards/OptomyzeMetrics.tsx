@@ -1,3 +1,17 @@
+/**
+ * OPTOMYZE METRICS DASHBOARD
+ * 
+ * The main dashboard displaying core business KPIs and lead generation analytics.
+ * Features:
+ * - 8 KPI cards with animated counters (leads, conversions, ROI, etc.)
+ * - Interactive charts: Sales funnel, monthly trends, lead sources
+ * - Recharts integration for professional data visualization
+ * - Responsive grid layout that adapts to screen size
+ * - Mock data with realistic business metrics
+ * 
+ * This serves as the primary view when users first access the CRM.
+ */
+
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import KPICard from '@/components/KPICard';

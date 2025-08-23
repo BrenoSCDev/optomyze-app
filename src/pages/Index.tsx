@@ -1,3 +1,15 @@
+/**
+ * OPTOMYZE CRM DASHBOARD - MAIN INDEX PAGE
+ * 
+ * This is the main dashboard layout that orchestrates the entire CRM interface.
+ * Features:
+ * - Collapsible sidebar navigation with glassmorphism design
+ * - Dynamic dashboard switching between different analytics sections
+ * - Smooth animations and transitions using Framer Motion
+ * - Responsive layout that adapts to sidebar state
+ * - Animated background with floating particles
+ */
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
@@ -7,24 +19,34 @@ import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
 
 const Index = () => {
+  // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Active dashboard section state - determines which analytics dashboard to display
   const [activeSection, setActiveSection] = useState('optomyze-metrics');
 
+  // Toggle sidebar collapse/expand functionality
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  /**
+   * Dashboard Component Router
+   * Renders the appropriate dashboard component based on the active section
+   * Each dashboard contains specific KPIs and charts for different analytics platforms
+   */
   const renderDashboard = () => {
     switch (activeSection) {
       case 'optomyze-metrics':
-        return <OptomyzeMetrics />;
+        return <OptomyzeMetrics />; // Main company metrics and lead generation data
       case 'meta-ads':
-        return <MetaAds />;
+        return <MetaAds />; // Facebook/Instagram advertising analytics
       case 'google-ads':
-        return <GoogleAds />;
+        return <GoogleAds />; // Google Ads campaign performance data
       case 'google-analytics':
-        return <GoogleAnalytics />;
+        return <GoogleAnalytics />; // Website traffic and user behavior metrics
       default:
+        // Fallback placeholder for future CRM sections (Leads, Settings, API, Users)
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -38,7 +60,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background */}
+      {/* ANIMATED BACKGROUND ELEMENTS
+          Creates subtle floating orbs with pulse animations for visual depth
+          Uses design system tokens for consistent theming */}
       <div className="absolute inset-0 bg-gradient-dark">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -46,9 +70,11 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Layout */}
+      {/* MAIN LAYOUT CONTAINER */}
       <div className="relative z-10 flex">
-        {/* Sidebar */}
+        {/* COLLAPSIBLE SIDEBAR NAVIGATION
+            Features glassmorphism design with smooth collapse/expand animations
+            Handles routing between different dashboard sections */}
         <Sidebar
           isCollapsed={sidebarCollapsed}
           onToggle={toggleSidebar}
@@ -56,7 +82,9 @@ const Index = () => {
           onSectionChange={setActiveSection}
         />
 
-        {/* Main Content */}
+        {/* MAIN CONTENT AREA
+            Responsive container that adjusts margin based on sidebar state
+            Uses Framer Motion for smooth transitions when sidebar collapses/expands */}
         <motion.main
           className={`flex-1 transition-all duration-300 ${
             sidebarCollapsed ? 'ml-16' : 'ml-64'
@@ -65,6 +93,9 @@ const Index = () => {
           animate={{ marginLeft: sidebarCollapsed ? 64 : 256 }}
         >
           <div className="p-8">
+            {/* DASHBOARD CONTENT WITH PAGE TRANSITIONS
+                AnimatePresence enables smooth transitions between different dashboard views
+                Each dashboard change triggers a fade + slide animation */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeSection}

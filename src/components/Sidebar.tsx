@@ -1,3 +1,20 @@
+/**
+ * SIDEBAR NAVIGATION COMPONENT
+ * 
+ * A sophisticated collapsible sidebar with glassmorphism design that provides:
+ * - Expandable dashboard submenu with 4 analytics sections
+ * - Smooth animations for collapse/expand states
+ * - Active state highlighting with white glow effects
+ * - Company branding with logo
+ * - Future navigation items (leads, settings, etc.)
+ * 
+ * Design Features:
+ * - Glass morphism effect with backdrop blur
+ * - Neon border effects on hover
+ * - Smooth width transitions with Framer Motion
+ * - Icon-only mode when collapsed
+ */
+
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,20 +43,23 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: SidebarProps) => {
+  // Controls whether the Dashboard submenu is expanded or collapsed
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
 
+  // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
-    { id: 'optomyze-metrics', label: 'Optomyze Metrics', icon: TrendingUp },
-    { id: 'meta-ads', label: 'Meta Ads', icon: Facebook },
-    { id: 'google-ads', label: 'Google Ads', icon: Search },
-    { id: 'google-analytics', label: 'Google Analytics', icon: BarChart },
+    { id: 'optomyze-metrics', label: 'Optomyze Metrics', icon: TrendingUp }, // Main company KPIs and lead data
+    { id: 'meta-ads', label: 'Meta Ads', icon: Facebook }, // Facebook/Instagram ads performance
+    { id: 'google-ads', label: 'Google Ads', icon: Search }, // Google Ads campaign analytics
+    { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
   ];
 
+  // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
-    { id: 'leads', label: 'Leads', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'api', label: 'API', icon: Database },
-    { id: 'users', label: 'Users', icon: Users },
+    { id: 'leads', label: 'Leads', icon: Users }, // Future: Lead management interface
+    { id: 'settings', label: 'Settings', icon: Settings }, // Future: App configuration
+    { id: 'api', label: 'API', icon: Database }, // Future: API management & documentation
+    { id: 'users', label: 'Users', icon: Users }, // Future: User management system
   ];
 
   return (

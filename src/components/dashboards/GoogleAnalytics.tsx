@@ -1,3 +1,18 @@
+/**
+ * GOOGLE ANALYTICS DASHBOARD
+ * 
+ * Website performance and user behavior analytics dashboard.
+ * Features:
+ * - 8 web analytics KPIs (sessions, users, bounce rate, etc.)
+ * - Traffic source analysis with donut charts
+ * - User flow visualization
+ * - Monthly session trends
+ * - Top landing pages performance
+ * - Comprehensive website insight metrics
+ * 
+ * Provides website owners with essential traffic and conversion data.
+ */
+
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import KPICard from '@/components/KPICard';

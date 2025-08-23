@@ -1,3 +1,18 @@
+/**
+ * META ADS DASHBOARD
+ * 
+ * Dedicated dashboard for Facebook and Instagram advertising performance.
+ * Features:
+ * - 8 advertising-specific KPIs (spend, impressions, CTR, ROAS, etc.)
+ * - Campaign performance bar charts
+ * - Daily spend trend analysis
+ * - Audience demographics breakdown
+ * - Device performance distribution
+ * - Professional color scheme optimized for advertising data
+ * 
+ * Uses realistic advertising metrics and industry-standard terminology.
+ */
+
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import KPICard from '@/components/KPICard';
