@@ -109,13 +109,13 @@
   
   .nav-item.active {
     @apply text-primary bg-primary/20;
-    box-shadow: var(--glow-primary);
+    box-shadow: 0 0 15px hsl(0 0% 100% / 0.3);
   }
   
   .nav-item.active::before {
     content: '';
     @apply absolute left-0 top-0 h-full w-1 bg-primary rounded-r;
-    box-shadow: 0 0 10px hsl(var(--primary));
+    box-shadow: 0 0 10px hsl(0 0% 100% / 0.6);
   }
 
   /* KPI Card Styles */
