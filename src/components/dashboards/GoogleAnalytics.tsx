@@ -69,7 +69,7 @@ const GoogleAnalytics = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
           Google Analytics Dashboard
         </h1>
         <p className="text-muted-foreground">Comprehensive website performance and user behavior insights</p>

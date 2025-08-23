@@ -54,7 +54,7 @@ const MetaAds = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
           Meta Ads Dashboard
         </h1>
         <p className="text-muted-foreground">Track your Facebook and Instagram advertising performance</p>
