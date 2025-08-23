@@ -28,12 +28,12 @@ import {
   Menu,
   X,
   TrendingUp,
-  Facebook,
-  Search,
   BarChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import optomyzeLogo from '@/assets/optomyze.png';
+import metaLogo from '@/assets/meta-logo.svg';
+import googleLogo from '@/assets/google-logo.svg';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -49,8 +49,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
     { id: 'optomyze-metrics', label: 'Optomyze Metrics', icon: TrendingUp }, // Main company KPIs and lead data
-    { id: 'meta-ads', label: 'Meta Ads', icon: Facebook }, // Facebook/Instagram ads performance
-    { id: 'google-ads', label: 'Google Ads', icon: Search }, // Google Ads campaign analytics
+    { id: 'meta-ads', label: 'Meta Ads', icon: () => <img src={metaLogo} alt="Meta" className="h-4 w-4" /> }, // Facebook/Instagram ads performance
+    { id: 'google-ads', label: 'Google Ads', icon: () => <img src={googleLogo} alt="Google" className="h-4 w-4" /> }, // Google Ads campaign analytics
     { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
   ];
 
