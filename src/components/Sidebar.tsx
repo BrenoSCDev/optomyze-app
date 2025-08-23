@@ -28,7 +28,8 @@ import {
   Menu,
   X,
   TrendingUp,
-  BarChart
+  BarChart,
+  Plug
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import optomyzeLogo from '@/assets/optomyze.png';
@@ -58,6 +59,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
     { id: 'leads', label: 'Leads', icon: Users }, // Future: Lead management interface
+    { id: 'integrations', label: 'Integrations', icon: Plug }, // Future: Third-party integrations
     { id: 'settings', label: 'Settings', icon: Settings }, // Future: App configuration
     { id: 'api', label: 'API', icon: Database }, // Future: API management & documentation
     { id: 'users', label: 'Users', icon: Users }, // Future: User management system
