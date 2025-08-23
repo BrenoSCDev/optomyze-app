@@ -61,10 +61,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <img src={optomyzeLogo} alt="Optomyze" className="w-8 h-8" />
-              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Optomyze
-              </span>
+              <img src={optomyzeLogo} alt="Optomyze" className="h-8 " />
             </motion.div>
           )}
         </AnimatePresence>
