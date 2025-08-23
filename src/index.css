@@ -74,6 +74,7 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'Poppins', sans-serif; /* Apply Poppins font globally to all elements */
   }
 
   body {
