@@ -47,6 +47,8 @@ interface SidebarProps {
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: SidebarProps) => {
   // Controls whether the Dashboard submenu is expanded or collapsed
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
+  // Controls whether the Leads submenu is expanded or collapsed
+  const [leadsExpanded, setLeadsExpanded] = useState(false);
 
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
@@ -56,9 +58,17 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
   ];
 
+  // Leads submenu items - each represents a different sales funnel
+  const leadsItems = [
+    { id: 'b2b-enterprise', label: 'B2B Enterprise Sales', count: 347 },
+    { id: 'ecommerce-conversion', label: 'E-commerce Conversion', count: 892 },
+    { id: 'saas-trial', label: 'SaaS Trial to Paid', count: 156 },
+    { id: 'real-estate', label: 'Real Estate Prospects', count: 234 },
+    { id: 'digital-marketing', label: 'Digital Marketing Leads', count: 567 },
+  ];
+
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
-    { id: 'leads', label: 'Leads', icon: Users }, // Future: Lead management interface
     { id: 'integrations', label: 'Integrations', icon: Plug }, // Future: Third-party integrations
     { id: 'settings', label: 'Settings', icon: Settings }, // Future: App configuration
     { id: 'api', label: 'API', icon: Database }, // Future: API management & documentation
@@ -153,6 +163,67 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   >
                     <item.icon className="h-4 w-4" />
                     <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Leads Section */}
+        <div>
+          <button
+            onClick={() => setLeadsExpanded(!leadsExpanded)}
+            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    Leads
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {leadsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {leadsExpanded && !isCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {leadsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onSectionChange(item.id)}
+                    className={`nav-item w-full justify-between ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    <span className="text-sm truncate">{item.label}</span>
+                    <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                      {item.count}
+                    </span>
                   </button>
                 ))}
               </motion.div>

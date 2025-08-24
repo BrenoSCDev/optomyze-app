@@ -17,6 +17,7 @@ import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
+import LeadsManagement from '@/components/leads/LeadsManagement';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -45,8 +46,21 @@ const Index = () => {
         return <GoogleAds />; // Google Ads campaign performance data
       case 'google-analytics':
         return <GoogleAnalytics />; // Website traffic and user behavior metrics
+      
+      // Leads Management - Different Sales Funnels
+      case 'b2b-enterprise':
+        return <LeadsManagement funnelId="b2b-enterprise" />;
+      case 'ecommerce-conversion':
+        return <LeadsManagement funnelId="ecommerce-conversion" />;
+      case 'saas-trial':
+        return <LeadsManagement funnelId="saas-trial" />;
+      case 'real-estate':
+        return <LeadsManagement funnelId="real-estate" />;
+      case 'digital-marketing':
+        return <LeadsManagement funnelId="digital-marketing" />;
+      
       default:
-        // Fallback placeholder for future CRM sections (Leads, Settings, API, Users)
+        // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
