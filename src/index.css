@@ -205,20 +205,26 @@
 
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
-    height: 6px;
+    height: 8px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--primary) / 0.3);
-    border-radius: 3px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--primary) / 0.5);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
   .scrollbar-track-transparent::-webkit-scrollbar-track {
@@ -227,5 +233,27 @@
 
   .scrollbar-thumb-white\/20::-webkit-scrollbar-thumb {
     background-color: hsl(0 0% 100% / 0.2);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thumb-white\/30::-webkit-scrollbar-thumb {
+    background-color: hsl(0 0% 100% / 0.3);
+    border-radius: 4px;
+  }
+
+  /* Smooth scrolling behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  @media (max-width: 768px) {
+    .scrollbar-thin::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-thin {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   }
 }
