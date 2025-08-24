@@ -45,7 +45,7 @@ const KanbanColumn = ({ column, onAddLead }: KanbanColumnProps) => {
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-80 min-w-[320px] flex-shrink-0 transition-all duration-300 ${getColumnColor()} ${
+      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 ${getColumnColor()} ${
         isOver ? 'ring-2 ring-accent/50 scale-102' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}

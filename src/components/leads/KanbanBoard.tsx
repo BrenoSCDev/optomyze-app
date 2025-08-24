@@ -256,21 +256,14 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters }: Kanba
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="relative">
-          {/* Horizontal Scroll Container */}
-          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30 scroll-smooth">
-            {columns.map((column) => (
-              <KanbanColumn
-                key={column.id}
-                column={column}
-                onAddLead={handleAddLead}
-              />
-            ))}
-          </div>
-          
-          {/* Scroll Indicators */}
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gradient-to-r from-background to-transparent w-8 h-20 pointer-events-none opacity-50" />
-          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-8 h-20 pointer-events-none opacity-50" />
+        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              onAddLead={handleAddLead}
+            />
+          ))}
         </div>
         
         <DragOverlay>
