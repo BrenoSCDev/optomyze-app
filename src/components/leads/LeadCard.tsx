@@ -77,7 +77,7 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
     <motion.div
       ref={setNodeRef}
       style={style}
-      className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
+      className={`glass-card p-4 cursor-pointer transition-all duration-300 ${
         isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
       }`}
       whileHover={{ y: -2 }}
@@ -85,7 +85,7 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
       {...attributes}
     >
       {/* Lead Header */}
-      <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3">
         <div className="flex items-center gap-2">
           <div
             className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 transition-colors"
@@ -104,9 +104,6 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
           <h3 className="font-semibold text-foreground text-sm truncate">
             {lead.name}
           </h3>
-          <p className="text-xs text-muted-foreground truncate">
-            {lead.company} - {lead.title}
-          </p>
         </div>
         
         {/* Lead Score */}
@@ -153,12 +150,12 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
 
       {/* Bottom Section */}
       <div className="flex items-center justify-between pt-2 border-t border-white/10">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <DollarSign className="h-3 w-3 text-green-400" />
           <span className="text-xs font-medium text-green-400">
             {formatCurrency(lead.value)}
           </span>
-        </div>
+        </div> */}
         
         <div className="flex items-center gap-2">
           <Badge
@@ -167,13 +164,13 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
             {lead.source}
           </Badge>
         </div>
+        {/* Last Activity */}
+        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>{lead.lastActivity}</span>
+        </div>
       </div>
 
-      {/* Last Activity */}
-      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-        <Clock className="h-3 w-3" />
-        <span>{lead.lastActivity}</span>
-      </div>
     </motion.div>
   );
 };

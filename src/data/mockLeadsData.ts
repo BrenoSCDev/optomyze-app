@@ -23,11 +23,11 @@ const generateLeads = (count: number, funnel: string): Lead[] => {
     'Marketing Pro', 'Sales Force', 'Business Intelligence', 'Strategy Group'
   ];
   
-  const titles = [
-    'CEO', 'CTO', 'Marketing Director', 'Sales Manager', 'VP of Sales',
-    'Founder', 'Head of Marketing', 'Business Development', 'Product Manager',
-    'Director of Operations', 'Chief Marketing Officer', 'VP of Business Development'
-  ];
+  // const titles = [
+  //   'CEO', 'CTO', 'Marketing Director', 'Sales Manager', 'VP of Sales',
+  //   'Founder', 'Head of Marketing', 'Business Development', 'Product Manager',
+  //   'Director of Operations', 'Chief Marketing Officer', 'VP of Business Development'
+  // ];
   
   const sources = ['Meta Ads', 'Google Ads', 'Organic', 'Referral', 'Direct'] as const;
   
@@ -42,8 +42,8 @@ const generateLeads = (count: number, funnel: string): Lead[] => {
       name: names[i % names.length],
       email: `${names[i % names.length].toLowerCase().replace(' ', '.')}@${companies[i % companies.length].toLowerCase().replace(/[^a-z]/g, '')}.com`,
       phone: `+1 (${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-      company: companies[i % companies.length],
-      title: titles[i % titles.length],
+      // company: companies[i % companies.length],
+      // title: titles[i % titles.length],
       score: Math.floor(Math.random() * 40) + 60, // 60-100
       value: Math.floor(Math.random() * 90000) + 10000, // $10k-$100k
       source: sources[Math.floor(Math.random() * sources.length)],
