@@ -29,9 +29,11 @@ import {
   X,
   TrendingUp,
   BarChart,
-  Plug
+  Plug,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '../contexts/AuthContext';
 import optomyzeLogo from '@/assets/optomyze.png';
 import metaLogo from '@/assets/meta-logo.png';
 import googleLogo from '@/assets/google-logo.png';
@@ -49,6 +51,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
   // Controls whether the Leads submenu is expanded or collapsed
   const [leadsExpanded, setLeadsExpanded] = useState(false);
+  
+  const { funnels, logout, user } = useAuth();
 
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
@@ -58,14 +62,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
   ];
 
-  // Leads submenu items - each represents a different sales funnel
-  const leadsItems = [
-    { id: 'b2b-enterprise', label: 'B2B Enterprise Sales', count: 347 },
-    { id: 'ecommerce-conversion', label: 'E-commerce Conversion', count: 892 },
-    { id: 'saas-trial', label: 'SaaS Trial to Paid', count: 156 },
-    { id: 'real-estate', label: 'Real Estate Prospects', count: 234 },
-    { id: 'digital-marketing', label: 'Digital Marketing Leads', count: 567 },
-  ];
+  // Dynamic leads submenu items from API
+  const leadsItems = funnels.map(funnel => ({
+    id: funnel.id.toString(),
+    label: funnel.name,
+    count: funnel.nleads
+  }));
 
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
@@ -212,20 +214,26 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                {leadsItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => onSectionChange(item.id)}
-                    className={`nav-item w-full justify-between ${
-                      activeSection === item.id ? 'active' : ''
-                    }`}
-                  >
-                    <span className="text-sm truncate">{item.label}</span>
-                    <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                      {item.count}
-                    </span>
-                  </button>
-                ))}
+                {leadsItems.length > 0 ? (
+                  leadsItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => onSectionChange('leads')}
+                      className={`nav-item w-full justify-between ${
+                        activeSection === 'leads' ? 'active' : ''
+                      }`}
+                    >
+                      <span className="text-sm truncate">{item.label}</span>
+                      <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                        {item.count}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="ml-4 text-sm text-muted-foreground">
+                    No funnels available
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -255,6 +263,44 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
             </AnimatePresence>
           </button>
         ))}
+
+        {/* Logout Section */}
+        <div className="mt-8 pt-4 border-t border-white/10">
+          <button
+            onClick={logout}
+            className={`nav-item w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${isCollapsed ? 'justify-center' : ''}`}
+          >
+            <LogOut className="h-5 w-5" />
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  Logout
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+          
+          {/* User Info */}
+          <AnimatePresence>
+            {!isCollapsed && user && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 p-3 bg-white/5 rounded-lg overflow-hidden"
+              >
+                <div className="text-xs text-muted-foreground">Logged in as</div>
+                <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
+                <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                <div className="text-xs text-muted-foreground">Role: {user.role}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </nav>
     </motion.div>
   );
