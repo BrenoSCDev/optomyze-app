@@ -64,19 +64,19 @@ const LoginForm = () => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Logo */}
-      <div className="text-center mb-8">
-        <img 
-          src={optomyzeLogo} 
-          alt="Optomyze" 
-          className="h-12 mx-auto mb-4 filter brightness-0 invert"
-        />
-        <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
-        <p className="text-gray-400">Sign in to continue to your CRM</p>
-      </div>
+      {/* Login Card */}
+      <div className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <img 
+            src={optomyzeLogo} 
+            alt="Optomyze" 
+            className="h-12 mx-auto mb-6 filter brightness-0 invert"
+          />
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-white/70">Sign in to continue to your CRM</p>
+        </div>
 
-      {/* Login Form */}
-      <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
@@ -88,7 +88,7 @@ const LoginForm = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/20"
+              className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12"
               required
             />
           </div>
@@ -104,13 +104,13 @@ const LoginForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500/20 pr-10"
+                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                 disabled={isLoading}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -122,7 +122,7 @@ const LoginForm = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
+            className="w-full bg-black hover:bg-gray-900 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-12 font-semibold"
           >
             {isLoading ? (
               <>
@@ -138,7 +138,7 @@ const LoginForm = () => {
           <div className="text-center">
             <button
               type="button"
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-sm text-white/60 hover:text-white transition-colors"
               disabled={isLoading}
             >
               Forgot your password?
