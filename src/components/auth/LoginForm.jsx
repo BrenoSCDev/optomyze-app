@@ -63,7 +63,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
+    <div className="w-full max-w-md mx-auto">
       {/* Login Card */}
       <div className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5">
         {/* Logo */}
