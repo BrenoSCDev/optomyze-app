@@ -63,7 +63,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
       {/* Login Card */}
       <div className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5">
         {/* Logo */}
@@ -122,7 +122,8 @@ const LoginForm = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black hover:bg-gray-900 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-12 font-semibold"
+            variant="black"
+            className="w-full transition-all duration-300 h-12 font-semibold"
           >
             {isLoading ? (
               <>
