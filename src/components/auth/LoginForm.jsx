@@ -88,7 +88,7 @@ const LoginForm = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12"
+              className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12 [&::-webkit-input-placeholder]:text-white/60 [&::placeholder]:text-white/60"
               required
             />
           </div>
@@ -104,7 +104,7 @@ const LoginForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12"
+                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 [&::-webkit-input-placeholder]:text-white/60 [&::placeholder]:text-white/60"
                 required
               />
               <button
