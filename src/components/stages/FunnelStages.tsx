@@ -19,6 +19,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -62,6 +66,31 @@ const FunnelStages = () => {
   const [showNewStageModal, setShowNewStageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    order: '',
+    type: ''
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    description: '',
+    order: '',
+    type: ''
+  });
+
+  
+  // Stage type options
+  const stageTypes = [
+    { value: 'entry', label: 'Entry' },
+    { value: 'normal', label: 'Normal' },
+    { value: 'service', label: 'Service' },
+    { value: 'proposition', label: 'Proposition' },
+    { value: 'qualified', label: 'Qualified' },
+    { value: 'conversion', label: 'Conversion' },
+    { value: 'lost', label: 'Lost' }
+  ];
 
   // Fetch funnel details and stages
   useEffect(() => {
@@ -92,6 +121,113 @@ const FunnelStages = () => {
 
     fetchData();
   }, [funnelId, token, t, toast]);
+
+  // Validate form data
+  const validateForm = () => {
+    const errors = { name: '', description: '', order: '', type: '' };
+    let isValid = true;
+
+    if (!formData.name.trim()) {
+      errors.name = t('stages.name_required');
+      isValid = false;
+    }
+
+    if (!formData.description.trim()) {
+      errors.description = t('stages.description_required');
+      isValid = false;
+    }
+
+    if (!formData.order.trim()) {
+      errors.order = t('stages.order_required');
+      isValid = false;
+    } else if (isNaN(Number(formData.order)) || Number(formData.order) < 1) {
+      errors.order = t('stages.order_invalid');
+      isValid = false;
+    }
+
+    if (!formData.type) {
+      errors.type = t('stages.type_required');
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  // Create new stage
+  const handleCreateStage = async () => {
+    if (!validateForm() || !funnelId) return;
+
+    try {
+      setCreating(true);
+      
+      const response = await api.post(`/api/funnels/${funnelId}/stages`, {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        order: Number(formData.order),
+        type: formData.type
+      });
+
+      // Add new stage to the list
+      setStages(prev => [...prev, response.data]);
+      
+      // Reset form and close modal
+      setFormData({ name: '', description: '', order: '', type: '' });
+      setFormErrors({ name: '', description: '', order: '', type: '' });
+      setShowNewStageModal(false);
+      
+      toast({
+        title: t('common.success'),
+        description: t('stages.create_success'),
+      });
+    } catch (error: any) {
+      console.error('Error creating stage:', error);
+      
+      if (error.response?.status === 401) {
+        // Authentication error - redirect to login
+        window.location.href = '/login';
+      } else if (error.response?.status === 422) {
+        // Validation errors from server
+        const serverErrors = error.response.data.errors || {};
+        setFormErrors(prev => ({
+          ...prev,
+          ...serverErrors
+        }));
+      } else if (error.response?.status >= 500) {
+        // Server error
+        toast({
+          title: t('common.error'),
+          description: t('stages.server_error'),
+          variant: 'destructive',
+        });
+      } else if (!error.response) {
+        // Network error
+        toast({
+          title: t('common.error'),
+          description: t('stages.network_error'),
+          variant: 'destructive',
+          action: (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreateStage}
+            >
+              {t('stages.retry')}
+            </Button>
+          ),
+        });
+      } else {
+        // Generic error
+        toast({
+          title: t('common.error'),
+          description: t('stages.create_error'),
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setCreating(false);
+    }
+  };
 
   // Delete stage handler
   const handleDeleteStage = async () => {
@@ -314,24 +450,127 @@ const FunnelStages = () => {
 
       {/* New Stage Modal */}
       <Dialog open={showNewStageModal} onOpenChange={setShowNewStageModal}>
-        <DialogContent className="glass-modal">
+        <DialogContent className="glass-modal sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('stages.create_title')}</DialogTitle>
           </DialogHeader>
-          <div className="py-6">
-            <p className="text-muted-foreground">
-              {t('stages.create_placeholder')}
-            </p>
+          <div className="py-6 space-y-4">
+            {/* Stage Name */}
+            <div className="space-y-2">
+              <Label htmlFor="stageName">{t('stages.name_label')}</Label>
+              <Input
+                id="stageName"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, name: e.target.value }));
+                  if (formErrors.name) {
+                    setFormErrors(prev => ({ ...prev, name: '' }));
+                  }
+                }}
+                placeholder={t('stages.name_placeholder')}
+                className={formErrors.name ? 'border-destructive' : ''}
+              />
+              {formErrors.name && (
+                <p className="text-sm text-destructive">{formErrors.name}</p>
+              )}
+            </div>
+
+            {/* Stage Description */}
+            <div className="space-y-2">
+              <Label htmlFor="stageDescription">{t('stages.description_label')}</Label>
+              <Textarea
+                id="stageDescription"
+                value={formData.description}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, description: e.target.value }));
+                  if (formErrors.description) {
+                    setFormErrors(prev => ({ ...prev, description: '' }));
+                  }
+                }}
+                placeholder={t('stages.description_placeholder')}
+                className={formErrors.description ? 'border-destructive' : ''}
+                rows={3}
+              />
+              {formErrors.description && (
+                <p className="text-sm text-destructive">{formErrors.description}</p>
+              )}
+            </div>
+
+            {/* Stage Order */}
+            <div className="space-y-2">
+              <Label htmlFor="stageOrder">{t('stages.order_label')}</Label>
+              <Input
+                id="stageOrder"
+                type="number"
+                min="1"
+                value={formData.order}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, order: e.target.value }));
+                  if (formErrors.order) {
+                    setFormErrors(prev => ({ ...prev, order: '' }));
+                  }
+                }}
+                placeholder={t('stages.order_placeholder')}
+                className={formErrors.order ? 'border-destructive' : ''}
+              />
+              {formErrors.order && (
+                <p className="text-sm text-destructive">{formErrors.order}</p>
+              )}
+            </div>
+
+            {/* Stage Type */}
+            <div className="space-y-2">
+              <Label htmlFor="stageType">{t('stages.type_label')}</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => {
+                  setFormData(prev => ({ ...prev, type: value }));
+                  if (formErrors.type) {
+                    setFormErrors(prev => ({ ...prev, type: '' }));
+                  }
+                }}
+              >
+                <SelectTrigger className={`w-full ${formErrors.type ? 'border-destructive' : ''}`}>
+                  <SelectValue placeholder={t('stages.type_placeholder')} />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border shadow-lg z-50">
+                  {stageTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formErrors.type && (
+                <p className="text-sm text-destructive">{formErrors.type}</p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowNewStageModal(false)}
+              onClick={() => {
+                setShowNewStageModal(false);
+                setFormData({ name: '', description: '', order: '', type: '' });
+                setFormErrors({ name: '', description: '', order: '', type: '' });
+              }}
+              disabled={creating}
             >
               {t('common.cancel')}
             </Button>
-            <Button className="btn-primary" disabled>
-              {t('common.create')}
+            <Button 
+              className="btn-primary" 
+              onClick={handleCreateStage}
+              disabled={creating}
+            >
+              {creating ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  {t('stages.creating')}
+                </div>
+              ) : (
+                t('common.create')
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
