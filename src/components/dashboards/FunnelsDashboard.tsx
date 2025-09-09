@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Settings, Trash2, Filter, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,7 @@ const FunnelsDashboard = () => {
   const { toast } = useToast();
   const { funnels: authFunnels, updateFunnels } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFunnels();

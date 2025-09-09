@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import FunnelStages from "./components/stages/FunnelStages";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings/funnels/:funnelId/stages" 
+                element={
+                  <ProtectedRoute>
+                    <FunnelStages />
                   </ProtectedRoute>
                 } 
               />

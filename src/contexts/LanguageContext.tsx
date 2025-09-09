@@ -181,6 +181,26 @@ const translations = {
     'funnels.error-load': 'Failed to load funnels. Please try again.',
     'funnels.network-error': 'Network error. Please check your connection and try again.',
     'funnels.server-error': 'Server error. Please contact support if the problem persists.',
+    
+    // Stages
+    'stages.title': 'Funnel Stages',
+    'stages.subtitle': 'Managing stages for {funnelName}',
+    'stages.new_stage': 'New Stage',
+    'stages.create_title': 'Create New Stage',
+    'stages.create_placeholder': 'Stage creation form coming soon',
+    'stages.create_first': 'Create First Stage',
+    'stages.empty_title': 'No stages created yet',
+    'stages.empty_description': 'Create your first stage to start organizing your funnel',
+    'stages.delete_title': 'Delete Stage',
+    'stages.delete_description': 'Are you sure you want to delete "{stageName}"? This action cannot be undone.',
+    'stages.delete_success': 'Stage deleted successfully',
+    'stages.delete_error': 'Failed to delete stage',
+    'stages.fetch_error': 'Failed to fetch stages',
+    'stages.settings_coming_soon': 'Stage settings coming soon',
+    'stages.loading': 'Loading...',
+    'stages.order': 'Order',
+    'stages.active': 'Active',
+    'stages.inactive': 'Inactive',
   },
   'pt-BR': {
     // Navigation
