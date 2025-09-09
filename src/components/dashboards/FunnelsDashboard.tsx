@@ -76,8 +76,8 @@ const FunnelsDashboard = () => {
         setFunnels(mappedFunnels);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to load funnels. Please try again.",
+          title: t('common.error'),
+          description: t('funnels.error-load'),
           variant: "destructive",
         });
       }
@@ -95,14 +95,14 @@ const FunnelsDashboard = () => {
       setFunnels(prev => prev.filter(funnel => funnel.id !== funnelId));
       
       toast({
-        title: "Success",
-        description: "Funnel deleted successfully.",
+        title: t('common.success'),
+        description: t('funnels.success-delete'),
       });
     } catch (error) {
       console.error('Error deleting funnel:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete funnel. Please try again.",
+        title: t('common.error'),
+        description: t('funnels.error-delete'),
         variant: "destructive",
       });
     } finally {
@@ -129,11 +129,11 @@ const FunnelsDashboard = () => {
             </p>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
-                {funnel.nleads} leads
+                {funnel.nleads} {t('funnels.leads')}
               </Badge>
               {funnel.is_active && (
                 <Badge variant="default" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
-                  Active
+                  {t('funnels.active')}
                 </Badge>
               )}
             </div>
@@ -149,8 +149,8 @@ const FunnelsDashboard = () => {
             onClick={() => {
               // Navigate to funnel stages configuration (empty for now)
               toast({
-                title: "Coming Soon",
-                description: "Funnel configuration page is under development.",
+                title: t('common.coming-soon'),
+                description: t('funnels.config-coming-soon'),
               });
             }}
           >
@@ -175,20 +175,20 @@ const FunnelsDashboard = () => {
             </AlertDialogTrigger>
             <AlertDialogContent className="glass-card">
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-foreground">Delete Funnel</AlertDialogTitle>
+                <AlertDialogTitle className="text-foreground">{t('funnels.delete')}</AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  Are you sure you want to delete '{funnel.name}'? This action cannot be undone.
+                  {t('funnels.delete-confirm')} '{funnel.name}'? {t('funnels.delete-warning')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel className="bg-muted/20 border-muted/30 hover:bg-muted/30">
-                  Cancel
+                  {t('funnels.cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteFunnel(funnel.id)}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
-                  Delete
+                  {t('common.delete')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -226,14 +226,14 @@ const FunnelsDashboard = () => {
       <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
         <Filter className="h-8 w-8 text-primary" />
       </div>
-      <h3 className="text-lg font-semibold text-foreground mb-2">No funnels created yet</h3>
-      <p className="text-muted-foreground mb-6">Create your first funnel to start managing your sales process</p>
+      <h3 className="text-lg font-semibold text-foreground mb-2">{t('funnels.no-funnels')}</h3>
+      <p className="text-muted-foreground mb-6">{t('funnels.no-funnels-subtitle')}</p>
       <Button 
         onClick={() => setShowNewFunnelModal(true)}
         className="neon-border"
       >
         <Plus className="h-4 w-4 mr-2" />
-        Create Funnel
+        {t('funnels.create-funnel')}
       </Button>
     </div>
   );
@@ -244,10 +244,10 @@ const FunnelsDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2 futuristic-text">
-            Sales Funnels
+            {t('funnels.title')}
           </h1>
           <nav className="text-sm text-muted-foreground">
-            Settings <span className="mx-2">/</span> Funnels
+            {t('funnels.breadcrumb')}
           </nav>
         </div>
         
@@ -255,19 +255,19 @@ const FunnelsDashboard = () => {
           <DialogTrigger asChild>
             <Button className="neon-border" size="lg">
               <Plus className="h-4 w-4 mr-2" />
-              New Funnel
+              {t('funnels.new-funnel')}
             </Button>
           </DialogTrigger>
           <DialogContent className="glass-card max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-foreground futuristic-text">Create New Funnel</DialogTitle>
+              <DialogTitle className="text-foreground futuristic-text">{t('funnels.create-new')}</DialogTitle>
             </DialogHeader>
             <div className="py-8 text-center">
               <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Plus className="h-8 w-8 text-primary" />
               </div>
               <p className="text-muted-foreground">
-                Funnel creation form coming soon...
+                {t('funnels.coming-soon')}
               </p>
             </div>
             <div className="flex justify-end gap-2 pt-4">
@@ -276,10 +276,10 @@ const FunnelsDashboard = () => {
                 onClick={() => setShowNewFunnelModal(false)}
                 className="bg-muted/20 border-muted/30 hover:bg-muted/30"
               >
-                Cancel
+                {t('funnels.cancel')}
               </Button>
               <Button disabled className="bg-primary/50">
-                Create
+                {t('common.create')}
               </Button>
             </div>
           </DialogContent>

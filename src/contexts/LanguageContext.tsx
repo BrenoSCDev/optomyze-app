@@ -148,6 +148,27 @@ const translations = {
     'analytics.flow.pricing-page': 'Pricing Page',
     'analytics.flow.contact-form': 'Contact Form',
     'analytics.flow.conversion': 'Conversion',
+    
+    // Funnels
+    'funnels.title': 'Sales Funnels',
+    'funnels.breadcrumb': 'Settings / Funnels',
+    'funnels.new-funnel': 'New Funnel',
+    'funnels.no-funnels': 'No funnels created yet',
+    'funnels.no-funnels-subtitle': 'Create your first funnel to start managing your sales process',
+    'funnels.create-funnel': 'Create Funnel',
+    'funnels.leads': 'leads',
+    'funnels.active': 'Active',
+    'funnels.settings': 'Funnel Settings',
+    'funnels.delete': 'Delete Funnel',
+    'funnels.delete-confirm': 'Are you sure you want to delete',
+    'funnels.delete-warning': 'This action cannot be undone.',
+    'funnels.cancel': 'Cancel',
+    'funnels.create-new': 'Create New Funnel',
+    'funnels.coming-soon': 'Funnel creation form coming soon...',
+    'funnels.config-coming-soon': 'Funnel configuration page is under development.',
+    'funnels.success-delete': 'Funnel deleted successfully.',
+    'funnels.error-delete': 'Failed to delete funnel. Please try again.',
+    'funnels.error-load': 'Failed to load funnels. Please try again.',
   },
   'pt-BR': {
     // Navigation
@@ -278,6 +299,27 @@ const translations = {
     'analytics.flow.pricing-page': 'Página de Preços',
     'analytics.flow.contact-form': 'Formulário de Contato',
     'analytics.flow.conversion': 'Conversão',
+    
+    // Funnels
+    'funnels.title': 'Funis de Vendas',
+    'funnels.breadcrumb': 'Configurações / Funis',
+    'funnels.new-funnel': 'Novo Funil',
+    'funnels.no-funnels': 'Nenhum funil criado ainda',
+    'funnels.no-funnels-subtitle': 'Crie seu primeiro funil para começar a gerenciar seu processo de vendas',
+    'funnels.create-funnel': 'Criar Funil',
+    'funnels.leads': 'leads',
+    'funnels.active': 'Ativo',
+    'funnels.settings': 'Configurações do Funil',
+    'funnels.delete': 'Excluir Funil',
+    'funnels.delete-confirm': 'Tem certeza de que deseja excluir',
+    'funnels.delete-warning': 'Esta ação não pode ser desfeita.',
+    'funnels.cancel': 'Cancelar',
+    'funnels.create-new': 'Criar Novo Funil',
+    'funnels.coming-soon': 'Formulário de criação de funil em breve...',
+    'funnels.config-coming-soon': 'Página de configuração do funil está em desenvolvimento.',
+    'funnels.success-delete': 'Funil excluído com sucesso.',
+    'funnels.error-delete': 'Falha ao excluir funil. Tente novamente.',
+    'funnels.error-load': 'Falha ao carregar funis. Tente novamente.',
   },
   de: {
     // Navigation
@@ -538,6 +580,27 @@ const translations = {
     'analytics.flow.pricing-page': 'Página de Precios',
     'analytics.flow.contact-form': 'Formulario de Contacto',
     'analytics.flow.conversion': 'Conversión',
+    
+    // Funnels
+    'funnels.title': 'Embudos de Ventas',
+    'funnels.breadcrumb': 'Configuración / Embudos',
+    'funnels.new-funnel': 'Nuevo Embudo',
+    'funnels.no-funnels': 'Aún no se han creado embudos',
+    'funnels.no-funnels-subtitle': 'Crea tu primer embudo para comenzar a gestionar tu proceso de ventas',
+    'funnels.create-funnel': 'Crear Embudo',
+    'funnels.leads': 'leads',
+    'funnels.active': 'Activo',
+    'funnels.settings': 'Configuración del Embudo',
+    'funnels.delete': 'Eliminar Embudo',
+    'funnels.delete-confirm': '¿Estás seguro de que quieres eliminar',
+    'funnels.delete-warning': 'Esta acción no se puede deshacer.',
+    'funnels.cancel': 'Cancelar',
+    'funnels.create-new': 'Crear Nuevo Embudo',
+    'funnels.coming-soon': 'Formulario de creación de embudo próximamente...',
+    'funnels.config-coming-soon': 'La página de configuración del embudo está en desarrollo.',
+    'funnels.success-delete': 'Embudo eliminado exitosamente.',
+    'funnels.error-delete': 'Error al eliminar embudo. Inténtalo de nuevo.',
+    'funnels.error-load': 'Error al cargar embudos. Inténtalo de nuevo.',
   }
 };
 
