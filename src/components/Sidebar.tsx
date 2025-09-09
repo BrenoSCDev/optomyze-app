@@ -121,7 +121,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-80px)] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30">
+      <nav className="p-4 space-y-2">
         {/* Dashboard Section */}
         <div>
           <button
