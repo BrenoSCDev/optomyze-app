@@ -52,6 +52,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [dashboardExpanded, setDashboardExpanded] = useState(true);
   // Controls whether the Leads submenu is expanded or collapsed
   const [leadsExpanded, setLeadsExpanded] = useState(false);
+  // Controls whether the Settings submenu is expanded or collapsed
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   
   const { funnels, logout, user } = useAuth();
   const { t } = useLanguage();
@@ -72,10 +74,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     count: funnel.nleads
   }));
 
+  // Settings submenu items
+  const settingsItems = [
+    { id: 'languages', label: t('nav.languages'), icon: () => <span>🌐</span> },
+  ];
+
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
     { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
-    { id: 'settings', label: t('nav.settings'), icon: Settings, route: '/settings' }, // App configuration
     { id: 'api', label: t('nav.api'), icon: Database }, // Future: API management & documentation
     { id: 'users', label: t('nav.users'), icon: Users }, // Future: User management system
   ];
@@ -242,21 +248,74 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
+        {/* Settings Section */}
+        <div>
+          <button
+            onClick={() => setSettingsExpanded(!settingsExpanded)}
+            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.settings')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {settingsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {settingsExpanded && !isCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {settingsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onSectionChange(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Main Navigation Items */}
         {mainItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => {
-              if (item.route) {
-                navigate(item.route);
-              } else {
-                onSectionChange(item.id);
-              }
-            }}
+            onClick={() => onSectionChange(item.id)}
             className={`nav-item w-full ${isCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
-            disabled={!item.route && item.id !== 'settings'}
+            disabled
           >
             <item.icon className="h-5 w-5" />
             <AnimatePresence>

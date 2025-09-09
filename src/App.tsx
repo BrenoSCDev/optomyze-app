@@ -8,7 +8,6 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,14 +27,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/settings" 
-                element={
-                  <ProtectedRoute>
-                    <Settings />
                   </ProtectedRoute>
                 } 
               />

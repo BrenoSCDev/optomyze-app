@@ -17,6 +17,7 @@ import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
+import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
 
 const Index = () => {
@@ -46,6 +47,10 @@ const Index = () => {
         return <GoogleAds />; // Google Ads campaign performance data
       case 'google-analytics':
         return <GoogleAnalytics />; // Website traffic and user behavior metrics
+      
+      // Settings sections
+      case 'languages':
+        return <LanguagesDashboard />; // Language selection interface
       
       // Leads Management - Different Sales Funnels
       case 'b2b-enterprise':
