@@ -10,7 +10,8 @@
  * - Animated background with floating particles
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
@@ -27,6 +28,17 @@ const Index = () => {
   
   // Active dashboard section state - determines which analytics dashboard to display
   const [activeSection, setActiveSection] = useState('optomyze-metrics');
+  
+  const location = useLocation();
+
+  // Check for section parameter in URL and update active section
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const section = searchParams.get('section');
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [location.search]);
 
   // Toggle sidebar collapse/expand functionality
   const toggleSidebar = () => {

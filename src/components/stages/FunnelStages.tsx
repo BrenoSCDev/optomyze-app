@@ -152,14 +152,14 @@ const FunnelStages = () => {
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/?section=funnels')}
               className="hover:text-foreground transition-colors"
             >
               {t('nav.settings')}
             </button>
             <ChevronRight className="h-4 w-4" />
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/?section=funnels')}
               className="hover:text-foreground transition-colors"
             >
               {t('nav.funnels')}
@@ -180,7 +180,7 @@ const FunnelStages = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/?section=funnels')}
                 className="hover:bg-primary/10"
               >
                 <ArrowLeft className="h-5 w-5" />
