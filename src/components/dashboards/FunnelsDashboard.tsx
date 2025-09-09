@@ -248,13 +248,7 @@ const FunnelsDashboard = () => {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border"
-            onClick={() => {
-              // Navigate to funnel stages configuration (empty for now)
-              toast({
-                title: t('common.coming-soon'),
-                description: t('funnels.config-coming-soon'),
-              });
-            }}
+            onClick={() => navigate(`/settings/funnels/${funnel.id}/stages`)}
           >
             <Settings className="h-4 w-4" />
           </Button>
