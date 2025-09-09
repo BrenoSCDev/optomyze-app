@@ -16,21 +16,24 @@ import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, TrendingDown } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const OptomyzeMetrics = () => {
+  const { t } = useLanguage();
+  
   // Mock data
   const kpiData = [
-    { title: 'Total Leads', value: '2,847', trend: { value: '↑ 12.5%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
-    { title: 'Leads in Service', value: '134', trend: { value: '↑ 8.2%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: 'Lost Leads', value: '592', trend: { value: '↓ 5.1%', isPositive: true }, icon: <UserX className="h-5 w-5 text-primary" /> },
-    { title: 'Converted Sales', value: '1,089', trend: { value: '↑ 18.7%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.total-leads'), value: '2,847', trend: { value: '↑ 12.5%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.leads-in-service'), value: '134', trend: { value: '↑ 8.2%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.lost-leads'), value: '592', trend: { value: '↓ 5.1%', isPositive: true }, icon: <UserX className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.converted-sales'), value: '1,089', trend: { value: '↑ 18.7%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
   ];
 
   const secondaryKpis = [
-    { title: 'Conversion Rate', value: '38.2%', trend: { value: '↑ 3.2%', isPositive: true }, icon: <Percent className="h-5 w-5 text-primary" /> },
-    { title: 'Avg Conversion Time', value: '7.2 days', trend: { value: '↓ 1.1 days', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
-    { title: 'Avg Sale Value', value: '$3,450', trend: { value: '↑ 5.8%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Monthly ROI', value: '287%', trend: { value: '↑ 15.3%', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.conversion-rate'), value: '38.2%', trend: { value: '↑ 3.2%', isPositive: true }, icon: <Percent className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.avg-conversion-time'), value: '7.2 days', trend: { value: '↓ 1.1 days', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.avg-sale-value'), value: '$3,450', trend: { value: '↑ 5.8%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.monthly-roi'), value: '287%', trend: { value: '↑ 15.3%', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
   ];
 
   const monthlyData = [
@@ -57,10 +60,10 @@ const OptomyzeMetrics = () => {
   ];
 
   const funnelData = [
-    { name: 'Leads', value: 2847, fill: '#8B5CF6' },
-    { name: 'Qualified', value: 1654, fill: '#A78BFA' },
-    { name: 'Opportunities', value: 1245, fill: '#C4B5FD' },
-    { name: 'Sales', value: 1089, fill: '#DDD6FE' },
+    { name: t('metrics.funnel.leads'), value: 2847, fill: '#8B5CF6' },
+    { name: t('metrics.funnel.qualified'), value: 1654, fill: '#A78BFA' },
+    { name: t('metrics.funnel.opportunities'), value: 1245, fill: '#C4B5FD' },
+    { name: t('metrics.funnel.sales'), value: 1089, fill: '#DDD6FE' },
   ];
 
   return (
@@ -73,9 +76,9 @@ const OptomyzeMetrics = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          Optomyze Metrics Dashboard
+          {t('dashboard.title.optomyze')}
         </h1>
-        <p className="text-muted-foreground">Real-time insights into your lead generation and conversion performance</p>
+        <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
       </div>
 
       {/* Primary KPIs */}
@@ -101,7 +104,7 @@ const OptomyzeMetrics = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Sales Funnel</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.sales-funnel')}</h3>
           <div className="space-y-4">
             {funnelData.map((stage, index) => (
               <motion.div
@@ -132,7 +135,7 @@ const OptomyzeMetrics = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Lead Sources</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-sources')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -161,7 +164,7 @@ const OptomyzeMetrics = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">Monthly Lead Flow</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />

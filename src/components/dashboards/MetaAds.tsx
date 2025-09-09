@@ -17,20 +17,23 @@ import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, Monitor } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const MetaAds = () => {
+  const { t } = useLanguage();
+  
   const kpiData = [
-    { title: 'Total Spend', value: '$12,456', trend: { value: 'This month', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Impressions', value: '2.3M', trend: { value: '↑ 15.2%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
-    { title: 'Clicks', value: '45,678', trend: { value: '↑ 12.8%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
-    { title: 'CTR', value: '1.98%', trend: { value: '↓ 0.1%', isPositive: false }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('meta.total-spend'), value: '$12,456', trend: { value: t('meta.this-month'), isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('meta.impressions'), value: '2.3M', trend: { value: '↑ 15.2%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
+    { title: t('meta.clicks'), value: '45,678', trend: { value: '↑ 12.8%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
+    { title: t('meta.ctr'), value: '1.98%', trend: { value: '↓ 0.1%', isPositive: false }, icon: <Target className="h-5 w-5 text-primary" /> },
   ];
 
   const secondaryKpis = [
-    { title: 'CPC', value: '$0.27', trend: { value: '↓ $0.03', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Conversions', value: '892', trend: { value: '↑ 22.1%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: 'CPA', value: '$13.97', trend: { value: '↓ $2.15', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'ROAS', value: '4.2x', trend: { value: '↑ 0.8x', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
+    { title: t('meta.cpc'), value: '$0.27', trend: { value: '↓ $0.03', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('meta.conversions'), value: '892', trend: { value: '↑ 22.1%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('meta.cpa'), value: '$13.97', trend: { value: '↓ $2.15', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('meta.roas'), value: '4.2x', trend: { value: '↑ 0.8x', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
   ];
 
   const campaignData = [
@@ -70,9 +73,9 @@ const MetaAds = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          Meta Ads Dashboard
+          {t('dashboard.title.meta')}
         </h1>
-        <p className="text-muted-foreground">Track your Facebook and Instagram advertising performance</p>
+        <p className="text-muted-foreground">{t('dashboard.subtitle.meta')}</p>
       </div>
 
       {/* Primary KPIs */}
@@ -98,7 +101,7 @@ const MetaAds = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Campaign Performance</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('meta.campaign-performance')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={campaignData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -117,7 +120,7 @@ const MetaAds = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Audience Demographics</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('meta.audience-demographics')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -148,7 +151,7 @@ const MetaAds = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.2 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Daily Spend Trend (30 Days)</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('meta.daily-spend-trend')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dailySpendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -173,7 +176,7 @@ const MetaAds = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.4 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Device Performance</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('meta.device-performance')}</h3>
           <div className="space-y-4">
             {deviceData.map((item, index) => (
               <div key={item.device} className="flex items-center justify-between">

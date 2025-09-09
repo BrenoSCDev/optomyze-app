@@ -17,20 +17,23 @@ import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, ComposedChart } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { DollarSign, Eye, MousePointer, Target, TrendingUp, Star, MapPin, Clock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GoogleAds = () => {
+  const { t } = useLanguage();
+  
   const kpiData = [
-    { title: 'Total Spend', value: '$9,834', trend: { value: 'This month', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Impressions', value: '1.8M', trend: { value: '↑ 8.7%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
-    { title: 'Clicks', value: '32,145', trend: { value: '↑ 9.2%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
-    { title: 'CTR', value: '1.79%', trend: { value: '↑ 0.05%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.total-spend'), value: '$9,834', trend: { value: t('google-ads.this-month'), isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.impressions'), value: '1.8M', trend: { value: '↑ 8.7%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.clicks'), value: '32,145', trend: { value: '↑ 9.2%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.ctr'), value: '1.79%', trend: { value: '↑ 0.05%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
   ];
 
   const secondaryKpis = [
-    { title: 'Avg CPC', value: '$0.31', trend: { value: '↑ $0.02', isPositive: false }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Conversions', value: '654', trend: { value: '↑ 16.3%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: 'CPA', value: '$15.04', trend: { value: '↓ $1.87', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: 'Quality Score Avg', value: '7.8/10', trend: { value: '↑ 0.3', isPositive: true }, icon: <Star className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.avg-cpc'), value: '$0.31', trend: { value: '↑ $0.02', isPositive: false }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.conversions'), value: '654', trend: { value: '↑ 16.3%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.cpa'), value: '$15.04', trend: { value: '↓ $1.87', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('google-ads.quality-score'), value: '7.8/10', trend: { value: '↑ 0.3', isPositive: true }, icon: <Star className="h-5 w-5 text-primary" /> },
   ];
 
   const keywordData = [
@@ -78,9 +81,9 @@ const GoogleAds = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          Google Ads Dashboard
+          {t('dashboard.title.google-ads')}
         </h1>
-        <p className="text-muted-foreground">Monitor your Google Ads campaigns and keyword performance</p>
+        <p className="text-muted-foreground">{t('dashboard.subtitle.google-ads')}</p>
       </div>
 
       {/* Primary KPIs */}
@@ -106,7 +109,7 @@ const GoogleAds = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Campaign ROI</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('google-ads.campaign-roi')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <ComposedChart data={campaignROIData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -125,7 +128,7 @@ const GoogleAds = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Conversion Rate by Hour</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('google-ads.conversion-rate-by-hour')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={hourlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -151,16 +154,16 @@ const GoogleAds = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">Top Performing Keywords</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('google-ads.top-keywords')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="text-left p-3 font-medium">Keyword</th>
-                <th className="text-right p-3 font-medium">Impressions</th>
-                <th className="text-right p-3 font-medium">Clicks</th>
-                <th className="text-right p-3 font-medium">CPC</th>
-                <th className="text-right p-3 font-medium">Conversions</th>
+                <th className="text-left p-3 font-medium">{t('google-ads.keyword')}</th>
+                <th className="text-right p-3 font-medium">{t('google-ads.impressions')}</th>
+                <th className="text-right p-3 font-medium">{t('google-ads.clicks')}</th>
+                <th className="text-right p-3 font-medium">{t('google-ads.cpc')}</th>
+                <th className="text-right p-3 font-medium">{t('google-ads.conversions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -191,7 +194,7 @@ const GoogleAds = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.4 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">Geographic Performance</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('google-ads.geographic-performance')}</h3>
         <div className="space-y-4">
           {geoData.map((item, index) => (
             <motion.div
@@ -207,15 +210,15 @@ const GoogleAds = () => {
               </div>
               <div className="flex items-center gap-6 text-sm">
                 <div className="text-center">
-                  <div className="text-muted-foreground">Sessions</div>
+                  <div className="text-muted-foreground">{t('google-ads.sessions')}</div>
                   <div className="font-medium">{item.sessions.toLocaleString()}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-muted-foreground">Conversions</div>
+                  <div className="text-muted-foreground">{t('google-ads.conversions')}</div>
                   <div className="font-medium text-primary">{item.conversions}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-muted-foreground">Rate</div>
+                  <div className="text-muted-foreground">{t('google-ads.rate')}</div>
                   <div className="font-medium">{item.rate}%</div>
                 </div>
               </div>

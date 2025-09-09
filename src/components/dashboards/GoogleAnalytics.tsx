@@ -17,20 +17,23 @@ import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Users, Eye, Clock, TrendingDown, Target, MousePointer, Globe, Smartphone } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const GoogleAnalytics = () => {
+  const { t } = useLanguage();
+  
   const kpiData = [
-    { title: 'Sessions', value: '156,789', trend: { value: '↑ 11.4%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
-    { title: 'Users', value: '134,567', trend: { value: '↑ 9.8%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
-    { title: 'Page Views', value: '456,123', trend: { value: '↑ 13.2%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
-    { title: 'Avg Session Duration', value: '3m 42s', trend: { value: '↑ 15s', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.sessions'), value: '156,789', trend: { value: '↑ 11.4%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.users'), value: '134,567', trend: { value: '↑ 9.8%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.page-views'), value: '456,123', trend: { value: '↑ 13.2%', isPositive: true }, icon: <Eye className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.avg-session-duration'), value: '3m 42s', trend: { value: '↑ 15s', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
   ];
 
   const secondaryKpis = [
-    { title: 'Bounce Rate', value: '32.1%', trend: { value: '↓ 2.3%', isPositive: true }, icon: <TrendingDown className="h-5 w-5 text-primary" /> },
-    { title: 'Goal Completions', value: '1,245', trend: { value: '↑ 18.9%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: 'Conversion Rate', value: '2.89%', trend: { value: '↑ 0.34%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
-    { title: 'Pages per Session', value: '2.91', trend: { value: '↑ 0.12', isPositive: true }, icon: <Globe className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.bounce-rate'), value: '32.1%', trend: { value: '↓ 2.3%', isPositive: true }, icon: <TrendingDown className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.goal-completions'), value: '1,245', trend: { value: '↑ 18.9%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.conversion-rate'), value: '2.89%', trend: { value: '↑ 0.34%', isPositive: true }, icon: <MousePointer className="h-5 w-5 text-primary" /> },
+    { title: t('analytics.pages-per-session'), value: '2.91', trend: { value: '↑ 0.12', isPositive: true }, icon: <Globe className="h-5 w-5 text-primary" /> },
   ];
 
   const trafficSourcesData = [
@@ -68,11 +71,11 @@ const GoogleAnalytics = () => {
   ];
 
   const userFlowData = [
-    { stage: 'Landing Page', users: 134567, color: '#8B5CF6' },
-    { stage: 'Product View', users: 95678, color: '#A78BFA' },
-    { stage: 'Pricing Page', users: 67890, color: '#C4B5FD' },
-    { stage: 'Contact Form', users: 34567, color: '#DDD6FE' },
-    { stage: 'Conversion', users: 12345, color: '#F3F4F6' },
+    { stage: t('analytics.flow.landing-page'), users: 134567, color: '#8B5CF6' },
+    { stage: t('analytics.flow.product-view'), users: 95678, color: '#A78BFA' },
+    { stage: t('analytics.flow.pricing-page'), users: 67890, color: '#C4B5FD' },
+    { stage: t('analytics.flow.contact-form'), users: 34567, color: '#DDD6FE' },
+    { stage: t('analytics.flow.conversion'), users: 12345, color: '#F3F4F6' },
   ];
 
   return (
@@ -85,9 +88,9 @@ const GoogleAnalytics = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          Google Analytics Dashboard
+          {t('dashboard.title.google-analytics')}
         </h1>
-        <p className="text-muted-foreground">Comprehensive website performance and user behavior insights</p>
+        <p className="text-muted-foreground">{t('dashboard.subtitle.google-analytics')}</p>
       </div>
 
       {/* Primary KPIs */}
@@ -113,7 +116,7 @@ const GoogleAnalytics = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Traffic Sources</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('analytics.traffic-sources')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -142,7 +145,7 @@ const GoogleAnalytics = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">User Flow</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('analytics.user-flow')}</h3>
           <div className="space-y-4">
             {userFlowData.map((stage, index) => (
               <motion.div
@@ -174,7 +177,7 @@ const GoogleAnalytics = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.2 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">Monthly Sessions & Users</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('analytics.monthly-sessions-users')}</h3>
         <ResponsiveContainer width="100%" height={400}>
           <AreaChart data={monthlySessionsData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -209,7 +212,7 @@ const GoogleAnalytics = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.4 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">Top Landing Pages</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('analytics.top-landing-pages')}</h3>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={topPagesData} layout="horizontal">
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
