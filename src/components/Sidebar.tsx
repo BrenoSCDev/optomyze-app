@@ -39,6 +39,7 @@ import optomyzeLogo from '@/assets/optomyze.png';
 import metaLogo from '@/assets/meta-logo.png';
 import googleLogo from '@/assets/google-logo.png';
 import OptoIcon from '@/assets/opto-icon.png';
+import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -76,8 +77,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Settings submenu items
   const settingsItems = [
-    { id: 'funnels', label: t('nav.funnels'), icon: () => <span>🔄</span> },
-    { id: 'languages', label: t('nav.languages'), icon: () => <span>🌐</span> },
+    { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline /> },
+    { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
