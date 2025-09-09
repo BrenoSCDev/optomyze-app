@@ -50,7 +50,7 @@ const FunnelsDashboard = () => {
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   
   const { toast } = useToast();
-  const { funnels: authFunnels } = useAuth();
+  const { funnels: authFunnels, updateFunnels } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -120,6 +120,16 @@ const FunnelsDashboard = () => {
       // Add new funnel to the list
       setFunnels(prev => [...prev, response.data]);
       
+      // Update global context for sidebar
+      if (updateFunnels) {
+        const updatedGlobalFunnels = [...(authFunnels || []), {
+          id: response.data.id,
+          name: response.data.name,
+          nleads: response.data.nleads || 0
+        }];
+        updateFunnels(updatedGlobalFunnels);
+      }
+      
       // Reset form and close modal
       setFormData({ name: '', description: '' });
       setShowNewFunnelModal(false);
@@ -177,6 +187,12 @@ const FunnelsDashboard = () => {
       
       // Optimistic update
       setFunnels(prev => prev.filter(funnel => funnel.id !== funnelId));
+      
+      // Update global context for sidebar
+      if (updateFunnels) {
+        const updatedGlobalFunnels = (authFunnels || []).filter(f => f.id !== funnelId);
+        updateFunnels(updatedGlobalFunnels);
+      }
       
       toast({
         title: t('common.success'),
