@@ -29,6 +29,9 @@ const translations = {
     'nav.users': 'Users',
     'nav.logout': 'Logout',
     'nav.languages': 'Languages',
+    'nav.general': 'General',
+    'nav.funnels': 'Funnels',
+    'nav.apiKeys': 'API Keys',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metrics',
@@ -156,6 +159,9 @@ const translations = {
     'nav.users': 'Usuários',
     'nav.logout': 'Sair',
     'nav.languages': 'Idiomas',
+    'nav.general': 'Geral',
+    'nav.funnels': 'Funis',
+    'nav.apiKeys': 'Chaves API',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
@@ -283,6 +289,9 @@ const translations = {
     'nav.users': 'Benutzer',
     'nav.logout': 'Abmelden',
     'nav.languages': 'Sprachen',
+    'nav.general': 'Allgemein',
+    'nav.funnels': 'Verkaufstrichter',
+    'nav.apiKeys': 'API-Schlüssel',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
@@ -410,6 +419,9 @@ const translations = {
     'nav.users': 'Usuarios',
     'nav.logout': 'Cerrar Sesión',
     'nav.languages': 'Idiomas',
+    'nav.general': 'General',
+    'nav.funnels': 'Embudos',
+    'nav.apiKeys': 'Claves API',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',

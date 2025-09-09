@@ -76,6 +76,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Settings submenu items
   const settingsItems = [
+    { id: 'general', label: t('nav.general'), icon: () => <span>⚙️</span> },
+    { id: 'users', label: t('nav.users'), icon: Users },
+    { id: 'integrations', label: t('nav.integrations'), icon: Plug },
+    { id: 'funnels', label: t('nav.funnels'), icon: () => <span>🔄</span> },
+    { id: 'api-keys', label: t('nav.apiKeys'), icon: () => <span>🔑</span> },
     { id: 'languages', label: t('nav.languages'), icon: () => <span>🌐</span> },
   ];
 
