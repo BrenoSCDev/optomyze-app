@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '../ui/use-toast';
 import optomyzeLogo from '../../assets/optomyze.png';
@@ -15,6 +16,7 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -79,15 +81,15 @@ const LoginForm = () => {
             alt="Optomyze"
             className="h-12 mx-auto mb-6 filter brightness-0 invert"
           />
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-white/70">Sign in to continue to your CRM</p>
+          <h1 className="text-3xl font-bold text-white mb-2">{t('auth.welcome')}</h1>
+          <p className="text-white/70">{t('auth.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white">
-              Email
+              {t('auth.email')}
             </Label>
             <Input
               id="email"
@@ -104,7 +106,7 @@ const LoginForm = () => {
           {/* Password Field */}
           <div className="space-y-2">
             <Label htmlFor="password" className="text-white">
-              Password
+              {t('auth.password')}
             </Label>
             <div className="relative">
               <Input
@@ -139,10 +141,10 @@ const LoginForm = () => {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing In...
+                {t('auth.signingin')}
               </>
             ) : (
-              "Sign In"
+              t('auth.signin')
             )}
           </Button>
 

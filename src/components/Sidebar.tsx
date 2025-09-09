@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, 
@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
 import metaLogo from '@/assets/meta-logo.png';
 import googleLogo from '@/assets/google-logo.png';
@@ -53,13 +54,15 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [leadsExpanded, setLeadsExpanded] = useState(false);
   
   const { funnels, logout, user } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
-    { id: 'optomyze-metrics', label: 'Optomyze Metrics', icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
-    { id: 'meta-ads', label: 'Meta Ads', icon: () => <img src={metaLogo} alt="Meta" className="h-4 w-4" /> }, // Facebook/Instagram ads performance
-    { id: 'google-ads', label: 'Google Ads', icon: () => <img src={googleLogo} alt="Google" className="h-4 w-4" /> }, // Google Ads campaign analytics
-    { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
+    { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
+    { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <img src={metaLogo} alt="Meta" className="h-4 w-4" /> }, // Facebook/Instagram ads performance
+    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <img src={googleLogo} alt="Google" className="h-4 w-4" /> }, // Google Ads campaign analytics
+    { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: BarChart }, // Website traffic data
   ];
 
   // Dynamic leads submenu items from API
@@ -71,10 +74,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
-    { id: 'integrations', label: 'Integrations', icon: Plug }, // Future: Third-party integrations
-    { id: 'settings', label: 'Settings', icon: Settings }, // Future: App configuration
-    { id: 'api', label: 'API', icon: Database }, // Future: API management & documentation
-    { id: 'users', label: 'Users', icon: Users }, // Future: User management system
+    { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
+    { id: 'settings', label: t('nav.settings'), icon: Settings, route: '/settings' }, // App configuration
+    { id: 'api', label: t('nav.api'), icon: Database }, // Future: API management & documentation
+    { id: 'users', label: t('nav.users'), icon: Users }, // Future: User management system
   ];
 
   return (
@@ -128,7 +131,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    Dashboard
+                    {t('nav.dashboard')}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -187,7 +190,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    Leads
+                    {t('nav.leads')}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -243,11 +246,17 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {mainItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onSectionChange(item.id)}
+            onClick={() => {
+              if (item.route) {
+                navigate(item.route);
+              } else {
+                onSectionChange(item.id);
+              }
+            }}
             className={`nav-item w-full ${isCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
-            disabled
+            disabled={!item.route && item.id !== 'settings'}
           >
             <item.icon className="h-5 w-5" />
             <AnimatePresence>
@@ -277,9 +286,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                >
-                  Logout
-                </motion.span>
+                  >
+                    {t('nav.logout')}
+                  </motion.span>
               )}
             </AnimatePresence>
           </button>
@@ -293,10 +302,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 exit={{ opacity: 0, height: 0 }}
                 className="mt-3 p-3 bg-white/5 rounded-lg overflow-hidden"
               >
-                <div className="text-xs text-muted-foreground">Logged in as</div>
+                <div className="text-xs text-muted-foreground">{t('user.loggedinas')}</div>
                 <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
                 <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                <div className="text-xs text-muted-foreground">Role: {user.role}</div>
+                <div className="text-xs text-muted-foreground">{t('user.role')}: {user.role}</div>
               </motion.div>
             )}
           </AnimatePresence>
