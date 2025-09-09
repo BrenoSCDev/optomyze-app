@@ -10,11 +10,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Settings, Trash2, Filter } from 'lucide-react';
+import { Plus, Settings, Trash2, Filter, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +45,9 @@ const FunnelsDashboard = () => {
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
   const [deletingFunnelId, setDeletingFunnelId] = useState<number | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   
   const { toast } = useToast();
   const { funnels: authFunnels } = useAuth();
@@ -83,6 +89,84 @@ const FunnelsDashboard = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createFunnel = async () => {
+    // Reset form errors
+    setFormErrors({ name: '', description: '' });
+    
+    // Validate form
+    const errors = { name: '', description: '' };
+    if (!formData.name.trim()) {
+      errors.name = t('funnels.name-required');
+    }
+    if (!formData.description.trim()) {
+      errors.description = t('funnels.description-required');
+    }
+    
+    if (errors.name || errors.description) {
+      setFormErrors(errors);
+      return;
+    }
+    
+    try {
+      setCreating(true);
+      const response = await api.post('/api/funnels', {
+        name: formData.name.trim(),
+        description: formData.description.trim()
+      });
+      
+      // Add new funnel to the list
+      setFunnels(prev => [...prev, response.data]);
+      
+      // Reset form and close modal
+      setFormData({ name: '', description: '' });
+      setShowNewFunnelModal(false);
+      
+      toast({
+        title: t('common.success'),
+        description: t('funnels.success-create'),
+      });
+    } catch (error: any) {
+      console.error('Error creating funnel:', error);
+      
+      // Handle different error types
+      if (error.response?.status === 401) {
+        // Authentication error - redirect to login
+        localStorage.removeItem('optomyze_auth_token');
+        localStorage.removeItem('optomyze_user');
+        localStorage.removeItem('optomyze_funnels');
+        window.location.href = '/login';
+        return;
+      }
+      
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        // Validation errors from server
+        const serverErrors = error.response.data.errors;
+        setFormErrors({
+          name: serverErrors.name?.[0] || '',
+          description: serverErrors.description?.[0] || ''
+        });
+        return;
+      }
+      
+      // Network or server errors
+      const isNetworkError = !error.response;
+      toast({
+        title: t('common.error'),
+        description: isNetworkError 
+          ? t('funnels.network-error') 
+          : t('funnels.server-error'),
+        variant: "destructive",
+        action: isNetworkError ? (
+          <Button variant="outline" size="sm" onClick={createFunnel}>
+            {t('common.retry')}
+          </Button>
+        ) : undefined
+      });
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -262,24 +346,82 @@ const FunnelsDashboard = () => {
             <DialogHeader>
               <DialogTitle className="text-foreground futuristic-text">{t('funnels.create-new')}</DialogTitle>
             </DialogHeader>
-            <div className="py-8 text-center">
-              <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Plus className="h-8 w-8 text-primary" />
+            <div className="space-y-6 py-6">
+              <div className="space-y-2">
+                <Label htmlFor="funnel-name" className="text-foreground">
+                  {t('funnels.name')} *
+                </Label>
+                <Input
+                  id="funnel-name"
+                  value={formData.name}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, name: e.target.value }));
+                    if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  placeholder={t('funnels.name-placeholder')}
+                  className={`glass-card border-muted/30 ${formErrors.name ? 'border-red-500' : ''}`}
+                  disabled={creating}
+                />
+                {formErrors.name && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {formErrors.name}
+                  </div>
+                )}
               </div>
-              <p className="text-muted-foreground">
-                {t('funnels.coming-soon')}
-              </p>
+              
+              <div className="space-y-2">
+                <Label htmlFor="funnel-description" className="text-foreground">
+                  {t('funnels.description')} *
+                </Label>
+                <Textarea
+                  id="funnel-description"
+                  value={formData.description}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, description: e.target.value }));
+                    if (formErrors.description) setFormErrors(prev => ({ ...prev, description: '' }));
+                  }}
+                  placeholder={t('funnels.description-placeholder')}
+                  className={`glass-card border-muted/30 min-h-[100px] ${formErrors.description ? 'border-red-500' : ''}`}
+                  disabled={creating}
+                />
+                {formErrors.description && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {formErrors.description}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <Button 
                 variant="outline" 
-                onClick={() => setShowNewFunnelModal(false)}
+                onClick={() => {
+                  setShowNewFunnelModal(false);
+                  setFormData({ name: '', description: '' });
+                  setFormErrors({ name: '', description: '' });
+                }}
                 className="bg-muted/20 border-muted/30 hover:bg-muted/30"
+                disabled={creating}
               >
                 {t('funnels.cancel')}
               </Button>
-              <Button disabled className="bg-primary/50">
-                {t('common.create')}
+              <Button 
+                onClick={createFunnel}
+                className="neon-border"
+                disabled={creating}
+              >
+                {creating ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    {t('common.creating')}
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('common.create')}
+                  </>
+                )}
               </Button>
             </div>
           </DialogContent>
