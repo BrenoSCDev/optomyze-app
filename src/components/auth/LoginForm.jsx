@@ -63,14 +63,20 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
       {/* Login Card */}
-      <div className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5">
+      <div
+        className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5"
+        style={{
+          width: "clamp(95%, 70vw, 50%)", // 95% on small, 70% on medium, 55% on large
+          maxWidth: "600px", // optional: keeps it from being too wide on very large screens
+        }}
+      >
         {/* Logo */}
         <div className="text-center mb-8">
-          <img 
-            src={optomyzeLogo} 
-            alt="Optomyze" 
+          <img
+            src={optomyzeLogo}
+            alt="Optomyze"
             className="h-12 mx-auto mb-6 filter brightness-0 invert"
           />
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
@@ -80,7 +86,9 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-white">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -95,11 +103,13 @@ const LoginForm = () => {
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
+            <Label htmlFor="password" className="text-white">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -110,8 +120,9 @@ const LoginForm = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
                 disabled={isLoading}
+                style={{ color: "gray" }}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -131,7 +142,7 @@ const LoginForm = () => {
                 Signing In...
               </>
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </Button>
 
@@ -148,6 +159,7 @@ const LoginForm = () => {
         </form>
       </div>
     </div>
+
   );
 };
 
