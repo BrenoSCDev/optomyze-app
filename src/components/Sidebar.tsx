@@ -16,7 +16,7 @@
  */
 
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, 
@@ -59,6 +59,18 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const { funnels, logout, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle navigation for dashboard and settings sections
+  const handleSectionNavigation = (sectionId: string) => {
+    if (sectionId === 'leads') {
+      // If clicking leads without specific funnel, go to default dashboard
+      navigate('/');
+    } else {
+      // For dashboard and settings sections, navigate to home with section parameter
+      navigate(`/?section=${sectionId}`);
+    }
+  };
 
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
@@ -170,7 +182,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 {dashboardItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => onSectionChange(item.id)}
+                    onClick={() => handleSectionNavigation(item.id)}
                     className={`nav-item w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
@@ -298,7 +310,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 {settingsItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => onSectionChange(item.id)}
+                    onClick={() => handleSectionNavigation(item.id)}
                     className={`nav-item w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
@@ -316,7 +328,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {mainItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onSectionChange(item.id)}
+            onClick={() => handleSectionNavigation(item.id)}
             className={`nav-item w-full ${isCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
