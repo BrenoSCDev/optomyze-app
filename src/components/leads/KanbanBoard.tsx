@@ -44,6 +44,7 @@ import {
 } from '@dnd-kit/sortable';
 import LeadCard from './LeadCard';
 import { timeAgo } from '@/lib/utils';
+import { TagCreationDialog } from './TagCreationDialog';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -55,6 +56,7 @@ interface KanbanBoardProps {
 
 const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage }: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -279,7 +281,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={onCreateTag}
+            onClick={() => setTagDialogOpen(true)}
             className="glass-card border-accent/30 hover:bg-accent/10"
           >
             <Tag className="h-4 w-4 mr-2" />
@@ -328,6 +330,12 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Tag Creation Dialog */}
+      <TagCreationDialog 
+        open={tagDialogOpen} 
+        onOpenChange={setTagDialogOpen} 
+      />
     </div>
   );
 };
