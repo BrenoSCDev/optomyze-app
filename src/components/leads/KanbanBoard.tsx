@@ -43,6 +43,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import LeadCard from './LeadCard';
+import { timeAgo } from '@/lib/utils';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -74,7 +75,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
         value: parseFloat(lead.estimated_value || '0'),
         source: lead.source_platform || 'Direct',
         tags: Array.isArray(lead.tags) ? lead.tags : [],
-        lastActivity: lead.last_contact_at ? new Date(lead.last_contact_at).toLocaleDateString() : 'No activity',
+        lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
         priority: lead.priority || 'medium',
         stage: stage.id.toString(),
         avatar: lead.platform_data?.profile_picture,

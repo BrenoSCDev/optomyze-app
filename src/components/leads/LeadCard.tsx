@@ -153,12 +153,11 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
 
       {/* Bottom Section */}
       <div className="flex items-center justify-between pt-2 border-t border-white/10">
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-3 w-3 text-green-400" />
-          <span className="text-xs font-medium text-green-400">
-            {formatCurrency(lead.value)}
-          </span>
-        </div>
+      
+      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+        <Clock className="h-3 w-3" />
+        <span>{lead.lastActivity}</span>
+      </div>
         
         <div className="flex items-center gap-2">
           <Badge
@@ -167,12 +166,6 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
             {lead.source}
           </Badge>
         </div>
-      </div>
-
-      {/* Last Activity */}
-      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-        <Clock className="h-3 w-3" />
-        <span>{lead.lastActivity}</span>
       </div>
     </motion.div>
   );
