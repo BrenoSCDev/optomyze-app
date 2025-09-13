@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
@@ -30,6 +30,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('optomyze-metrics');
   
   const location = useLocation();
+  const { funnelId } = useParams();
 
   // Check for section parameter in URL and update active section
   useEffect(() => {
@@ -39,6 +40,13 @@ const Index = () => {
       setActiveSection(section);
     }
   }, [location.search]);
+
+  // Set active section to leads management if we have a funnelId
+  useEffect(() => {
+    if (funnelId) {
+      setActiveSection('leads');
+    }
+  }, [funnelId]);
 
   // Toggle sidebar collapse/expand functionality
   const toggleSidebar = () => {
@@ -80,17 +88,9 @@ const Index = () => {
           </div>
         );
       
-      // Leads Management - Different Sales Funnels
-      case 'b2b-enterprise':
-        return <LeadsManagement funnelId="b2b-enterprise" />;
-      case 'ecommerce-conversion':
-        return <LeadsManagement funnelId="ecommerce-conversion" />;
-      case 'saas-trial':
-        return <LeadsManagement funnelId="saas-trial" />;
-      case 'real-estate':
-        return <LeadsManagement funnelId="real-estate" />;
-      case 'digital-marketing':
-        return <LeadsManagement funnelId="digital-marketing" />;
+      // Leads Management - Dynamic funnel routing
+      case 'leads':
+        return <LeadsManagement funnelId={funnelId} />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)

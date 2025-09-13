@@ -32,6 +32,14 @@ const App = () => (
                 } 
               />
               <Route 
+                path="/leads/:funnelId" 
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/settings/funnels/:funnelId/stages" 
                 element={
                   <ProtectedRoute>

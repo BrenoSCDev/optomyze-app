@@ -72,7 +72,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const leadsItems = funnels.map(funnel => ({
     id: funnel.id.toString(),
     label: funnel.name,
-    count: funnel.nleads
+    count: funnel.nleads,
+    path: `/leads/${funnel.id}`
   }));
 
   // Settings submenu items
@@ -227,18 +228,20 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               >
                 {leadsItems.length > 0 ? (
                   leadsItems.map((item) => (
-                    <button
+                    <NavLink
                       key={item.id}
-                      onClick={() => onSectionChange('leads')}
-                      className={`nav-item w-full justify-between ${
-                        activeSection === 'leads' ? 'active' : ''
-                      }`}
+                      to={item.path}
+                      className={({ isActive }) => `
+                        nav-item w-full justify-between ${
+                          isActive || activeSection === 'leads' ? 'active' : ''
+                        }
+                      `}
                     >
                       <span className="text-sm truncate">{item.label}</span>
                       <span className="text-xs bg-muted px-2 py-1 rounded-full">
                         {item.count}
                       </span>
-                    </button>
+                    </NavLink>
                   ))
                 ) : (
                   <div className="ml-4 text-sm text-muted-foreground">

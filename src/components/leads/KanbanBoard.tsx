@@ -4,7 +4,7 @@
  * Main Kanban board layout with drag and drop functionality
  */
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SalesFunnel, Lead } from '@/types/leads';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,15 +45,50 @@ import {
 import LeadCard from './LeadCard';
 
 interface KanbanBoardProps {
-  funnel: SalesFunnel;
+  funnel: any; // API funnel object
   onCreateLead: () => void;
   onCreateTag: () => void;
   onOpenFilters: () => void;
+  onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
 }
 
-const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage }: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [columns, setColumns] = useState(funnel.columns);
+  
+  // Transform API data to kanban format
+  const kanbanColumns = funnel.stages
+    ?.sort((a: any, b: any) => a.order - b.order)
+    .map((stage: any) => ({
+      id: stage.id.toString(),
+      title: stage.name,
+      description: stage.description,
+      type: stage.type,
+      leads: stage.active_leads.map((lead: any) => ({
+        id: lead.id.toString(),
+        name: `${lead.first_name} ${lead.last_name}`,
+        email: lead.email,
+        phone: lead.phone,
+        company: lead.custom_fields?.industry || 'N/A',
+        title: lead.custom_fields?.title || 'Contact',
+        score: parseFloat(lead.ai_score || '0'),
+        value: parseFloat(lead.estimated_value || '0'),
+        source: lead.source_platform || 'Direct',
+        tags: Array.isArray(lead.tags) ? lead.tags : [],
+        lastActivity: lead.last_contact_at ? new Date(lead.last_contact_at).toLocaleDateString() : 'No activity',
+        priority: lead.priority || 'medium',
+        stage: stage.id.toString(),
+        avatar: lead.platform_data?.profile_picture,
+        notes: lead.notes,
+        createdAt: lead.created_at,
+        assignedTo: lead.assigned_to,
+        currency: lead.currency || 'USD',
+        initialMessage: lead.initial_message,
+        contactMethods: lead.contact_methods || [],
+        preferredContact: lead.preferred_contact_method || 'email'
+      }))
+    })) || [];
+
+  const [columns, setColumns] = useState(kanbanColumns);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,32 +169,52 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters }: Kanba
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
-    
     const { active, over } = event;
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      const activeColumn = findColumn(active.id as string);
-      const overColumn = findColumn(over.id as string);
-
-      if (activeColumn && overColumn && activeColumn.id === overColumn.id) {
-        setColumns(prevColumns => {
-          return prevColumns.map(column => {
-            if (column.id === activeColumn.id) {
-              const oldIndex = column.leads.findIndex(lead => lead.id === active.id);
-              const newIndex = column.leads.findIndex(lead => lead.id === over.id);
-              
-              return {
-                ...column,
-                leads: arrayMove(column.leads, oldIndex, newIndex)
-              };
-            }
-            return column;
-          });
-        });
+    
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+    
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    const activeColumn = findColumn(activeId);
+    const overColumn = findColumn(overId);
+    
+    if (!activeColumn) {
+      setActiveId(null);
+      return;
+    }
+    
+    // If dropping on the same column (reordering)
+    if (activeColumn === overColumn && overColumn) {
+      setColumns(columns => 
+        columns.map(column => {
+          if (column.id !== overColumn.id) return column;
+          
+          const leads = column.leads;
+          const oldIndex = leads.findIndex(lead => lead.id === activeId);
+          const newIndex = leads.findIndex(lead => lead.id === overId);
+          
+          return {
+            ...column,
+            leads: arrayMove(leads, oldIndex, newIndex)
+          };
+        })
+      );
+    } else if (overColumn && activeColumn.id !== overColumn.id) {
+      // Moving to different column
+      const oldStageId = activeColumn.id;
+      const newStageId = overColumn.id;
+      
+      if (onUpdateLeadStage) {
+        // Call the API update function
+        onUpdateLeadStage(activeId, newStageId, oldStageId);
       }
     }
+    
+    setActiveId(null);
   };
 
   const handleAddLead = useCallback((columnId: string) => {
@@ -182,8 +237,8 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters }: Kanba
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="#" className="text-muted-foreground hover:text-foreground">
-                  Leads
+                <BreadcrumbLink href="/" className="text-muted-foreground hover:text-foreground">
+                  Dashboard
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -203,7 +258,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters }: Kanba
                 variant="secondary"
                 className="bg-primary/20 text-primary px-3 py-1"
               >
-                {funnel.totalLeads} total leads
+                {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
               </Badge>
               <div className={`flex items-center gap-1 text-sm ${
                 isPositiveTrend ? 'text-green-400' : 'text-red-400'
