@@ -45,6 +45,7 @@ import {
 import LeadCard from './LeadCard';
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
+import { LeadCreationDialog } from './LeadCreationDialog';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -52,11 +53,13 @@ interface KanbanBoardProps {
   onCreateTag: () => void;
   onOpenFilters: () => void;
   onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
+  onLeadCreated?: () => void;
 }
 
-const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -298,7 +301,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           </Button>
           
           <Button
-            onClick={onCreateLead}
+            onClick={() => setLeadDialogOpen(true)}
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -335,6 +338,18 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       <TagCreationDialog 
         open={tagDialogOpen} 
         onOpenChange={setTagDialogOpen} 
+      />
+
+      {/* Lead Creation Dialog */}
+      <LeadCreationDialog
+        isOpen={leadDialogOpen}
+        onClose={() => setLeadDialogOpen(false)}
+        funnelId={funnel.id?.toString() || ''}
+        funnelData={{ funnel }}
+        onLeadCreated={() => {
+          setLeadDialogOpen(false);
+          onLeadCreated?.();
+        }}
       />
     </div>
   );

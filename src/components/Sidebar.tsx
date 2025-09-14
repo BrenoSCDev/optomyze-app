@@ -15,7 +15,7 @@
  * - Icon-only mode when collapsed
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -190,7 +190,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                     {React.createElement(item.icon, { className: "h-4 w-4" })}
                     <span className="text-sm">{item.label}</span>
                   </button>
                 ))}
