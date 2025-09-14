@@ -23,9 +23,10 @@ import {
 interface LeadCardProps {
   lead: Lead;
   isDragging?: boolean;
+  isMoving?: boolean;
 }
 
-const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false }: LeadCardProps) => {
   const {
     attributes,
     listeners,
@@ -74,16 +75,17 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
   };
 
   return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
-        isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
-      }`}
-      whileHover={{ y: -2 }}
-      layout
-      {...attributes}
-    >
+    <div className="relative">
+      <motion.div
+        ref={setNodeRef}
+        style={style}
+        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
+          isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
+        } ${isMoving ? 'opacity-60' : ''}`}
+        whileHover={{ y: -2 }}
+        layout
+        {...attributes}
+      >
       {/* Lead Header */}
       <div className="flex items-start gap-3 mb-3">
         <div className="flex items-center gap-2">
@@ -167,7 +169,23 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
           </Badge>
         </div>
       </div>
-    </motion.div>
+      </motion.div>
+      
+      {/* Loading Overlay for Moving State */}
+      {isMoving && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="flex items-center gap-2 px-3 py-2 bg-background/80 rounded-lg border border-border">
+            <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+            <span className="text-xs font-medium text-foreground">Moving...</span>
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 };
 

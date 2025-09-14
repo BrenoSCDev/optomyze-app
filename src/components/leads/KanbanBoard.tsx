@@ -46,6 +46,8 @@ import LeadCard from './LeadCard';
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
+import { leadService } from '@/services/leadApi';
+import { toast } from 'sonner';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -61,6 +63,8 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  const [movingLeads, setMovingLeads] = useState<Record<string, boolean>>({});
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, string>>({});
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -129,6 +133,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
+    document.body.style.cursor = 'grabbing';
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -175,13 +180,14 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     });
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
+    // Reset cursor and active state
+    document.body.style.cursor = '';
+    setActiveId(null);
+    
+    if (!over) return;
     
     const activeId = active.id as string;
     const overId = over.id as string;
@@ -189,12 +195,9 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     const activeColumn = findColumn(activeId);
     const overColumn = findColumn(overId);
     
-    if (!activeColumn) {
-      setActiveId(null);
-      return;
-    }
+    if (!activeColumn) return;
     
-    // If dropping on the same column (reordering)
+    // If dropping on the same column (reordering within same stage)
     if (activeColumn === overColumn && overColumn) {
       setColumns(columns => 
         columns.map(column => {
@@ -203,6 +206,8 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           const leads = column.leads;
           const oldIndex = leads.findIndex(lead => lead.id === activeId);
           const newIndex = leads.findIndex(lead => lead.id === overId);
+          
+          if (oldIndex === -1 || newIndex === -1) return column;
           
           return {
             ...column,
@@ -215,13 +220,74 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       const oldStageId = activeColumn.id;
       const newStageId = overColumn.id;
       
-      if (onUpdateLeadStage) {
-        // Call the API update function
-        onUpdateLeadStage(activeId, newStageId, oldStageId);
+      try {
+        // Set loading state
+        setMovingLeads(prev => ({ ...prev, [activeId]: true }));
+        
+        // Store original stage for potential rollback
+        setOptimisticUpdates(prev => ({ ...prev, [activeId]: oldStageId }));
+        
+        // Call API to move lead
+        await leadService.moveLeadToStage(activeId, newStageId);
+        
+        // Show success feedback
+        toast.success(`Lead moved to ${overColumn.title}`, {
+          duration: 3000,
+        });
+        
+        // Call the parent's update handler if provided
+        if (onUpdateLeadStage) {
+          onUpdateLeadStage(activeId, newStageId, oldStageId);
+        }
+        
+        // Refresh data to ensure consistency
+        if (onLeadCreated) {
+          onLeadCreated();
+        }
+        
+      } catch (error) {
+        console.error('Error moving lead:', error);
+        
+        // Revert optimistic update by moving lead back to original column
+        const originalStageId = optimisticUpdates[activeId] || oldStageId;
+        
+        setColumns(prevColumns => {
+          return prevColumns.map(column => {
+            if (column.id === newStageId) {
+              // Remove lead from destination column
+              return {
+                ...column,
+                leads: column.leads.filter(lead => lead.id !== activeId)
+              };
+            } else if (column.id === originalStageId) {
+              // Add lead back to original column
+              const movedLead = overColumn.leads.find(lead => lead.id === activeId);
+              if (movedLead) {
+                return {
+                  ...column,
+                  leads: [...column.leads, { ...movedLead, stage: originalStageId }]
+                };
+              }
+            }
+            return column;
+          });
+        });
+        
+        // Show error message
+        toast.error('Failed to move lead. Please try again.', {
+          duration: 4000,
+        });
+        
+      } finally {
+        // Clear loading and optimistic update states
+        setMovingLeads(prev => ({ ...prev, [activeId]: false }));
+        setOptimisticUpdates(prev => {
+          const newState = { ...prev };
+          delete newState[activeId];
+          return newState;
+        });
       }
     }
-    
-    setActiveId(null);
   };
 
   const handleAddLead = useCallback((columnId: string) => {
@@ -328,6 +394,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
               key={column.id}
               column={column}
               onAddLead={handleAddLead}
+              movingLeads={movingLeads}
             />
           ))}
         </div>

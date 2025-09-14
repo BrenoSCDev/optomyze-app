@@ -43,5 +43,18 @@ export const leadService = {
       console.error('Error deleting lead:', error);
       throw error;
     }
+  },
+
+  // Move lead to different stage (for drag and drop)
+  async moveLeadToStage(leadId, stageId) {
+    try {
+      const response = await api.put(`/api/leads/${leadId}/move-stage`, {
+        stage_id: stageId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error moving lead to stage:', error);
+      throw error;
+    }
   }
 };

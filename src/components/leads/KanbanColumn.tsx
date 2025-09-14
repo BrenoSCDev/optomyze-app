@@ -24,9 +24,10 @@ import {
 interface KanbanColumnProps {
   column: ColumnType;
   onAddLead: (columnId: string) => void;
+  movingLeads?: Record<string, boolean>;
 }
 
-const KanbanColumn = ({ column, onAddLead }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, onAddLead, movingLeads = {} }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const {
@@ -46,7 +47,7 @@ const KanbanColumn = ({ column, onAddLead }: KanbanColumnProps) => {
     <motion.div
       ref={setNodeRef}
       className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 ${getColumnColor()} ${
-        isOver ? 'ring-2 ring-accent/50 scale-102' : ''
+        isOver ? 'ring-2 ring-primary/50 scale-102 bg-primary/5 border-primary/30' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -101,7 +102,7 @@ const KanbanColumn = ({ column, onAddLead }: KanbanColumnProps) => {
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
               >
-                <LeadCard lead={lead} />
+                <LeadCard lead={lead} isMoving={movingLeads[lead.id]} />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -131,10 +132,11 @@ const KanbanColumn = ({ column, onAddLead }: KanbanColumnProps) => {
       {/* Drop Zone Indicator */}
       {isOver && (
         <motion.div
-          className="absolute inset-0 bg-accent/10 border-2 border-accent/50 border-dashed rounded-xl pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-primary/10 border-2 border-primary/50 border-dashed rounded-xl pointer-events-none"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
         />
       )}
     </motion.div>
