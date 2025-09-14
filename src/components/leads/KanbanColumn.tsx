@@ -15,7 +15,7 @@ import {
   MoreVertical,
   Users
 } from 'lucide-react';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface KanbanColumnProps {
   column: ColumnType;
@@ -94,14 +94,10 @@ const KanbanColumn = ({ column, index, onAddLead, movingLeads = {} }: KanbanColu
                   {column.leads.map((lead, index) => (
                     <Draggable key={lead.id} draggableId={lead.id} index={index}>
                       {(provided, snapshot) => (
-                        <motion.div
+                        <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          transition={{ duration: 0.2 }}
                           style={{
                             ...provided.draggableProps.style,
                             transform: snapshot.isDragging 
@@ -109,12 +105,19 @@ const KanbanColumn = ({ column, index, onAddLead, movingLeads = {} }: KanbanColu
                               : provided.draggableProps.style?.transform,
                           }}
                         >
-                          <LeadCard 
-                            lead={lead} 
-                            isDragging={snapshot.isDragging}
-                            isMoving={movingLeads[lead.id]} 
-                          />
-                        </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <LeadCard 
+                              lead={lead} 
+                              isDragging={snapshot.isDragging}
+                              isMoving={movingLeads[lead.id]} 
+                            />
+                          </motion.div>
+                        </div>
                       )}
                     </Draggable>
                   ))}
