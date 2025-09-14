@@ -277,7 +277,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
           </div>
 
           {/* Form */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
