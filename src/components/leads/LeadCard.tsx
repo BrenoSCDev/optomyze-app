@@ -152,12 +152,12 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
       )}
 
       {/* Bottom Section */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/10">
+      <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
       
-      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-        <Clock className="h-3 w-3" />
-        <span>{lead.lastActivity}</span>
-      </div>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>{lead.lastActivity}</span>
+        </div>
         
         <div className="flex items-center gap-2">
           <Badge
