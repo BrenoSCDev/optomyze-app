@@ -25,7 +25,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
+
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
@@ -45,7 +45,6 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
-  const [movingLeads, setMovingLeads] = useState<Record<string, boolean>>({});
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -81,124 +80,6 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     })) || [];
 
   const [columns, setColumns] = useState(kanbanColumns);
-
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source, draggableId } = result;
-    
-    // If dropped outside a droppable area
-    if (!destination) return;
-    
-    // If dropped in the same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    // Find the source and destination columns
-    const sourceColumn = columns.find(col => col.id === source.droppableId);
-    const destColumn = columns.find(col => col.id === destination.droppableId);
-    const draggedLead = sourceColumn?.leads.find(lead => lead.id === draggableId);
-    
-    if (!draggedLead || !sourceColumn || !destColumn) return;
-
-    // If moving within the same column (reordering)
-    if (source.droppableId === destination.droppableId) {
-      const newLeads = Array.from(sourceColumn.leads);
-      const [removed] = newLeads.splice(source.index, 1);
-      newLeads.splice(destination.index, 0, removed);
-
-      setColumns(prevColumns =>
-        prevColumns.map(col =>
-          col.id === source.droppableId
-            ? { ...col, leads: newLeads }
-            : col
-        )
-      );
-      return;
-    }
-
-    // Moving between different columns
-    const sourceLeads = [...sourceColumn.leads];
-    const destLeads = [...destColumn.leads];
-    const [removed] = sourceLeads.splice(source.index, 1);
-    
-    if (!removed) return;
-    
-    // Update the lead's stage
-    const updatedLead = { 
-      ...removed,
-      stage: destination.droppableId 
-    };
-    destLeads.splice(destination.index, 0, updatedLead);
-
-    // Optimistically update the UI
-    setColumns(prevColumns =>
-      prevColumns.map(col => {
-        if (col.id === source.droppableId) {
-          return { ...col, leads: sourceLeads };
-        } else if (col.id === destination.droppableId) {
-          return { ...col, leads: destLeads };
-        }
-        return col;
-      })
-    );
-
-    try {
-      // Set loading state
-      setMovingLeads(prev => ({ ...prev, [draggableId]: true }));
-      
-      // Call API to move lead
-      await leadService.moveLeadToStage(draggableId, destination.droppableId);
-      
-      // Show success feedback
-      toast.success(`Lead moved to ${destColumn.title}`, {
-        duration: 3000,
-      });
-      
-      // Call the parent's update handler if provided
-      if (onUpdateLeadStage) {
-        onUpdateLeadStage(draggableId, destination.droppableId, source.droppableId);
-      }
-      
-      // Refresh data to ensure consistency
-      if (onLeadCreated) {
-        onLeadCreated();
-      }
-      
-    } catch (error) {
-      console.error('Error moving lead:', error);
-      
-      // Revert the optimistic update
-      setColumns(prevColumns => {
-        const revertedColumns = prevColumns.map(col => {
-          if (col.id === source.droppableId) {
-            const revertedLeads = [...col.leads];
-            revertedLeads.splice(source.index, 0, draggedLead);
-            return { ...col, leads: revertedLeads };
-          } else if (col.id === destination.droppableId) {
-            return { 
-              ...col, 
-              leads: col.leads.filter(lead => lead.id !== draggableId)
-            };
-          }
-          return col;
-        });
-        return revertedColumns;
-      });
-      
-      // Show error message
-      toast.error('Failed to move lead. Please try again.', {
-        duration: 4000,
-      });
-      
-    } finally {
-      // Clear loading state
-      setMovingLeads(prev => ({ ...prev, [draggableId]: false }));
-    }
-  };
-
   const handleAddLead = useCallback((columnId: string) => {
     setSelectedStageId(columnId);
     setLeadDialogOpen(true);
@@ -289,28 +170,16 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       </div>
 
       {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="board" direction="horizontal" type="COLUMN">
-          {(provided) => (
-            <div 
-              className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20"
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {columns.map((column, index) => (
-                <KanbanColumn
-                  key={column.id}
-                  column={column}
-                  index={index}
-                  onAddLead={handleAddLead}
-                  movingLeads={movingLeads}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+        {columns.map((column, index) => (
+          <KanbanColumn
+            key={column.id}
+            column={column}
+            index={index}
+            onAddLead={handleAddLead}
+          />
+        ))}
+      </div>
 
       {/* Tag Creation Dialog */}
       <TagCreationDialog 
