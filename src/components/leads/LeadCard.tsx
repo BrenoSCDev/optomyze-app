@@ -8,8 +8,6 @@ import { Lead } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { 
   Mail, 
   Phone, 
@@ -27,21 +25,6 @@ interface LeadCardProps {
 }
 
 const LeadCard = ({ lead, isDragging, isMoving = false }: LeadCardProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging: isSortableDragging,
-  } = useSortable({
-    id: lead.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -77,30 +60,19 @@ const LeadCard = ({ lead, isDragging, isMoving = false }: LeadCardProps) => {
   return (
     <div className="relative">
       <motion.div
-        ref={setNodeRef}
-        style={style}
         className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
-          isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
+          isDragging ? 'opacity-50 scale-105 shadow-lg' : 'hover:scale-102'
         } ${isMoving ? 'opacity-60' : ''}`}
         whileHover={{ y: -2 }}
         layout
-        {...attributes}
       >
-      {/* Lead Header */}
-      <div className="flex items-start gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 transition-colors"
-            {...listeners}
-          >
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
-          </div>
+        {/* Lead Header */}
+        <div className="flex items-start gap-3 mb-3">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
               {getInitials(lead.name)}
             </AvatarFallback>
           </Avatar>
-        </div>
         
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground text-sm truncate">

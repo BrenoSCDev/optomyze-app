@@ -1,15 +1,13 @@
 /**
  * KANBAN BOARD COMPONENT
  * 
- * Main Kanban board layout with drag and drop functionality
+ * Main Kanban board layout with drag and drop functionality using react-beautiful-dnd
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { SalesFunnel, Lead } from '@/types/leads';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import KanbanColumn from './KanbanColumn';
-import { motion } from 'framer-motion';
 import { 
   Plus, 
   Filter, 
@@ -27,22 +25,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import LeadCard from './LeadCard';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
@@ -59,12 +42,10 @@ interface KanbanBoardProps {
 }
 
 const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [movingLeads, setMovingLeads] = useState<Record<string, boolean>>({});
-  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, string>>({});
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -100,193 +81,121 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     })) || [];
 
   const [columns, setColumns] = useState(kanbanColumns);
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
-  const findColumn = (unique: string) => {
-    if (!columns) return null;
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
     
-    if (columns.some(c => c.id === unique)) {
-      return columns.find(c => c.id === unique) || null;
+    // If dropped outside a droppable area
+    if (!destination) return;
+    
+    // If dropped in the same position
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
     }
+
+    // Find the source and destination columns
+    const sourceColumn = columns.find(col => col.id === source.droppableId);
+    const destColumn = columns.find(col => col.id === destination.droppableId);
+    const draggedLead = sourceColumn?.leads.find(lead => lead.id === draggableId);
     
-    const id = String(unique);
-    return columns.find(c => c.leads.some(lead => lead.id === id)) || null;
-  };
+    if (!draggedLead || !sourceColumn || !destColumn) return;
 
-  const findLead = (unique: string) => {
-    if (!columns) return null;
-    
-    const id = String(unique);
-    for (const column of columns) {
-      const lead = column.leads.find(lead => lead.id === id);
-      if (lead) return lead;
-    }
-    return null;
-  };
+    // If moving within the same column (reordering)
+    if (source.droppableId === destination.droppableId) {
+      const newLeads = Array.from(sourceColumn.leads);
+      const [removed] = newLeads.splice(source.index, 1);
+      newLeads.splice(destination.index, 0, removed);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-    document.body.style.cursor = 'grabbing';
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    const overId = over?.id;
-
-    if (!overId) return;
-
-    const activeColumn = findColumn(active.id as string);
-    const overColumn = findColumn(overId as string);
-
-    if (!activeColumn || !overColumn) return;
-    if (activeColumn.id === overColumn.id) return;
-
-    setColumns(prevColumns => {
-      const activeItems = activeColumn.leads;
-      const overItems = overColumn.leads;
-
-      const activeIndex = activeItems.findIndex(item => item.id === active.id);
-      const overIndex = overItems.findIndex(item => item.id === overId);
-
-      const activeItem = activeItems[activeIndex];
-      if (!activeItem) return prevColumns;
-
-      const updatedActiveItem = { ...activeItem, stage: overColumn.id };
-
-      return prevColumns.map(column => {
-        if (column.id === activeColumn.id) {
-          return {
-            ...column,
-            leads: activeItems.filter(item => item.id !== active.id)
-          };
-        } else if (column.id === overColumn.id) {
-          const newItems = [...overItems];
-          const insertIndex = overIndex >= 0 ? overIndex : newItems.length;
-          newItems.splice(insertIndex, 0, updatedActiveItem);
-          return {
-            ...column,
-            leads: newItems
-          };
-        }
-        return column;
-      });
-    });
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    // Reset cursor and active state
-    document.body.style.cursor = '';
-    setActiveId(null);
-    
-    if (!over) return;
-    
-    const activeId = active.id as string;
-    const overId = over.id as string;
-    
-    const activeColumn = findColumn(activeId);
-    const overColumn = findColumn(overId);
-    
-    if (!activeColumn) return;
-    
-    // If dropping on the same column (reordering within same stage)
-    if (activeColumn === overColumn && overColumn) {
-      setColumns(columns => 
-        columns.map(column => {
-          if (column.id !== overColumn.id) return column;
-          
-          const leads = column.leads;
-          const oldIndex = leads.findIndex(lead => lead.id === activeId);
-          const newIndex = leads.findIndex(lead => lead.id === overId);
-          
-          if (oldIndex === -1 || newIndex === -1) return column;
-          
-          return {
-            ...column,
-            leads: arrayMove(leads, oldIndex, newIndex)
-          };
-        })
+      setColumns(prevColumns =>
+        prevColumns.map(col =>
+          col.id === source.droppableId
+            ? { ...col, leads: newLeads }
+            : col
+        )
       );
-    } else if (overColumn && activeColumn.id !== overColumn.id) {
-      // Moving to different column
-      const oldStageId = activeColumn.id;
-      const newStageId = overColumn.id;
+      return;
+    }
+
+    // Moving between different columns
+    const sourceLeads = [...sourceColumn.leads];
+    const destLeads = [...destColumn.leads];
+    const [removed] = sourceLeads.splice(source.index, 1);
+    
+    if (!removed) return;
+    
+    // Update the lead's stage
+    const updatedLead = { 
+      ...removed,
+      stage: destination.droppableId 
+    };
+    destLeads.splice(destination.index, 0, updatedLead);
+
+    // Optimistically update the UI
+    setColumns(prevColumns =>
+      prevColumns.map(col => {
+        if (col.id === source.droppableId) {
+          return { ...col, leads: sourceLeads };
+        } else if (col.id === destination.droppableId) {
+          return { ...col, leads: destLeads };
+        }
+        return col;
+      })
+    );
+
+    try {
+      // Set loading state
+      setMovingLeads(prev => ({ ...prev, [draggableId]: true }));
       
-      try {
-        // Set loading state
-        setMovingLeads(prev => ({ ...prev, [activeId]: true }));
-        
-        // Store original stage for potential rollback
-        setOptimisticUpdates(prev => ({ ...prev, [activeId]: oldStageId }));
-        
-        // Call API to move lead
-        await leadService.moveLeadToStage(activeId, newStageId);
-        
-        // Show success feedback
-        toast.success(`Lead moved to ${overColumn.title}`, {
-          duration: 3000,
-        });
-        
-        // Call the parent's update handler if provided
-        if (onUpdateLeadStage) {
-          onUpdateLeadStage(activeId, newStageId, oldStageId);
-        }
-        
-        // Refresh data to ensure consistency
-        if (onLeadCreated) {
-          onLeadCreated();
-        }
-        
-      } catch (error) {
-        console.error('Error moving lead:', error);
-        
-        // Revert optimistic update by moving lead back to original column
-        const originalStageId = optimisticUpdates[activeId] || oldStageId;
-        
-        setColumns(prevColumns => {
-          return prevColumns.map(column => {
-            if (column.id === newStageId) {
-              // Remove lead from destination column
-              return {
-                ...column,
-                leads: column.leads.filter(lead => lead.id !== activeId)
-              };
-            } else if (column.id === originalStageId) {
-              // Add lead back to original column
-              const movedLead = overColumn.leads.find(lead => lead.id === activeId);
-              if (movedLead) {
-                return {
-                  ...column,
-                  leads: [...column.leads, { ...movedLead, stage: originalStageId }]
-                };
-              }
-            }
-            return column;
-          });
-        });
-        
-        // Show error message
-        toast.error('Failed to move lead. Please try again.', {
-          duration: 4000,
-        });
-        
-      } finally {
-        // Clear loading and optimistic update states
-        setMovingLeads(prev => ({ ...prev, [activeId]: false }));
-        setOptimisticUpdates(prev => {
-          const newState = { ...prev };
-          delete newState[activeId];
-          return newState;
-        });
+      // Call API to move lead
+      await leadService.moveLeadToStage(draggableId, destination.droppableId);
+      
+      // Show success feedback
+      toast.success(`Lead moved to ${destColumn.title}`, {
+        duration: 3000,
+      });
+      
+      // Call the parent's update handler if provided
+      if (onUpdateLeadStage) {
+        onUpdateLeadStage(draggableId, destination.droppableId, source.droppableId);
       }
+      
+      // Refresh data to ensure consistency
+      if (onLeadCreated) {
+        onLeadCreated();
+      }
+      
+    } catch (error) {
+      console.error('Error moving lead:', error);
+      
+      // Revert the optimistic update
+      setColumns(prevColumns => {
+        const revertedColumns = prevColumns.map(col => {
+          if (col.id === source.droppableId) {
+            const revertedLeads = [...col.leads];
+            revertedLeads.splice(source.index, 0, draggedLead);
+            return { ...col, leads: revertedLeads };
+          } else if (col.id === destination.droppableId) {
+            return { 
+              ...col, 
+              leads: col.leads.filter(lead => lead.id !== draggableId)
+            };
+          }
+          return col;
+        });
+        return revertedColumns;
+      });
+      
+      // Show error message
+      toast.error('Failed to move lead. Please try again.', {
+        duration: 4000,
+      });
+      
+    } finally {
+      // Clear loading state
+      setMovingLeads(prev => ({ ...prev, [draggableId]: false }));
     }
   };
 
@@ -294,8 +203,6 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     setSelectedStageId(columnId);
     setLeadDialogOpen(true);
   }, []);
-
-  const activeLead = activeId ? findLead(activeId) : null;
 
   // Calculate trend (mock data)
   const trendPercentage = Math.floor(Math.random() * 20) + 5;
@@ -382,29 +289,28 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       </div>
 
       {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
-          {columns.map((column) => (
-            <KanbanColumn
-              key={column.id}
-              column={column}
-              onAddLead={handleAddLead}
-              movingLeads={movingLeads}
-            />
-          ))}
-        </div>
-        
-        <DragOverlay>
-          {activeLead ? (
-            <LeadCard lead={activeLead} isDragging />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="board" direction="horizontal" type="COLUMN">
+          {(provided) => (
+            <div 
+              className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20"
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {columns.map((column, index) => (
+                <KanbanColumn
+                  key={column.id}
+                  column={column}
+                  index={index}
+                  onAddLead={handleAddLead}
+                  movingLeads={movingLeads}
+                />
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {/* Tag Creation Dialog */}
       <TagCreationDialog 
