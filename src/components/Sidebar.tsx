@@ -40,6 +40,9 @@ import metaLogo from '@/assets/meta-logo.png';
 import googleLogo from '@/assets/google-logo.png';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
+import { FaMeta } from "react-icons/fa6";
+import { FaGoogle } from "react-icons/fa";
+import { SiGoogleanalytics } from "react-icons/si";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -75,9 +78,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
     { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
-    { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <img src={metaLogo} alt="Meta" className="h-4 w-4" /> }, // Facebook/Instagram ads performance
-    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <img src={googleLogo} alt="Google" className="h-4 w-4" /> }, // Google Ads campaign analytics
-    { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: BarChart }, // Website traffic data
+    { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> }, // Facebook/Instagram ads performance
+    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <FaGoogle size={16}/> }, // Google Ads campaign analytics
+    { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
   ];
 
   // Dynamic leads submenu items from API
