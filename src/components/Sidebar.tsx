@@ -248,7 +248,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                       to={item.path}
                       className={({ isActive }) => `
                         nav-item w-full justify-between ${
-                          isActive || activeSection === 'leads' ? 'active' : ''
+                          isActive ? 'active' : ''
                         }
                       `}
                     >
