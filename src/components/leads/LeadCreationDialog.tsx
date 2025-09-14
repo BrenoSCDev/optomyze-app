@@ -11,6 +11,7 @@ interface LeadCreationDialogProps {
   onClose: () => void;
   funnelId: string;
   funnelData: any;
+  selectedStageId?: string; // Pre-selected stage ID from column
   onLeadCreated: () => void;
 }
 
@@ -61,6 +62,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
   onClose,
   funnelId,
   funnelData,
+  selectedStageId,
   onLeadCreated
 }) => {
   const { user } = useAuth();
@@ -80,18 +82,25 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
     stage_id: ''
   });
 
-  // Set default stage when funnel data loads
+  // Set default stage when funnel data loads or selectedStageId changes
   useEffect(() => {
     if (funnelData?.funnel?.stages) {
-      const firstStage = funnelData.funnel.stages
-        .filter(stage => stage.is_active)
-        .sort((a, b) => a.order - b.order)[0];
+      let defaultStageId = '';
       
-      if (firstStage) {
-        setFormData(prev => ({ ...prev, stage_id: firstStage.id.toString() }));
+      if (selectedStageId) {
+        // Use the pre-selected stage from column
+        defaultStageId = selectedStageId;
+      } else {
+        // Use the first stage as default
+        const firstStage = funnelData.funnel.stages
+          .filter(stage => stage.is_active)
+          .sort((a, b) => a.order - b.order)[0];
+        defaultStageId = firstStage?.id.toString() || '';
       }
+      
+      setFormData(prev => ({ ...prev, stage_id: defaultStageId }));
     }
-  }, [funnelData]);
+  }, [funnelData, selectedStageId]);
 
   const validateField = (name: string, value: string) => {
     const newErrors = { ...errors };
@@ -425,6 +434,11 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
                       Initial Stage *
+                      {selectedStageId && (
+                        <span className="text-xs text-purple-400 ml-2">
+                          (Pre-selected from column)
+                        </span>
+                      )}
                     </label>
                     <select
                       name="stage_id"
@@ -432,13 +446,15 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                         errors.stage_id ? 'border-red-400' : 'border-white/10'
-                      } text-white focus:outline-none focus:border-purple-400 transition-colors`}
+                      } text-white focus:outline-none focus:border-purple-400 transition-colors ${
+                        selectedStageId ? 'ring-2 ring-purple-400/30' : ''
+                      }`}
                       disabled={isSubmitting}
                     >
                       <option value="" className="bg-gray-800">Select a stage</option>
                       {stageOptions.map((stage) => (
                         <option key={stage.value} value={stage.value} className="bg-gray-800">
-                          {stage.label}
+                          {stage.label} {selectedStageId === stage.value ? '(Selected from column)' : ''}
                         </option>
                       ))}
                     </select>

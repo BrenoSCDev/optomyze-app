@@ -60,6 +60,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
   const [activeId, setActiveId] = useState<string | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -224,8 +225,9 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
   };
 
   const handleAddLead = useCallback((columnId: string) => {
-    onCreateLead();
-  }, [onCreateLead]);
+    setSelectedStageId(columnId);
+    setLeadDialogOpen(true);
+  }, []);
 
   const activeLead = activeId ? findLead(activeId) : null;
 
@@ -301,7 +303,10 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           </Button>
           
           <Button
-            onClick={() => setLeadDialogOpen(true)}
+            onClick={() => {
+              setSelectedStageId('');
+              setLeadDialogOpen(true);
+            }}
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -343,11 +348,16 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       {/* Lead Creation Dialog */}
       <LeadCreationDialog
         isOpen={leadDialogOpen}
-        onClose={() => setLeadDialogOpen(false)}
+        onClose={() => {
+          setLeadDialogOpen(false);
+          setSelectedStageId('');
+        }}
         funnelId={funnel.id?.toString() || ''}
         funnelData={{ funnel }}
+        selectedStageId={selectedStageId}
         onLeadCreated={() => {
           setLeadDialogOpen(false);
+          setSelectedStageId('');
           onLeadCreated?.();
         }}
       />
