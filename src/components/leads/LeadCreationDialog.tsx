@@ -5,6 +5,7 @@ import InputMask from 'react-input-mask';
 import { useAuth } from '@/contexts/AuthContext';
 import { leadService } from '@/services/leadApi';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCreationDialogProps {
   isOpen: boolean;
@@ -67,6 +68,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -109,34 +111,34 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
       case 'first_name':
       case 'last_name':
         if (!value.trim()) {
-          newErrors[name] = 'This field is required';
+          newErrors[name] = t('lead.required-field');
         } else if (value.length < 2) {
-          newErrors[name] = 'Must be at least 2 characters';
+          newErrors[name] = t('lead.min-characters');
         } else if (!/^[A-Za-zÀ-ÿ\s]+$/.test(value)) {
-          newErrors[name] = 'Only letters and spaces allowed';
+          newErrors[name] = t('lead.letters-only');
         } else {
           delete newErrors[name];
         }
         break;
       case 'email':
         if (!value.trim()) {
-          newErrors[name] = 'Email is required';
+          newErrors[name] = t('lead.email-required');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          newErrors[name] = 'Please enter a valid email';
+          newErrors[name] = t('lead.valid-email');
         } else {
           delete newErrors[name];
         }
         break;
       case 'phone':
         if (!value.trim()) {
-          newErrors[name] = 'Phone number is required';
+          newErrors[name] = t('lead.phone-required');
         } else {
           delete newErrors[name];
         }
         break;
       default:
         if (!value.trim()) {
-          newErrors[name] = 'This field is required';
+          newErrors[name] = t('lead.required-field');
         } else {
           delete newErrors[name];
         }
@@ -161,21 +163,21 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
     requiredFields.forEach(field => {
       if (!formData[field]?.trim()) {
-        newErrors[field] = 'This field is required';
+        newErrors[field] = t('lead.required-field');
       }
     });
 
     // Validate email format
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = t('lead.valid-email');
     }
 
     // Validate name fields
     if (formData.first_name && !/^[A-Za-zÀ-ÿ\s]+$/.test(formData.first_name)) {
-      newErrors.first_name = 'Only letters and spaces allowed';
+      newErrors.first_name = t('lead.letters-only');
     }
     if (formData.last_name && !/^[A-Za-zÀ-ÿ\s]+$/.test(formData.last_name)) {
-      newErrors.last_name = 'Only letters and spaces allowed';
+      newErrors.last_name = t('lead.letters-only');
     }
 
     setErrors(newErrors);
@@ -187,8 +189,8 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
     
     if (!validateForm()) {
       toast({
-        title: "Validation Error",
-        description: "Please fix the errors in the form",
+        title: t('lead.validation-error'),
+        description: t('lead.fix-errors'),
         variant: "destructive",
       });
       return;
@@ -200,8 +202,8 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
       await leadService.createLead(formData);
       
       toast({
-        title: "Success",
-        description: "Lead created successfully!",
+        title: t('lead.success'),
+        description: t('lead.created-successfully'),
       });
 
       // Reset form
@@ -227,8 +229,8 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
       }
       
       toast({
-        title: "Error",
-        description: "Failed to create lead. Please try again.",
+        title: t('lead.error'),
+        description: t('lead.failed-to-create'),
         variant: "destructive",
       });
     } finally {
@@ -274,7 +276,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
               <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600">
                 <UserPlus className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Create New Lead</h2>
+              <h2 className="text-xl font-semibold text-white">{t('lead.create-new')}</h2>
             </div>
             <button
               onClick={onClose}
@@ -290,18 +292,18 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">Personal Information</h3>
+                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">{t('lead.personal-information')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      First Name *
+                      {t('lead.first-name')} *
                     </label>
                     <input
                       type="text"
                       name="first_name"
                       value={formData.first_name}
                       onChange={handleInputChange}
-                      placeholder="Enter first name"
+                      placeholder={t('lead.enter-first-name')}
                       className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                         errors.first_name ? 'border-red-400' : 'border-white/10'
                       } text-white placeholder:text-white/50 focus:outline-none focus:border-purple-400 transition-colors`}
@@ -314,14 +316,14 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      Last Name *
+                      {t('lead.last-name')} *
                     </label>
                     <input
                       type="text"
                       name="last_name"
                       value={formData.last_name}
                       onChange={handleInputChange}
-                      placeholder="Enter last name"
+                      placeholder={t('lead.enter-last-name')}
                       className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                         errors.last_name ? 'border-red-400' : 'border-white/10'
                       } text-white placeholder:text-white/50 focus:outline-none focus:border-purple-400 transition-colors`}
@@ -335,14 +337,14 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-white/90 mb-2">
-                    Email Address *
+                    {t('lead.email-address')} *
                   </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="Enter email address"
+                    placeholder={t('lead.enter-email')}
                     className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                       errors.email ? 'border-red-400' : 'border-white/10'
                     } text-white placeholder:text-white/50 focus:outline-none focus:border-purple-400 transition-colors`}
@@ -356,11 +358,11 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
               {/* Contact Information */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">Contact Information</h3>
+                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">{t('lead.contact-information')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      Country Code *
+                      {t('lead.country-code')} *
                     </label>
                     <select
                       value={formData.ddi}
@@ -383,14 +385,14 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      Phone Number *
+                      {t('lead.phone-number')} *
                     </label>
                     <InputMask
                       mask={phoneMasks[formData.ddi] || "999999999999"}
                       value={formData.phone}
                       onChange={handleInputChange}
                       name="phone"
-                      placeholder={`Enter phone number`}
+                      placeholder={t('lead.enter-phone')}
                       className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                         errors.phone ? 'border-red-400' : 'border-white/10'
                       } text-white placeholder:text-white/50 focus:outline-none focus:border-purple-400 transition-colors`}
@@ -405,11 +407,11 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
               {/* Platform and Assignment */}
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">Platform & Assignment</h3>
+                <h3 className="text-sm font-medium text-white/80 uppercase tracking-wider">{t('lead.platform-assignment')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      Source Platform *
+                      {t('lead.source-platform')} *
                     </label>
                     <select
                       name="source_platform"
@@ -433,10 +435,10 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">
-                      Initial Stage *
+                      {t('lead.initial-stage')} *
                       {selectedStageId && (
                         <span className="text-xs text-purple-400 ml-2">
-                          (Pre-selected from column)
+                          {t('lead.pre-selected-column')}
                         </span>
                       )}
                     </label>
@@ -451,10 +453,10 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
                       }`}
                       disabled={isSubmitting}
                     >
-                      <option value="" className="bg-gray-800">Select a stage</option>
+                      <option value="" className="bg-gray-800">{t('lead.select-stage')}</option>
                       {stageOptions.map((stage) => (
                         <option key={stage.value} value={stage.value} className="bg-gray-800">
-                          {stage.label} {selectedStageId === stage.value ? '(Selected from column)' : ''}
+                          {stage.label} {selectedStageId === stage.value ? t('lead.selected-from-column') : ''}
                         </option>
                       ))}
                     </select>

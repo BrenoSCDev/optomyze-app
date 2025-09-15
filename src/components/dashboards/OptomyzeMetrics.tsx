@@ -45,23 +45,27 @@ const SkeletonChart = () => (
 );
 
 // Error State Component
-const ErrorState = ({ onRetry, error }: { onRetry: () => void; error: any }) => (
-  <div className="kpi-card text-center">
-    <div className="text-destructive mb-4">
-      <AlertCircle className="w-12 h-12 mx-auto mb-2" />
-      <h3 className="text-lg font-semibold">Failed to Load Metrics</h3>
-      <p className="text-sm text-muted-foreground mt-1">
-        {error?.message || 'Unable to fetch dashboard data'}
-      </p>
+const ErrorState = ({ onRetry, error }: { onRetry: () => void; error: any }) => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="kpi-card text-center">
+      <div className="text-destructive mb-4">
+        <AlertCircle className="w-12 h-12 mx-auto mb-2" />
+        <h3 className="text-lg font-semibold">{t('metrics.failed-to-load')}</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          {error?.message || t('metrics.unable-to-fetch')}
+        </p>
+      </div>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+      >
+        {t('metrics.try-again')}
+      </button>
     </div>
-    <button
-      onClick={onRetry}
-      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-    >
-      Try Again
-    </button>
-  </div>
-);
+  );
+};
 
 // Lead Breakdown Funnel Component
 const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
@@ -74,24 +78,26 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   }
 
   const stats = data.data.lead_statistics;
+  const { t } = useLanguage();
+  
   const funnelData = [
     {
-      name: 'Total Leads',
+      name: t('metrics.total-leads-summary'),
       value: stats.total_leads,
       color: '#8B5CF6'
     },
     {
-      name: 'In Pipeline',
+      name: t('metrics.in-pipeline'),
       value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0),
       color: '#8B5CF6'
     },
     {
-      name: 'In Service',
+      name: t('metrics.in-service'),
       value: stats.in_service,
       color: '#8B5CF6'
     },
     {
-      name: 'Converted',
+      name: t('metrics.converted'),
       value: stats.converted_leads,
       color: '#10B981'
     }
@@ -104,7 +110,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, delay: 1.0 }}
     >
-      <h3 className="text-xl font-semibold mb-6 text-center">Lead Pipeline Breakdown</h3>
+      <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-pipeline-breakdown')}</h3>
       
       <div className="space-y-4">
         {funnelData.map((item, index) => {
@@ -137,7 +143,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
       {/* Conversion Rate Display */}
       <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
         <div className="flex items-center justify-between">
-          <span className="text-primary">Overall Conversion Rate</span>
+          <span className="text-primary">{t('metrics.overall-conversion-rate')}</span>
           <span className="text-2xl font-bold text-primary">
             {data.data.conversion_rate?.toFixed(2) || '0.00'}%
           </span>
@@ -191,39 +197,39 @@ const OptomyzeMetrics = () => {
 
     const { lead_statistics, conversion_rate, average_conversion_time, performance_comparison } = metricsData.data;
 
-    return [
+      return [
       {
-        title: 'Total Leads',
+        title: t('metrics.total-leads'),
         value: lead_statistics.total_leads,
         trend: getTrendData(performance_comparison?.total_leads),
         icon: <Users className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Leads in Service',
+        title: t('metrics.leads-in-service'),
         value: lead_statistics.in_service,
         trend: getTrendData(performance_comparison?.in_service),
         icon: <UserCheck className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Lost Leads',
+        title: t('metrics.lost-leads'),
         value: lead_statistics.total_leads_lost,
         trend: getTrendData(performance_comparison?.total_leads_lost),
         icon: <UserX className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Converted Sales',
+        title: t('metrics.converted-sales'),
         value: lead_statistics.converted_leads,
         trend: getTrendData(performance_comparison?.converted_leads),
         icon: <Trophy className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Conversion Rate',
+        title: t('metrics.conversion-rate'),
         value: `${conversion_rate?.toFixed(2) || '0.00'}%`,
         trend: getTrendData(performance_comparison?.conversion_rate),
         icon: <Percent className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Avg Conversion Time ( hours )',
+        title: t('metrics.avg-conversion-time-hours'),
         value: average_conversion_time?.total_hours || 'N/A',
         trend: getTrendData(performance_comparison?.average_conversion_time),
         icon: <Clock className="h-5 w-5 text-primary" />
@@ -300,7 +306,7 @@ const OptomyzeMetrics = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Monthly Lead Flow</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -333,19 +339,19 @@ const OptomyzeMetrics = () => {
                 <p className="text-2xl font-bold text-green-400">
                   {Math.max(...monthlyData.map((d: any) => d.leads))}
                 </p>
-                <p className="text-sm text-muted-foreground">Peak Month</p>
+                <p className="text-sm text-muted-foreground">{t('metrics.peak-month')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-400">
                   {Math.round(monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0) / monthlyData.length)}
                 </p>
-                <p className="text-sm text-muted-foreground">Monthly Avg</p>
+                <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">
                   {monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0)}
                 </p>
-                <p className="text-sm text-muted-foreground">Total Leads</p>
+                <p className="text-sm text-muted-foreground">{t('metrics.total-leads-summary')}</p>
               </div>
             </div>
           )}
