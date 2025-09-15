@@ -24,16 +24,16 @@ const OptomyzeMetrics = () => {
   // Mock data
   const kpiData = [
     { title: t('metrics.total-leads'), value: '2,847', trend: { value: '↑ 12.5%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.leads-in-service'), value: '134', trend: { value: '↑ 8.2%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.lost-leads'), value: '592', trend: { value: '↓ 5.1%', isPositive: true }, icon: <UserX className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.converted-sales'), value: '1,089', trend: { value: '↑ 18.7%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-  ];
-
-  const secondaryKpis = [
     { title: t('metrics.conversion-rate'), value: '38.2%', trend: { value: '↑ 3.2%', isPositive: true }, icon: <Percent className="h-5 w-5 text-primary" /> },
     { title: t('metrics.avg-conversion-time'), value: '7.2 days', trend: { value: '↓ 1.1 days', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.avg-sale-value'), value: '$3,450', trend: { value: '↑ 5.8%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.monthly-roi'), value: '287%', trend: { value: '↑ 15.3%', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
+  ];
+  
+  const secondaryKpis = [
+    { title: t('metrics.leads-in-service'), value: '134', trend: { value: '↑ 8.2%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.converted-sales'), value: '1,089', trend: { value: '↑ 18.7%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    { title: t('metrics.lost-leads'), value: '592', trend: { value: '↓ 5.1%', isPositive: true }, icon: <UserX className="h-5 w-5 text-primary" /> },
+    // { title: t('metrics.avg-sale-value'), value: '$3,450', trend: { value: '↑ 5.8%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
+    // { title: t('metrics.monthly-roi'), value: '287%', trend: { value: '↑ 15.3%', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
   ];
 
   const monthlyData = [
@@ -82,18 +82,44 @@ const OptomyzeMetrics = () => {
       </div>
 
       {/* Primary KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {kpiData.map((kpi, index) => (
           <KPICard key={index} {...kpi} delay={index} />
         ))}
       </div>
 
       {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {secondaryKpis.map((kpi, index) => (
           <KPICard key={index} {...kpi} delay={index + 4} />
         ))}
       </div>
+      
+      {/* Monthly Lead Flow */}
+      <motion.div
+        className="chart-container"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+      >
+        <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="month" stroke="#9CA3AF" />
+            <YAxis stroke="#9CA3AF" />
+            <Line
+              type="monotone"
+              dataKey="leads"
+              stroke="#8B5CF6"
+              strokeWidth={3}
+              dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+              activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2, fill: '#fff' }}
+              animationDuration={1500}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </motion.div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -102,7 +128,7 @@ const OptomyzeMetrics = () => {
           className="chart-container"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
         >
           <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.sales-funnel')}</h3>
           <div className="space-y-4">
@@ -127,6 +153,7 @@ const OptomyzeMetrics = () => {
             ))}
           </div>
         </motion.div>
+        
 
         {/* Lead Sources */}
         <motion.div
@@ -156,32 +183,6 @@ const OptomyzeMetrics = () => {
           </ResponsiveContainer>
         </motion.div>
       </div>
-
-      {/* Monthly Lead Flow */}
-      <motion.div
-        className="chart-container"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
-      >
-        <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="month" stroke="#9CA3AF" />
-            <YAxis stroke="#9CA3AF" />
-            <Line
-              type="monotone"
-              dataKey="leads"
-              stroke="#8B5CF6"
-              strokeWidth={3}
-              dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2, fill: '#fff' }}
-              animationDuration={1500}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </motion.div>
     </motion.div>
   );
 };

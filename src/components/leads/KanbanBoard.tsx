@@ -170,7 +170,42 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
       </div>
 
       {/* Kanban Board */}
-      <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+      <style>
+      {`
+        .kanban-board {
+          max-width: 640px; /* Small screens (default) */
+          overflow-x: auto;
+        }
+
+        @media (min-width: 768px) { /* Mid screens */
+          .kanban-board {
+            max-width: 768px;
+          }
+        }
+
+        @media (min-width: 1024px) { /* Normal laptop */
+          .kanban-board {
+            max-width: 1024px;
+          }
+        }
+
+        @media (min-width: 1280px) { /* Wide */
+          .kanban-board {
+            max-width: 1200px;
+          }
+        }
+
+        @media (min-width: 1536px) { /* Ultra Wide */
+          .kanban-board {
+            max-width: 1600px;
+          }
+        }
+      `}
+      </style>
+
+      <div
+        className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
+      >
         {columns.map((column, index) => (
           <KanbanColumn
             key={column.id}
@@ -180,6 +215,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           />
         ))}
       </div>
+
 
       {/* Tag Creation Dialog */}
       <TagCreationDialog 
