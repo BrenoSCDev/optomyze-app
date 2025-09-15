@@ -83,12 +83,12 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
     {
       name: 'In Pipeline',
       value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0),
-      color: '#3B82F6'
+      color: '#8B5CF6'
     },
     {
       name: 'In Service',
       value: stats.in_service,
-      color: '#F59E0B'
+      color: '#8B5CF6'
     },
     {
       name: 'Converted',
@@ -223,8 +223,8 @@ const OptomyzeMetrics = () => {
         icon: <Percent className="h-5 w-5 text-primary" />
       },
       {
-        title: 'Avg Conversion Time',
-        value: average_conversion_time?.human_readable || 'N/A',
+        title: 'Avg Conversion Time ( hours )',
+        value: average_conversion_time?.total_hours || 'N/A',
         trend: getTrendData(performance_comparison?.average_conversion_time),
         icon: <Clock className="h-5 w-5 text-primary" />
       }
