@@ -3,68 +3,264 @@
  * 
  * The main dashboard displaying core business KPIs and lead generation analytics.
  * Features:
- * - 8 KPI cards with animated counters (leads, conversions, ROI, etc.)
- * - Interactive charts: Sales funnel, monthly trends, lead sources
+ * - 6 KPI cards with real-time data from API
+ * - Interactive charts: Sales funnel, monthly trends, lead breakdown
  * - Recharts integration for professional data visualization
  * - Responsive grid layout that adapts to screen size
- * - Mock data with realistic business metrics
+ * - Real API data with loading states and error handling
  * 
  * This serves as the primary view when users first access the CRM.
  */
 
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import KPICard from '@/components/KPICard';
-import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, TrendingDown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
+import api from '@/services/api';
+
+// Skeleton Components
+const SkeletonKPICard = () => (
+  <div className="kpi-card floating animate-pulse">
+    <div className="flex items-center justify-between mb-4">
+      <div className="w-12 h-12 bg-muted rounded-lg" />
+      <div className="w-20 h-4 bg-muted rounded" />
+    </div>
+    <div className="w-16 h-8 bg-muted rounded mb-3" />
+    <div className="flex items-center gap-2">
+      <div className="w-4 h-4 bg-muted rounded" />
+      <div className="w-12 h-4 bg-muted rounded" />
+    </div>
+  </div>
+);
+
+const SkeletonChart = () => (
+  <div className="chart-container animate-pulse">
+    <div className="w-40 h-6 bg-muted rounded mb-6 mx-auto" />
+    <div className="w-full h-80 bg-muted rounded" />
+  </div>
+);
+
+// Error State Component
+const ErrorState = ({ onRetry, error }: { onRetry: () => void; error: any }) => (
+  <div className="kpi-card text-center">
+    <div className="text-destructive mb-4">
+      <AlertCircle className="w-12 h-12 mx-auto mb-2" />
+      <h3 className="text-lg font-semibold">Failed to Load Metrics</h3>
+      <p className="text-sm text-muted-foreground mt-1">
+        {error?.message || 'Unable to fetch dashboard data'}
+      </p>
+    </div>
+    <button
+      onClick={onRetry}
+      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+    >
+      Try Again
+    </button>
+  </div>
+);
+
+// Lead Breakdown Funnel Component
+const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
+  if (isLoading) {
+    return <SkeletonChart />;
+  }
+
+  if (!data?.data?.lead_statistics) {
+    return null;
+  }
+
+  const stats = data.data.lead_statistics;
+  const funnelData = [
+    {
+      name: 'Total Leads',
+      value: stats.total_leads,
+      color: '#8B5CF6'
+    },
+    {
+      name: 'In Pipeline',
+      value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0),
+      color: '#3B82F6'
+    },
+    {
+      name: 'In Service',
+      value: stats.in_service,
+      color: '#F59E0B'
+    },
+    {
+      name: 'Converted',
+      value: stats.converted_leads,
+      color: '#10B981'
+    }
+  ];
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, delay: 1.0 }}
+    >
+      <h3 className="text-xl font-semibold mb-6 text-center">Lead Pipeline Breakdown</h3>
+      
+      <div className="space-y-4">
+        {funnelData.map((item, index) => {
+          const percentage = funnelData[0].value > 0 ? (item.value / funnelData[0].value) * 100 : 0;
+          
+          return (
+            <div key={item.name} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{item.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">{item.value}</span>
+                  <span className="text-sm text-muted-foreground">({percentage.toFixed(1)}%)</span>
+                </div>
+              </div>
+              
+              <div className="w-full bg-muted rounded-full h-3">
+                <div
+                  className="h-3 rounded-full transition-all duration-1000 ease-out"
+                  style={{
+                    width: `${percentage}%`,
+                    backgroundColor: item.color
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Conversion Rate Display */}
+      <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+        <div className="flex items-center justify-between">
+          <span className="text-primary">Overall Conversion Rate</span>
+          <span className="text-2xl font-bold text-primary">
+            {data.data.conversion_rate?.toFixed(2) || '0.00'}%
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 const OptomyzeMetrics = () => {
   const { t } = useLanguage();
-  
-  // Mock data
-  const kpiData = [
-    { title: t('metrics.total-leads'), value: '2,847', trend: { value: '↑ 12.5%', isPositive: true }, icon: <Users className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.conversion-rate'), value: '38.2%', trend: { value: '↑ 3.2%', isPositive: true }, icon: <Percent className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.avg-conversion-time'), value: '7.2 days', trend: { value: '↓ 1.1 days', isPositive: true }, icon: <Clock className="h-5 w-5 text-primary" /> },
-  ];
-  
-  const secondaryKpis = [
-    { title: t('metrics.leads-in-service'), value: '134', trend: { value: '↑ 8.2%', isPositive: true }, icon: <Target className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.converted-sales'), value: '1,089', trend: { value: '↑ 18.7%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    { title: t('metrics.lost-leads'), value: '592', trend: { value: '↓ 5.1%', isPositive: true }, icon: <UserX className="h-5 w-5 text-primary" /> },
-    // { title: t('metrics.avg-sale-value'), value: '$3,450', trend: { value: '↑ 5.8%', isPositive: true }, icon: <DollarSign className="h-5 w-5 text-primary" /> },
-    // { title: t('metrics.monthly-roi'), value: '287%', trend: { value: '↑ 15.3%', isPositive: true }, icon: <TrendingUp className="h-5 w-5 text-primary" /> },
-  ];
+  const [metricsData, setMetricsData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
 
-  const monthlyData = [
-    { month: 'Jan', leads: 180 },
-    { month: 'Feb', leads: 220 },
-    { month: 'Mar', leads: 195 },
-    { month: 'Apr', leads: 267 },
-    { month: 'May', leads: 234 },
-    { month: 'Jun', leads: 289 },
-    { month: 'Jul', leads: 312 },
-    { month: 'Aug', leads: 298 },
-    { month: 'Sep', leads: 345 },
-    { month: 'Oct', leads: 367 },
-    { month: 'Nov', leads: 389 },
-    { month: 'Dec', leads: 401 },
-  ];
+  const fetchMetricsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.get('/api/metrics/leads-breakdown');
+      setMetricsData(response.data);
+    } catch (err: any) {
+      setError(err);
+      console.error('Error fetching metrics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const leadSourcesData = [
-    { name: 'Meta Ads', value: 35, color: '#8B5CF6' },
-    { name: 'Google Ads', value: 28, color: '#06B6D4' },
-    { name: 'Organic', value: 22, color: '#10B981' },
-    { name: 'Direct', value: 10, color: '#F59E0B' },
-    { name: 'Others', value: 5, color: '#EF4444' },
-  ];
+  useEffect(() => {
+    fetchMetricsData();
+  }, []);
 
-  const funnelData = [
-    { name: t('metrics.funnel.leads'), value: 2847, fill: '#8B5CF6' },
-    { name: t('metrics.funnel.qualified'), value: 1654, fill: '#A78BFA' },
-    { name: t('metrics.funnel.opportunities'), value: 1245, fill: '#C4B5FD' },
-    { name: t('metrics.funnel.sales'), value: 1089, fill: '#DDD6FE' },
-  ];
+  // Helper function to get trend data
+  const getTrendData = (performanceData: any) => {
+    if (!performanceData) return { value: '0%', isPositive: false };
+    
+    const change = performanceData.percentage_change || 0;
+    const isPositive = performanceData.performance_indicator === 'improvement';
+    
+    return {
+      value: `${change > 0 ? '+' : ''}${change.toFixed(1)}%`,
+      isPositive
+    };
+  };
+
+  // Prepare KPI data from API response
+  const getKPIData = () => {
+    if (!metricsData?.data) return [];
+
+    const { lead_statistics, conversion_rate, average_conversion_time, performance_comparison } = metricsData.data;
+
+    return [
+      {
+        title: 'Total Leads',
+        value: lead_statistics.total_leads,
+        trend: getTrendData(performance_comparison?.total_leads),
+        icon: <Users className="h-5 w-5 text-primary" />
+      },
+      {
+        title: 'Leads in Service',
+        value: lead_statistics.in_service,
+        trend: getTrendData(performance_comparison?.in_service),
+        icon: <UserCheck className="h-5 w-5 text-primary" />
+      },
+      {
+        title: 'Lost Leads',
+        value: lead_statistics.total_leads_lost,
+        trend: getTrendData(performance_comparison?.total_leads_lost),
+        icon: <UserX className="h-5 w-5 text-primary" />
+      },
+      {
+        title: 'Converted Sales',
+        value: lead_statistics.converted_leads,
+        trend: getTrendData(performance_comparison?.converted_leads),
+        icon: <Trophy className="h-5 w-5 text-primary" />
+      },
+      {
+        title: 'Conversion Rate',
+        value: `${conversion_rate?.toFixed(2) || '0.00'}%`,
+        trend: getTrendData(performance_comparison?.conversion_rate),
+        icon: <Percent className="h-5 w-5 text-primary" />
+      },
+      {
+        title: 'Avg Conversion Time',
+        value: average_conversion_time?.human_readable || 'N/A',
+        trend: getTrendData(performance_comparison?.average_conversion_time),
+        icon: <Clock className="h-5 w-5 text-primary" />
+      }
+    ];
+  };
+
+  // Get monthly chart data
+  const getMonthlyData = () => {
+    if (!metricsData?.data?.monthly_lead_data) return [];
+    return metricsData.data.monthly_lead_data.map((item: any) => ({
+      name: item.month,
+      leads: item.leads
+    }));
+  };
+
+  if (error) {
+    return (
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
+            {t('dashboard.title.optomyze')}
+          </h1>
+          <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
+        </div>
+        <ErrorState onRetry={fetchMetricsData} error={error} />
+      </motion.div>
+    );
+  }
+
+  const kpiData = getKPIData();
+  const monthlyData = getMonthlyData();
 
   return (
     <motion.div
@@ -81,108 +277,83 @@ const OptomyzeMetrics = () => {
         <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
       </div>
 
-      {/* Primary KPIs */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {kpiData.map((kpi, index) => (
-          <KPICard key={index} {...kpi} delay={index} />
-        ))}
-      </div>
-
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {secondaryKpis.map((kpi, index) => (
-          <KPICard key={index} {...kpi} delay={index + 4} />
-        ))}
+        {loading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <SkeletonKPICard key={index} />
+          ))
+        ) : (
+          kpiData.map((kpi, index) => (
+            <KPICard key={index} {...kpi} delay={index} />
+          ))
+        )}
       </div>
       
       {/* Monthly Lead Flow */}
-      <motion.div
-        className="chart-container"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-      >
-        <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="month" stroke="#9CA3AF" />
-            <YAxis stroke="#9CA3AF" />
-            <Line
-              type="monotone"
-              dataKey="leads"
-              stroke="#8B5CF6"
-              strokeWidth={3}
-              dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2, fill: '#fff' }}
-              animationDuration={1500}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </motion.div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Funnel */}
+      {loading ? (
+        <SkeletonChart />
+      ) : (
         <motion.div
           className="chart-container"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 1.2 }}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.sales-funnel')}</h3>
-          <div className="space-y-4">
-            {funnelData.map((stage, index) => (
-              <motion.div
-                key={stage.name}
-                className="relative"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
-              >
-                <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: stage.fill + '30' }}>
-                  <span className="font-medium">{stage.name}</span>
-                  <span className="text-lg font-bold" style={{ color: stage.fill }}>
-                    {stage.value.toLocaleString()}
-                  </span>
-                </div>
-                {index < funnelData.length - 1 && (
-                  <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 w-0.5 h-4 bg-primary/30" />
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-        
-
-        {/* Lead Sources */}
-        <motion.div
-          className="chart-container"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
-        >
-          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-sources')}</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={leadSourcesData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                dataKey="value"
-                animationBegin={0}
-                animationDuration={1000}
-              >
-                {leadSourcesData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
+          <h3 className="text-xl font-semibold mb-6 text-center">Monthly Lead Flow</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+              <YAxis stroke="#9CA3AF" fontSize={12} />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  color: 'hsl(var(--foreground))'
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="leads"
+                stroke="#8B5CF6"
+                strokeWidth={3}
+                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
+              />
+            </LineChart>
           </ResponsiveContainer>
+          
+          {/* Summary Stats */}
+          {monthlyData.length > 0 && (
+            <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-400">
+                  {Math.max(...monthlyData.map((d: any) => d.leads))}
+                </p>
+                <p className="text-sm text-muted-foreground">Peak Month</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-400">
+                  {Math.round(monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0) / monthlyData.length)}
+                </p>
+                <p className="text-sm text-muted-foreground">Monthly Avg</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary">
+                  {monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Leads</p>
+              </div>
+            </div>
+          )}
         </motion.div>
-      </div>
+      )}
+
+      {/* Lead Breakdown Funnel */}
+      <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
     </motion.div>
   );
 };
