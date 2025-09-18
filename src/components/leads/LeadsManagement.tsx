@@ -7,7 +7,6 @@
 import { useState } from 'react';
 import { useFunnelData } from '@/hooks/useFunnelData';
 import KanbanBoard from './KanbanBoard';
-import TagManagementModal from './TagManagementModal';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,12 +19,8 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
   const [isCreateLeadOpen, setIsCreateLeadOpen] = useState(false);
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [tagModalState, setTagModalState] = useState({
-    isOpen: false,
-    selectedLead: null
-  });
 
-  const { funnelData, loading, error, updateLeadStage, updateLeadTags, refetch } = useFunnelData(funnelId);
+  const { funnelData, loading, error, updateLeadStage, refetch } = useFunnelData(funnelId);
 
   // Loading state
   if (loading) {
@@ -103,24 +98,6 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     });
   };
 
-  const handleTagsClick = (lead: any) => {
-    setTagModalState({
-      isOpen: true,
-      selectedLead: lead
-    });
-  };
-
-  const handleTagsUpdate = (leadId: string, newTags: any[]) => {
-    updateLeadTags(leadId, newTags);
-  };
-
-  const closeTagModal = () => {
-    setTagModalState({
-      isOpen: false,
-      selectedLead: null
-    });
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -130,22 +107,11 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     >
       <KanbanBoard
         funnel={funnelData.funnel}
-        availableTags={funnelData.availableTags}
         onCreateLead={handleCreateLead}
         onCreateTag={handleCreateTag}
         onOpenFilters={handleOpenFilters}
         onUpdateLeadStage={updateLeadStage}
         onLeadCreated={refetch}
-        onTagsClick={handleTagsClick}
-      />
-
-      {/* Tag Management Modal */}
-      <TagManagementModal
-        isOpen={tagModalState.isOpen}
-        onClose={closeTagModal}
-        lead={tagModalState.selectedLead}
-        availableTags={funnelData.availableTags}
-        onTagsUpdate={handleTagsUpdate}
       />
     </motion.div>
   );

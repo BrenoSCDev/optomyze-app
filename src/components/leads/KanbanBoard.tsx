@@ -34,16 +34,14 @@ import { toast } from 'sonner';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
-  availableTags: any[];
   onCreateLead: () => void;
   onCreateTag: () => void;
   onOpenFilters: () => void;
   onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
   onLeadCreated?: () => void;
-  onTagsClick?: (lead: any) => void;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagsClick }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
@@ -214,7 +212,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             column={column}
             index={index}
             onAddLead={handleAddLead}
-            onTagsClick={onTagsClick}
           />
         ))}
       </div>

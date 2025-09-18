@@ -15,18 +15,16 @@ import {
   Clock, 
   DollarSign,
   TrendingUp,
-  GripVertical,
-  Tag
+  GripVertical
 } from 'lucide-react';
 
 interface LeadCardProps {
   lead: Lead;
   isDragging?: boolean;
   isMoving?: boolean;
-  onTagsClick?: (lead: Lead) => void;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagsClick }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false }: LeadCardProps) => {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -85,26 +83,10 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagsClick }: LeadCardP
           </p>
         </div>
         
-        {/* Lead Score & Tag Button */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 text-accent" />
-            <span className="text-xs font-medium text-accent">{lead.score}%</span>
-          </div>
-          
-          {/* Tag Management Button */}
-          {onTagsClick && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTagsClick(lead);
-              }}
-              className="p-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-400/50 transition-all duration-200 group"
-              title="Manage Tags"
-            >
-              <Tag className="w-3 h-3 text-gray-400 group-hover:text-purple-400" />
-            </button>
-          )}
+        {/* Lead Score */}
+        <div className="flex items-center gap-1">
+          <TrendingUp className="h-3 w-3 text-accent" />
+          <span className="text-xs font-medium text-accent">{lead.score}%</span>
         </div>
       </div>
 

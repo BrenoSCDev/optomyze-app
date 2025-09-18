@@ -3,12 +3,7 @@ import { funnelService } from '@/services/funnelApi';
 import { toast } from 'sonner';
 
 export const useFunnelData = (funnelId) => {
-  const [funnelData, setFunnelData] = useState({
-    funnel: null,
-    availableTags: [],
-    loading: true,
-    error: null
-  });
+  const [funnelData, setFunnelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,12 +14,7 @@ export const useFunnelData = (funnelId) => {
       setLoading(true);
       setError(null);
       const data = await funnelService.getFunnelData(id);
-      setFunnelData({
-        funnel: data.funnel,
-        availableTags: data.funnel?.tags || [],
-        loading: false,
-        error: null
-      });
+      setFunnelData(data);
     } catch (err) {
       console.error('Failed to fetch funnel data:', err);
       setError(err);
@@ -45,58 +35,6 @@ export const useFunnelData = (funnelId) => {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updateLeadTags = async (leadId, newTags) => {
-    try {
-      // Optimistic update
-      setFunnelData(prevData => {
-        if (!prevData?.funnel?.stages) return prevData;
-        
-        const newData = { ...prevData };
-        newData.funnel.stages = newData.funnel.stages.map(stage => {
-          const newStage = { ...stage };
-          const leadIndex = stage.active_leads.findIndex(lead => lead.id === leadId);
-          
-          if (leadIndex !== -1) {
-            newStage.active_leads = [...stage.active_leads];
-            newStage.active_leads[leadIndex] = {
-              ...stage.active_leads[leadIndex],
-              tags: newTags
-            };
-          }
-          
-          return newStage;
-        });
-        
-        return newData;
-      });
-
-      // Make API call
-      const response = await fetch(`/api/leads/${leadId}/tags`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('optomyze_auth_token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ tags: newTags })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update tags');
-      }
-      
-      toast.success('Tags updated successfully');
-    } catch (err) {
-      console.error('Failed to update lead tags:', err);
-      
-      // Revert optimistic update
-      await fetchFunnelData(funnelId);
-      
-      toast.error('Failed to update tags', {
-        description: 'There was an error updating the tags. Please try again.'
-      });
     }
   };
 
@@ -158,7 +96,6 @@ export const useFunnelData = (funnelId) => {
     loading,
     error,
     refetch: () => fetchFunnelData(funnelId),
-    updateLeadStage,
-    updateLeadTags
+    updateLeadStage
   };
 };
