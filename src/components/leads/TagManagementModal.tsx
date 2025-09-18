@@ -25,7 +25,7 @@ interface Tag {
 interface Lead {
   id: string;
   name: string;
-  tags?: string[];
+  tags?: (string | { id: number; name: string; [key: string]: any })[];
   [key: string]: any;
 }
 
@@ -49,12 +49,21 @@ const TagManagementModal = ({
 
   // Initialize selected tags when modal opens
   useEffect(() => {
-    if (lead && isOpen) {
-      // Initialize with current lead tags if any
-      const currentTags = lead.tags?.map(tagName => 
-        availableTags.find(tag => tag.name === tagName)
-      ).filter(Boolean) || [];
-      setSelectedTags(currentTags);
+    if (lead && isOpen && availableTags.length > 0) {
+      // Get current lead tag names (handle both string and object formats)
+      const leadTagNames = lead.tags?.map(tag => 
+        typeof tag === 'string' ? tag : tag.name
+      ) || [];
+      
+      // Find matching tags from availableTags based on name comparison
+      const matchingTags = availableTags.filter(availableTag => 
+        leadTagNames.includes(availableTag.name)
+      );
+      
+      setSelectedTags(matchingTags);
+    } else if (!isOpen) {
+      // Reset when modal closes
+      setSelectedTags([]);
     }
   }, [lead, isOpen, availableTags]);
 
