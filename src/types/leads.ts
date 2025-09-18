@@ -14,7 +14,7 @@ export interface Lead {
   score: number;
   value: number;
   source: 'Meta Ads' | 'Google Ads' | 'Organic' | 'Referral' | 'Direct';
-  tags: string[];
+  tags: (string | { id: number; name: string; [key: string]: any })[];
   lastActivity: string;
   priority: 'high' | 'medium' | 'low';
   stage: string;

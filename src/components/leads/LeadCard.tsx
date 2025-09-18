@@ -121,7 +121,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick }: LeadCardPr
       </div>
 
       {/* Tags */}
-      {lead.tags.length > 0 && (
+      {lead.tags && lead.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {lead.tags.slice(0, 2).map((tag, index) => (
             <Badge
@@ -129,7 +129,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick }: LeadCardPr
               variant="secondary"
               className="text-xs px-2 py-0.5 bg-accent/20 text-accent border-accent/30"
             >
-              {tag}
+              {typeof tag === 'string' ? tag : tag.name}
             </Badge>
           ))}
           {lead.tags.length > 2 && (
