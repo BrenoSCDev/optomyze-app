@@ -30,7 +30,8 @@ import {
   TrendingUp,
   BarChart,
   Plug,
-  LogOut
+  LogOut,
+  Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -94,6 +95,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Settings submenu items
   const settingsItems = [
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline /> },
+    { id: 'tags', label: t('nav.tags'), icon: () => <Tag /> },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage /> },
   ];
 

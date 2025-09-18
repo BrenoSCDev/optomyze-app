@@ -18,6 +18,7 @@ import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
+import TagsDashboard from '@/components/dashboards/TagsDashboard';
 import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
 import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
@@ -74,6 +75,8 @@ const Index = () => {
         return <LanguagesDashboard />; // Language selection interface
       case 'funnels':
         return <FunnelsDashboard />; // Funnels management interface
+      case 'tags':
+        return <TagsDashboard />; // Tags management interface
       case 'general':
       case 'users':
       case 'integrations':

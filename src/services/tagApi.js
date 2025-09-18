@@ -24,5 +24,16 @@ export const tagService = {
       console.error('Error fetching tags:', error);
       throw error;
     }
+  },
+
+  // Get all tags for the current company (without requiring companyId parameter)
+  async getAllTags() {
+    try {
+      const response = await api.get('/api/tags');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all tags:', error);
+      throw error;
+    }
   }
 };
