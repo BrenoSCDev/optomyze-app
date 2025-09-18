@@ -29,11 +29,13 @@ import {
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
+import TagManagementModal from './TagManagementModal';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
+  availableTags: any[];
   onCreateLead: () => void;
   onCreateTag: () => void;
   onOpenFilters: () => void;
@@ -41,10 +43,16 @@ interface KanbanBoardProps {
   onLeadCreated?: () => void;
 }
 
-const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  
+  // Tag modal state
+  const [tagModalState, setTagModalState] = useState({
+    isOpen: false,
+    selectedLead: null
+  });
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -84,6 +92,22 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
     setSelectedStageId(columnId);
     setLeadDialogOpen(true);
   }, []);
+
+  // Handle tag icon click
+  const handleTagClick = (lead: any) => {
+    setTagModalState({
+      isOpen: true,
+      selectedLead: lead
+    });
+  };
+
+  // Handle tag modal close
+  const handleTagModalClose = () => {
+    setTagModalState({
+      isOpen: false,
+      selectedLead: null
+    });
+  };
 
   // Calculate trend (mock data)
   const trendPercentage = Math.floor(Math.random() * 20) + 5;
@@ -212,6 +236,7 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
             column={column}
             index={index}
             onAddLead={handleAddLead}
+            onTagClick={handleTagClick}
           />
         ))}
       </div>
@@ -238,6 +263,14 @@ const KanbanBoard = ({ funnel, onCreateLead, onCreateTag, onOpenFilters, onUpdat
           setSelectedStageId('');
           onLeadCreated?.();
         }}
+      />
+
+      {/* Tag Management Modal */}
+      <TagManagementModal
+        isOpen={tagModalState.isOpen}
+        onClose={handleTagModalClose}
+        lead={tagModalState.selectedLead}
+        availableTags={availableTags}
       />
     </div>
   );

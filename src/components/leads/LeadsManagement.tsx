@@ -20,7 +20,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const { funnelData, loading, error, updateLeadStage, refetch } = useFunnelData(funnelId);
+  const { funnelData, availableTags, loading, error, updateLeadStage, refetch } = useFunnelData(funnelId);
 
   // Loading state
   if (loading) {
@@ -107,6 +107,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     >
       <KanbanBoard
         funnel={funnelData.funnel}
+        availableTags={availableTags}
         onCreateLead={handleCreateLead}
         onCreateTag={handleCreateTag}
         onOpenFilters={handleOpenFilters}

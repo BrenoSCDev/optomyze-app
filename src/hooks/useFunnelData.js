@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 export const useFunnelData = (funnelId) => {
   const [funnelData, setFunnelData] = useState(null);
+  const [availableTags, setAvailableTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,6 +15,10 @@ export const useFunnelData = (funnelId) => {
       setLoading(true);
       setError(null);
       const data = await funnelService.getFunnelData(id);
+      
+      // Extract tags from API response and store separately
+      const tags = data?.tags || [];
+      setAvailableTags(tags);
       setFunnelData(data);
     } catch (err) {
       console.error('Failed to fetch funnel data:', err);
@@ -93,6 +98,7 @@ export const useFunnelData = (funnelId) => {
 
   return {
     funnelData,
+    availableTags,
     loading,
     error,
     refetch: () => fetchFunnelData(funnelId),
