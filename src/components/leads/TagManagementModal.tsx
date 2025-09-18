@@ -132,14 +132,25 @@ const TagManagementModal = ({
 
   // Initialize selected tags when modal opens or lead changes
   useEffect(() => {
-    if (lead && lead.tags) {
+    if (lead && lead.tags && availableTags.length > 0) {
       // Convert lead tags to match available tags format
-      const currentTags = lead.tags.map((tag: any) => 
-        typeof tag === 'string' 
-          ? availableTags.find(t => t.name === tag) || { name: tag, id: `temp-${tag}` }
-          : tag
-      ).filter(Boolean);
+      const currentTags = lead.tags.map((tag: any) => {
+        if (typeof tag === 'string') {
+          // Find matching tag from available tags
+          const foundTag = availableTags.find(t => t.name === tag);
+          return foundTag || { name: tag, id: `temp-${tag}` };
+        } else if (tag && tag.id) {
+          // If it's already an object with id, check if it exists in available tags
+          const foundTag = availableTags.find(t => t.id === tag.id);
+          return foundTag || tag;
+        }
+        return null;
+      }).filter(Boolean);
+      
       setSelectedTags(currentTags);
+    } else if (lead && (!lead.tags || lead.tags.length === 0)) {
+      // Clear selection if no tags
+      setSelectedTags([]);
     }
   }, [lead, availableTags]);
 
