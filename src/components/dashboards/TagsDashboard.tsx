@@ -194,14 +194,13 @@ const TagsDashboard = () => {
       <p className="text-muted-foreground mb-6 max-w-md mx-auto">
         {t('tags.no-tags-description')}
       </p>
-      <Dialog open={showNewTagModal} onOpenChange={setShowNewTagModal}>
-        <DialogTrigger asChild>
-          <Button className="neon-border">
-            <Plus className="h-4 w-4 mr-2" />
-            {t('tags.create-first')}
-          </Button>
-        </DialogTrigger>
-      </Dialog>
+      <Button 
+        className="neon-border"
+        onClick={() => setShowNewTagModal(true)}
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        {t('tags.create-first')}
+      </Button>
     </motion.div>
   );
 
