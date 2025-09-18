@@ -103,6 +103,11 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     refetch();
   };
 
+  const handleTagsUpdated = (leadId: string, tags: any[]) => {
+    // Trigger refetch to update data from backend
+    refetch();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -119,6 +124,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
         onUpdateLeadStage={updateLeadStage}
         onLeadCreated={refetch}
         onTagCreated={handleTagCreated}
+        onTagsUpdated={handleTagsUpdated}
       />
     </motion.div>
   );

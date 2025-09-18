@@ -56,5 +56,18 @@ export const leadService = {
       console.error('Error moving lead to stage:', error);
       throw error;
     }
+  },
+
+  // Update lead tags
+  async updateLeadTags(leadId, tags) {
+    try {
+      const response = await api.put(`/api/leads/${leadId}/tags`, {
+        tags: tags
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating lead tags:', error);
+      throw error;
+    }
   }
 };

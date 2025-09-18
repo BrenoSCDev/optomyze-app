@@ -42,9 +42,10 @@ interface KanbanBoardProps {
   onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
   onLeadCreated?: () => void;
   onTagCreated?: (newTag: any) => void;
+  onTagsUpdated?: (leadId: string, tags: any[]) => void;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
@@ -108,6 +109,26 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       isOpen: false,
       selectedLead: null
     });
+  };
+
+  // Handle tags updated
+  const handleTagsUpdated = (leadId: string, tags: any[]) => {
+    // Update the local columns state
+    setColumns(prevColumns => {
+      return prevColumns.map(column => ({
+        ...column,
+        leads: column.leads.map(lead => 
+          lead.id === leadId 
+            ? { ...lead, tags: tags.map(tag => tag.name) }
+            : lead
+        )
+      }));
+    });
+
+    // Also notify parent component if callback is provided
+    if (onTagsUpdated) {
+      onTagsUpdated(leadId, tags);
+    }
   };
 
   // Calculate trend (mock data)
@@ -273,6 +294,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onClose={handleTagModalClose}
         lead={tagModalState.selectedLead}
         availableTags={availableTags}
+        onTagsUpdated={handleTagsUpdated}
       />
     </div>
   );

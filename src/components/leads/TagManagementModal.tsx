@@ -11,6 +11,8 @@ import {
   Tag
 } from 'lucide-react';
 import MultiSelect from '@/components/ui/multi-select';
+import { leadService } from '@/services/leadApi';
+import { toast } from 'sonner';
 
 interface Tag {
   id: number;
@@ -32,32 +34,57 @@ interface TagManagementModalProps {
   onClose: () => void;
   lead: Lead | null;
   availableTags: Tag[];
+  onTagsUpdated?: (leadId: string, tags: Tag[]) => void;
 }
 
 const TagManagementModal = ({ 
   isOpen, 
   onClose, 
   lead, 
-  availableTags 
+  availableTags,
+  onTagsUpdated 
 }: TagManagementModalProps) => {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize selected tags when modal opens
   useEffect(() => {
     if (lead && isOpen) {
-      // For now, just initialize empty - will add current lead tags later
-      setSelectedTags([]);
+      // Initialize with current lead tags if any
+      const currentTags = lead.tags?.map(tagName => 
+        availableTags.find(tag => tag.name === tagName)
+      ).filter(Boolean) || [];
+      setSelectedTags(currentTags);
     }
-  }, [lead, isOpen]);
+  }, [lead, isOpen, availableTags]);
 
   const handleTagsChange = (newSelectedTags: Tag[]) => {
     setSelectedTags(newSelectedTags);
   };
 
-  const handleApplyTags = () => {
-    // For now, just log and close - will add save functionality later
-    console.log('Selected tags:', selectedTags);
-    onClose();
+  const handleApplyTags = async () => {
+    if (!lead) return;
+    
+    setIsLoading(true);
+    try {
+      // Send tags to API
+      await leadService.updateLeadTags(lead.id, selectedTags);
+      
+      // Update parent component with new tags
+      if (onTagsUpdated) {
+        onTagsUpdated(lead.id, selectedTags);
+      }
+      
+      toast.success('Tags updated successfully');
+      onClose();
+    } catch (error) {
+      console.error('Failed to update tags:', error);
+      toast.error('Failed to update tags', {
+        description: 'There was an error updating the tags. Please try again.'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -108,6 +135,7 @@ const TagManagementModal = ({
                   onChange={handleTagsChange}
                   placeholder="Choose tags for this lead..."
                   searchPlaceholder="Search available tags..."
+                  disabled={isLoading}
                   className="w-full"
                 />
               </div>
@@ -131,12 +159,21 @@ const TagManagementModal = ({
                             setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
                           }}
                           className="hover:text-purple-300"
+                          disabled={isLoading}
                         >
                           <X className="w-3 h-3" />
                         </button>
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {isLoading && (
+                <div className="mt-4 flex items-center gap-2 text-purple-400">
+                  <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full" />
+                  <span className="text-sm">Updating tags...</span>
                 </div>
               )}
             </div>
@@ -146,15 +183,17 @@ const TagManagementModal = ({
           <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              disabled={isLoading}
+              className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleApplyTags}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              disabled={isLoading}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
-              Apply Tags ({selectedTags.length})
+              {isLoading ? 'Updating...' : `Apply Tags (${selectedTags.length})`}
             </button>
           </div>
         </motion.div>
