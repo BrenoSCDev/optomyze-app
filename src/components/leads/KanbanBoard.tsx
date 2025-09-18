@@ -41,9 +41,10 @@ interface KanbanBoardProps {
   onOpenFilters: () => void;
   onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
   onLeadCreated?: () => void;
+  onTagCreated?: (newTag: any) => void;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated }: KanbanBoardProps) => {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
@@ -245,7 +246,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       {/* Tag Creation Dialog */}
       <TagCreationDialog 
         open={tagDialogOpen} 
-        onOpenChange={setTagDialogOpen} 
+        onOpenChange={setTagDialogOpen}
+        onTagCreated={onTagCreated}
       />
 
       {/* Lead Creation Dialog */}

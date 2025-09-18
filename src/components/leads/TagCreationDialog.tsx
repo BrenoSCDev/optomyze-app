@@ -11,9 +11,10 @@ import { Tags } from "lucide-react";
 interface TagCreationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTagCreated?: (newTag: any) => void;
 }
 
-export const TagCreationDialog = ({ open, onOpenChange }: TagCreationDialogProps) => {
+export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreationDialogProps) => {
   const [tagName, setTagName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -40,12 +41,17 @@ export const TagCreationDialog = ({ open, onOpenChange }: TagCreationDialogProps
 
     setIsLoading(true);
     try {
-      await tagService.createTag(tagName.trim(), user.company_id);
+      const newTag = await tagService.createTag(tagName.trim(), user.company_id);
       
       toast({
         title: "Tag created",
         description: `Tag "${tagName}" has been created successfully.`,
       });
+      
+      // Notify parent component about new tag
+      if (onTagCreated && newTag) {
+        onTagCreated(newTag);
+      }
       
       setTagName('');
       onOpenChange(false);

@@ -8,9 +8,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
-  Check, 
   Tag
 } from 'lucide-react';
+import MultiSelect from '@/components/ui/multi-select';
 
 interface Tag {
   id: number;
@@ -50,21 +50,8 @@ const TagManagementModal = ({
     }
   }, [lead, isOpen]);
 
-  const handleTagToggle = (tag: Tag) => {
-    setSelectedTags(prev => {
-      const isSelected = prev.find(t => t.id === tag.id);
-      if (isSelected) {
-        // Remove tag
-        return prev.filter(t => t.id !== tag.id);
-      } else {
-        // Add tag
-        return [...prev, tag];
-      }
-    });
-  };
-
-  const isTagSelected = (tag: Tag) => {
-    return selectedTags.find(t => t.id === tag.id) !== undefined;
+  const handleTagsChange = (newSelectedTags: Tag[]) => {
+    setSelectedTags(newSelectedTags);
   };
 
   const handleApplyTags = () => {
@@ -109,68 +96,25 @@ const TagManagementModal = ({
           
           {/* Modal Body */}
           <div className="p-6">
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-white mb-3">
-                Available Tags
-              </label>
-              
-              {/* Tags List */}
-              <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
-                {availableTags.length > 0 ? (
-                  availableTags.map((tag) => (
-                    <motion.div
-                      key={tag.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleTagToggle(tag)}
-                      className={`
-                        flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200
-                        ${isTagSelected(tag) 
-                          ? 'bg-purple-600/20 border-purple-400/50 text-purple-300' 
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
-                        }
-                        border
-                      `}
-                    >
-                      {/* Checkbox */}
-                      <div className={`
-                        w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
-                        ${isTagSelected(tag) 
-                          ? 'border-purple-400 bg-purple-600' 
-                          : 'border-gray-400'
-                        }
-                      `}>
-                        {isTagSelected(tag) && (
-                          <Check className="w-3 h-3 text-white" />
-                        )}
-                      </div>
-                      
-                      {/* Tag Name */}
-                      <span className="flex-1 font-medium">
-                        {tag.name}
-                      </span>
-                      
-                      {/* Tag Icon */}
-                      <Tag className="w-4 h-4 opacity-60" />
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <Tag className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No tags available</p>
-                    <p className="text-sm">Create tags in settings to get started</p>
-                  </div>
-                )}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-3">
+                  Select Tags
+                </label>
+                
+                <MultiSelect
+                  options={availableTags}
+                  selected={selectedTags}
+                  onChange={handleTagsChange}
+                  placeholder="Choose tags for this lead..."
+                  searchPlaceholder="Search available tags..."
+                  className="w-full"
+                />
               </div>
               
               {/* Selected Tags Preview */}
               {selectedTags.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 p-3 bg-purple-600/10 rounded-lg border border-purple-600/20"
-                >
+                <div className="mt-4 p-3 bg-purple-600/10 rounded-lg border border-purple-600/20">
                   <p className="text-sm font-medium text-purple-300 mb-2">
                     Selected Tags ({selectedTags.length})
                   </p>
@@ -184,7 +128,7 @@ const TagManagementModal = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleTagToggle(tag);
+                            setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
                           }}
                           className="hover:text-purple-300"
                         >
@@ -193,7 +137,7 @@ const TagManagementModal = ({
                       </span>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
           </div>

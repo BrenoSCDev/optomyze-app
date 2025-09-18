@@ -98,6 +98,11 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     });
   };
 
+  const handleTagCreated = (newTag: any) => {
+    // Trigger refetch to update available tags
+    refetch();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -113,6 +118,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
         onOpenFilters={handleOpenFilters}
         onUpdateLeadStage={updateLeadStage}
         onLeadCreated={refetch}
+        onTagCreated={handleTagCreated}
       />
     </motion.div>
   );
