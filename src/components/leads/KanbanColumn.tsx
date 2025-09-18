@@ -21,9 +21,10 @@ interface KanbanColumnProps {
   column: ColumnType;
   index: number;
   onAddLead: (columnId: string) => void;
+  onTagsClick?: (lead: any) => void;
 }
 
-const KanbanColumn = ({ column, index, onAddLead }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagsClick }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const getColumnColor = () => {
@@ -87,7 +88,8 @@ const KanbanColumn = ({ column, index, onAddLead }: KanbanColumnProps) => {
               <LeadCard 
                 lead={lead} 
                 isDragging={false}
-                isMoving={false} 
+                isMoving={false}
+                onTagsClick={onTagsClick}
               />
             </motion.div>
           ))}
