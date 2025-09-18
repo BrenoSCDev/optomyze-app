@@ -4,7 +4,7 @@
  * Settings page for managing company tags with card grid layout and tag creation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -67,8 +67,8 @@ const TagsDashboard = () => {
     name: ''
   });
 
-  // Fetch tags from API
-  const fetchTags = async () => {
+  // Fetch tags from API - memoized to prevent unnecessary re-renders
+  const fetchTags = useCallback(async () => {
     try {
       setLoading(true);
       const response = await tagService.getAllTags();
@@ -81,14 +81,15 @@ const TagsDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]); // Only re-create if translation function changes
 
+  // Only fetch tags on component mount
   useEffect(() => {
     fetchTags();
-  }, []);
+  }, [fetchTags]);
 
-  // Create new tag
-  const createTag = async () => {
+  // Create new tag - memoized to prevent unnecessary re-renders
+  const createTag = useCallback(async () => {
     if (!formData.name.trim()) {
       setFormErrors({ name: t('tags.name-required') });
       return;
@@ -137,10 +138,10 @@ const TagsDashboard = () => {
     } finally {
       setCreating(false);
     }
-  };
+  }, [formData.name, user?.company_id, t]); // Dependencies for createTag
 
-  // Delete tag
-  const deleteTag = async (tagId: number) => {
+  // Delete tag - memoized to prevent unnecessary re-renders
+  const deleteTag = useCallback(async (tagId: number) => {
     try {
       setDeletingTagId(tagId);
       await api.delete(`/api/tags/${tagId}`);
@@ -159,7 +160,7 @@ const TagsDashboard = () => {
     } finally {
       setDeletingTagId(null);
     }
-  };
+  }, [t]); // Dependencies for deleteTag
 
   // Skeleton Card Component
   const SkeletonCard = () => (
