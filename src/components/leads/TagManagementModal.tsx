@@ -34,7 +34,7 @@ interface TagManagementModalProps {
   onClose: () => void;
   lead: Lead | null;
   availableTags: Tag[];
-  onTagsUpdated?: (leadId: string, tags: Tag[]) => void;
+  onTagsUpdated?: (leadId: string, updatedLead: any) => void;
 }
 
 const TagManagementModal = ({ 
@@ -67,12 +67,15 @@ const TagManagementModal = ({
     
     setIsLoading(true);
     try {
-      // Send tags to API
-      await leadService.updateLeadTags(lead.id, selectedTags);
+      // Send tags to API and get updated lead data back
+      const response = await leadService.updateLeadTags(lead.id, selectedTags);
       
-      // Update parent component with new tags
+      // Use the returned lead data from the API response
+      const updatedLead = response.lead || response;
+      
+      // Update parent component with the complete updated lead data
       if (onTagsUpdated) {
-        onTagsUpdated(lead.id, selectedTags);
+        onTagsUpdated(lead.id, updatedLead);
       }
       
       toast.success('Tags updated successfully');

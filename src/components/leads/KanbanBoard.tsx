@@ -42,7 +42,7 @@ interface KanbanBoardProps {
   onUpdateLeadStage?: (leadId: string, newStageId: string, oldStageId: string) => void;
   onLeadCreated?: () => void;
   onTagCreated?: (newTag: any) => void;
-  onTagsUpdated?: (leadId: string, tags: any[]) => void;
+  onTagsUpdated?: (leadId: string, updatedLead: any) => void;
 }
 
 const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
@@ -111,23 +111,46 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     });
   };
 
-  // Handle tags updated
-  const handleTagsUpdated = (leadId: string, tags: any[]) => {
-    // Update the local columns state
+  // Handle tags updated with API response data
+  const handleTagsUpdated = (leadId: string, updatedLead: any) => {
+    // Transform the API lead data to match our UI format
+    const transformedLead = {
+      id: updatedLead.id.toString(),
+      name: `${updatedLead.first_name} ${updatedLead.last_name}`,
+      email: updatedLead.email,
+      phone: updatedLead.phone,
+      company: updatedLead.custom_fields?.industry || 'N/A',
+      title: updatedLead.custom_fields?.title || 'Contact',
+      score: parseFloat(updatedLead.ai_score || '0'),
+      value: parseFloat(updatedLead.estimated_value || '0'),
+      source: updatedLead.source_platform || 'Direct',
+      tags: Array.isArray(updatedLead.tags) ? updatedLead.tags.map((tag: any) => tag.name || tag) : [],
+      lastActivity: updatedLead.updated_at ? timeAgo(updatedLead.updated_at) : 'No activity',
+      priority: updatedLead.priority || 'medium',
+      stage: updatedLead.stage_id.toString(),
+      avatar: updatedLead.platform_data?.profile_picture,
+      notes: updatedLead.notes,
+      createdAt: updatedLead.created_at,
+      assignedTo: updatedLead.assigned_to,
+      currency: updatedLead.currency || 'USD',
+      initialMessage: updatedLead.initial_message,
+      contactMethods: updatedLead.contact_methods || [],
+      preferredContact: updatedLead.preferred_contact_method || 'email'
+    };
+
+    // Update the specific lead in the columns state
     setColumns(prevColumns => {
       return prevColumns.map(column => ({
         ...column,
         leads: column.leads.map(lead => 
-          lead.id === leadId 
-            ? { ...lead, tags: tags.map(tag => tag.name) }
-            : lead
+          lead.id === leadId ? transformedLead : lead
         )
       }));
     });
 
-    // Also notify parent component if callback is provided
+    // Also notify parent component if callback is provided (but don't refetch)
     if (onTagsUpdated) {
-      onTagsUpdated(leadId, tags);
+      onTagsUpdated(leadId, updatedLead);
     }
   };
 

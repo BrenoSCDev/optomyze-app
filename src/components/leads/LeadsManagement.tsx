@@ -103,9 +103,10 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
     refetch();
   };
 
-  const handleTagsUpdated = (leadId: string, tags: any[]) => {
-    // Trigger refetch to update data from backend
-    refetch();
+  const handleTagsUpdated = (leadId: string, updatedLead: any) => {
+    // No need to refetch - the KanbanBoard already handles the update
+    // This callback can be used for any additional logic if needed
+    console.log('Lead tags updated:', leadId, updatedLead);
   };
 
   return (
