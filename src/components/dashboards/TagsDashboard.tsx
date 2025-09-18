@@ -104,9 +104,12 @@ const TagsDashboard = () => {
 
     setCreating(true);
     try {
-      const newTag = await tagService.createTag(formData.name.trim(), user.company_id);
+      const response = await tagService.createTag(formData.name.trim(), user.company_id);
       
-      // Optimistic update
+      // Extract the new tag from the API response
+      const newTag = response.data || response;
+      
+      // Optimistic update - add the new tag to the state
       setTags(prev => [...prev, newTag]);
       
       setFormData({ name: '' });
