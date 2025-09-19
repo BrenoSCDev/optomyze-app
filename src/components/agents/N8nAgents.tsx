@@ -27,6 +27,8 @@ interface Agent {
   status: string;
   last_execution_at: string | null;
   execution_count: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const N8nAgents: React.FC = () => {
@@ -206,59 +208,104 @@ const N8nAgents: React.FC = () => {
             </Button>
           </div>
         ) : (
-          /* Agents Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          /* Enhanced Agents Grid */
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {agents.map((agent) => (
-              <div key={agent.id} className="glass-card p-6 hover:border-primary/50 transition-all duration-300">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div key={agent.id} className="glass-card p-6 hover:border-primary/50 transition-all duration-300 group">
+                {/* Main Content - Horizontal Layout */}
+                <div className="flex items-center gap-4 mb-4">
+                  {/* Platform Icon */}
+                  <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
                     {getPlatformIcon(agent.platform)}
                   </div>
                   
+                  {/* Agent Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">
-                      {agent.agent_name}
-                    </h3>
-                    
-                    {/* <p className="text-xs text-muted-foreground mt-1">
-                      {agent.workflow_name}
-                    </p> */}
-                    
-                    {agent.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {agent.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`
-                          px-2 py-1 rounded-full text-xs font-medium
-                          ${agent.status === 'active' 
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                            : agent.status === 'inactive'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-muted/20 text-muted-foreground border border-muted/30'
-                          }
-                        `}>
-                          {agent.status}
-                        </span>
-                        
-                        <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-1 rounded-full">
-                          {agent.platform}
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-foreground truncate text-lg">
+                        {agent.agent_name}
+                      </h3>
+                      
+                      {/* Enhanced Status Indicator */}
+                      <div className="flex items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${
+                          agent.status === 'active' 
+                            ? 'bg-emerald-500 animate-pulse' 
+                            : 'bg-slate-400'
+                        }`} />
+                        <span className={`text-xs font-medium ${
+                          agent.status === 'active' 
+                            ? 'text-emerald-500' 
+                            : 'text-slate-400'
+                        }`}>
+                          {agent.status === 'active' ? 'Online' : 'Offline'}
                         </span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                      <span>Executions: {agent.execution_count}</span>
-                      {agent.last_execution_at && (
-                        <span>
-                          Last: {formatLastSync(new Date(agent.last_execution_at))}
+                    {/* Platform Badge */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md font-medium capitalize">
+                        {agent.platform}
+                      </span>
+                      
+                      {agent.description && (
+                        <span className="text-xs text-muted-foreground truncate">
+                          {agent.description}
                         </span>
                       )}
                     </div>
                   </div>
+                </div>
+                
+                {/* Stats Row */}
+                <div className="flex items-center justify-between mb-4 p-3 bg-muted/20 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-foreground">{agent.execution_count}</div>
+                      <div className="text-xs text-muted-foreground">Executions</div>
+                    </div>
+                    
+                    <div className="w-px h-8 bg-border" />
+                    
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-foreground">
+                        {agent.last_execution_at ? 'Active' : 'Never'}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {agent.last_execution_at 
+                          ? formatLastSync(new Date(agent.last_execution_at)).split(',')[0]
+                          : 'Last run'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                    onClick={() => {
+                      // TODO: Implement execution view
+                      toast({
+                        title: "Coming Soon",
+                        description: "Execution history will be available soon",
+                      });
+                    }}
+                  >
+                    <Clock className="w-3 h-3" />
+                    View Executions
+                  </Button>
+                </div>
+                
+                {/* Footer with additional info */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
+                  <span>ID: {agent.workflow_id?.slice(0, 8) || 'N/A'}</span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Created {new Date(agent.created_at || Date.now()).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             ))}
