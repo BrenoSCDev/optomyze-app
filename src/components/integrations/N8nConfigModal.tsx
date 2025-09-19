@@ -13,7 +13,7 @@ import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
-import { Loader2, Key, Webhook } from 'lucide-react';
+import { Loader2, Key, Webhook, Globe } from 'lucide-react';
 import { SiN8N } from "react-icons/si";
 
 interface N8nConfigModalProps {
@@ -30,6 +30,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
   const [formData, setFormData] = useState({
     api_key: '',
     webhook_url: '',
+    base_url: '',
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -45,7 +46,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.api_key.trim() || !formData.webhook_url.trim()) {
+    if (!formData.api_key.trim() || !formData.webhook_url.trim() || !formData.base_url.trim()) {
       toast({
         title: t('common.error'),
         description: "Please fill in all required fields.",
@@ -57,10 +58,11 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     // Basic URL validation
     try {
       new URL(formData.webhook_url);
+      new URL(formData.base_url);
     } catch {
       toast({
         title: t('common.error'),
-        description: t('integrations.n8n.webhook-url-invalid'),
+        description: "Please enter valid URLs for webhook and base URL.",
         variant: "destructive",
       });
       return;
@@ -72,6 +74,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
       await api.put('/api/integrations/n8n-integrations/configure', {
         webhook_url: formData.webhook_url,
         api_key: formData.api_key,
+        base_url: formData.base_url,
       });
 
       toast({
@@ -86,6 +89,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
       setFormData({
         api_key: '',
         webhook_url: '',
+        base_url: '',
       });
 
     } catch (error) {
@@ -105,6 +109,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     setFormData({
       api_key: '',
       webhook_url: '',
+      base_url: '',
     });
   };
 
@@ -142,6 +147,25 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
               />
               <p className="text-xs text-muted-foreground">
                 Your n8n API key for authentication
+              </p>
+            </div>
+
+            {/* Base URL Field */}
+            <div className="space-y-2">
+              <Label htmlFor="base_url" className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                Base URL
+              </Label>
+              <Input
+                id="base_url"
+                type="url"
+                placeholder="https://your-n8n-instance.com"
+                value={formData.base_url}
+                onChange={(e) => handleInputChange('base_url', e.target.value)}
+                disabled={loading}
+              />
+              <p className="text-xs text-muted-foreground">
+                The base URL of your n8n instance
               </p>
             </div>
 
