@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { SiN8N, SiGoogleanalytics } from "react-icons/si";
+import { FaMeta } from "react-icons/fa6";
+import { FaGoogle } from "react-icons/fa";
 
 interface Integration {
   key: string;
@@ -93,8 +96,14 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({ integration, onAction
       <div className="flex items-start gap-4">
         {/* Integration Logo/Icon */}
         <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-card flex-shrink-0">
-          {integration.key === 'n8n' ? (
-            <div className="text-2xl font-bold text-primary">n8n</div>
+          {integration.key === "n8n" ? (
+            <SiN8N className="w-10 h-10 text-muted-foreground" />
+          ) : integration.key === "google-ads" ? (
+            <FaGoogle className="w-8 h-8 text-muted-foreground" />
+          ) : integration.key === "google-analytics" ? (
+            <SiGoogleanalytics className="w-8 h-8 text-muted-foreground" />
+          ) : integration.key === "meta-ads" ? (
+            <FaMeta className="w-10 h-10 text-muted-foreground" />
           ) : (
             <Package className="w-8 h-8 text-muted-foreground" />
           )}
@@ -151,33 +160,42 @@ const IntegrationsApps: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
   const { token } = useAuth();
 
-  // Define available integrations
-  const availableIntegrations: Integration[] = [
-    {
-      key: 'n8n',
-      name: 'n8n',
-      description: 'Powerful workflow automation tool for connecting your apps and services seamlessly.',
-      category: 'automation',
-      available: false, // Will be updated from API
-      lastUpdated: undefined
-    },
-    {
-      key: 'zapier',
-      name: 'Zapier',
-      description: 'Connect Optomyze with 5000+ apps through Zapier\'s automation platform.',
-      category: 'automation',
-      available: false,
-      comingSoon: true
-    },
-    {
-      key: 'make',
-      name: 'Make',
-      description: 'Visual platform for creating, building and automating workflows.',
-      category: 'automation', 
-      available: false,
-      comingSoon: true
-    }
-  ];
+// Define available integrations
+const availableIntegrations: Integration[] = [
+  {
+    key: 'n8n',
+    name: 'n8n',
+    description: 'Powerful workflow automation tool for connecting your apps and services seamlessly.',
+    category: 'automation',
+    available: false, // Will be updated from API
+    lastUpdated: undefined
+  },
+  {
+    key: 'google-ads',
+    name: 'Google Ads',
+    description: 'Integrate with Google Ads to sync campaigns, track performance, and optimize leads.',
+    category: 'ads',
+    available: false,
+    comingSoon: true
+  },
+  {
+    key: 'google-analytics',
+    name: 'Google Analytics',
+    description: 'Connect to Google Analytics for tracking website and campaign performance.',
+    category: 'analytics',
+    available: false,
+    comingSoon: true
+  },
+  {
+    key: 'meta-ads',
+    name: 'Meta Ads',
+    description: 'Integrate with Meta Ads (Facebook & Instagram) to manage and analyze ad campaigns.',
+    category: 'ads',
+    available: false,
+    comingSoon: true
+  }
+];
+
 
   // Fetch integration statuses
   const fetchIntegrationStatuses = async () => {

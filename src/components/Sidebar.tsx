@@ -44,6 +44,7 @@ import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
 import { FaGoogle } from "react-icons/fa";
 import { SiGoogleanalytics } from "react-icons/si";
+import { RiAppsFill } from "react-icons/ri";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -97,13 +98,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Settings submenu items
   const settingsItems = [
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline /> },
-    { id: 'tags', label: t('nav.tags'), icon: () => <Tag /> },
+    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={18}/> },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage /> },
   ];
 
   // Integrations submenu items
   const integrationsItems = [
-    { id: 'integrations', label: 'Apps', icon: () => <Plug /> },
+    { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
