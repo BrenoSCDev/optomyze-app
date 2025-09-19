@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -135,7 +135,22 @@ const N8nAgents: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        {agents.length === 0 ? (
+        {isLoading ? (
+          /* Loading State */
+          <div className="glass-card p-12 text-center">
+            <div className="w-24 h-24 bg-muted/20 rounded-full mx-auto mb-6 flex items-center justify-center">
+              <Loader2 className="w-12 h-12 text-muted-foreground animate-spin" />
+            </div>
+            
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Loading AI Agents...
+            </h3>
+            
+            <p className="text-muted-foreground">
+              Please wait while we fetch your n8n agents
+            </p>
+          </div>
+        ) : agents.length === 0 ? (
           /* Empty State */
           <div className="glass-card p-12 text-center">
             <div className="w-24 h-24 bg-muted/20 rounded-full mx-auto mb-6 flex items-center justify-center">
