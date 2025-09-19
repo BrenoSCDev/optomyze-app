@@ -23,6 +23,8 @@ import api from '../../services/api';
 import { SiN8N, SiGoogleanalytics } from "react-icons/si";
 import { FaMeta } from "react-icons/fa6";
 import { FaGoogle } from "react-icons/fa";
+import { useToast } from '../../hooks/use-toast';
+import { Check } from 'lucide-react';
 
 interface Integration {
   key: string;
@@ -37,12 +39,20 @@ interface Integration {
 
 interface IntegrationCardProps {
   integration: Integration;
-  onAction: (key: string, action: string) => void;
+  onAction: (key: string, action: string) => Promise<void>;
   loading?: boolean;
+  installing?: boolean;
+  justInstalled?: boolean;
 }
 
 // Integration Card Component
-const IntegrationCard: React.FC<IntegrationCardProps> = ({ integration, onAction, loading = false }) => {
+const IntegrationCard: React.FC<IntegrationCardProps> = ({ 
+  integration, 
+  onAction, 
+  loading = false, 
+  installing = false,
+  justInstalled = false 
+}) => {
   const getActionButton = () => {
     if (loading) {
       return (
@@ -52,6 +62,30 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({ integration, onAction
         >
           <div className="animate-spin w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full" />
           Checking...
+        </button>
+      );
+    }
+
+    if (installing) {
+      return (
+        <button 
+          disabled 
+          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary/50 text-primary-foreground rounded-lg cursor-not-allowed"
+        >
+          <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
+          Installing n8n...
+        </button>
+      );
+    }
+
+    if (justInstalled) {
+      return (
+        <button 
+          disabled 
+          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-500 text-white rounded-lg animate-pulse"
+        >
+          <Check className="w-4 h-4" />
+          Installed!
         </button>
       );
     }
@@ -158,7 +192,10 @@ const IntegrationsApps: React.FC = () => {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [installingIntegrations, setInstallingIntegrations] = useState<Set<string>>(new Set());
+  const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
   const { token } = useAuth();
+  const { toast } = useToast();
 
 // Define available integrations
 const availableIntegrations: Integration[] = [
@@ -237,10 +274,74 @@ const availableIntegrations: Integration[] = [
     
     if (action === 'configure') {
       // TODO: Open configuration modal or navigate to config page
-      alert(`Configure ${integrationKey} integration - Coming soon!`);
+      toast({
+        title: "Configuration",
+        description: `Configure ${integrationKey} integration - Coming soon!`,
+      });
     } else if (action === 'install') {
-      // TODO: Start installation process
-      alert(`Install ${integrationKey} integration - Coming soon!`);
+      if (integrationKey === 'n8n') {
+        await installN8nIntegration();
+      } else {
+        toast({
+          title: "Installation",
+          description: `Install ${integrationKey} integration - Coming soon!`,
+        });
+      }
+    }
+  };
+
+  // Install n8n integration
+  const installN8nIntegration = async () => {
+    try {
+      // Add to installing state
+      setInstallingIntegrations(prev => new Set(prev).add('n8n'));
+
+      // Make API call to install n8n integration
+      const response = await api.post('/integrations/n8n-integrations');
+
+      // Update integration state to available
+      setIntegrations(prev => prev.map(integration => 
+        integration.key === 'n8n' 
+          ? { 
+              ...integration, 
+              available: true, 
+              status: 'active',
+              lastUpdated: new Date().toISOString().split('T')[0]
+            }
+          : integration
+      ));
+
+      // Show success state briefly
+      setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
+      
+      toast({
+        title: "Installation Successful",
+        description: "n8n integration has been installed successfully!",
+      });
+
+      // Clear just installed state after animation
+      setTimeout(() => {
+        setJustInstalledIntegrations(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('n8n');
+          return newSet;
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error installing n8n integration:', error);
+      toast({
+        title: "Installation Failed",
+        description: "Failed to install n8n integration. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove from installing state
+      setInstallingIntegrations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('n8n');
+        return newSet;
+      });
     }
   };
 
@@ -303,6 +404,8 @@ const availableIntegrations: Integration[] = [
               integration={integration}
               onAction={handleIntegrationAction}
               loading={loading && integration.key === 'n8n'}
+              installing={installingIntegrations.has(integration.key)}
+              justInstalled={justInstalledIntegrations.has(integration.key)}
             />
           ))}
         </div>
