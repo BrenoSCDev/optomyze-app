@@ -90,51 +90,56 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({ integration, onAction
 
   return (
     <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
-      {/* Integration Logo/Icon */}
-      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-lg bg-card">
-        {integration.key === 'n8n' ? (
-          <div className="text-2xl font-bold text-primary">n8n</div>
-        ) : (
-          <Package className="w-8 h-8 text-muted-foreground" />
-        )}
-      </div>
-
-      {/* Integration Name */}
-      <h3 className="text-xl font-semibold text-foreground text-center mb-2">
-        {integration.name}
-      </h3>
-
-      {/* Integration Description */}
-      <p className="text-muted-foreground text-sm text-center mb-4 min-h-[40px]">
-        {integration.description}
-      </p>
-
-      {/* Status Badge */}
-      <div className="flex justify-center mb-4">
-        <span className={`
-          px-3 py-1 rounded-full text-xs font-medium border
-          ${integration.comingSoon 
-            ? 'bg-muted/20 text-muted-foreground border-muted/30'
-            : integration.available 
-            ? 'bg-green-500/20 text-green-400 border-green-500/30' 
-            : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-          }
-        `}>
-          {integration.comingSoon ? 'Coming Soon' : integration.available ? 'Available' : 'Not Installed'}
-        </span>
-      </div>
-
-      {/* Action Button */}
-      {getActionButton()}
-
-      {/* Additional Info */}
-      {integration.available && integration.lastUpdated && (
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            Last updated: {integration.lastUpdated}
-          </p>
+      <div className="flex items-start gap-4">
+        {/* Integration Logo/Icon */}
+        <div className="flex items-center justify-center w-16 h-16 rounded-lg bg-card flex-shrink-0">
+          {integration.key === 'n8n' ? (
+            <div className="text-2xl font-bold text-primary">n8n</div>
+          ) : (
+            <Package className="w-8 h-8 text-muted-foreground" />
+          )}
         </div>
-      )}
+
+        {/* Integration Content */}
+        <div className="flex-1 min-w-0">
+          {/* Integration Name and Status */}
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-semibold text-foreground">
+              {integration.name}
+            </h3>
+            <span className={`
+              px-3 py-1 rounded-full text-xs font-medium border flex-shrink-0
+              ${integration.comingSoon 
+                ? 'bg-muted/20 text-muted-foreground border-muted/30'
+                : integration.available 
+                ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+              }
+            `}>
+              {integration.comingSoon ? 'Coming Soon' : integration.available ? 'Available' : 'Not Installed'}
+            </span>
+          </div>
+
+          {/* Integration Description */}
+          <p className="text-muted-foreground text-sm mb-4">
+            {integration.description}
+          </p>
+
+          {/* Action Button and Additional Info */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1 mr-4">
+              {getActionButton()}
+            </div>
+            
+            {/* Additional Info */}
+            {integration.available && integration.lastUpdated && (
+              <div className="text-xs text-muted-foreground flex-shrink-0">
+                Updated: {integration.lastUpdated}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -273,7 +278,7 @@ const IntegrationsApps: React.FC = () => {
         </div>
 
         {/* Integrations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {integrations.map((integration) => (
             <IntegrationCard
               key={integration.key}
