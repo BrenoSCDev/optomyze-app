@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
 import { SiN8N, SiWhatsapp, SiInstagram, SiTelegram } from "react-icons/si";
+import { BiLogoGmail } from "react-icons/bi";
 import api from '../../services/api';
 
 interface Agent {
@@ -50,6 +51,8 @@ const N8nAgents: React.FC = () => {
         return <SiInstagram {...iconProps} />;
       case 'telegram':
         return <SiTelegram {...iconProps} />;
+      case 'gmail':
+        return <BiLogoGmail {...iconProps} />;
       case 'sms':
         return <MessageSquare {...iconProps} />;
       case 'google calendar':
@@ -301,7 +304,7 @@ const N8nAgents: React.FC = () => {
                 
                 {/* Footer with additional info */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
-                  <span>ID: {agent.workflow_id?.slice(0, 8) || 'N/A'}</span>
+                  <span>ID: {agent.workflow_id || 'N/A'}</span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     Created {new Date(agent.created_at || Date.now()).toLocaleDateString()}
