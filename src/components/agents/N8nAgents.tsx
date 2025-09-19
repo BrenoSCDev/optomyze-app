@@ -18,11 +18,15 @@ import { SiN8N } from "react-icons/si";
 import api from '../../services/api';
 
 interface Agent {
-  id: string;
-  name: string;
-  status: 'active' | 'inactive' | 'error';
-  lastRun?: string;
-  description?: string;
+  id: number;
+  workflow_id: string;
+  workflow_name: string;
+  platform: string;
+  agent_name: string;
+  description: string | null;
+  status: string;
+  last_execution_at: string | null;
+  execution_count: number;
 }
 
 const N8nAgents: React.FC = () => {
@@ -36,7 +40,11 @@ const N8nAgents: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await api.get('/api/integrations/n8n/workflows');
+      const response = await api.get('/api/integrations/agents/n8n');
+      
+      if (response.data && response.data.data) {
+        setAgents(response.data.data);
+      }
       
       toast({
         title: t('common.success'),
@@ -141,8 +149,12 @@ const N8nAgents: React.FC = () => {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-foreground truncate">
-                      {agent.name}
+                      {agent.agent_name}
                     </h3>
+                    
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {agent.workflow_name}
+                    </p>
                     
                     {agent.description && (
                       <p className="text-sm text-muted-foreground mt-1">
@@ -150,22 +162,31 @@ const N8nAgents: React.FC = () => {
                       </p>
                     )}
                     
-                    <div className="flex items-center gap-2 mt-3">
-                      <span className={`
-                        px-2 py-1 rounded-full text-xs font-medium
-                        ${agent.status === 'active' 
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                          : agent.status === 'error'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-muted/20 text-muted-foreground border border-muted/30'
-                        }
-                      `}>
-                        {agent.status}
-                      </span>
-                      
-                      {agent.lastRun && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatLastSync(new Date(agent.lastRun))}
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`
+                          px-2 py-1 rounded-full text-xs font-medium
+                          ${agent.status === 'active' 
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : agent.status === 'error'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-muted/20 text-muted-foreground border border-muted/30'
+                          }
+                        `}>
+                          {agent.status}
+                        </span>
+                        
+                        <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-1 rounded-full">
+                          {agent.platform}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                      <span>Executions: {agent.execution_count}</span>
+                      {agent.last_execution_at && (
+                        <span>
+                          Last: {formatLastSync(new Date(agent.last_execution_at))}
                         </span>
                       )}
                     </div>
