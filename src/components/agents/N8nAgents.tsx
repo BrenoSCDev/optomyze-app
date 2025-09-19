@@ -66,19 +66,28 @@ const N8nAgents: React.FC = () => {
     setIsSyncing(true);
     
     try {
-      // Placeholder for synchronization logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await api.get('/api/integrations/n8n/workflows');
       
-      toast({
-        title: t('common.success'),
-        description: "Agents synchronized successfully",
-      });
+      if (response.data && response.data.agents_created) {
+        // Update agents with the newly created/synchronized agents
+        setAgents(response.data.agents_created);
+        
+        toast({
+          title: t('common.success'),
+          description: `${response.data.message || 'Workflows synchronized successfully'}`,
+        });
+      } else {
+        toast({
+          title: t('common.success'),
+          description: "Workflows synchronized successfully",
+        });
+      }
       
       setLastSync(new Date());
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: "Failed to synchronize agents",
+        description: "Failed to synchronize workflows",
         variant: "destructive",
       });
     } finally {
