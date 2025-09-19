@@ -241,7 +241,7 @@ const availableIntegrations: Integration[] = [
       setError(null);
 
       // Check n8n integration status
-      const n8nResponse = await api.get('/api/integrations/n8n-integrations');
+      const n8nResponse = await api.get('/api/integrations/available');
 
       // Update integrations with API data
       const updatedIntegrations = availableIntegrations.map(integration => {
@@ -297,7 +297,7 @@ const availableIntegrations: Integration[] = [
       setInstallingIntegrations(prev => new Set(prev).add('n8n'));
 
       // Make API call to install n8n integration
-      const response = await api.post('/integrations/n8n-integrations');
+      const response = await api.post('/api/integrations/n8n-integrations');
 
       // Update integration state to available
       setIntegrations(prev => prev.map(integration => 
@@ -306,7 +306,6 @@ const availableIntegrations: Integration[] = [
               ...integration, 
               available: true, 
               status: 'active',
-              lastUpdated: new Date().toISOString().split('T')[0]
             }
           : integration
       ));
