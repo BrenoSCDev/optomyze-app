@@ -220,9 +220,9 @@ const N8nAgents: React.FC = () => {
                       {agent.agent_name}
                     </h3>
                     
-                    <p className="text-xs text-muted-foreground mt-1">
+                    {/* <p className="text-xs text-muted-foreground mt-1">
                       {agent.workflow_name}
-                    </p>
+                    </p> */}
                     
                     {agent.description && (
                       <p className="text-sm text-muted-foreground mt-1">
@@ -236,7 +236,7 @@ const N8nAgents: React.FC = () => {
                           px-2 py-1 rounded-full text-xs font-medium
                           ${agent.status === 'active' 
                             ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                            : agent.status === 'error'
+                            : agent.status === 'inactive'
                             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                             : 'bg-muted/20 text-muted-foreground border border-muted/30'
                           }

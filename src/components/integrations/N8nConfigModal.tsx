@@ -46,27 +46,38 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.api_key.trim() || !formData.webhook_url.trim() || !formData.base_url.trim()) {
-      toast({
-        title: t('common.error'),
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (!formData.api_key.trim() || !formData.webhook_url.trim() || !formData.base_url.trim()) {
+    //   toast({
+    //     title: t('common.error'),
+    //     description: "Please fill in all required fields.",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
-    // Basic URL validation
+  const validateUrl = (url, fieldName) => {
+    if (!url) return true;
+
     try {
-      new URL(formData.webhook_url);
-      new URL(formData.base_url);
+      new URL(url);
+      return true;
     } catch {
       toast({
         title: t('common.error'),
-        description: "Please enter valid URLs for webhook and base URL.",
+        description: `Please enter a valid URL for ${fieldName}.`,
         variant: "destructive",
       });
-      return;
+      return false;
     }
+  };
+
+  if (
+    !validateUrl(formData.webhook_url, "webhook") ||
+    !validateUrl(formData.base_url, "base")
+  ) {
+    return;
+  }
+
 
     setLoading(true);
     
