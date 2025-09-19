@@ -43,7 +43,6 @@ interface IntegrationCardProps {
   loading?: boolean;
   installing?: boolean;
   justInstalled?: boolean;
-  installProgress?: number;
 }
 
 // Integration Card Component
@@ -52,8 +51,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   onAction, 
   loading = false, 
   installing = false,
-  justInstalled = false,
-  installProgress = 0
+  justInstalled = false 
 }) => {
   const getActionButton = () => {
     if (loading) {
@@ -70,18 +68,13 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
     if (installing) {
       return (
-        <div className="w-full space-y-3">
-          <div className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary/50 text-primary-foreground rounded-lg">
-            <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
-            Installing n8n...
-          </div>
-          <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
-            <div 
-              className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${installProgress}%` }}
-            />
-          </div>
-        </div>
+        <button 
+          disabled 
+          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary/50 text-primary-foreground rounded-lg cursor-not-allowed"
+        >
+          <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
+          Installing n8n...
+        </button>
       );
     }
 
@@ -201,7 +194,6 @@ const IntegrationsApps: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
   const [installingIntegrations, setInstallingIntegrations] = useState<Set<string>>(new Set());
   const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
-  const [installProgress, setInstallProgress] = useState<{ [key: string]: number }>({});
   const { token } = useAuth();
   const { toast } = useToast();
 
@@ -303,46 +295,28 @@ const availableIntegrations: Integration[] = [
     try {
       // Add to installing state
       setInstallingIntegrations(prev => new Set(prev).add('n8n'));
-      setInstallProgress(prev => ({ ...prev, n8n: 0 }));
-
-      // Start progress animation
-      const progressInterval = setInterval(() => {
-        setInstallProgress(prev => ({
-          ...prev,
-          n8n: Math.min((prev.n8n || 0) + Math.random() * 15, 85)
-        }));
-      }, 200);
 
       // Make API call to install n8n integration
       const response = await api.post('/api/integrations/n8n-integrations');
 
-      // Complete progress bar
-      setTimeout(() => {
-        setInstallProgress(prev => ({ ...prev, n8n: 100 }));
-        clearInterval(progressInterval);
-        
-        // Delay showing success state for 1.5 seconds to extend loading effect
-        setTimeout(() => {
-          // Update integration state to available
-          setIntegrations(prev => prev.map(integration => 
-            integration.key === 'n8n' 
-              ? { 
-                  ...integration, 
-                  available: true, 
-                  status: 'active',
-                }
-              : integration
-          ));
+      // Update integration state to available
+      setIntegrations(prev => prev.map(integration => 
+        integration.key === 'n8n' 
+          ? { 
+              ...integration, 
+              available: true, 
+              status: 'active',
+            }
+          : integration
+      ));
 
-          // Show success state briefly
-          setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
-          
-          toast({
-            title: "Installation Successful",
-            description: "n8n integration has been installed successfully!",
-          });
-        }, 1500);
-      }, 300);
+      // Show success state briefly
+      setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
+      
+      toast({
+        title: "Installation Successful",
+        description: "n8n integration has been installed successfully!",
+      });
 
       // Clear just installed state after animation
       setTimeout(() => {
@@ -355,8 +329,6 @@ const availableIntegrations: Integration[] = [
 
     } catch (error) {
       console.error('Error installing n8n integration:', error);
-      // Clear progress interval on error
-      setInstallProgress(prev => ({ ...prev, n8n: 0 }));
       toast({
         title: "Installation Failed",
         description: "Failed to install n8n integration. Please try again.",
@@ -433,7 +405,6 @@ const availableIntegrations: Integration[] = [
               loading={loading && integration.key === 'n8n'}
               installing={installingIntegrations.has(integration.key)}
               justInstalled={justInstalledIntegrations.has(integration.key)}
-              installProgress={installProgress[integration.key] || 0}
             />
           ))}
         </div>
