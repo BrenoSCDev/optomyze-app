@@ -19,6 +19,7 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
 import { SiN8N, SiGoogleanalytics } from "react-icons/si";
 import { FaMeta } from "react-icons/fa6";
@@ -54,6 +55,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   installing = false,
   justInstalled = false 
 }) => {
+  const { t } = useLanguage();
   const getActionButton = () => {
     if (loading) {
       return (
@@ -62,7 +64,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-muted/50 text-muted-foreground rounded-lg cursor-not-allowed"
         >
           <div className="animate-spin w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full" />
-          Checking...
+          {t('integrations.checking')}
         </button>
       );
     }
@@ -86,7 +88,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-500 text-white rounded-lg animate-pulse"
         >
           <Check className="w-4 h-4" />
-          Installed!
+          {t('integrations.installed')}
         </button>
       );
     }
@@ -98,7 +100,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-muted/30 text-muted-foreground rounded-lg cursor-not-allowed"
         >
           <Package className="w-4 h-4" />
-          Coming Soon
+          {t('integrations.coming-soon')}
         </button>
       );
     }
@@ -110,7 +112,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors group"
         >
           <Settings className="w-4 h-4" />
-          Configure
+          {t('integrations.configure')}
         </button>
       );
     } else {
@@ -120,7 +122,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors group"
         >
           <Download className="w-4 h-4" />
-          Install
+          {t('integrations.install')}
         </button>
       );
     }
@@ -160,7 +162,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                 : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
               }
             `}>
-              {integration.comingSoon ? 'Coming Soon' : integration.available ? 'Available' : 'Not Installed'}
+              {integration.comingSoon ? t('integrations.coming-soon') : integration.available ? t('integrations.available') : t('integrations.not-installed')}
             </span>
           </div>
 
@@ -198,37 +200,38 @@ const IntegrationsApps: React.FC = () => {
   const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
   const { token } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
 // Define available integrations
 const availableIntegrations: Integration[] = [
   {
     key: 'n8n',
-    name: 'n8n',
-    description: 'Powerful workflow automation tool for connecting your apps and services seamlessly.',
+    name: t('integrations.n8n.name'),
+    description: t('integrations.n8n.description'),
     category: 'automation',
     available: false, // Will be updated from API
     lastUpdated: undefined
   },
   {
     key: 'google-ads',
-    name: 'Google Ads',
-    description: 'Integrate with Google Ads to sync campaigns, track performance, and optimize leads.',
+    name: t('integrations.google-ads.name'),
+    description: t('integrations.google-ads.description'),
     category: 'ads',
     available: false,
     comingSoon: true
   },
   {
     key: 'google-analytics',
-    name: 'Google Analytics',
-    description: 'Connect to Google Analytics for tracking website and campaign performance.',
+    name: t('integrations.google-analytics.name'),
+    description: t('integrations.google-analytics.description'),
     category: 'analytics',
     available: false,
     comingSoon: true
   },
   {
     key: 'meta-ads',
-    name: 'Meta Ads',
-    description: 'Integrate with Meta Ads (Facebook & Instagram) to manage and analyze ad campaigns.',
+    name: t('integrations.meta-ads.name'),
+    description: t('integrations.meta-ads.description'),
     category: 'ads',
     available: false,
     comingSoon: true
@@ -279,7 +282,7 @@ const availableIntegrations: Integration[] = [
         setShowN8nConfigModal(true);
       } else {
         toast({
-          title: "Configuration",
+          title: t('integrations.configuration'),
           description: `Configure ${integrationKey} integration - Coming soon!`,
         });
       }
@@ -288,7 +291,7 @@ const availableIntegrations: Integration[] = [
         await installN8nIntegration();
       } else {
         toast({
-          title: "Installation",
+          title: t('integrations.installation'),
           description: `Install ${integrationKey} integration - Coming soon!`,
         });
       }
@@ -319,8 +322,8 @@ const availableIntegrations: Integration[] = [
       setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
       
       toast({
-        title: "Installation Successful",
-        description: "n8n integration has been installed successfully!",
+        title: t('integrations.installation-successful'),
+        description: t('integrations.n8n.installation-successful'),
       });
 
       // Clear just installed state after animation
@@ -335,7 +338,7 @@ const availableIntegrations: Integration[] = [
     } catch (error) {
       console.error('Error installing n8n integration:', error);
       toast({
-        title: "Installation Failed",
+        title: t('integrations.installation-failed'),
         description: "Failed to install n8n integration. Please try again.",
         variant: "destructive",
       });
@@ -367,13 +370,13 @@ const availableIntegrations: Integration[] = [
         <div className="max-w-4xl mx-auto">
           <div className="glass-card p-6 text-center border-red-500/20">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Integrations</h3>
-            <p className="text-muted-foreground mb-4">Unable to check integration availability</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">{t('integrations.failed-to-load')}</h3>
+            <p className="text-muted-foreground mb-4">{t('integrations.unable-to-check')}</p>
             <button
               onClick={fetchIntegrationStatuses}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Try Again
+              {t('integrations.try-again')}
             </button>
           </div>
         </div>
@@ -393,16 +396,16 @@ const availableIntegrations: Integration[] = [
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-4">
-            <span>Settings</span>
+            <span>{t('nav.settings')}</span>
             <ChevronRight className="w-4 h-4" />
-            <span>Integrations</span>
+            <span>{t('nav.integrations')}</span>
             <ChevronRight className="w-4 h-4" />
             <span className="text-foreground">Apps</span>
           </div>
           
-          <h1 className="text-3xl font-bold text-foreground mb-2">App Integrations</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('integrations.title')}</h1>
           <p className="text-muted-foreground">
-            Connect Optomyze with your favorite tools and services to automate your workflow.
+            {t('integrations.description')}
           </p>
         </div>
 
@@ -422,7 +425,7 @@ const availableIntegrations: Integration[] = [
 
         {/* Coming Soon Section */}
         <div className="mt-12">
-          <h2 className="text-xl font-semibold text-foreground mb-4">More Integrations Coming Soon</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">{t('integrations.more-coming-soon')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {comingSoonIntegrations.map((name) => (
               <div key={name} className="glass-card p-4 text-center border-muted/20">

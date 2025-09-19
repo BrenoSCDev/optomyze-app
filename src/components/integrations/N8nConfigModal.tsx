@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
 import { Loader2, Key, Webhook } from 'lucide-react';
 import { SiN8N } from "react-icons/si";
@@ -32,6 +33,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -45,7 +47,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     
     if (!formData.api_key.trim() || !formData.webhook_url.trim()) {
       toast({
-        title: "Validation Error",
+        title: t('common.error'),
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
@@ -57,8 +59,8 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
       new URL(formData.webhook_url);
     } catch {
       toast({
-        title: "Invalid URL",
-        description: "Please enter a valid webhook URL.",
+        title: t('common.error'),
+        description: t('integrations.n8n.webhook-url-invalid'),
         variant: "destructive",
       });
       return;
@@ -73,7 +75,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
       });
 
       toast({
-        title: "Configuration Saved",
+        title: t('integrations.configuration-successful'),
         description: "n8n integration has been configured successfully!",
       });
 
@@ -89,8 +91,8 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     } catch (error) {
       console.error('Error configuring n8n integration:', error);
       toast({
-        title: "Configuration Failed",
-        description: "Failed to configure n8n integration. Please try again.",
+        title: t('integrations.configuration-failed'),
+        description: t('integrations.configuration-failed-description'),
         variant: "destructive",
       });
     } finally {
@@ -114,10 +116,10 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
               <SiN8N className="w-8 h-8 text-primary" />
             </div>
-            Configure n8n Integration
+            {t('integrations.n8n.configure-title')}
           </DialogTitle>
           <DialogDescription>
-            Enter your n8n API credentials to connect your workflow automation.
+            {t('integrations.n8n.configure-description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -127,12 +129,12 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="api_key" className="flex items-center gap-2">
                 <Key className="w-4 h-4" />
-                API Key
+                {t('integrations.n8n.api-key')}
               </Label>
               <Input
                 id="api_key"
                 type="password"
-                placeholder="sk_test_1234567890abcdef"
+                placeholder={t('integrations.n8n.api-key-placeholder')}
                 value={formData.api_key}
                 onChange={(e) => handleInputChange('api_key', e.target.value)}
                 disabled={loading}
@@ -147,12 +149,12 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="webhook_url" className="flex items-center gap-2">
                 <Webhook className="w-4 h-4" />
-                Webhook URL
+                {t('integrations.n8n.webhook-url')}
               </Label>
               <Input
                 id="webhook_url"
                 type="url"
-                placeholder="https://mycrm.com/hooks/n8n-12345"
+                placeholder={t('integrations.n8n.webhook-url-placeholder')}
                 value={formData.webhook_url}
                 onChange={(e) => handleInputChange('webhook_url', e.target.value)}
                 disabled={loading}
@@ -170,11 +172,11 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
               onClick={handleCancel}
               disabled={loading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save Configuration
+              {loading ? t('integrations.n8n.saving-configuration') : t('integrations.n8n.save-configuration')}
             </Button>
           </DialogFooter>
         </form>
