@@ -25,6 +25,7 @@ import { FaMeta } from "react-icons/fa6";
 import { FaGoogle } from "react-icons/fa";
 import { useToast } from '../../hooks/use-toast';
 import { Check } from 'lucide-react';
+import N8nConfigModal from './N8nConfigModal';
 
 interface Integration {
   key: string;
@@ -194,6 +195,7 @@ const IntegrationsApps: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
   const [installingIntegrations, setInstallingIntegrations] = useState<Set<string>>(new Set());
   const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
+  const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
   const { token } = useAuth();
   const { toast } = useToast();
 
@@ -273,11 +275,14 @@ const availableIntegrations: Integration[] = [
     console.log(`Action: ${action} for integration: ${integrationKey}`);
     
     if (action === 'configure') {
-      // TODO: Open configuration modal or navigate to config page
-      toast({
-        title: "Configuration",
-        description: `Configure ${integrationKey} integration - Coming soon!`,
-      });
+      if (integrationKey === 'n8n') {
+        setShowN8nConfigModal(true);
+      } else {
+        toast({
+          title: "Configuration",
+          description: `Configure ${integrationKey} integration - Coming soon!`,
+        });
+      }
     } else if (action === 'install') {
       if (integrationKey === 'n8n') {
         await installN8nIntegration();
@@ -342,6 +347,12 @@ const availableIntegrations: Integration[] = [
         return newSet;
       });
     }
+  };
+
+  // Handle n8n configuration saved
+  const handleN8nConfigSaved = () => {
+    // Optionally refresh integration status or show success feedback
+    fetchIntegrationStatuses();
   };
 
   // Fetch data on component mount
@@ -423,6 +434,13 @@ const availableIntegrations: Integration[] = [
             ))}
           </div>
         </div>
+
+        {/* n8n Configuration Modal */}
+        <N8nConfigModal
+          open={showN8nConfigModal}
+          onOpenChange={setShowN8nConfigModal}
+          onConfigurationSaved={handleN8nConfigSaved}
+        />
       </div>
     </div>
   );
