@@ -59,6 +59,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [leadsExpanded, setLeadsExpanded] = useState(false);
   // Controls whether the Settings submenu is expanded or collapsed
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+  // Controls whether the Integrations submenu is expanded or collapsed
+  const [integrationsExpanded, setIntegrationsExpanded] = useState(false);
   
   const { funnels, logout, user } = useAuth();
   const { t } = useLanguage();
@@ -70,6 +72,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     if (sectionId === 'leads') {
       // If clicking leads without specific funnel, go to default dashboard
       navigate('/');
+    } else if (sectionId === 'integrations-apps') {
+      // Navigate to dedicated integrations apps page
+      navigate('/settings/integrations/apps');
     } else {
       // For dashboard and settings sections, navigate to home with section parameter
       navigate(`/?section=${sectionId}`);
@@ -97,6 +102,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline /> },
     { id: 'tags', label: t('nav.tags'), icon: () => <Tag /> },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage /> },
+  ];
+
+  // Integrations submenu items
+  const integrationsItems = [
+    { id: 'integrations-apps', label: 'Apps', icon: () => <Plug /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
@@ -329,8 +339,67 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
+        {/* Integrations Section */}
+        <div>
+          <button
+            onClick={() => setIntegrationsExpanded(!integrationsExpanded)}
+            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Plug className="h-5 w-5" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.integrations')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {integrationsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {integrationsExpanded && !isCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {integrationsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      location.pathname === '/settings/integrations/apps' ? 'active' : ''
+                    }`}
+                  >
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Main Navigation Items */}
-        {mainItems.map((item) => (
+        {mainItems.filter(item => item.id !== 'integrations').map((item) => (
           <button
             key={item.id}
             onClick={() => handleSectionNavigation(item.id)}
