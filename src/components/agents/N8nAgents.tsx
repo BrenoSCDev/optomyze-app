@@ -17,6 +17,7 @@ import { useToast } from '../../hooks/use-toast';
 import { SiN8N, SiWhatsapp, SiInstagram, SiTelegram } from "react-icons/si";
 import { BiLogoGmail } from "react-icons/bi";
 import api from '../../services/api';
+import ExecutionsModal from './ExecutionsModal';
 
 interface Agent {
   id: number;
@@ -37,6 +38,10 @@ const N8nAgents: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
+  const [executionsModalOpen, setExecutionsModalOpen] = useState(false);
+  const [executions, setExecutions] = useState([]);
+  const [executionsLoading, setExecutionsLoading] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { t } = useLanguage();
   const { toast } = useToast();
 
@@ -87,6 +92,28 @@ const N8nAgents: React.FC = () => {
 
     fetchAgents();
   }, [t, toast]);
+
+  const handleViewExecutions = async (agent: Agent) => {
+    setSelectedAgent(agent);
+    setExecutionsModalOpen(true);
+    setExecutionsLoading(true);
+    
+    try {
+      const response = await api.get(`/api/integrations/agents/n8n/executions/${agent.id}`);
+      
+      if (response.data && response.data.executions) {
+        setExecutions(response.data.executions);
+      }
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: "Failed to load executions",
+        variant: "destructive",
+      });
+    } finally {
+      setExecutionsLoading(false);
+    }
+  };
 
   const handleSynchronize = async () => {
     setIsSyncing(true);
@@ -289,13 +316,7 @@ const N8nAgents: React.FC = () => {
                     variant="outline" 
                     size="sm" 
                     className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                    onClick={() => {
-                      // TODO: Implement execution view
-                      toast({
-                        title: "Coming Soon",
-                        description: "Execution history will be available soon",
-                      });
-                    }}
+                    onClick={() => handleViewExecutions(agent)}
                   >
                     <Clock className="w-3 h-3" />
                     View Executions
@@ -314,6 +335,19 @@ const N8nAgents: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Executions Modal */}
+        <ExecutionsModal
+          isOpen={executionsModalOpen}
+          onClose={() => {
+            setExecutionsModalOpen(false);
+            setSelectedAgent(null);
+            setExecutions([]);
+          }}
+          executions={executions}
+          agentName={selectedAgent?.agent_name || ''}
+          isLoading={executionsLoading}
+        />
       </div>
     </div>
   );
