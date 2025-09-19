@@ -310,13 +310,16 @@ const availableIntegrations: Integration[] = [
           : integration
       ));
 
-      // Show success state briefly
-      setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
-      
-      toast({
-        title: "Installation Successful",
-        description: "n8n integration has been installed successfully!",
-      });
+      // Delay showing success state for 1.5 seconds to extend loading effect
+      setTimeout(() => {
+        // Show success state briefly
+        setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
+        
+        toast({
+          title: "Installation Successful",
+          description: "n8n integration has been installed successfully!",
+        });
+      }, 1500);
 
       // Clear just installed state after animation
       setTimeout(() => {
