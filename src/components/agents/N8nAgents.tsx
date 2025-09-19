@@ -9,7 +9,7 @@
  * - Beautiful glassmorphism design
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, Bot, Workflow, Clock } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -31,20 +31,43 @@ interface Agent {
 
 const N8nAgents: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const { t } = useLanguage();
   const { toast } = useToast();
 
+  // Fetch agents when component mounts
+  useEffect(() => {
+    const fetchAgents = async () => {
+      setIsLoading(true);
+      
+      try {
+        const response = await api.get('/api/integrations/agents/n8n');
+        
+        if (response.data && response.data.data) {
+          setAgents(response.data.data);
+        }
+      } catch (error) {
+        toast({
+          title: t('common.error'),
+          description: "Failed to load agents",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAgents();
+  }, [t, toast]);
+
   const handleSynchronize = async () => {
-    setIsLoading(true);
+    setIsSyncing(true);
     
     try {
-      const response = await api.get('/api/integrations/agents/n8n');
-      
-      if (response.data && response.data.data) {
-        setAgents(response.data.data);
-      }
+      // Placeholder for synchronization logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: t('common.success'),
@@ -59,7 +82,7 @@ const N8nAgents: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -103,11 +126,11 @@ const N8nAgents: React.FC = () => {
           {/* Synchronize Button */}
           <Button
             onClick={handleSynchronize}
-            disabled={isLoading}
+            disabled={isSyncing}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            {isLoading ? t('agents.n8n.synchronizing') : t('agents.n8n.synchronize')}
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? t('agents.n8n.synchronizing') : t('agents.n8n.synchronize')}
           </Button>
         </div>
 
@@ -129,12 +152,12 @@ const N8nAgents: React.FC = () => {
 
             <Button
               onClick={handleSynchronize}
-              disabled={isLoading}
+              disabled={isSyncing}
               variant="outline"
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              {isLoading ? t('agents.n8n.synchronizing') : t('agents.n8n.synchronize')}
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? t('agents.n8n.synchronizing') : t('agents.n8n.synchronize')}
             </Button>
           </div>
         ) : (
