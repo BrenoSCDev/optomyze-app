@@ -22,6 +22,7 @@ import TagsDashboard from '@/components/dashboards/TagsDashboard';
 import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
 import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
+import IntegrationsApps from '@/components/integrations/IntegrationsApps';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -79,7 +80,6 @@ const Index = () => {
         return <TagsDashboard />; // Tags management interface
       case 'general':
       case 'users':
-      case 'integrations':
       case 'api-keys':
         return (
           <div className="text-center py-12">
@@ -90,6 +90,8 @@ const Index = () => {
             <p className="text-muted-foreground">This feature is under development.</p>
           </div>
         );
+      case 'integrations':
+        return <IntegrationsApps />;
       
       // Leads Management - Dynamic funnel routing
       case 'leads':

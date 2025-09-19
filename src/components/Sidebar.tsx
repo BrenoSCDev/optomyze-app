@@ -72,9 +72,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     if (sectionId === 'leads') {
       // If clicking leads without specific funnel, go to default dashboard
       navigate('/');
-    } else if (sectionId === 'integrations-apps') {
-      // Navigate to dedicated integrations apps page
-      navigate('/settings/integrations/apps');
     } else {
       // For dashboard and settings sections, navigate to home with section parameter
       navigate(`/?section=${sectionId}`);
@@ -106,7 +103,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Integrations submenu items
   const integrationsItems = [
-    { id: 'integrations-apps', label: 'Apps', icon: () => <Plug /> },
+    { id: 'integrations', label: 'Apps', icon: () => <Plug /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
@@ -386,7 +383,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
                     className={`nav-item w-full ${
-                      location.pathname === '/settings/integrations/apps' ? 'active' : ''
+                      activeSection === item.id ? 'active' : ''
                     }`}
                   >
                     <item.icon />

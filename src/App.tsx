@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
-import IntegrationsApps from "./components/integrations/IntegrationsApps";
 
 const queryClient = new QueryClient();
 
@@ -53,14 +52,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/settings/integrations/apps" 
-                element={
-                  <ProtectedRoute>
-                    <IntegrationsApps />
                   </ProtectedRoute>
                 } 
               />
