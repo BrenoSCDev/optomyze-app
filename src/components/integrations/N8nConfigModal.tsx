@@ -13,6 +13,7 @@ import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import api from '../../services/api';
 import { Loader2, Key, Webhook } from 'lucide-react';
+import { SiN8N } from "react-icons/si";
 
 interface N8nConfigModalProps {
   open: boolean;
@@ -66,7 +67,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     setLoading(true);
     
     try {
-      await api.put('/integrations/n8n-integrations/configure', {
+      await api.put('/api/integrations/n8n-integrations/configure', {
         webhook_url: formData.webhook_url,
         api_key: formData.api_key,
       });
@@ -110,8 +111,8 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Key className="w-4 h-4 text-primary" />
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+              <SiN8N className="w-8 h-8 text-primary" />
             </div>
             Configure n8n Integration
           </DialogTitle>
