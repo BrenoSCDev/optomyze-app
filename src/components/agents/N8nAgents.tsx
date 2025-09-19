@@ -10,11 +10,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock, Loader2 } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
-import { SiN8N } from "react-icons/si";
+import { SiN8N, SiWhatsapp, SiInstagram, SiTelegram } from "react-icons/si";
 import api from '../../services/api';
 
 interface Agent {
@@ -36,6 +36,27 @@ const N8nAgents: React.FC = () => {
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const { t } = useLanguage();
   const { toast } = useToast();
+
+  // Function to get platform icon
+  const getPlatformIcon = (platform: string) => {
+    const iconProps = { className: "w-6 h-6 text-primary" };
+    
+    switch (platform.toLowerCase()) {
+      case 'whatsapp':
+        return <SiWhatsapp {...iconProps} />;
+      case 'instagram':
+        return <SiInstagram {...iconProps} />;
+      case 'telegram':
+        return <SiTelegram {...iconProps} />;
+      case 'sms':
+        return <MessageSquare {...iconProps} />;
+      case 'google calendar':
+      case 'calendar':
+        return <Calendar {...iconProps} />;
+      default:
+        return <Workflow {...iconProps} />;
+    }
+  };
 
   // Fetch agents when component mounts
   useEffect(() => {
@@ -191,7 +212,7 @@ const N8nAgents: React.FC = () => {
               <div key={agent.id} className="glass-card p-6 hover:border-primary/50 transition-all duration-300">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Workflow className="w-6 h-6 text-primary" />
+                    {getPlatformIcon(agent.platform)}
                   </div>
                   
                   <div className="flex-1 min-w-0">
