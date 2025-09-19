@@ -23,6 +23,7 @@ import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
 import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
 import IntegrationsApps from '@/components/integrations/IntegrationsApps';
+import N8nAgents from '@/components/agents/N8nAgents';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -92,6 +93,10 @@ const Index = () => {
         );
       case 'integrations':
         return <IntegrationsApps />;
+      
+      // AI Agents sections
+      case 'n8n-agents':
+        return <N8nAgents />;
       
       // Leads Management - Dynamic funnel routing
       case 'leads':

@@ -31,7 +31,8 @@ import {
   BarChart,
   Plug,
   LogOut,
-  Tag
+  Tag,
+  Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,7 +44,7 @@ import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
 import { FaGoogle } from "react-icons/fa";
-import { SiGoogleanalytics } from "react-icons/si";
+import { SiGoogleanalytics, SiN8N } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 
 interface SidebarProps {
@@ -62,6 +63,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   // Controls whether the Integrations submenu is expanded or collapsed
   const [integrationsExpanded, setIntegrationsExpanded] = useState(false);
+  // Controls whether the AI Agents submenu is expanded or collapsed
+  const [aiAgentsExpanded, setAiAgentsExpanded] = useState(false);
   
   const { funnels, logout, user } = useAuth();
   const { t } = useLanguage();
@@ -105,6 +108,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Integrations submenu items
   const integrationsItems = [
     { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
+  ];
+
+  // AI Agents submenu items
+  const aiAgentsItems = [
+    { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
@@ -380,6 +388,65 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 transition={{ duration: 0.3 }}
               >
                 {integrationsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* AI Agents Section */}
+        <div>
+          <button
+            onClick={() => setAiAgentsExpanded(!aiAgentsExpanded)}
+            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Bot className="h-5 w-5" />
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.ai-agents')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {aiAgentsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {aiAgentsExpanded && !isCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {aiAgentsItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}

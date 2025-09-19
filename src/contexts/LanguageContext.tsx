@@ -341,6 +341,17 @@ const translations = {
     'integrations.google-analytics.description': 'Connect to Google Analytics for tracking website and campaign performance.',
     'integrations.meta-ads.name': 'Meta Ads',
     'integrations.meta-ads.description': 'Integrate with Meta Ads (Facebook & Instagram) to manage and analyze ad campaigns.',
+
+    // AI Agents
+    'nav.ai-agents': 'AI Agents',
+    'agents.n8n.title': 'n8n Agents',
+    'agents.n8n.description': 'Manage and monitor your automated workflow agents',
+    'agents.n8n.no-agents': 'No agents found',
+    'agents.n8n.no-agents-description': 'Your n8n agents will appear here once you synchronize them.',
+    'agents.n8n.synchronize': 'Synchronize Agents',
+    'agents.n8n.synchronizing': 'Synchronizing...',
+    'agents.n8n.last-sync': 'Last synchronized',
+    'agents.n8n.never-synced': 'Never synchronized',
   },
   'pt-BR': {
     // Navigation
@@ -664,6 +675,17 @@ const translations = {
     'integrations.google-analytics.description': 'Conecte ao Google Analytics para rastrear performance do site e campanhas.',
     'integrations.meta-ads.name': 'Meta Ads',
     'integrations.meta-ads.description': 'Integre com Meta Ads (Facebook & Instagram) para gerenciar e analisar campanhas publicitárias.',
+
+    // AI Agents
+    'nav.ai-agents': 'Agentes de IA',
+    'agents.n8n.title': 'Agentes n8n',
+    'agents.n8n.description': 'Gerencie e monitore seus agentes de fluxo de trabalho automatizados',
+    'agents.n8n.no-agents': 'Nenhum agente encontrado',
+    'agents.n8n.no-agents-description': 'Seus agentes n8n aparecerão aqui assim que você sincronizá-los.',
+    'agents.n8n.synchronize': 'Sincronizar Agentes',
+    'agents.n8n.synchronizing': 'Sincronizando...',
+    'agents.n8n.last-sync': 'Última sincronização',
+    'agents.n8n.never-synced': 'Nunca sincronizado',
   },
   de: {
     // Navigation
