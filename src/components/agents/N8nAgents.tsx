@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
 import { SiN8N } from "react-icons/si";
+import api from '../../services/api';
 
 interface Agent {
   id: string;
@@ -35,10 +36,8 @@ const N8nAgents: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call to synchronize agents
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await api.get('/api/integrations/n8n/workflows');
       
-      // For now, we'll just show success
       toast({
         title: t('common.success'),
         description: "Agents synchronized successfully",
