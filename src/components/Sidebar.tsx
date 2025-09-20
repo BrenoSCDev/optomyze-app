@@ -55,16 +55,13 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: SidebarProps) => {
-  // Controls whether the Dashboard submenu is expanded or collapsed
-  const [dashboardExpanded, setDashboardExpanded] = useState(true);
-  // Controls whether the Leads submenu is expanded or collapsed
-  const [leadsExpanded, setLeadsExpanded] = useState(false);
-  // Controls whether the Settings submenu is expanded or collapsed
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
-  // Controls whether the Integrations submenu is expanded or collapsed
-  const [integrationsExpanded, setIntegrationsExpanded] = useState(false);
-  // Controls whether the AI Agents submenu is expanded or collapsed
-  const [aiAgentsExpanded, setAiAgentsExpanded] = useState(false);
+  // Controls which menu section is currently expanded (only one at a time)
+  const [expandedSection, setExpandedSection] = useState<string>('dashboard');
+  
+  // Helper function to toggle section and close others
+  const toggleSection = (sectionName: string) => {
+    setExpandedSection(expandedSection === sectionName ? '' : sectionName);
+  };
   
   const { funnels, logout, user } = useAuth();
   const { t } = useLanguage();
@@ -161,7 +158,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Dashboard Section */}
         <div>
           <button
-            onClick={() => setDashboardExpanded(!dashboardExpanded)}
+            onClick={() => toggleSection('dashboard')}
             className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -185,14 +182,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {dashboardExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'dashboard' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {dashboardExpanded && !isCollapsed && (
+            {expandedSection === 'dashboard' && !isCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -220,7 +217,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Leads Section */}
         <div>
           <button
-            onClick={() => setLeadsExpanded(!leadsExpanded)}
+            onClick={() => toggleSection('leads')}
             className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -244,14 +241,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {leadsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'leads' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {leadsExpanded && !isCollapsed && (
+            {expandedSection === 'leads' && !isCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -289,7 +286,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Settings Section */}
         <div>
           <button
-            onClick={() => setSettingsExpanded(!settingsExpanded)}
+            onClick={() => toggleSection('settings')}
             className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -313,14 +310,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {settingsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'settings' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {settingsExpanded && !isCollapsed && (
+            {expandedSection === 'settings' && !isCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -348,7 +345,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Integrations Section */}
         <div>
           <button
-            onClick={() => setIntegrationsExpanded(!integrationsExpanded)}
+            onClick={() => toggleSection('integrations')}
             className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -372,14 +369,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {integrationsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'integrations' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {integrationsExpanded && !isCollapsed && (
+            {expandedSection === 'integrations' && !isCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -407,7 +404,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* AI Agents Section */}
         <div>
           <button
-            onClick={() => setAiAgentsExpanded(!aiAgentsExpanded)}
+            onClick={() => toggleSection('aiAgents')}
             className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -431,14 +428,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {aiAgentsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'aiAgents' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {aiAgentsExpanded && !isCollapsed && (
+            {expandedSection === 'aiAgents' && !isCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
