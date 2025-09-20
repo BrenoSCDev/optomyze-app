@@ -32,7 +32,8 @@ import {
   Plug,
   LogOut,
   Tag,
-  Bot
+  Bot,
+  Key
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -114,10 +115,15 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
   ];
 
+  // API submenu items
+  const apiItems = [
+    { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
+    { id: 'api-setup', label: 'API Setup', icon: () => <Settings size={18}/> },
+  ];
+
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
     { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
-    { id: 'api', label: t('nav.api'), icon: Database }, // Future: API management & documentation
     { id: 'users', label: t('nav.users'), icon: Users }, // Future: User management system
   ];
 
@@ -457,6 +463,65 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     }`}
                   >
                     <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* API Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('api')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Database className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.api')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'api' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'api' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {apiItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-4 w-4" })}
                     <span className="text-sm">{item.label}</span>
                   </button>
                 ))}

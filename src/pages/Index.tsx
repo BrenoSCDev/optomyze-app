@@ -24,7 +24,8 @@ import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
 import IntegrationsApps from '@/components/integrations/IntegrationsApps';
 import N8nAgents from '@/components/agents/N8nAgents';
-import ApiManagement from '@/components/api/ApiManagement';
+import ApiTokens from '@/components/api/ApiTokens';
+import ApiSetup from '@/components/api/ApiSetup';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -103,9 +104,11 @@ const Index = () => {
       case 'leads':
         return <LeadsManagement funnelId={funnelId} />;
       
-      // API Management
-      case 'api':
-        return <ApiManagement />;
+      // API sections
+      case 'api-tokens':
+        return <ApiTokens />;
+      case 'api-setup':
+        return <ApiSetup />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
