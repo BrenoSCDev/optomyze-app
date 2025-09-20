@@ -57,6 +57,8 @@ interface SidebarProps {
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: SidebarProps) => {
   // Controls which menu section is currently expanded (only one at a time)
   const [expandedSection, setExpandedSection] = useState<string>('dashboard');
+  // Controls hover state for collapsed sidebar
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   
   // Helper function to toggle section and close others
   const toggleSection = (sectionName: string) => {
@@ -119,18 +121,23 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'users', label: t('nav.users'), icon: Users }, // Future: User management system
   ];
 
+  // Calculate effective collapsed state (considering hover)
+  const effectivelyCollapsed = isCollapsed && !isHovered;
+
   return (
     <motion.div
       className={`fixed left-0 top-0 h-full glass-card z-50 transition-all duration-300 ${
-        isCollapsed ? 'w-16' : 'w-64'
+        effectivelyCollapsed ? 'w-16' : 'w-64'
       }`}
       initial={false}
-      animate={{ width: isCollapsed ? 64 : 256 }}
+      animate={{ width: effectivelyCollapsed ? 64 : 256 }}
+      onMouseEnter={() => isCollapsed && setIsHovered(true)}
+      onMouseLeave={() => isCollapsed && setIsHovered(false)}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <AnimatePresence>
-          {!isCollapsed && (
+          {!effectivelyCollapsed && (
             <motion.div
               className="flex items-center gap-3"
               initial={{ opacity: 0, x: -20 }}
@@ -149,7 +156,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           onClick={onToggle}
           className="text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border"
         >
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          {effectivelyCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -159,12 +166,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div>
           <button
             onClick={() => toggleSection('dashboard')}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -176,7 +183,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -189,7 +196,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'dashboard' && !isCollapsed && (
+            {expandedSection === 'dashboard' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -218,12 +225,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div>
           <button
             onClick={() => toggleSection('leads')}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -235,7 +242,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -248,7 +255,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'leads' && !isCollapsed && (
+            {expandedSection === 'leads' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -287,12 +294,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div>
           <button
             onClick={() => toggleSection('settings')}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <Settings className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -304,7 +311,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -317,7 +324,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'settings' && !isCollapsed && (
+            {expandedSection === 'settings' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -346,12 +353,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div>
           <button
             onClick={() => toggleSection('integrations')}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <Plug className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -363,7 +370,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -376,7 +383,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'integrations' && !isCollapsed && (
+            {expandedSection === 'integrations' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -405,12 +412,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div>
           <button
             onClick={() => toggleSection('aiAgents')}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <Bot className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -422,7 +429,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -435,7 +442,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'aiAgents' && !isCollapsed && (
+            {expandedSection === 'aiAgents' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -465,14 +472,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           <button
             key={item.id}
             onClick={() => handleSectionNavigation(item.id)}
-            className={`nav-item w-full ${isCollapsed ? 'justify-center' : ''} ${
+            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
             disabled
           >
             <item.icon className="h-5 w-5" />
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -489,11 +496,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         <div className="mt-8 pt-4 border-t border-white/10">
           <button
             onClick={logout}
-            className={`nav-item w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${isCollapsed ? 'justify-center' : ''}`}
+            className={`nav-item w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${effectivelyCollapsed ? 'justify-center' : ''}`}
           >
             <LogOut className="h-5 w-5" />
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -507,7 +514,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           
           {/* User Info */}
           <AnimatePresence>
-            {!isCollapsed && user && (
+            {!effectivelyCollapsed && user && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
