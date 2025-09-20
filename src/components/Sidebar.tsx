@@ -122,10 +122,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
   ];
 
+  // Users submenu items
+  const usersItems = [
+    { id: 'manage-users', label: 'Manage Users', icon: () => <Users size={18}/> },
+  ];
+
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
     { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
-    { id: 'users', label: t('nav.users'), icon: Users }, // Future: User management system
   ];
 
   // Calculate effective collapsed state (considering hover)
@@ -515,6 +519,65 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 transition={{ duration: 0.3 }}
               >
                 {apiItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-4 w-4" })}
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Users Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('users')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.users')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'users' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'users' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {usersItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}

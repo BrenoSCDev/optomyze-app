@@ -26,6 +26,7 @@ import IntegrationsApps from '@/components/integrations/IntegrationsApps';
 import N8nAgents from '@/components/agents/N8nAgents';
 import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
+import ManageUsers from '@/components/users/ManageUsers';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -109,6 +110,10 @@ const Index = () => {
         return <ApiTokens />;
       case 'api-setup':
         return <ApiSetup />;
+      
+      // Users sections
+      case 'manage-users':
+        return <ManageUsers />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
