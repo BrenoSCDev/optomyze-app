@@ -131,8 +131,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
       }`}
       initial={false}
       animate={{ width: effectivelyCollapsed ? 64 : 256 }}
-      onMouseEnter={() => isCollapsed && setIsHovered(true)}
-      onMouseLeave={() => isCollapsed && setIsHovered(false)}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -161,7 +159,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2">
+      <nav className="p-4 space-y-2" onMouseEnter={() => isCollapsed && setIsHovered(true)} onMouseLeave={() => isCollapsed && setIsHovered(false)}>
         {/* Dashboard Section */}
         <div>
           <button
