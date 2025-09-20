@@ -290,7 +290,7 @@ const N8nAgents: React.FC = () => {
                 
                 {/* Stats Row */}
                 <div className="flex items-center justify-between mb-4 p-3 bg-muted/20 rounded-lg">
-                  <div className="flex items-center gap-4">
+                  {/* <div className="flex items-center gap-4">
                     <div className="text-center">
                       <div className="text-lg font-bold text-foreground">{agent.execution_count}</div>
                       <div className="text-xs text-muted-foreground">Executions</div>
@@ -309,10 +309,17 @@ const N8nAgents: React.FC = () => {
                         }
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Action Button */}
-                  <Button 
+                  </div> */}
+                  <span className="flex items-center gap-1 text-sm">
+                    <Calendar className="w-3 h-3" />
+                    Created {new Date(agent.created_at || Date.now()).toLocaleDateString()}
+                  </span>
+                </div>
+                
+                {/* Footer with additional info */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
+                  <span>ID: {agent.workflow_id || 'N/A'}</span>
+                                    <Button 
                     variant="outline" 
                     size="sm" 
                     className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -321,15 +328,6 @@ const N8nAgents: React.FC = () => {
                     <Clock className="w-3 h-3" />
                     View Executions
                   </Button>
-                </div>
-                
-                {/* Footer with additional info */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
-                  <span>ID: {agent.workflow_id || 'N/A'}</span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Created {new Date(agent.created_at || Date.now()).toLocaleDateString()}
-                  </span>
                 </div>
               </div>
             ))}
