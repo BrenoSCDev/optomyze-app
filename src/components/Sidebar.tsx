@@ -473,7 +473,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
             className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
-            disabled
           >
             <item.icon className="h-5 w-5" />
             <AnimatePresence>
