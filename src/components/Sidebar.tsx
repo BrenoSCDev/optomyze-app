@@ -47,6 +47,7 @@ import { FaMeta } from "react-icons/fa6";
 import { FaGoogle } from "react-icons/fa";
 import { SiGoogleanalytics, SiN8N } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
+import { BsDatabaseFillGear } from "react-icons/bs";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -118,7 +119,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // API submenu items
   const apiItems = [
     { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
-    { id: 'api-setup', label: 'API Setup', icon: () => <Settings size={18}/> },
+    { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
