@@ -158,7 +158,7 @@ const ApiTokens = () => {
           <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
             <CardContent className="p-4">
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-0 h-auto text-blue-800 dark:text-blue-200 hover:bg-transparent">
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto text-blue-800 dark:text-blue-200 hover:text-blue-800 hover:bg-transparent">
                   <div className="flex items-center gap-2">
                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <span className="font-medium">API Tokens Security Guide</span>

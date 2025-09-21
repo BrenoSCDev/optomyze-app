@@ -139,7 +139,7 @@ const Profile = () => {
                   alt="Profile"
                   className="object-cover"
                 />
-                <AvatarFallback className="text-2xl font-bold bg-gradient-primary text-white">
+                <AvatarFallback className="text-2xl font-bold text-white">
                   {getUserInitial()}
                 </AvatarFallback>
               </Avatar>
