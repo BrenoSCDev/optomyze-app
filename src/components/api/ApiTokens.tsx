@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info } from 'lucide-react';
+import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info, Lock, Eye, RotateCcw, Ban, FileText, Building2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -170,39 +170,94 @@ const ApiTokens = () => {
                   )}
                 </Button>
               </CollapsibleTrigger>
-              <CollapsibleContent className="pt-4 space-y-4 text-blue-800 dark:text-blue-200">
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    🔑 General Understanding
-                  </h4>
-                  <ul className="space-y-1 text-sm ml-4">
-                    <li><strong>What API tokens are:</strong> They are unique keys used to authenticate applications or users when interacting with APIs.</li>
-                    <li><strong>Access level:</strong> Tokens usually grant <strong>the same permissions as the user or system that created them</strong>, which can mean full access to company data.</li>
-                  </ul>
-                </div>
+              <CollapsibleContent className="pt-4 space-y-6 text-blue-800 dark:text-blue-200">
+                <div className="grid gap-4">
+                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <Key className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      General Understanding
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
+                        <div>
+                          <span className="font-medium">What API tokens are:</span> They are unique keys used to authenticate applications or users when interacting with APIs.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
+                        <div>
+                          <span className="font-medium">Access level:</span> Tokens usually grant <strong>the same permissions as the user or system that created them</strong>, which can mean full access to company data.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    ⚖️ Security Considerations
-                  </h4>
-                  <ul className="space-y-1 text-sm ml-4">
-                    <li><strong>Confidentiality:</strong> Tokens must be treated like <strong>passwords</strong>—never hard-coded in public code, never shared in plain text, and never posted in documentation or chat tools.</li>
-                    <li><strong>Storage:</strong> Store tokens in a <strong>secure secrets manager</strong> or encrypted environment variables, not in source code or emails.</li>
-                    <li><strong>Rotation:</strong> Regularly regenerate tokens to reduce risk if one is leaked.</li>
-                    <li><strong>Revocation:</strong> Have a process to immediately revoke tokens that are no longer needed or may have been compromised.</li>
-                    <li><strong>Least privilege principle:</strong> If possible, issue tokens with only the minimal access required, not blanket permissions.</li>
-                  </ul>
-                </div>
+                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      Security Considerations
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-start gap-3">
+                        <Lock className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Confidentiality:</span> Tokens must be treated like <strong>passwords</strong>—never hard-coded in public code, never shared in plain text, and never posted in documentation or chat tools.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Storage:</span> Store tokens in a <strong>secure secrets manager</strong> or encrypted environment variables, not in source code or emails.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <RotateCcw className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Rotation:</span> Regularly regenerate tokens to reduce risk if one is leaked.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Ban className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Revocation:</span> Have a process to immediately revoke tokens that are no longer needed or may have been compromised.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Eye className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Least privilege principle:</span> If possible, issue tokens with only the minimal access required, not blanket permissions.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    📊 Business Awareness
-                  </h4>
-                  <ul className="space-y-1 text-sm ml-4">
-                    <li><strong>Data exposure risk:</strong> A leaked token can allow attackers to extract, modify, or delete CRM and customer data.</li>
-                    <li><strong>Compliance impact:</strong> Mishandling tokens can result in GDPR, HIPAA, or other regulatory issues.</li>
-                    <li><strong>Employee access control:</strong> Only authorized staff should be able to generate, view, or manage tokens.</li>
-                  </ul>
+                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      Business Awareness
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-3 w-3 mt-1 text-orange-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Data exposure risk:</span> A leaked token can allow attackers to extract, modify, or delete CRM and customer data.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <FileText className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Compliance impact:</span> Mishandling tokens can result in GDPR, HIPAA, or other regulatory issues.
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Eye className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium">Employee access control:</span> Only authorized staff should be able to generate, view, or manage tokens.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
