@@ -16,6 +16,7 @@
  */
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -737,8 +738,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     sideOffset={8}
                   >
                     <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
-                      <UserCircle className="h-4 w-4 mr-2" />
-                      My Profile
+                      <Link to="/profile" className="flex items-center w-full">
+                        <UserCircle className="h-4 w-4 mr-2" />
+                        My Profile
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       className="cursor-pointer hover:bg-white hover:text-black"
