@@ -156,8 +156,7 @@ const ApiTokens = () => {
         <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
           <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
-            <strong>Security Notice:</strong> API tokens provide full access to your CRM environment and company data. 
-            Keep them secure and never share them publicly. Treat them like passwords - store them safely and rotate them regularly.
+            <strong>Security Notice:</strong> Your API tokens let you connect securely to your CRM and company data. Please keep them private, just like you would with a password.
           </AlertDescription>
         </Alert>
       </motion.div>
@@ -286,7 +285,7 @@ const ApiTokens = () => {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="secondary"
                               size="sm"
                               onClick={() => setTokenToDelete(token.id)}
                               className="text-destructive hover:text-destructive"
