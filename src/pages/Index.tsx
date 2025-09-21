@@ -27,6 +27,7 @@ import N8nAgents from '@/components/agents/N8nAgents';
 import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
 import ManageUsers from '@/components/users/ManageUsers';
+import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -114,6 +115,10 @@ const Index = () => {
       // Users sections
       case 'manage-users':
         return <ManageUsers />;
+      
+      // Chat sections
+      case 'whatsapp-inbox':
+        return <WhatsAppInbox />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)

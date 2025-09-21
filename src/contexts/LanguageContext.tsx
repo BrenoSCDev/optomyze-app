@@ -389,6 +389,17 @@ const translations = {
     'users.manage.showing': 'Showing',
     'users.manage.to': 'to',
     'users.manage.of': 'of',
+    
+    // Chat Section
+    'nav.chat': 'Chat',
+    'chat.whatsapp.title': 'WhatsApp Inbox',
+    'chat.whatsapp.description': 'Manage WhatsApp conversations and messages',
+    'chat.whatsapp.coming-soon': 'Coming Soon',
+    'chat.whatsapp.coming-soon-description': 'WhatsApp integration and inbox management will be available soon.',
+    'chat.whatsapp.conversations': 'Conversations',
+    'chat.whatsapp.messages': 'Messages',
+    'chat.whatsapp.contacts': 'Contacts',
+    'chat.whatsapp.templates': 'Templates',
   },
   'pt-BR': {
     // Navigation
@@ -760,6 +771,17 @@ const translations = {
     'users.manage.showing': 'Mostrando',
     'users.manage.to': 'a',
     'users.manage.of': 'de',
+    
+    // Chat Section
+    'nav.chat': 'Chat',
+    'chat.whatsapp.title': 'Caixa de Entrada WhatsApp',
+    'chat.whatsapp.description': 'Gerencie conversas e mensagens do WhatsApp',
+    'chat.whatsapp.coming-soon': 'Em Breve',
+    'chat.whatsapp.coming-soon-description': 'A integração do WhatsApp e gerenciamento da caixa de entrada estará disponível em breve.',
+    'chat.whatsapp.conversations': 'Conversas',
+    'chat.whatsapp.messages': 'Mensagens',
+    'chat.whatsapp.contacts': 'Contatos',
+    'chat.whatsapp.templates': 'Modelos',
   },
   de: {
     // Navigation
@@ -996,6 +1018,17 @@ const translations = {
     'users.manage.showing': 'Zeige',
     'users.manage.to': 'bis',
     'users.manage.of': 'von',
+    
+    // Chat Section
+    'nav.chat': 'Chat',
+    'chat.whatsapp.title': 'WhatsApp Posteingang',
+    'chat.whatsapp.description': 'WhatsApp-Unterhaltungen und -Nachrichten verwalten',
+    'chat.whatsapp.coming-soon': 'Demnächst',
+    'chat.whatsapp.coming-soon-description': 'WhatsApp-Integration und Posteingang-Verwaltung werden bald verfügbar sein.',
+    'chat.whatsapp.conversations': 'Unterhaltungen',
+    'chat.whatsapp.messages': 'Nachrichten',
+    'chat.whatsapp.contacts': 'Kontakte',
+    'chat.whatsapp.templates': 'Vorlagen',
   },
   es: {
     // Navigation
@@ -1232,6 +1265,17 @@ const translations = {
     'users.manage.showing': 'Mostrando',
     'users.manage.to': 'a',
     'users.manage.of': 'de',
+    
+    // Chat Section
+    'nav.chat': 'Chat',
+    'chat.whatsapp.title': 'Bandeja de Entrada WhatsApp',
+    'chat.whatsapp.description': 'Gestionar conversaciones y mensajes de WhatsApp',
+    'chat.whatsapp.coming-soon': 'Próximamente',
+    'chat.whatsapp.coming-soon-description': 'La integración de WhatsApp y gestión de bandeja de entrada estará disponible pronto.',
+    'chat.whatsapp.conversations': 'Conversaciones',
+    'chat.whatsapp.messages': 'Mensajes',
+    'chat.whatsapp.contacts': 'Contactos',
+    'chat.whatsapp.templates': 'Plantillas',
   }
 };
 
