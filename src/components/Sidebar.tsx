@@ -736,12 +736,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20"
                     sideOffset={8}
                   >
-                    <DropdownMenuItem className="cursor-pointer hover:bg-white/10">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
                       <UserCircle className="h-4 w-4 mr-2" />
                       My Profile
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      className="cursor-pointer hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                      className="cursor-pointer hover:bg-white hover:text-black"
                       onClick={logout}
                     >
                       <LogOut className="h-4 w-4 mr-2" />
