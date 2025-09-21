@@ -23,10 +23,17 @@ export const authService = {
   },
 
   // Logout function
-  logout() {
-    localStorage.removeItem('optomyze_auth_token');
-    localStorage.removeItem('optomyze_user');
-    localStorage.removeItem('optomyze_funnels');
+  async logout() {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      // Continue with logout even if API call fails
+      console.error('Logout API error:', error);
+    } finally {
+      localStorage.removeItem('optomyze_auth_token');
+      localStorage.removeItem('optomyze_user');
+      localStorage.removeItem('optomyze_funnels');
+    }
   },
 
   // Get stored auth data
