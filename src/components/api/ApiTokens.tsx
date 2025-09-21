@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle } from 'lucide-react';
+import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
@@ -39,6 +39,7 @@ const ApiTokens = () => {
   const [newTokenName, setNewTokenName] = useState('');
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // Fetch tokens on component mount
   useEffect(() => {
@@ -147,18 +148,83 @@ const ApiTokens = () => {
         </p>
       </motion.div>
 
-      {/* Security Information */}
+      {/* API Tokens Information */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
-          <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertDescription className="text-amber-800 dark:text-amber-200">
-            <strong>Security Notice:</strong> Your API tokens let you connect securely to your CRM and company data. Please keep them private, just like you would with a password.
-          </AlertDescription>
-        </Alert>
+        <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen}>
+          <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+            <CardContent className="p-4">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto text-blue-800 dark:text-blue-200 hover:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="font-medium">API Tokens Security Guide</span>
+                  </div>
+                  {isInfoOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-4 space-y-4 text-blue-800 dark:text-blue-200">
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    🔑 General Understanding
+                  </h4>
+                  <ul className="space-y-1 text-sm ml-4">
+                    <li><strong>What API tokens are:</strong> They are unique keys used to authenticate applications or users when interacting with APIs.</li>
+                    <li><strong>Access level:</strong> Tokens usually grant <strong>the same permissions as the user or system that created them</strong>, which can mean full access to company data.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    ⚖️ Security Considerations
+                  </h4>
+                  <ul className="space-y-1 text-sm ml-4">
+                    <li><strong>Confidentiality:</strong> Tokens must be treated like <strong>passwords</strong>—never hard-coded in public code, never shared in plain text, and never posted in documentation or chat tools.</li>
+                    <li><strong>Storage:</strong> Store tokens in a <strong>secure secrets manager</strong> or encrypted environment variables, not in source code or emails.</li>
+                    <li><strong>Rotation:</strong> Regularly regenerate tokens to reduce risk if one is leaked.</li>
+                    <li><strong>Revocation:</strong> Have a process to immediately revoke tokens that are no longer needed or may have been compromised.</li>
+                    <li><strong>Least privilege principle:</strong> If possible, issue tokens with only the minimal access required, not blanket permissions.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    🛠️ Operational Practices
+                  </h4>
+                  <ul className="space-y-1 text-sm ml-4">
+                    <li><strong>Expiration:</strong> Prefer tokens that expire automatically rather than permanent ones.</li>
+                    <li><strong>Monitoring & Logging:</strong> Track where tokens are used (IP, service, user) and monitor for unusual activity.</li>
+                    <li><strong>Audit trails:</strong> Keep records of when tokens were issued, by whom, and their scope.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    📊 Business Awareness
+                  </h4>
+                  <ul className="space-y-1 text-sm ml-4">
+                    <li><strong>Data exposure risk:</strong> A leaked token can allow attackers to extract, modify, or delete CRM and customer data.</li>
+                    <li><strong>Compliance impact:</strong> Mishandling tokens can result in GDPR, HIPAA, or other regulatory issues.</li>
+                    <li><strong>Employee access control:</strong> Only authorized staff should be able to generate, view, or manage tokens.</li>
+                  </ul>
+                </div>
+
+                <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
+                  <p className="text-sm font-medium">
+                    👉 In short: <strong>API tokens are like digital master keys</strong> — they unlock systems, so they need strong policies around creation, storage, use, monitoring, and revocation.
+                  </p>
+                </div>
+              </CollapsibleContent>
+            </CardContent>
+          </Card>
+        </Collapsible>
       </motion.div>
 
       {/* Main Card */}
