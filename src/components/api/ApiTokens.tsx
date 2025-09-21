@@ -196,17 +196,6 @@ const ApiTokens = () => {
 
                 <div>
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    🛠️ Operational Practices
-                  </h4>
-                  <ul className="space-y-1 text-sm ml-4">
-                    <li><strong>Expiration:</strong> Prefer tokens that expire automatically rather than permanent ones.</li>
-                    <li><strong>Monitoring & Logging:</strong> Track where tokens are used (IP, service, user) and monitor for unusual activity.</li>
-                    <li><strong>Audit trails:</strong> Keep records of when tokens were issued, by whom, and their scope.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
                     📊 Business Awareness
                   </h4>
                   <ul className="space-y-1 text-sm ml-4">
