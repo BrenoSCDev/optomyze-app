@@ -10,13 +10,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Key, Plus, Trash2, Calendar, Copy } from 'lucide-react';
+import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
@@ -36,6 +38,7 @@ const ApiTokens = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTokenName, setNewTokenName] = useState('');
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+  const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
 
   // Fetch tokens on component mount
   useEffect(() => {
@@ -89,10 +92,13 @@ const ApiTokens = () => {
     }
   };
 
-  const deleteToken = async (tokenId: string) => {
+  const deleteToken = async () => {
+    if (!tokenToDelete) return;
+    
     try {
-      await api.delete(`/api/tokens/${tokenId}`);
-      setTokens(prev => prev.filter(token => token.id !== tokenId));
+      await api.delete(`/api/tokens/${tokenToDelete}`);
+      setTokens(prev => prev.filter(token => token.id !== tokenToDelete));
+      setTokenToDelete(null);
       
       toast({
         title: "Success",
@@ -139,6 +145,21 @@ const ApiTokens = () => {
         <p className="text-muted-foreground">
           {t('api.tokens.description')}
         </p>
+      </motion.div>
+
+      {/* Security Information */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            <strong>Security Notice:</strong> API tokens provide full access to your CRM environment and company data. 
+            Keep them secure and never share them publicly. Treat them like passwords - store them safely and rotate them regularly.
+          </AlertDescription>
+        </Alert>
       </motion.div>
 
       {/* Main Card */}
@@ -262,14 +283,40 @@ const ApiTokens = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteToken(token.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setTokenToDelete(token.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-destructive" />
+                                Delete API Token
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete the token "{token.name}"? This action cannot be undone and will immediately revoke access for any applications using this token.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setTokenToDelete(null)}>
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={deleteToken}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete Token
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}
