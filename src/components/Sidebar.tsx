@@ -709,7 +709,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                               className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center border-2 border-white/20">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-white/20">
                               <span className="text-white font-semibold text-lg">
                                 {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                               </span>

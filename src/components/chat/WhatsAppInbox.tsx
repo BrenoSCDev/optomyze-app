@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { FaWhatsapp } from "react-icons/fa";
 
 const WhatsAppInbox = () => {
   const { t } = useLanguage();
@@ -44,7 +45,7 @@ const WhatsAppInbox = () => {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-600" />
+              <FaWhatsapp  className="h-5 w-5 text-green-600" />
               {t('chat.whatsapp.title')}
             </CardTitle>
             <CardDescription>
@@ -55,7 +56,7 @@ const WhatsAppInbox = () => {
             {/* Coming Soon Content */}
             <div className="text-center py-12 space-y-4">
               <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-8 w-8 text-green-600" />
+                <FaWhatsapp  className="h-8 w-8 text-green-600" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">{t('chat.whatsapp.coming-soon')}</h3>
