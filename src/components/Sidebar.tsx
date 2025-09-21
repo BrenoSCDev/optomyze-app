@@ -710,12 +710,35 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-3 p-3 bg-white/5 rounded-lg overflow-hidden"
+                className="mt-3 p-3 glass-card backdrop-blur-md bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-xl shadow-lg overflow-hidden hover:from-white/15 hover:to-white/10 transition-all duration-300"
               >
-                <div className="text-xs text-muted-foreground">{t('user.loggedinas')}</div>
-                <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
-                <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                <div className="text-xs text-muted-foreground">{t('user.role')}: {user.role}</div>
+                <div className="flex items-center gap-3">
+                  {/* Profile Picture or Initial */}
+                  <div className="flex-shrink-0">
+                    {user.profile_pic ? (
+                      <img 
+                        src={user.profile_pic} 
+                        alt={user.name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center border-2 border-white/20">
+                        <span className="text-white font-semibold text-lg">
+                          {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                    {user.company_name && (
+                      <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{user.company_name}</div>
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
