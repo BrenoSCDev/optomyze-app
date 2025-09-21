@@ -34,9 +34,11 @@ import {
   Tag,
   Bot,
   Key,
-  MessageCircle
+  MessageCircle,
+  UserCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
@@ -62,6 +64,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [expandedSection, setExpandedSection] = useState<string>('dashboard');
   // Controls hover state for collapsed sidebar
   const [isHovered, setIsHovered] = useState<boolean>(false);
+  // Controls user dropdown
+  const [userDropdownOpen, setUserDropdownOpen] = useState<boolean>(false);
   
   // Helper function to toggle section and close others
   const toggleSection = (sectionName: string) => {
@@ -683,62 +687,68 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
         ))}
 
-        {/* Logout Section */}
+        {/* User Info with Dropdown */}
         <div className="mt-8 pt-4 border-t border-white/10">
-          <button
-            onClick={logout}
-            className={`nav-item w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${effectivelyCollapsed ? 'justify-center' : ''}`}
-          >
-            <LogOut className="h-5 w-5" />
-            <AnimatePresence>
-              {!effectivelyCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  >
-                    {t('nav.logout')}
-                  </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
-          
-          {/* User Info */}
           <AnimatePresence>
             {!effectivelyCollapsed && user && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-3 p-3 glass-card backdrop-blur-md bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-xl shadow-lg overflow-hidden hover:from-white/15 hover:to-white/10 transition-all duration-300"
               >
-                <div className="flex items-center gap-3">
-                  {/* Profile Picture or Initial */}
-                  <div className="flex-shrink-0">
-                    {user.profile_pic ? (
-                      <img 
-                        src={user.profile_pic} 
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center border-2 border-white/20">
-                        <span className="text-white font-semibold text-lg">
-                          {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                        </span>
+                <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full p-3 glass-card backdrop-blur-md bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-xl shadow-lg overflow-hidden hover:from-white/15 hover:to-white/10 transition-all duration-300">
+                      <div className="flex items-center gap-3">
+                        {/* Profile Picture or Initial */}
+                        <div className="flex-shrink-0">
+                          {user.profile_pic ? (
+                            <img 
+                              src={user.profile_pic} 
+                              alt={user.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center border-2 border-white/20">
+                              <span className="text-white font-semibold text-lg">
+                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* User Info */}
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
+                          <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                          {user.company_name && (
+                            <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{user.company_name}</div>
+                          )}
+                        </div>
+
+                        {/* Dropdown indicator */}
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* User Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                    {user.company_name && (
-                      <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{user.company_name}</div>
-                    )}
-                  </div>
-                </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuItem className="cursor-pointer hover:bg-white/10">
+                      <UserCircle className="h-4 w-4 mr-2" />
+                      My Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t('nav.logout')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </motion.div>
             )}
           </AnimatePresence>
