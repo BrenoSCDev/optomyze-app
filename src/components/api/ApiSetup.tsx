@@ -76,7 +76,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
 
       const response = await axios({
         method: endpoint.method.toLowerCase(),
-        url: `http://localhost/api/v1${endpoint.path}`,
+        url: `http://crm-api.optomyze.io/api/v1${endpoint.path}`,
         headers: {
           'Authorization': `Bearer ${apiToken}`,
           'Content-Type': 'application/json'
@@ -316,7 +316,7 @@ const ApiSetup = () => {
                   Base URL
                 </h3>
                 <code className="text-primary text-lg font-mono">
-                  http://localhost/api/v1
+                  http://crm-api.optomyze.io/api/v1
                 </code>
               </div>
               <Button

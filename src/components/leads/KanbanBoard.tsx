@@ -66,7 +66,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       type: stage.type,
       leads: stage.active_leads.map((lead: any) => ({
         id: lead.id.toString(),
-        name: `${lead.first_name} ${lead.last_name}`,
+        name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
         email: lead.email,
         phone: lead.phone,
         company: lead.custom_fields?.industry || 'N/A',

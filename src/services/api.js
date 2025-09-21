@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: 'http://localhost',
+  baseURL: 'http://crm-api.optomyze.io',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
