@@ -27,10 +27,10 @@ const ApiTokens = () => {
         className="space-y-2"
       >
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          API Tokens
+          {t('api.tokens.title')}
         </h1>
         <p className="text-muted-foreground">
-          Manage your API authentication tokens and access keys
+          {t('api.tokens.description')}
         </p>
       </motion.div>
 
@@ -45,15 +45,15 @@ const ApiTokens = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-primary" />
-                API Tokens
+                {t('api.tokens.title')}
               </CardTitle>
               <CardDescription>
-                Manage your API authentication tokens
+                {t('api.tokens.description')}
               </CardDescription>
             </div>
             <Button disabled className="opacity-50">
               <Plus className="h-4 w-4 mr-2" />
-              Create Token
+              {t('users.manage.create-user').replace('User', 'Token')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -63,10 +63,9 @@ const ApiTokens = () => {
                 <Lock className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold">API Tokens Coming Soon</h3>
+                <h3 className="text-xl font-semibold">{t('api.tokens.coming-soon')}</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Create and manage secure API tokens for authentication. Control access, 
-                  set expiration dates, and monitor token usage.
+                  {t('api.tokens.coming-soon-description')}
                 </p>
               </div>
               <Badge variant="secondary" className="bg-primary/10 text-primary">

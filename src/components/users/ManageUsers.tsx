@@ -26,6 +26,7 @@ import {
   PaginationPrevious 
 } from "@/components/ui/pagination";
 import { MoreHorizontal, UserPlus, Filter, Edit, Trash2, UserX, UserCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Mock user data - expanded to show pagination
 const mockUsers = [
@@ -154,6 +155,7 @@ const mockUsers = [
 const ITEMS_PER_PAGE = 10;
 
 const ManageUsers = () => {
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState(mockUsers);
 
@@ -176,6 +178,15 @@ const ManageUsers = () => {
     }
   };
 
+  const getStatusDisplay = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      active: t('users.manage.active'),
+      inactive: t('users.manage.inactive'),
+      pending: t('users.manage.pending')
+    };
+    return statusMap[status] || status;
+  };
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'Admin':
@@ -187,6 +198,15 @@ const ManageUsers = () => {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const getRoleDisplay = (role: string) => {
+    const roleMap: { [key: string]: string } = {
+      Admin: t('users.manage.admin'),
+      Manager: t('users.manage.manager'),
+      User: t('users.manage.user')
+    };
+    return roleMap[role] || role;
   };
 
   const handleEdit = (userId: number) => {
@@ -226,19 +246,19 @@ const ManageUsers = () => {
     <div className="glass-card p-6 m-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Manage Users</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t('users.manage.title')}</h1>
           <p className="text-muted-foreground">
-            View and manage all users in your organization ({users.length} total users)
+            {t('users.manage.description')} ({users.length} {t('users.manage.total-users')})
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleFilter} className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
-            Filter
+            {t('users.manage.filter')}
           </Button>
           <Button onClick={handleCreateUser} className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
-            Create User
+            {t('users.manage.create-user')}
           </Button>
         </div>
       </div>
@@ -248,13 +268,13 @@ const ManageUsers = () => {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="w-16"></TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Registration Date</TableHead>
-              <TableHead className="w-20">Options</TableHead>
+              <TableHead>{t('users.manage.name')}</TableHead>
+              <TableHead>{t('users.manage.email')}</TableHead>
+              <TableHead>{t('users.manage.phone')}</TableHead>
+              <TableHead>{t('users.manage.status')}</TableHead>
+              <TableHead>{t('users.manage.role')}</TableHead>
+              <TableHead>{t('users.manage.registration-date')}</TableHead>
+              <TableHead className="w-20">{t('users.manage.options')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -276,7 +296,7 @@ const ManageUsers = () => {
                     variant="outline" 
                     className={getStatusColor(user.status)}
                   >
-                    {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    {getStatusDisplay(user.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -284,7 +304,7 @@ const ManageUsers = () => {
                     variant="outline" 
                     className={getRoleColor(user.role)}
                   >
-                    {user.role}
+                    {getRoleDisplay(user.role)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
@@ -300,18 +320,18 @@ const ManageUsers = () => {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(user.id)}>
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        {t('users.manage.edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleToggleStatus(user.id)}>
                         {user.status === 'active' ? (
                           <>
                             <UserX className="mr-2 h-4 w-4" />
-                            Disable
+                            {t('users.manage.disable')}
                           </>
                         ) : (
                           <>
                             <UserCheck className="mr-2 h-4 w-4" />
-                            Enable
+                            {t('users.manage.enable')}
                           </>
                         )}
                       </DropdownMenuItem>
@@ -321,7 +341,7 @@ const ManageUsers = () => {
                         className="text-red-600 focus:text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
+                        {t('users.manage.delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -336,7 +356,7 @@ const ManageUsers = () => {
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <div className="text-sm text-muted-foreground">
-            Showing {startIndex + 1} to {Math.min(endIndex, users.length)} of {users.length} users
+            {t('users.manage.showing')} {startIndex + 1} {t('users.manage.to')} {Math.min(endIndex, users.length)} {t('users.manage.of')} {users.length} {t('users.manage.total-users')}
           </div>
           <Pagination>
             <PaginationContent>

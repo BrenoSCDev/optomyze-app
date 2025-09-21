@@ -28,10 +28,10 @@ const ApiSetup = () => {
         className="space-y-2"
       >
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          API Setup
+          {t('api.setup.title')}
         </h1>
         <p className="text-muted-foreground">
-          Configure API endpoints and access comprehensive documentation
+          {t('api.setup.description')}
         </p>
       </motion.div>
 
@@ -45,10 +45,10 @@ const ApiSetup = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5 text-primary" />
-              API Configuration
+              {t('api.setup.title')}
             </CardTitle>
             <CardDescription>
-              Configure API endpoints and access documentation
+              {t('api.setup.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -58,10 +58,9 @@ const ApiSetup = () => {
                 <Code className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-semibold">API Setup Coming Soon</h3>
+                <h3 className="text-xl font-semibold">{t('api.setup.coming-soon')}</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Access comprehensive API documentation, configure endpoints, 
-                  and test API calls directly from the dashboard.
+                  {t('api.setup.coming-soon-description')}
                 </p>
               </div>
               <Badge variant="secondary" className="bg-primary/10 text-primary">
