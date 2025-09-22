@@ -95,10 +95,10 @@ const LanguagesDashboard: React.FC = () => {
                     </div>
                   </div>
                   <h2 className="text-3xl font-bold text-white mb-2">
-                    {currentLang?.nativeName}
+                    {currentLang?.name}
                   </h2>
                   <p className="text-purple-300 text-lg">
-                    {currentLang?.country}
+                    {currentLang?.nativeName} • {currentLang?.country}
                   </p>
                 </div>
               </div>
@@ -151,10 +151,10 @@ const LanguagesDashboard: React.FC = () => {
                       
                       {/* Language info */}
                       <h4 className="text-xl font-bold text-white mb-1">
-                        {lang.nativeName}
+                        {lang.name}
                       </h4>
                       <p className="text-gray-400 text-sm mb-3">
-                        {lang.country}
+                        {lang.nativeName} • {lang.country}
                       </p>
                       
                       {/* Selection indicator */}
