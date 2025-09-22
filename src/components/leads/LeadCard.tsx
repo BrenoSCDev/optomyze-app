@@ -24,9 +24,10 @@ interface LeadCardProps {
   isDragging?: boolean;
   isMoving?: boolean;
   onTagClick?: (lead: Lead) => void;
+  onLeadClick?: (leadId: string) => void;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick }: LeadCardProps) => {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -77,9 +78,15 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick }: LeadCardPr
           </Avatar>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm truncate">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLeadClick?.(lead.id);
+            }}
+            className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
+          >
             {lead.name}
-          </h3>
+          </button>
           <p className="text-xs text-muted-foreground truncate">
             {lead.company} - {lead.title}
           </p>

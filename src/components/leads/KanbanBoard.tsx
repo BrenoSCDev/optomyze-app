@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import KanbanColumn from './KanbanColumn';
@@ -46,6 +47,7 @@ interface KanbanBoardProps {
 }
 
 const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
+  const navigate = useNavigate();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
@@ -109,6 +111,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       isOpen: false,
       selectedLead: null
     });
+  };
+
+  // Handle lead click to navigate to detail page
+  const handleLeadClick = (leadId: string) => {
+    navigate(`/leads/${funnel.id}/lead/${leadId}`);
   };
 
   // Handle tags updated with API response data
@@ -282,6 +289,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             index={index}
             onAddLead={handleAddLead}
             onTagClick={handleTagClick}
+            onLeadClick={handleLeadClick}
           />
         ))}
       </div>

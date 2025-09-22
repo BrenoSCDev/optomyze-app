@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
+import LeadDetail from "./pages/LeadDetail";
 
 const queryClient = new QueryClient();
 
@@ -64,15 +65,23 @@ const App = () => (
                    </ProtectedRoute>
                  } 
                 />
-                <Route 
-                  path="/profile" 
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } 
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+               <Route 
+                 path="/profile" 
+                 element={
+                   <ProtectedRoute>
+                     <Profile />
+                   </ProtectedRoute>
+                 } 
+               />
+               <Route 
+                 path="/leads/:funnelId/lead/:leadId" 
+                 element={
+                   <ProtectedRoute>
+                     <LeadDetail />
+                   </ProtectedRoute>
+                 } 
+               />
+               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
