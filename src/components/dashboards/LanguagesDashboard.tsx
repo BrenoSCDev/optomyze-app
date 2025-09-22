@@ -84,7 +84,7 @@ const LanguagesDashboard: React.FC = () => {
               <div className="flex items-center justify-center">
                 <div className="text-center">
                   <div className="mb-4">
-                    <div className="text-8xl mb-4 animate-bounce">
+                    <div className="text-8xl mb-4">
                       {currentLang?.flag}
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
@@ -144,7 +144,7 @@ const LanguagesDashboard: React.FC = () => {
                       {/* Flag with hover animation */}
                       <div className={`
                         text-6xl mb-4 transition-transform duration-300
-                        ${isSelected ? 'animate-bounce' : 'group-hover:scale-110'}
+                        ${isSelected ? '' : 'group-hover:scale-110'}
                       `}>
                         {lang.flag}
                       </div>
