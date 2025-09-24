@@ -15,6 +15,13 @@ import {
   MoreVertical,
   Users
 } from 'lucide-react';
+import {
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 
 interface KanbanColumnProps {
@@ -23,10 +30,17 @@ interface KanbanColumnProps {
   onAddLead: (columnId: string) => void;
   onTagClick?: (lead: any) => void;
   onLeadClick?: (leadId: string) => void;
+  activeId?: string | null;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  
+  const { isOver, setNodeRef } = useDroppable({
+    id: column.id,
+  });
+  
+  const leadIds = column.leads.map(lead => lead.id);
 
   const getColumnColor = () => {
     if (column.color === 'green') return 'border-green-500/30 bg-green-500/5';
@@ -36,7 +50,10 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick }: Kan
 
   return (
     <motion.div
-      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 ${getColumnColor()}`}
+      ref={setNodeRef}
+      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 ${getColumnColor()} ${
+        isOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       initial={{ opacity: 0, y: 20 }}
@@ -77,25 +94,30 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick }: Kan
 
       {/* Column Body */}
       <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
-        <AnimatePresence>
-          {column.leads.map((lead, index) => (
-            <motion.div
-              key={lead.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-            >
-              <LeadCard 
-                lead={lead} 
-                isDragging={false}
-                isMoving={false}
-                onTagClick={onTagClick}
-                onLeadClick={onLeadClick}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
+          <AnimatePresence>
+            {column.leads.map((lead, leadIndex) => (
+              <motion.div
+                key={lead.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  opacity: activeId === lead.id ? 0.5 : 1,
+                }}
+              >
+                <LeadCard 
+                  lead={lead} 
+                  isDragging={activeId === lead.id}
+                  isMoving={false}
+                  onTagClick={onTagClick}
+                  onLeadClick={onLeadClick}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </SortableContext>
         
         {/* Empty State */}
         {column.leads.length === 0 && (

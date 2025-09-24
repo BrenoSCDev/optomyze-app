@@ -19,6 +19,25 @@ import {
   ArrowDown
 } from 'lucide-react';
 import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+  DragStartEvent,
+  DragEndEvent,
+  DragOverEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import LeadCard from './LeadCard';
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -51,12 +70,26 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedLead, setDraggedLead] = useState<any>(null);
   
   // Tag modal state
   const [tagModalState, setTagModalState] = useState({
     isOpen: false,
     selectedLead: null
   });
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -92,10 +125,139 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     })) || [];
 
   const [columns, setColumns] = useState(kanbanColumns);
+  
   const handleAddLead = useCallback((columnId: string) => {
     setSelectedStageId(columnId);
     setLeadDialogOpen(true);
   }, []);
+
+  // Handle drag start
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    
+    // Find the dragged lead
+    const lead = columns
+      .flatMap(col => col.leads)
+      .find(lead => lead.id === active.id);
+    setDraggedLead(lead);
+  };
+
+  // Handle drag end
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || !active.id) {
+      setActiveId(null);
+      setDraggedLead(null);
+      return;
+    }
+
+    const leadId = active.id as string;
+    const newStageId = over.id as string;
+
+    // Find current stage of the lead
+    const currentStage = columns.find(col => 
+      col.leads.some(lead => lead.id === leadId)
+    );
+
+    if (!currentStage || currentStage.id === newStageId) {
+      setActiveId(null);
+      setDraggedLead(null);
+      return;
+    }
+
+    const oldStageId = currentStage.id;
+    const leadToMove = currentStage.leads.find(lead => lead.id === leadId);
+
+    if (!leadToMove) {
+      setActiveId(null);
+      setDraggedLead(null);
+      return;
+    }
+
+    // Optimistic update
+    setColumns(prevColumns => {
+      const newColumns = prevColumns.map(col => {
+        if (col.id === oldStageId) {
+          return {
+            ...col,
+            leads: col.leads.filter(lead => lead.id !== leadId)
+          };
+        }
+        if (col.id === newStageId) {
+          return {
+            ...col,
+            leads: [...col.leads, { ...leadToMove, stage: newStageId }]
+          };
+        }
+        return col;
+      });
+      return newColumns;
+    });
+
+    try {
+      // Make API call
+      const response = await leadService.moveLeadToStage(leadId, newStageId);
+      
+      // Update with API response data
+      setColumns(prevColumns => {
+        return prevColumns.map(col => {
+          if (col.id === newStageId) {
+            return {
+              ...col,
+              leads: col.leads.map(lead => 
+                lead.id === leadId 
+                  ? {
+                      ...lead,
+                      ...response.data,
+                      id: response.data.id.toString(),
+                      name: `${response.data.first_name} ${response.data.last_name || ''}`,
+                      stage: response.data.stage_id.toString()
+                    }
+                  : lead
+              )
+            };
+          }
+          return col;
+        });
+      });
+
+      toast.success('Lead moved successfully');
+      
+      // Notify parent component
+      if (onUpdateLeadStage) {
+        onUpdateLeadStage(leadId, newStageId, oldStageId);
+      }
+    } catch (error) {
+      console.error('Error moving lead:', error);
+      
+      // Revert optimistic update
+      setColumns(prevColumns => {
+        const newColumns = prevColumns.map(col => {
+          if (col.id === newStageId) {
+            return {
+              ...col,
+              leads: col.leads.filter(lead => lead.id !== leadId)
+            };
+          }
+          if (col.id === oldStageId) {
+            return {
+              ...col,
+              leads: [...col.leads, leadToMove]
+            };
+          }
+          return col;
+        });
+        return newColumns;
+      });
+
+      toast.error('Failed to move lead. Please try again.');
+    }
+
+    setActiveId(null);
+    setDraggedLead(null);
+  };
 
   // Handle tag icon click
   const handleTagClick = (lead: any) => {
@@ -279,20 +441,41 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       `}
       </style>
 
-      <div
-        className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        {columns.map((column, index) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            index={index}
-            onAddLead={handleAddLead}
-            onTagClick={handleTagClick}
-            onLeadClick={handleLeadClick}
-          />
-        ))}
-      </div>
+        <div
+          className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
+        >
+          {columns.map((column, index) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              index={index}
+              onAddLead={handleAddLead}
+              onTagClick={handleTagClick}
+              onLeadClick={handleLeadClick}
+              activeId={activeId}
+            />
+          ))}
+        </div>
+        
+        <DragOverlay>
+          {activeId && draggedLead ? (
+            <div className="rotate-3 opacity-95">
+              <LeadCard
+                lead={draggedLead}
+                isDragging={true}
+                onTagClick={handleTagClick}
+                onLeadClick={handleLeadClick}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
 
       {/* Tag Creation Dialog */}

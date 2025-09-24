@@ -18,6 +18,12 @@ import {
   GripVertical,
   Tag
 } from 'lucide-react';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import {
+  CSS,
+} from '@dnd-kit/utilities';
 
 interface LeadCardProps {
   lead: Lead;
@@ -28,6 +34,18 @@ interface LeadCardProps {
 }
 
 const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick }: LeadCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: lead.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -63,19 +81,27 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
   return (
     <div className="relative">
       <motion.div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
         className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
           isDragging ? 'opacity-50 scale-105 shadow-lg' : 'hover:scale-102'
         } ${isMoving ? 'opacity-60' : ''}`}
-        whileHover={{ y: -2 }}
+        whileHover={{ y: isDragging ? 0 : -2 }}
         layout
       >
         {/* Lead Header */}
         <div className="flex items-start gap-3 mb-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-              {getInitials(lead.name)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-2">
+            <div {...listeners} className="cursor-grab active:cursor-grabbing">
+              <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+            </div>
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
+                {getInitials(lead.name)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
         
         <div className="flex-1 min-w-0">
           <button
