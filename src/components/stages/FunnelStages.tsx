@@ -16,6 +16,25 @@ import {
   ListTree,
   ChevronRight
 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import {
+  CSS,
+} from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -69,6 +88,7 @@ const FunnelStages = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
+  const [reordering, setReordering] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -81,6 +101,14 @@ const FunnelStages = () => {
     order: '',
     type: ''
   });
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   
   // Stage type options
@@ -265,10 +293,146 @@ const FunnelStages = () => {
     ));
   };
 
+  // Handle drag end
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = stages.findIndex((stage) => stage.id === active.id);
+    const newIndex = stages.findIndex((stage) => stage.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const stageToMove = stages[oldIndex];
+    const newOrder = stages[newIndex].order;
+
+    // Optimistic update - reorder locally first
+    const reorderedStages = arrayMove(stages, oldIndex, newIndex);
+    setStages(reorderedStages);
+    setReordering(true);
+
+    try {
+      // Send API request to move stage
+      await api.put(`/api/funnels/${funnelId}/stages/${stageToMove.id}/move`, {
+        order: newOrder
+      });
+
+      // Success toast
+      toast({
+        title: 'Stage moved successfully',
+        description: `${stageToMove.name} has been reordered.`,
+      });
+
+      // Refresh the stages to get the updated order from backend
+      const stagesResponse = await api.get(`/api/funnels/${funnelId}/stages`);
+      setStages(stagesResponse.data || []);
+    } catch (error) {
+      console.error('Error moving stage:', error);
+      
+      // Revert the optimistic update
+      setStages(stages);
+      
+      toast({
+        title: 'Failed to move stage',
+        description: 'There was an error moving the stage. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setReordering(false);
+    }
+  };
+
   // Open edit modal
   const openEditModal = (stage: Stage) => {
     setSelectedStage(stage);
     setShowEditModal(true);
+  };
+
+  // Sortable Stage Card Component
+  const SortableStageCard = ({ stage, index }: { stage: Stage; index: number }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: stage.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <motion.div
+        ref={setNodeRef}
+        style={style}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        whileHover={{ y: isDragging ? 0 : -5 }}
+        className="group"
+        {...attributes}
+        {...listeners}
+      >
+        <Card className={`glass-card hover-glow h-full ${isDragging ? 'ring-2 ring-primary' : ''} ${reordering ? 'pointer-events-none' : ''}`}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <ListTree className="h-5 w-5 text-primary" />
+                <span className="text-lg font-semibold text-foreground truncate">
+                  {stage.name}
+                </span>
+              </div>
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(stage);
+                  }}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-destructive/10 text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStage(stage);
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-sm line-clamp-3">
+              {stage.description}
+            </p>
+            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+              <span>{t('stages.order')}: {stage.order}</span>
+              <span>•</span>
+              <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
+                {stage.is_active ? t('stages.active') : t('stages.inactive')}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
   };
 
   // Loading skeleton
@@ -395,63 +559,25 @@ const FunnelStages = () => {
                 </Button>
               </motion.div>
             ) : (
-              // Stage cards
-              stages.map((stage, index) => (
-                <motion.div
-                  key={stage.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="group"
+              // Stage cards with drag and drop
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={stages.map(stage => stage.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <Card className="glass-card hover-glow h-full">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <ListTree className="h-5 w-5 text-primary" />
-                          <span className="text-lg font-semibold text-foreground truncate">
-                            {stage.name}
-                          </span>
-                        </div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-primary/10"
-                            onClick={() => openEditModal(stage)}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-destructive/10 text-destructive"
-                            onClick={() => {
-                              setSelectedStage(stage);
-                              setShowDeleteModal(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground text-sm line-clamp-3">
-                        {stage.description}
-                      </p>
-                      <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{t('stages.order')}: {stage.order}</span>
-                        <span>•</span>
-                        <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
-                          {stage.is_active ? t('stages.active') : t('stages.inactive')}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))
+                  {stages.map((stage, index) => (
+                    <SortableStageCard
+                      key={stage.id}
+                      stage={stage}
+                      index={index}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             )}
           </AnimatePresence>
         </div>
