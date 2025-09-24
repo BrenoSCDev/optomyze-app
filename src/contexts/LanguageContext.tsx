@@ -74,7 +74,7 @@ const translations = {
     
     // Language Names
     'language.english': 'English',
-    'language.portuguese': 'Brazilian Portuguese',
+    'language.portuguese': 'Portuguese BR',
     'language.german': 'German',
     'language.spanish': 'Spanish',
     
@@ -456,7 +456,7 @@ const translations = {
     
     // Language Names
     'language.english': 'Inglês',
-    'language.portuguese': 'Português Brasileiro',
+    'language.portuguese': 'Português BR',
     'language.german': 'Alemão',
     'language.spanish': 'Espanhol',
     
@@ -837,7 +837,7 @@ const translations = {
     
     // Language Names
     'language.english': 'Englisch',
-    'language.portuguese': 'Brasilianisches Portugiesisch',
+    'language.portuguese': 'Portugiesisch BR',
     'language.german': 'Deutsch',
     'language.spanish': 'Spanisch',
     
@@ -1084,7 +1084,7 @@ const translations = {
     
     // Language Names
     'language.english': 'Inglés',
-    'language.portuguese': 'Portugués Brasileño',
+    'language.portuguese': 'Portugués BR',
     'language.german': 'Alemán',
     'language.spanish': 'Español',
     

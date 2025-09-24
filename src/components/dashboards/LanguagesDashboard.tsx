@@ -6,9 +6,14 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Globe, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
+import { IoLanguage } from 'react-icons/io5';
+import Brasil from '../../assets/brasil.png';
+import Spain from '../../assets/spain.png';
+import Germany from '../../assets/germany.png';
+import USA from '../../assets/eua.png';
 
 const LanguagesDashboard: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -17,7 +22,7 @@ const LanguagesDashboard: React.FC = () => {
     { 
       code: 'en' as Language, 
       name: t('language.english'), 
-      flag: '🇺🇸',
+      flag: USA,
       nativeName: 'English',
       country: 'United States',
       gradient: 'from-blue-600/20 via-red-600/10 to-blue-600/20'
@@ -25,7 +30,7 @@ const LanguagesDashboard: React.FC = () => {
     { 
       code: 'pt-BR' as Language, 
       name: t('language.portuguese'), 
-      flag: '🇧🇷',
+      flag: Brasil,
       nativeName: 'Português',
       country: 'Brasil',
       gradient: 'from-green-600/20 via-yellow-600/10 to-blue-600/20'
@@ -33,7 +38,7 @@ const LanguagesDashboard: React.FC = () => {
     { 
       code: 'de' as Language, 
       name: t('language.german'), 
-      flag: '🇩🇪',
+      flag: Germany,
       nativeName: 'Deutsch',
       country: 'Deutschland',
       gradient: 'from-gray-600/20 via-red-600/10 to-yellow-600/20'
@@ -41,7 +46,7 @@ const LanguagesDashboard: React.FC = () => {
     { 
       code: 'es' as Language, 
       name: t('language.spanish'), 
-      flag: '🇪🇸',
+      flag: Spain,
       nativeName: 'Español',
       country: 'España',
       gradient: 'from-red-600/20 via-yellow-600/10 to-red-600/20'
@@ -64,8 +69,7 @@ const LanguagesDashboard: React.FC = () => {
         {/* Header Section */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-4 p-3 rounded-full bg-gradient-primary">
-            <Globe className="h-8 w-8 text-white" />
-            <Sparkles className="h-6 w-6 text-white animate-pulse" />
+            <IoLanguage />
           </div>
           <h1 className="text-4xl font-bold text-white mb-3 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
             {t('settings.languages.title')}
@@ -85,7 +89,11 @@ const LanguagesDashboard: React.FC = () => {
                 <div className="text-center">
                   <div className="mb-4">
                     <div className="text-8xl mb-4">
-                      {currentLang?.flag}
+                      <img
+                        src={currentLang?.flag}
+                        alt="Optomyze"
+                        className="h-24 mx-auto mb-6 rounded-sm"
+                      />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Check className="h-5 w-5 text-green-400" />
@@ -146,7 +154,11 @@ const LanguagesDashboard: React.FC = () => {
                         text-6xl mb-4 transition-transform duration-300
                         ${isSelected ? '' : 'group-hover:scale-110'}
                       `}>
-                        {lang.flag}
+                        <img
+                          src={lang?.flag}
+                          alt="Optomyze"
+                          className="h-24 mx-auto mb-6 rounded-sm"
+                        />
                       </div>
                       
                       {/* Language info */}
@@ -195,7 +207,13 @@ const LanguagesDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
               {languages.map((lang) => (
                 <div key={lang.code} className="p-4">
-                  <div className="text-2xl mb-2">{lang.flag}</div>
+                  <div className="mb-2">
+                      <img
+                        src={lang.flag}
+                        alt="Optomyze"
+                        className="h-24 mx-auto mb-6 rounded-sm"
+                      />
+                  </div>
                   <div className={`text-lg font-bold ${language === lang.code ? 'text-purple-400' : 'text-white'}`}>
                     {lang.nativeName}
                   </div>
