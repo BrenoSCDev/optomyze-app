@@ -96,13 +96,11 @@ const FunnelStages = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    order: '',
     type: ''
   });
   const [formErrors, setFormErrors] = useState({
     name: '',
     description: '',
-    order: '',
     type: ''
   });
 
@@ -180,14 +178,6 @@ const FunnelStages = () => {
       isValid = false;
     }
 
-    if (!formData.order.trim()) {
-      errors.order = t('stages.order_required');
-      isValid = false;
-    } else if (isNaN(Number(formData.order)) || Number(formData.order) < 1) {
-      errors.order = t('stages.order_invalid');
-      isValid = false;
-    }
-
     if (!formData.type) {
       errors.type = t('stages.type_required');
       isValid = false;
@@ -207,7 +197,6 @@ const FunnelStages = () => {
       const response = await api.post(`/api/funnels/${funnelId}/stages`, {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        order: Number(formData.order),
         type: formData.type
       });
 
@@ -215,8 +204,8 @@ const FunnelStages = () => {
       setStages(prev => [...prev, response.data]);
       
       // Reset form and close modal
-      setFormData({ name: '', description: '', order: '', type: '' });
-      setFormErrors({ name: '', description: '', order: '', type: '' });
+      setFormData({ name: '', description: '', type: '' });
+      setFormErrors({ name: '', description: '', type: '' });
       setShowNewStageModal(false);
       
       toast({
@@ -701,28 +690,6 @@ const FunnelStages = () => {
               )}
             </div>
 
-            {/* Stage Order */}
-            <div className="space-y-2">
-              <Label htmlFor="stageOrder">{t('stages.order_label')}</Label>
-              <Input
-                id="stageOrder"
-                type="number"
-                min="1"
-                value={formData.order}
-                onChange={(e) => {
-                  setFormData(prev => ({ ...prev, order: e.target.value }));
-                  if (formErrors.order) {
-                    setFormErrors(prev => ({ ...prev, order: '' }));
-                  }
-                }}
-                placeholder={t('stages.order_placeholder')}
-                className={formErrors.order ? 'border-destructive' : ''}
-              />
-              {formErrors.order && (
-                <p className="text-sm text-destructive">{formErrors.order}</p>
-              )}
-            </div>
-
             {/* Stage Type */}
             <div className="space-y-2">
               <Label htmlFor="stageType">{t('stages.type_label')}</Label>
@@ -756,8 +723,8 @@ const FunnelStages = () => {
               variant="outline"
               onClick={() => {
                 setShowNewStageModal(false);
-                setFormData({ name: '', description: '', order: '', type: '' });
-                setFormErrors({ name: '', description: '', order: '', type: '' });
+                setFormData({ name: '', description: '', type: '' });
+                setFormErrors({ name: '', description: '', type: '' });
               }}
               disabled={creating}
             >

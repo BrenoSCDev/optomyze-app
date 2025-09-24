@@ -37,6 +37,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { VscSourceControl } from "react-icons/vsc";
 
 interface Lead {
   id: number;
@@ -95,7 +96,7 @@ const LeadDetailPage = () => {
       setLoading(true);
       setError(null);
       
-      const response = await api.get(`/api/lead/${leadId}`);
+      const response = await api.get(`/api/leads/${leadId}`);
       setLeadData(response.data);
       
     } catch (err: any) {
@@ -296,7 +297,7 @@ const LeadInfoSection = ({ lead }: { lead: Lead }) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <InfoItem label="Source Platform" value={lead.source_platform} icon={<Globe className="w-4 h-4" />} />
-        <InfoItem label="Source Type" value={lead.source_type} icon={<Tag className="w-4 h-4" />} />
+        <InfoItem label="Source Type" value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} />
         <InfoItem label="Language" value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} />
         <InfoItem label="Currency" value={lead.currency} icon={<DollarSign className="w-4 h-4" />} />
         <InfoItem label="External ID" value={lead.external_id || 'Not set'} icon={<Hash className="w-4 h-4" />} />

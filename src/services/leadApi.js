@@ -48,7 +48,7 @@ export const leadService = {
   // Move lead to different stage (for drag and drop)
   async moveLeadToStage(leadId, stageId) {
     try {
-      const response = await api.put(`/api/leads/${leadId}/move-stage`, {
+      const response = await api.post(`/api/leads/${leadId}/move-stage`, {
         stage_id: stageId
       });
       return response.data;
