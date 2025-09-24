@@ -91,6 +91,7 @@ const FunnelStages = () => {
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
   const [reordering, setReordering] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const [activeId, setActiveId] = useState<string | number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -144,6 +145,11 @@ const FunnelStages = () => {
         // Fetch stages
         const stagesResponse = await api.get(`/api/funnels/${funnelId}/stages`);
         setStages(stagesResponse.data || []);
+        
+        // Mark as initially loaded for animation control
+        if (!hasInitiallyLoaded) {
+          setHasInitiallyLoaded(true);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -389,9 +395,9 @@ const FunnelStages = () => {
       <motion.div
         ref={setNodeRef}
         style={style}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
+        initial={!hasInitiallyLoaded ? { opacity: 0, y: 20 } : false}
+        animate={!hasInitiallyLoaded ? { opacity: 1, y: 0 } : {}}
+        transition={!hasInitiallyLoaded ? { delay: index * 0.1 } : {}}
         whileHover={{ y: isDragging ? 0 : -5 }}
         className={`group ${isDragging ? 'z-50' : ''}`}
       >
