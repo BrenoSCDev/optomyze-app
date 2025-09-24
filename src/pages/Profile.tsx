@@ -33,9 +33,10 @@ const Profile = () => {
 
   // File upload states
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(user?.profile_pic ? `http://localhost/${user.profile_pic}` : '');
+  const [profilePicPreview, setProfilePicPreview] = useState(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
+  console.log(profilePicPreview)
   const [bgPicFile, setBgPicFile] = useState<File | null>(null);
-  const [bgPicPreview, setBgPicPreview] = useState(user?.bg_pic ? `http://localhost/${user.bg_pic}` : '');
+  const [bgPicPreview, setBgPicPreview] = useState(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
 
   // UI states
   const [loading, setLoading] = useState(false);
@@ -66,8 +67,8 @@ const Profile = () => {
         name: user.name || '',
         phone: user.phone || '',
       });
-      setProfilePicPreview(user.profile_pic ? `http://localhost/${user.profile_pic}` : '');
-      setBgPicPreview(user.bg_pic ? `http://localhost/${user.bg_pic}` : '');
+      setProfilePicPreview(user.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
+      setBgPicPreview(user.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
     }
   }, [user]);
 
@@ -80,8 +81,8 @@ const Profile = () => {
       });
       setProfilePicFile(null);
       setBgPicFile(null);
-      setProfilePicPreview(user?.profile_pic ? `http://localhost/${user.profile_pic}` : '');
-      setBgPicPreview(user?.bg_pic ? `http://localhost/${user.bg_pic}` : '');
+      setProfilePicPreview(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
+      setBgPicPreview(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
       setError(null);
       
       // Reset file inputs

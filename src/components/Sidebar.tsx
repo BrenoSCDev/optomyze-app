@@ -705,7 +705,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                         <div className="flex-shrink-0">
                           {user.profile_pic ? (
                             <img 
-                              src={user.profile_pic} 
+                              src={`http://localhost/storage/${user.profile_pic}`} 
                               alt={user.name}
                               className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
                             />
