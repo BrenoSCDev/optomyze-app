@@ -14,7 +14,8 @@ import {
   Settings, 
   Trash2, 
   ListTree,
-  ChevronRight
+  ChevronRight,
+  GripVertical
 } from 'lucide-react';
 import {
   DndContext,
@@ -24,6 +25,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -89,6 +91,7 @@ const FunnelStages = () => {
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
   const [reordering, setReordering] = useState(false);
+  const [activeId, setActiveId] = useState<string | number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -104,7 +107,11 @@ const FunnelStages = () => {
 
   // Drag and drop sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -293,9 +300,15 @@ const FunnelStages = () => {
     ));
   };
 
+  // Handle drag start
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+  };
+
   // Handle drag end
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -322,15 +335,12 @@ const FunnelStages = () => {
         order: newOrder
       });
 
-      // Success toast
+      // Success toast without automatic refresh
       toast({
         title: 'Stage moved successfully',
         description: `${stageToMove.name} has been reordered.`,
       });
 
-      // Refresh the stages to get the updated order from backend
-      const stagesResponse = await api.get(`/api/funnels/${funnelId}/stages`);
-      setStages(stagesResponse.data || []);
     } catch (error) {
       console.error('Error moving stage:', error);
       
@@ -367,7 +377,7 @@ const FunnelStages = () => {
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
-      opacity: isDragging ? 0.5 : 1,
+      opacity: isDragging ? 0.6 : 1,
     };
 
     return (
@@ -378,15 +388,25 @@ const FunnelStages = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
         whileHover={{ y: isDragging ? 0 : -5 }}
-        className="group"
-        {...attributes}
-        {...listeners}
+        className={`group ${isDragging ? 'z-50' : ''}`}
       >
-        <Card className={`glass-card hover-glow h-full ${isDragging ? 'ring-2 ring-primary' : ''} ${reordering ? 'pointer-events-none' : ''}`}>
+        <Card className={`
+          glass-card hover-glow h-full cursor-grab active:cursor-grabbing
+          ${isDragging ? 'ring-2 ring-primary shadow-2xl scale-105' : ''} 
+          ${reordering ? 'pointer-events-none' : ''}
+          transition-all duration-200
+        `}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <ListTree className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-2">
+                  <GripVertical 
+                    className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
+                    {...attributes}
+                    {...listeners}
+                  />
+                  <ListTree className="h-5 w-5 text-primary" />
+                </div>
                 <span className="text-lg font-semibold text-foreground truncate">
                   {stage.name}
                 </span>
@@ -434,6 +454,37 @@ const FunnelStages = () => {
       </motion.div>
     );
   };
+
+  // Drag Overlay Component
+  const DragOverlayCard = ({ stage }: { stage: Stage }) => (
+    <Card className="glass-card hover-glow h-full ring-2 ring-primary shadow-2xl scale-105 rotate-3">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-4 w-4 text-primary" />
+              <ListTree className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-lg font-semibold text-foreground truncate">
+              {stage.name}
+            </span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground text-sm line-clamp-3">
+          {stage.description}
+        </p>
+        <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+          <span>{t('stages.order')}: {stage.order}</span>
+          <span>•</span>
+          <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
+            {stage.is_active ? t('stages.active') : t('stages.inactive')}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   // Loading skeleton
   const StageCardSkeleton = () => (
@@ -563,6 +614,7 @@ const FunnelStages = () => {
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
@@ -577,6 +629,13 @@ const FunnelStages = () => {
                     />
                   ))}
                 </SortableContext>
+                <DragOverlay>
+                  {activeId ? (
+                    <DragOverlayCard 
+                      stage={stages.find(stage => stage.id === activeId)!} 
+                    />
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             )}
           </AnimatePresence>
