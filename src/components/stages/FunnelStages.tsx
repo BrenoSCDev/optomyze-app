@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
+import StageEditModal from './StageEditModal';
 
 interface Stage {
   id: number;
@@ -65,6 +66,7 @@ const FunnelStages = () => {
   const [loading, setLoading] = useState(true);
   const [showNewStageModal, setShowNewStageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -256,6 +258,19 @@ const FunnelStages = () => {
     }
   };
 
+  // Handle stage update
+  const handleStageUpdate = (updatedStage: Stage) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === updatedStage.id ? updatedStage : stage
+    ));
+  };
+
+  // Open edit modal
+  const openEditModal = (stage: Stage) => {
+    setSelectedStage(stage);
+    setShowEditModal(true);
+  };
+
   // Loading skeleton
   const StageCardSkeleton = () => (
     <Card className="glass-card animate-pulse">
@@ -404,13 +419,7 @@ const FunnelStages = () => {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 hover:bg-primary/10"
-                            onClick={() => {
-                              // Future: Open stage settings modal
-                              toast({
-                                title: t('common.coming_soon'),
-                                description: t('stages.settings_coming_soon'),
-                              });
-                            }}
+                            onClick={() => openEditModal(stage)}
                           >
                             <Settings className="h-4 w-4" />
                           </Button>
@@ -609,6 +618,18 @@ const FunnelStages = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Stage Edit Modal */}
+      <StageEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedStage(null);
+        }}
+        stage={selectedStage}
+        funnelId={funnelId || ''}
+        onUpdate={handleStageUpdate}
+      />
     </div>
   );
 };

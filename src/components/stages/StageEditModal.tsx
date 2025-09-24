@@ -1,0 +1,325 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import api from '@/services/api';
+
+interface Stage {
+  id: number;
+  funnel_id: number;
+  name: string;
+  description: string;
+  order: number;
+  type: string;
+  is_active: boolean;
+  settings: {
+    sla_hours: number;
+    auto_assign: boolean;
+    required_fields: string[];
+    notifications_enabled: boolean;
+  };
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
+
+interface StageEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  stage: Stage | null;
+  funnelId: string;
+  onUpdate: (updatedStage: Stage) => void;
+}
+
+const StageEditModal: React.FC<StageEditModalProps> = ({
+  isOpen,
+  onClose,
+  stage,
+  funnelId,
+  onUpdate
+}) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    type: '',
+    is_active: true
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    description: '',
+    type: ''
+  });
+
+  // Stage type options
+  const stageTypes = [
+    { value: 'entry', label: 'Entry' },
+    { value: 'normal', label: 'Normal' },
+    { value: 'service', label: 'Service' },
+    { value: 'proposition', label: 'Proposition' },
+    { value: 'qualified', label: 'Qualified' },
+    { value: 'conversion', label: 'Conversion' },
+    { value: 'lost', label: 'Lost' }
+  ];
+
+  // Pre-fill form with stage data when modal opens
+  useEffect(() => {
+    if (stage && isOpen) {
+      setFormData({
+        name: stage.name || '',
+        description: stage.description || '',
+        type: stage.type || '',
+        is_active: stage.is_active
+      });
+      setFormErrors({ name: '', description: '', type: '' });
+    }
+  }, [stage, isOpen]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        name: '',
+        description: '',
+        type: '',
+        is_active: true
+      });
+      setFormErrors({ name: '', description: '', type: '' });
+    }
+  }, [isOpen]);
+
+  // Validate form
+  const validateForm = () => {
+    const errors = { name: '', description: '', type: '' };
+    let isValid = true;
+
+    if (!formData.name.trim()) {
+      errors.name = 'Stage name is required';
+      isValid = false;
+    } else if (formData.name.length > 100) {
+      errors.name = 'Stage name must be less than 100 characters';
+      isValid = false;
+    }
+
+    if (formData.description && formData.description.length > 1000) {
+      errors.description = 'Description must be less than 1000 characters';
+      isValid = false;
+    }
+
+    if (!formData.type) {
+      errors.type = 'Stage type is required';
+      isValid = false;
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm() || !stage) return;
+
+    try {
+      setLoading(true);
+      
+      const response = await api.put(`/api/funnels/${funnelId}/stages/${stage.id}`, {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        type: formData.type,
+        is_active: formData.is_active
+      });
+
+      // Call onUpdate with the updated stage
+      onUpdate(response.data);
+      
+      toast({
+        title: 'Success',
+        description: 'Stage updated successfully',
+      });
+      
+      onClose();
+    } catch (error: any) {
+      console.error('Error updating stage:', error);
+      
+      if (error.response?.status === 422) {
+        // Validation errors from server
+        const serverErrors = error.response.data.errors || {};
+        setFormErrors(prev => ({
+          ...prev,
+          ...serverErrors
+        }));
+      } else if (error.response?.status === 401) {
+        toast({
+          title: 'Authentication Error',
+          description: 'Please log in again',
+          variant: 'destructive',
+        });
+        window.location.href = '/login';
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to update stage. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="glass-modal sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Stage</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Stage Name */}
+          <div className="space-y-2">
+            <Label htmlFor="editStageName">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="editStageName"
+              value={formData.name}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, name: e.target.value }));
+                if (formErrors.name) {
+                  setFormErrors(prev => ({ ...prev, name: '' }));
+                }
+              }}
+              placeholder="Enter stage name"
+              className={formErrors.name ? 'border-destructive' : ''}
+              maxLength={100}
+              disabled={loading}
+            />
+            {formErrors.name && (
+              <p className="text-sm text-destructive">{formErrors.name}</p>
+            )}
+          </div>
+
+          {/* Stage Description */}
+          <div className="space-y-2">
+            <Label htmlFor="editStageDescription">Description</Label>
+            <Textarea
+              id="editStageDescription"
+              value={formData.description}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, description: e.target.value }));
+                if (formErrors.description) {
+                  setFormErrors(prev => ({ ...prev, description: '' }));
+                }
+              }}
+              placeholder="Enter stage description (optional)"
+              className={formErrors.description ? 'border-destructive' : ''}
+              rows={3}
+              maxLength={1000}
+              disabled={loading}
+            />
+            {formErrors.description && (
+              <p className="text-sm text-destructive">{formErrors.description}</p>
+            )}
+          </div>
+
+          {/* Stage Type */}
+          <div className="space-y-2">
+            <Label>
+              Type <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => {
+                setFormData(prev => ({ ...prev, type: value }));
+                if (formErrors.type) {
+                  setFormErrors(prev => ({ ...prev, type: '' }));
+                }
+              }}
+              disabled={loading}
+            >
+              <SelectTrigger className={formErrors.type ? 'border-destructive' : ''}>
+                <SelectValue placeholder="Select stage type" />
+              </SelectTrigger>
+              <SelectContent>
+                {stageTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formErrors.type && (
+              <p className="text-sm text-destructive">{formErrors.type}</p>
+            )}
+          </div>
+
+          {/* Is Active Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="editStageActive">Active</Label>
+              <p className="text-sm text-muted-foreground">
+                Enable or disable this stage
+              </p>
+            </div>
+            <Switch
+              id="editStageActive"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => {
+                setFormData(prev => ({ ...prev, is_active: checked }));
+              }}
+              disabled={loading}
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Stage'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default StageEditModal;
