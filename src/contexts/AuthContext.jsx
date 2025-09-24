@@ -95,11 +95,24 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_FUNNELS', payload: funnels });
   };
 
+  const updateUser = (updatedUser) => {
+    dispatch({
+      type: 'LOGIN_SUCCESS',
+      payload: {
+        user: updatedUser,
+        token: state.token,
+        funnels: state.funnels,
+      },
+    });
+    localStorage.setItem('optomyze_user', JSON.stringify(updatedUser));
+  };
+
   const value = {
     ...state,
     login,
     logout,
     updateFunnels,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

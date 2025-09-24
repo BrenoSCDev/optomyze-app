@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import { Camera, Edit, Save, X, Eye, EyeOff } from 'lucide-react';
+import { Camera, Edit, Save, X, Eye, EyeOff, AlertCircle, Upload, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { profileService } from '@/services/profileApi';
 import optomyzeLogo from '@/assets/optomyze.png';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -25,12 +28,19 @@ const Profile = () => {
   // Profile editing state
   const [editData, setEditData] = useState({
     name: user?.name || '',
-    email: user?.email || '',
     phone: user?.phone || '',
-    company_name: user?.company_name || '',
-    profile_pic: user?.profile_pic || '',
-    bg_pic: user?.bg_pic || ''
   });
+
+  // File upload states
+  const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
+  const [profilePicPreview, setProfilePicPreview] = useState(user?.profile_pic || '');
+  const [bgPicFile, setBgPicFile] = useState<File | null>(null);
+  const [bgPicPreview, setBgPicPreview] = useState(user?.bg_pic || '');
+
+  // UI states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Password reset state
   const [passwordData, setPasswordData] = useState({
@@ -45,31 +55,127 @@ const Profile = () => {
     confirmPassword?: string;
   }>({});
 
+  // File input refs
+  const profilePicInputRef = useRef<HTMLInputElement>(null);
+  const bgPicInputRef = useRef<HTMLInputElement>(null);
+
+  // Update form data when user context changes
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || '',
+        phone: user.phone || '',
+      });
+      setProfilePicPreview(user.profile_pic || '');
+      setBgPicPreview(user.bg_pic || '');
+    }
+  }, [user]);
+
   const handleEditToggle = () => {
     if (isEditing) {
       // Reset form data if canceling
       setEditData({
         name: user?.name || '',
-        email: user?.email || '',
         phone: user?.phone || '',
-        company_name: user?.company_name || '',
-        profile_pic: user?.profile_pic || '',
-        bg_pic: user?.bg_pic || ''
       });
+      setProfilePicFile(null);
+      setBgPicFile(null);
+      setProfilePicPreview(user?.profile_pic || '');
+      setBgPicPreview(user?.bg_pic || '');
+      setError(null);
+      
+      // Reset file inputs
+      if (profilePicInputRef.current) profilePicInputRef.current.value = '';
+      if (bgPicInputRef.current) bgPicInputRef.current.value = '';
     }
     setIsEditing(!isEditing);
   };
 
-  const handleSaveProfile = () => {
-    // TODO: Implement API call to update profile
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-    });
-    setIsEditing(false);
+  const validateForm = () => {
+    const errors = [];
+    
+    // Name validation
+    if (editData.name && editData.name.length > 255) {
+      errors.push('Name must be less than 255 characters');
+    }
+    
+    // Phone validation
+    if (editData.phone && editData.phone.length > 20) {
+      errors.push('Phone number must be less than 20 characters');
+    }
+    
+    if (errors.length > 0) {
+      setError(errors.join(', '));
+      return false;
+    }
+    
+    setError(null);
+    return true;
   };
 
-  const handlePasswordReset = () => {
+  const handleSaveProfile = async () => {
+    if (!validateForm()) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Check if any field has changed
+      const hasTextChanges = editData.name !== user?.name || editData.phone !== user?.phone;
+      const hasFileChanges = profilePicFile || bgPicFile;
+      
+      if (!hasTextChanges && !hasFileChanges) {
+        toast({
+          title: "No Changes",
+          description: "No changes to save.",
+        });
+        return;
+      }
+
+      const response = await profileService.updateProfile(editData, profilePicFile, bgPicFile);
+      
+      if (response.user) {
+        // Update user context with new data
+        updateUser(response.user);
+        
+        toast({
+          title: "Profile Updated",
+          description: response.message || "Your profile has been successfully updated.",
+        });
+        
+        // Reset form states
+        setProfilePicFile(null);
+        setBgPicFile(null);
+        setIsEditing(false);
+        
+        // Reset file inputs
+        if (profilePicInputRef.current) profilePicInputRef.current.value = '';
+        if (bgPicInputRef.current) bgPicInputRef.current.value = '';
+      }
+
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      
+      // Handle different error types
+      if (error.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+      } else if (error.response?.status === 422) {
+        // Validation errors from Laravel
+        const validationErrors = error.response.data.errors;
+        setError(Object.values(validationErrors).flat().join(', '));
+      } else if (error.message) {
+        // Client-side validation errors
+        setError(error.message);
+      } else {
+        setError('Failed to update profile. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handlePasswordReset = async () => {
     const errors: {
       currentPassword?: string;
       newPassword?: string;
@@ -93,16 +199,110 @@ const Profile = () => {
     setPasswordErrors(errors);
 
     if (Object.keys(errors).length === 0) {
-      // TODO: Implement API call to reset password
-      toast({
-        title: "Password Updated",
-        description: "Your password has been successfully updated.",
-      });
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
+      try {
+        setLoading(true);
+        
+        await profileService.updatePassword(passwordData.currentPassword, passwordData.newPassword);
+        
+        toast({
+          title: "Password Updated",
+          description: "Your password has been successfully updated.",
+        });
+        
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        
+        setPasswordErrors({});
+        
+      } catch (error: any) {
+        if (error.response?.status === 422) {
+          const validationErrors = error.response.data.errors;
+          const errorMessage = Object.values(validationErrors).flat().join(', ');
+          setPasswordErrors({ currentPassword: errorMessage });
+        } else if (error.response?.status === 400) {
+          setPasswordErrors({ currentPassword: 'Current password is incorrect' });
+        } else {
+          setPasswordErrors({ currentPassword: 'Failed to update password. Please try again.' });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // File upload handlers
+  const handleProfilePicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file immediately
+      if (file.size > 2048 * 1024) {
+        setError('Profile picture must be less than 2MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Clear any existing errors
+      setError(null);
+      
+      // Set file and create preview
+      setProfilePicFile(file);
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfilePicPreview(previewUrl);
+    }
+  };
+
+  const handleBgPicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file immediately
+      if (file.size > 4096 * 1024) {
+        setError('Background picture must be less than 4MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Clear any existing errors
+      setError(null);
+      
+      // Set file and create preview
+      setBgPicFile(file);
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setBgPicPreview(previewUrl);
+    }
+  };
+
+  const handleRemoveProfilePic = () => {
+    setProfilePicFile(null);
+    setProfilePicPreview(user?.profile_pic || '');
+    
+    // Reset file input
+    if (profilePicInputRef.current) {
+      profilePicInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveBgPic = () => {
+    setBgPicFile(null);
+    setBgPicPreview(user?.bg_pic || '');
+    
+    // Reset file input
+    if (bgPicInputRef.current) {
+      bgPicInputRef.current.value = '';
     }
   };
 
@@ -124,7 +324,7 @@ const Profile = () => {
         <div 
           className="relative h-64 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url(${(isEditing ? editData.bg_pic : user?.bg_pic) || optomyzeLogo})`,
+            backgroundImage: `url(${bgPicPreview || optomyzeLogo})`,
             backgroundColor: 'hsl(var(--muted))'
           }}
         >
@@ -135,7 +335,7 @@ const Profile = () => {
             <div className="relative">
               <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
                 <AvatarImage 
-                  src={isEditing ? editData.profile_pic : user?.profile_pic} 
+                  src={profilePicPreview} 
                   alt="Profile"
                   className="object-cover"
                 />
@@ -144,40 +344,66 @@ const Profile = () => {
                 </AvatarFallback>
               </Avatar>
               {isEditing && (
-                <Button
-                  size="sm"
-                  className="absolute bottom-2 right-2 rounded-full w-8 h-8 p-0"
-                  onClick={() => {
-                    // TODO: Implement image upload
-                    toast({
-                      title: "Coming Soon",
-                      description: "Image upload functionality will be available soon.",
-                    });
-                  }}
-                >
-                  <Camera className="w-4 h-4" />
-                </Button>
+                <div className="absolute bottom-2 right-2 flex gap-1">
+                  <Button
+                    size="sm"
+                    className="rounded-full w-8 h-8 p-0"
+                    onClick={() => profilePicInputRef.current?.click()}
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Button>
+                  {profilePicPreview && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="rounded-full w-8 h-8 p-0"
+                      onClick={handleRemoveProfilePic}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
           {/* Edit background button */}
           {isEditing && (
-            <Button
-              size="sm"
-              className="absolute top-4 right-4"
-              onClick={() => {
-                // TODO: Implement background image upload
-                toast({
-                  title: "Coming Soon",
-                  description: "Background image upload functionality will be available soon.",
-                });
-              }}
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Change Background
-            </Button>
+            <div className="absolute top-4 right-4 flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => bgPicInputRef.current?.click()}
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Change Background
+              </Button>
+              {bgPicPreview && bgPicPreview !== optomyzeLogo && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleRemoveBgPic}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           )}
+
+          {/* Hidden file inputs */}
+          <input
+            type="file"
+            ref={profilePicInputRef}
+            onChange={handleProfilePicChange}
+            accept="image/*"
+            className="hidden"
+          />
+          <input
+            type="file"
+            ref={bgPicInputRef}
+            onChange={handleBgPicChange}
+            accept="image/*"
+            className="hidden"
+          />
         </div>
 
         {/* Main content */}
@@ -217,12 +443,31 @@ const Profile = () => {
 
             <Separator className="mb-8" />
 
+            {/* Error display */}
+            {error && (
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Upload progress */}
+            {loading && uploadProgress > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                  <span>Uploading files...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+              </div>
+            )}
+
             {/* Profile details card */}
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle>Account Information</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className={loading ? 'pointer-events-none opacity-50' : ''}>
                 <Tabs defaultValue="profile" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="profile">Profile Details</TabsTrigger>
@@ -250,18 +495,55 @@ const Profile = () => {
                           onChange={(e) => setEditData({...editData, phone: e.target.value})}
                           disabled={!isEditing}
                           className={!isEditing ? "bg-muted" : ""}
+                          maxLength={20}
                         />
                       </div>
                     </div>
 
+                    {/* Email display (read-only) */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        value={user?.email || ''}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Email cannot be changed. Contact support if needed.
+                      </p>
+                    </div>
+
+                    {/* Company name display (read-only) */}
+                    {user?.company_name && (
+                      <div className="space-y-2">
+                        <Label htmlFor="company">Company</Label>
+                        <Input
+                          id="company"
+                          value={user.company_name}
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
+                    )}
+
                     {isEditing && (
                       <div className="flex justify-end space-x-4 pt-4">
-                        <Button variant="outline" onClick={handleEditToggle}>
+                        <Button variant="outline" onClick={handleEditToggle} disabled={loading}>
                           Cancel
                         </Button>
-                        <Button onClick={handleSaveProfile}>
-                          <Save className="w-4 h-4 mr-2" />
-                          Save Changes
+                        <Button onClick={handleSaveProfile} disabled={loading}>
+                          {loading ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                              {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Updating...'}
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-2" />
+                              Save Changes
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}
@@ -357,8 +639,15 @@ const Profile = () => {
                       </div>
                       
                       <div className="flex justify-end pt-4">
-                        <Button onClick={handlePasswordReset}>
-                          Update Password
+                        <Button onClick={handlePasswordReset} disabled={loading}>
+                          {loading ? (
+                            <>
+                              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                              Updating...
+                            </>
+                          ) : (
+                            'Update Password'
+                          )}
                         </Button>
                       </div>
                     </div>
