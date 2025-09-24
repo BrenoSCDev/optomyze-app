@@ -289,7 +289,7 @@ const Profile = () => {
 
   const handleRemoveProfilePic = () => {
     setProfilePicFile(null);
-    setProfilePicPreview(user?.profile_pic ? `http://localhost/${user.profile_pic}` : '');
+    setProfilePicPreview(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
     
     // Reset file input
     if (profilePicInputRef.current) {
@@ -299,7 +299,7 @@ const Profile = () => {
 
   const handleRemoveBgPic = () => {
     setBgPicFile(null);
-    setBgPicPreview(user?.bg_pic ? `http://localhost/${user.bg_pic}` : '');
+    setBgPicPreview(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
     
     // Reset file input
     if (bgPicInputRef.current) {

@@ -55,9 +55,9 @@ export const profileService = {
   },
 
   // Update password
-  async updatePassword(currentPassword, newPassword) {
-    const response = await api.post('/api/auth/change-password', {
-      current_password: currentPassword,
+  async updatePassword(oldPassword, newPassword) {
+    const response = await api.post('/api/auth/reset/password', {
+      old_password: oldPassword,
       new_password: newPassword,
       new_password_confirmation: newPassword,
     });
