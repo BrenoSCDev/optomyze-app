@@ -243,34 +243,11 @@ const Profile = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={editData.email}
-                          onChange={(e) => setEditData({...editData, email: e.target.value})}
-                          disabled={!isEditing}
-                          className={!isEditing ? "bg-muted" : ""}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
                         <Input
                           id="phone"
                           value={editData.phone}
                           onChange={(e) => setEditData({...editData, phone: e.target.value})}
-                          disabled={!isEditing}
-                          className={!isEditing ? "bg-muted" : ""}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="company">Company Name</Label>
-                        <Input
-                          id="company"
-                          value={editData.company_name}
-                          onChange={(e) => setEditData({...editData, company_name: e.target.value})}
                           disabled={!isEditing}
                           className={!isEditing ? "bg-muted" : ""}
                         />
