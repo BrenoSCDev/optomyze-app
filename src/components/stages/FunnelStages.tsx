@@ -331,11 +331,16 @@ const FunnelStages = () => {
 
     try {
       // Send API request to move stage
-      await api.put(`/api/funnels/${funnelId}/stages/${stageToMove.id}/move`, {
+      const response = await api.put(`/api/funnels/${funnelId}/stages/${stageToMove.id}/move`, {
         order: newOrder
       });
 
-      // Success toast without automatic refresh
+      // Update stages with the correct order from backend response
+      if (response.data.stages) {
+        setStages(response.data.stages);
+      }
+
+      // Success toast
       toast({
         title: 'Stage moved successfully',
         description: `${stageToMove.name} has been reordered.`,
