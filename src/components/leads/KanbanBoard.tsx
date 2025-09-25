@@ -22,6 +22,7 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
+  rectIntersection,
   useSensor,
   useSensors,
   PointerSensor,
@@ -443,7 +444,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >

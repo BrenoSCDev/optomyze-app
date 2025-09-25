@@ -84,8 +84,8 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 ${getPriorityColor(lead.priority)} ${
-          isDragging ? 'opacity-50 scale-105 shadow-lg' : 'hover:scale-102'
+        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 relative ${getPriorityColor(lead.priority)} ${
+          isDragging ? 'opacity-50 scale-105 shadow-lg z-50' : 'hover:scale-102 z-10'
         } ${isMoving ? 'opacity-60' : ''}`}
         whileHover={{ y: isDragging ? 0 : -2 }}
         layout
