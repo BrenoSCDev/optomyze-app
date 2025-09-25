@@ -177,7 +177,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       return;
     }
 
-    // Optimistic update
+    // Optimistic update - add to top of target column
     setColumns(prevColumns => {
       const newColumns = prevColumns.map(col => {
         if (col.id === oldStageId) {
@@ -189,7 +189,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         if (col.id === newStageId) {
           return {
             ...col,
-            leads: [...col.leads, { ...leadToMove, stage: newStageId }]
+            leads: [{ ...leadToMove, stage: newStageId }, ...col.leads]
           };
         }
         return col;
@@ -233,7 +233,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     } catch (error) {
       console.error('Error moving lead:', error);
       
-      // Revert optimistic update
+      // Revert optimistic update - restore to original position
       setColumns(prevColumns => {
         const newColumns = prevColumns.map(col => {
           if (col.id === newStageId) {
@@ -243,9 +243,17 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             };
           }
           if (col.id === oldStageId) {
+            // Find original position or add to end if not found
+            const originalIndex = col.leads.findIndex(lead => lead.id === leadId);
+            const newLeads = [...col.leads];
+            if (originalIndex >= 0) {
+              newLeads.splice(originalIndex, 0, leadToMove);
+            } else {
+              newLeads.push(leadToMove);
+            }
             return {
               ...col,
-              leads: [...col.leads, leadToMove]
+              leads: newLeads
             };
           }
           return col;

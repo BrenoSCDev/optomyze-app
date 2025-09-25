@@ -95,6 +95,19 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
 
       {/* Column Body */}
       <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+        {/* Drag Placeholder - shown when dragging any lead */}
+        {activeId && (
+          <motion.div
+            className="glass-card border-2 border-dashed border-primary/50 bg-primary/10 p-4 rounded-lg flex items-center justify-center"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <p className="text-sm text-primary font-medium">Drop lead here</p>
+          </motion.div>
+        )}
+        
         <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
           <AnimatePresence>
             {column.leads.map((lead, leadIndex) => (
