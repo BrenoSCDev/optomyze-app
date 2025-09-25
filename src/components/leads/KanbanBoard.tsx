@@ -447,6 +447,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        autoScroll={false}
       >
         <div
           className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
@@ -464,9 +465,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           ))}
         </div>
         
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeId && draggedLead ? (
-            <div className="rotate-3 opacity-95">
+            <div className="rotate-3 opacity-95 pointer-events-none">
               <LeadCard
                 lead={draggedLead}
                 isDragging={true}
