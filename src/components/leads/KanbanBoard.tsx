@@ -125,6 +125,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       }))
     })) || [];
 
+  // Debug logging for stage mapping
+  console.log('Funnel stages mapping:', funnel.stages?.map(stage => ({
+    original_id: stage.id,
+    string_id: stage.id.toString(),
+    name: stage.name,
+    order: stage.order
+  })));
+
   const [columns, setColumns] = useState(kanbanColumns);
   
   const handleAddLead = useCallback((columnId: string) => {
@@ -199,6 +207,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     });
 
     try {
+      // Debug logging to verify correct stage ID is being sent
+      console.log('Moving lead:', {
+        leadId,
+        oldStageId,
+        newStageId,
+        targetColumn: columns.find(col => col.id === newStageId)?.title
+      });
+      
       // Make API call
       const response = await leadService.moveLeadToStage(leadId, newStageId);
       
