@@ -300,37 +300,38 @@ const FunnelsDashboard = () => {
   };
 
   const FunnelCard = ({ funnel }: { funnel: Funnel }) => (
-    <Card className="glass-card p-6 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
-      <div className="flex items-start justify-between h-full">
-        {/* Left Section - Funnel Icon */}
-        <div className="flex items-start gap-4 flex-1">
-          <div className="p-3 rounded-lg bg-primary/20 text-primary group-hover:bg-primary/30 transition-colors">
-            <Filter className="h-6 w-6" />
+    <Card className="glass-card hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
+      {/* Header with Status and Actions */}
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg transition-colors ${
+            funnel.is_active 
+              ? 'bg-green-500/20 text-green-400 group-hover:bg-green-500/30' 
+              : 'bg-red-500/20 text-red-400 group-hover:bg-red-500/30'
+          }`}>
+            <Filter className="h-5 w-5" />
           </div>
-          
-          {/* Center Section - Funnel Information */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-2 truncate">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground truncate">
               {funnel.name}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-              {funnel.description}
-            </p>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {funnel.nleads} {t('funnels.leads')}
+              <Badge 
+                variant={funnel.is_active ? "default" : "secondary"} 
+                className={`text-xs ${
+                  funnel.is_active 
+                    ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                    : 'bg-red-500/20 text-red-400 border-red-500/30'
+                }`}
+              >
+                {funnel.is_active ? t('funnels.active') : t('funnels.inactive')}
               </Badge>
-              {funnel.is_active && (
-                <Badge variant="default" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
-                  {t('funnels.active')}
-                </Badge>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Right Section - Action Buttons */}
-        <div className="flex items-center gap-2 ml-4">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1">
           {/* View Funnel Button */}
           <Button
             variant="ghost"
@@ -401,6 +402,36 @@ const FunnelsDashboard = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+          {funnel.description}
+        </p>
+        
+        {/* Stats Section */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Leads Count */}
+          <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
+            <div className="text-2xl font-bold text-primary mb-1">
+              {funnel.nleads}
+            </div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
+              {t('funnels.leads')}
+            </div>
+          </div>
+
+          {/* Creation Date */}
+          <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
+            <div className="text-sm font-medium text-foreground mb-1">
+              {funnel.created_at ? new Date(funnel.created_at).toLocaleDateString() : 'N/A'}
+            </div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
+              {t('funnels.created')}
+            </div>
+          </div>
         </div>
       </div>
     </Card>

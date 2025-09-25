@@ -97,13 +97,15 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
   ];
 
-  // Dynamic leads submenu items from API
-  const leadsItems = funnels.map(funnel => ({
-    id: funnel.id.toString(),
-    label: funnel.name,
-    count: funnel.nleads,
-    path: `/leads/${funnel.id}`
-  }));
+  // Dynamic leads submenu items from API - only show active funnels
+  const leadsItems = funnels
+    .filter(funnel => funnel.is_active)
+    .map(funnel => ({
+      id: funnel.id.toString(),
+      label: funnel.name,
+      count: funnel.nleads,
+      path: `/leads/${funnel.id}`
+    }));
 
   // Settings submenu items
   const settingsItems = [
