@@ -30,6 +30,9 @@ import {
   DragStartEvent,
   DragEndEvent,
   DragOverEvent,
+  CollisionDetection,
+  getFirstCollision,
+  pointerWithin,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -84,13 +87,50 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Custom collision detection for better column detection across screen sizes
+  const customCollisionDetection: CollisionDetection = (args) => {
+    // First try pointer-within detection for more precise column detection
+    const pointerCollisions = pointerWithin(args);
+    
+    if (pointerCollisions.length > 0) {
+      // Filter to only column IDs (exclude lead IDs)
+      const columnCollisions = pointerCollisions.filter(collision => 
+        columns.some(col => col.id === collision.id)
+      );
+      
+      if (columnCollisions.length > 0) {
+        return columnCollisions;
+      }
+    }
+    
+    // Fallback to rectangle intersection for edge cases
+    const rectCollisions = rectIntersection(args);
+    
+    if (rectCollisions.length > 0) {
+      // Filter to only column IDs
+      const columnCollisions = rectCollisions.filter(collision => 
+        columns.some(col => col.id === collision.id)
+      );
+      
+      if (columnCollisions.length > 0) {
+        return columnCollisions;
+      }
+    }
+    
+    // Final fallback to closest center, but still filter for columns
+    const centerCollisions = closestCenter(args);
+    return centerCollisions.filter(collision => 
+      columns.some(col => col.id === collision.id)
+    );
+  };
   
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
@@ -453,7 +493,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         autoScroll={false}

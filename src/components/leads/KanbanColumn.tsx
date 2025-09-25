@@ -51,7 +51,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative ${getColumnColor()} ${
+      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative min-h-[400px] ${getColumnColor()} ${
         isOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -60,6 +60,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       style={{ zIndex: isOver ? 10 : 1 }}
+      data-column-id={column.id}
     >
       {/* Column Header */}
       <div className="flex items-center justify-between mb-4">
