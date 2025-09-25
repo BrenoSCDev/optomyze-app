@@ -169,17 +169,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       return;
     }
 
-    // Prevent moving to first column (stage order 0 or first in array)
-    const targetStage = columns.find(col => col.id === newStageId);
-    const isFirstColumn = columns.indexOf(targetStage!) === 0;
-    
-    if (isFirstColumn) {
-      toast.error('Cannot move leads to the first stage');
-      setActiveId(null);
-      setDraggedLead(null);
-      return;
-    }
-
     const oldStageId = currentStage.id;
     const leadToMove = currentStage.leads.find(lead => lead.id === leadId);
 
