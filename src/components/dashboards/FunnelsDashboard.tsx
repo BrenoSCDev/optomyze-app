@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Settings, Trash2, Filter, AlertCircle } from 'lucide-react';
+import { Plus, Settings, Trash2, Filter, AlertCircle, Eye, Cog, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -19,11 +19,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { funnelService } from '@/services/funnelApi';
 import api from '@/services/api';
 
 interface Funnel {
@@ -45,10 +47,14 @@ const FunnelsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
+  const [showEditFunnelModal, setShowEditFunnelModal] = useState(false);
   const [deletingFunnelId, setDeletingFunnelId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '' });
+  const [editFormData, setEditFormData] = useState({ name: '', description: '', is_active: true });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
+  const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
   
   const { toast } = useToast();
   const { funnels: authFunnels, updateFunnels } = useAuth();
@@ -212,6 +218,87 @@ const FunnelsDashboard = () => {
     }
   };
 
+  const openEditModal = (funnel: Funnel) => {
+    setSelectedFunnel(funnel);
+    setEditFormData({
+      name: funnel.name,
+      description: funnel.description,
+      is_active: funnel.is_active
+    });
+    setEditFormErrors({ name: '', description: '' });
+    setShowEditFunnelModal(true);
+  };
+
+  const updateFunnel = async () => {
+    // Reset form errors
+    setEditFormErrors({ name: '', description: '' });
+    
+    // Validate form
+    const errors = { name: '', description: '' };
+    if (!editFormData.name.trim()) {
+      errors.name = t('funnels.name-required');
+    }
+    if (!editFormData.description.trim()) {
+      errors.description = t('funnels.description-required');
+    }
+    
+    if (errors.name || errors.description) {
+      setEditFormErrors(errors);
+      return;
+    }
+    
+    if (!selectedFunnel) return;
+    
+    try {
+      setUpdating(true);
+      const updatedFunnel = await funnelService.updateFunnel(selectedFunnel.id, {
+        name: editFormData.name.trim(),
+        description: editFormData.description.trim(),
+        is_active: editFormData.is_active
+      });
+      
+      // Update funnel in the list
+      setFunnels(prev => prev.map(funnel => 
+        funnel.id === selectedFunnel.id ? { ...funnel, ...updatedFunnel } : funnel
+      ));
+      
+      // Update global context for sidebar
+      if (updateFunnels) {
+        const updatedGlobalFunnels = (authFunnels || []).map(f => 
+          f.id === selectedFunnel.id ? { ...f, name: updatedFunnel.name } : f
+        );
+        updateFunnels(updatedGlobalFunnels);
+      }
+      
+      setShowEditFunnelModal(false);
+      setSelectedFunnel(null);
+      
+      toast({
+        title: t('common.success'),
+        description: t('funnels.success-update'),
+      });
+    } catch (error: any) {
+      console.error('Error updating funnel:', error);
+      
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        const serverErrors = error.response.data.errors;
+        setEditFormErrors({
+          name: serverErrors.name?.[0] || '',
+          description: serverErrors.description?.[0] || ''
+        });
+        return;
+      }
+      
+      toast({
+        title: t('common.error'),
+        description: t('funnels.error-update'),
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const FunnelCard = ({ funnel }: { funnel: Funnel }) => (
     <Card className="glass-card p-6 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
       <div className="flex items-start justify-between h-full">
@@ -244,13 +331,37 @@ const FunnelsDashboard = () => {
 
         {/* Right Section - Action Buttons */}
         <div className="flex items-center gap-2 ml-4">
+          {/* View Funnel Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 neon-border"
+            onClick={() => navigate(`/?funnelId=${funnel.id}`)}
+            title="View Funnel"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+
+          {/* Stages Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-purple-400 hover:bg-purple-500/10 neon-border"
+            onClick={() => navigate(`/settings/funnels/${funnel.id}/stages`)}
+            title="Manage Stages"
+          >
+            <Users className="h-4 w-4" />
+          </Button>
+
+          {/* Config Button */}
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border"
-            onClick={() => navigate(`/settings/funnels/${funnel.id}/stages`)}
+            onClick={() => openEditModal(funnel)}
+            title="Configure Funnel"
           >
-            <Settings className="h-4 w-4" />
+            <Cog className="h-4 w-4" />
           </Button>
           
           <AlertDialog>
@@ -261,6 +372,7 @@ const FunnelsDashboard = () => {
                 className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                 disabled={deletingFunnelId === funnel.id}
                 onClick={() => setSelectedFunnel(funnel)}
+                title="Delete Funnel"
               >
                 {deletingFunnelId === funnel.id ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -432,6 +544,115 @@ const FunnelsDashboard = () => {
                   <>
                     <Plus className="h-4 w-4 mr-2" />
                     {t('common.create')}
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Funnel Modal */}
+        <Dialog open={showEditFunnelModal} onOpenChange={setShowEditFunnelModal}>
+          <DialogContent className="glass-card max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-foreground futuristic-text">
+                {t('funnels.edit-funnel')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-6">
+              <div className="space-y-2">
+                <Label htmlFor="edit-funnel-name" className="text-foreground">
+                  {t('funnels.name')} *
+                </Label>
+                <Input
+                  id="edit-funnel-name"
+                  value={editFormData.name}
+                  onChange={(e) => {
+                    setEditFormData(prev => ({ ...prev, name: e.target.value }));
+                    if (editFormErrors.name) setEditFormErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  placeholder={t('funnels.name-placeholder')}
+                  className={`glass-card border-muted/30 ${editFormErrors.name ? 'border-red-500' : ''}`}
+                  disabled={updating}
+                />
+                {editFormErrors.name && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {editFormErrors.name}
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-funnel-description" className="text-foreground">
+                  {t('funnels.description')} *
+                </Label>
+                <Textarea
+                  id="edit-funnel-description"
+                  value={editFormData.description}
+                  onChange={(e) => {
+                    setEditFormData(prev => ({ ...prev, description: e.target.value }));
+                    if (editFormErrors.description) setEditFormErrors(prev => ({ ...prev, description: '' }));
+                  }}
+                  placeholder={t('funnels.description-placeholder')}
+                  className={`glass-card border-muted/30 min-h-[100px] ${editFormErrors.description ? 'border-red-500' : ''}`}
+                  disabled={updating}
+                />
+                {editFormErrors.description && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {editFormErrors.description}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-funnel-active" className="text-foreground">
+                    {t('funnels.active-status')}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('funnels.active-description')}
+                  </p>
+                </div>
+                <Switch
+                  id="edit-funnel-active"
+                  checked={editFormData.is_active}
+                  onCheckedChange={(checked) => 
+                    setEditFormData(prev => ({ ...prev, is_active: checked }))
+                  }
+                  disabled={updating}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowEditFunnelModal(false);
+                  setSelectedFunnel(null);
+                  setEditFormData({ name: '', description: '', is_active: true });
+                  setEditFormErrors({ name: '', description: '' });
+                }}
+                className="bg-muted/20 border-muted/30 hover:bg-muted/30"
+                disabled={updating}
+              >
+                {t('funnels.cancel')}
+              </Button>
+              <Button 
+                onClick={updateFunnel}
+                className="neon-border"
+                disabled={updating}
+              >
+                {updating ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    {t('common.updating')}
+                  </>
+                ) : (
+                  <>
+                    <Cog className="h-4 w-4 mr-2" />
+                    {t('common.update')}
                   </>
                 )}
               </Button>

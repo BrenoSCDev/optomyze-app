@@ -34,5 +34,16 @@ export const funnelService = {
       console.error('Error fetching funnels:', error);
       throw error;
     }
+  },
+
+  // Update funnel configuration
+  async updateFunnel(funnelId, updateData) {
+    try {
+      const response = await api.put(`/api/funnels/${funnelId}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating funnel:', error);
+      throw error;
+    }
   }
 };
