@@ -98,13 +98,17 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
         {/* Drag Placeholder - shown when dragging any lead */}
         {activeId && (
           <motion.div
-            className="glass-card border-2 border-dashed border-primary/50 bg-primary/10 p-4 rounded-lg flex items-center justify-center"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            className="glass-card border-2 border-dashed border-primary/50 bg-primary/10 rounded-lg p-4 min-h-[120px] flex items-center justify-center mb-3"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
+            style={{ height: '120px' }}
           >
-            <p className="text-sm text-primary font-medium">Drop lead here</p>
+            <div className="text-center">
+              <p className="text-sm text-primary font-medium">Drop lead here</p>
+              <p className="text-xs text-primary/70 mt-1">Will be added to top of column</p>
+            </div>
           </motion.div>
         )}
         
