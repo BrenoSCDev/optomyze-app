@@ -333,7 +333,7 @@ const OptomyzeMetrics = () => {
                 stroke="#8B5CF6"
                 strokeWidth={3}
                 fill="url(#leadsGradient)"
-                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                dot={false}
                 activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
               />
             </AreaChart>
