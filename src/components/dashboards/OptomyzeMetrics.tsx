@@ -13,7 +13,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus } from 'lucide-react';
@@ -308,7 +308,13 @@ const OptomyzeMetrics = () => {
         >
           <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={monthlyData}>
+            <AreaChart data={monthlyData}>
+              <defs>
+                <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
               <YAxis stroke="#9CA3AF" fontSize={12} />
@@ -321,15 +327,16 @@ const OptomyzeMetrics = () => {
                 }}
               />
               <Legend />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="leads"
                 stroke="#8B5CF6"
                 strokeWidth={3}
+                fill="url(#leadsGradient)"
                 dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
                 activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
           
           {/* Summary Stats */}
