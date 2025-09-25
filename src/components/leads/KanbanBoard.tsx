@@ -514,15 +514,24 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           ))}
         </div>
         
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay 
+          dropAnimation={{
+            duration: 200,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}
+        >
           {activeId && draggedLead ? (
-            <div className="rotate-3 opacity-95 pointer-events-none">
-              <LeadCard
-                lead={draggedLead}
-                isDragging={true}
-                onTagClick={handleTagClick}
-                onLeadClick={handleLeadClick}
-              />
+            <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
+              {/* Enhanced shadow and glow effect */}
+              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
+              <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
+                <LeadCard
+                  lead={draggedLead}
+                  isDragging={false}
+                  onTagClick={handleTagClick}
+                  onLeadClick={handleLeadClick}
+                />
+              </div>
             </div>
           ) : null}
         </DragOverlay>

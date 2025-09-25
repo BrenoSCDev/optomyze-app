@@ -123,7 +123,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
                 style={{
-                  opacity: activeId === lead.id ? 0.5 : 1,
+                  opacity: activeId === lead.id ? 0.3 : 1,
                 }}
               >
                 <LeadCard 
