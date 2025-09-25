@@ -57,7 +57,7 @@ const FunnelsDashboard = () => {
   const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
   
   const { toast } = useToast();
-  const { funnels: authFunnels, updateFunnels } = useAuth();
+  const { funnels: authFunnels, updateFunnels, updateFunnel: updateFunnelInContext } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -262,13 +262,8 @@ const FunnelsDashboard = () => {
         funnel.id === selectedFunnel.id ? { ...funnel, ...updatedFunnel } : funnel
       ));
       
-      // Update global context for sidebar
-      if (updateFunnels) {
-        const updatedGlobalFunnels = (authFunnels || []).map(f => 
-          f.id === selectedFunnel.id ? { ...f, name: updatedFunnel.name } : f
-        );
-        updateFunnels(updatedGlobalFunnels);
-      }
+      // Update global context for sidebar (this will automatically handle active/inactive filtering)
+      updateFunnelInContext({ ...selectedFunnel, ...updatedFunnel });
       
       setShowEditFunnelModal(false);
       setSelectedFunnel(null);

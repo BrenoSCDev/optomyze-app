@@ -95,6 +95,14 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_FUNNELS', payload: funnels });
   };
 
+  const updateFunnel = (updatedFunnel) => {
+    const updatedFunnels = state.funnels.map(funnel => 
+      funnel.id === updatedFunnel.id ? updatedFunnel : funnel
+    );
+    localStorage.setItem('optomyze_funnels', JSON.stringify(updatedFunnels));
+    dispatch({ type: 'UPDATE_FUNNELS', payload: updatedFunnels });
+  };
+
   const updateUser = (updatedUser) => {
     dispatch({
       type: 'LOGIN_SUCCESS',
@@ -112,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateFunnels,
+    updateFunnel,
     updateUser,
   };
 
