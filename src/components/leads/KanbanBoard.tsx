@@ -80,11 +80,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     selectedLead: null
   });
 
-  // DnD sensors
+  // DnD sensors with improved detection
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -162,7 +162,19 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       col.leads.some(lead => lead.id === leadId)
     );
 
+    // Early return if no current stage found or dropping in same column
     if (!currentStage || currentStage.id === newStageId) {
+      setActiveId(null);
+      setDraggedLead(null);
+      return;
+    }
+
+    // Prevent moving to first column (stage order 0 or first in array)
+    const targetStage = columns.find(col => col.id === newStageId);
+    const isFirstColumn = columns.indexOf(targetStage!) === 0;
+    
+    if (isFirstColumn) {
+      toast.error('Cannot move leads to the first stage');
       setActiveId(null);
       setDraggedLead(null);
       return;
@@ -452,7 +464,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
       <DndContext
         sensors={sensors}
-        collisionDetection={rectIntersection}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         autoScroll={false}
