@@ -38,6 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VscSourceControl } from "react-icons/vsc";
+import ReportsModal from '@/components/leads/ReportsModal';
 
 interface Lead {
   id: number;
@@ -74,9 +75,40 @@ interface Transaction {
   created_at: string;
 }
 
+interface Agent {
+  id: number;
+  company_id: number;
+  n8n_integration_id: number;
+  workflow_id: string;
+  workflow_name: string;
+  platform: string;
+  agent_name: string;
+  description: string | null;
+  configuration: string;
+  webhook_data: string | null;
+  status: string;
+  last_execution_at: string | null;
+  last_execution_result: string | null;
+  execution_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Report {
+  id: number;
+  lead_id: number;
+  n8n_agent_id: number;
+  platform: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  agent: Agent;
+}
+
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
+  reports: Report[];
 }
 
 const LeadDetailPage = () => {
@@ -88,6 +120,7 @@ const LeadDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [reportsModalOpen, setReportsModalOpen] = useState(false);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -155,6 +188,8 @@ const LeadDetailPage = () => {
           lead={leadData.lead} 
           onEdit={() => setEditModalOpen(true)}
           onBack={handleBack}
+          onViewReports={() => setReportsModalOpen(true)}
+          reportsCount={leadData.reports?.length || 0}
         />
         
         {/* Main Content Grid */}
@@ -179,13 +214,33 @@ const LeadDetailPage = () => {
           lead={leadData.lead}
           onUpdate={fetchLeadData}
         />
+
+        {/* Reports Modal */}
+        <ReportsModal
+          isOpen={reportsModalOpen}
+          onClose={() => setReportsModalOpen(false)}
+          reports={leadData.reports || []}
+          leadName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
+        />
       </div>
     </div>
   );
 };
 
 // Lead Detail Header Component
-const LeadDetailHeader = ({ lead, onEdit, onBack }: { lead: Lead; onEdit: () => void; onBack: () => void }) => {
+const LeadDetailHeader = ({ 
+  lead, 
+  onEdit, 
+  onBack, 
+  onViewReports, 
+  reportsCount 
+}: { 
+  lead: Lead; 
+  onEdit: () => void; 
+  onBack: () => void; 
+  onViewReports: () => void;
+  reportsCount: number;
+}) => {
   const getStatusColor = (status: string) => {
     const colors = {
       'new': 'bg-blue-600/20 text-blue-400 border-blue-600/30',
@@ -270,6 +325,15 @@ const LeadDetailHeader = ({ lead, onEdit, onBack }: { lead: Lead; onEdit: () => 
           
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
+            <Button onClick={onViewReports} variant="outline" className="glass-card">
+              <FileText className="w-4 h-4 mr-2" />
+              See Reports
+              {reportsCount > 0 && (
+                <Badge className="ml-2 bg-primary/20 text-primary border-primary/30">
+                  {reportsCount}
+                </Badge>
+              )}
+            </Button>
             <Button onClick={onEdit} className="bg-primary hover:bg-primary/80">
               <Edit className="w-4 h-4 mr-2" />
               Edit Lead

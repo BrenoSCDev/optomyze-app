@@ -43,6 +43,7 @@ const mockUsers: User[] = [
     created_at: "2025-09-25T19:10:14.000000Z",
     updated_at: "2025-09-25T19:10:14.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    profile_pic: "user1.jpg",
     background_image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
   },
   {
@@ -57,6 +58,7 @@ const mockUsers: User[] = [
     created_at: "2024-02-20T09:00:00.000000Z",
     updated_at: "2025-09-27T15:30:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1494790108755-2616b612b522?w=150&h=150&fit=crop&crop=face",
+    profile_pic: "user2.jpg",
     background_image_url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"
   },
   {
@@ -71,6 +73,7 @@ const mockUsers: User[] = [
     created_at: "2024-03-10T12:00:00.000000Z",
     updated_at: "2025-09-20T08:15:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    profile_pic: "user3.jpg",
     background_image_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop"
   },
   {
@@ -85,6 +88,7 @@ const mockUsers: User[] = [
     created_at: "2024-01-28T10:00:00.000000Z",
     updated_at: "2025-09-28T09:45:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    profile_pic: "user4.jpg",
     background_image_url: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
   }
 ];
