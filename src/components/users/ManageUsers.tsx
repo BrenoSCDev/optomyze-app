@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import UserCard from './UserCard';
 import UserTableView from './UserTableView';
 import UserFiltersComponent from './UserFilters';
+import UserCreationDialog from './UserCreationDialog';
 
 // Mock user data for fallback
 const mockUsers: User[] = [
@@ -108,6 +109,7 @@ const ManageUsers = () => {
     status: 'all',
   });
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Load users on component mount
   useEffect(() => {
@@ -231,12 +233,11 @@ const ManageUsers = () => {
   };
 
   const handleCreateUser = () => {
-    console.log('Create new user');
-    toast({
-      title: t('users.actions.create-title'),
-      description: t('users.actions.create-description'),
-    });
-    // TODO: Implement create user functionality
+    setShowCreateDialog(true);
+  };
+
+  const handleUserCreated = (newUser: User) => {
+    setUsers(prevUsers => [...prevUsers, newUser]);
   };
 
   const handleFiltersChange = (newFilters: UserFilters) => {
@@ -475,6 +476,13 @@ const ManageUsers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create User Dialog */}
+      <UserCreationDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onUserCreated={handleUserCreated}
+      />
     </div>
   );
 };
