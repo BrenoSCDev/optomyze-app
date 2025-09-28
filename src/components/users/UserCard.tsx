@@ -139,7 +139,7 @@ const UserCard: React.FC<UserCardProps> = ({
         {/* Profile Photo */}
         <div className="mb-4">
           <Avatar className="h-16 w-16 border-4 border-white/30 shadow-lg">
-            <AvatarImage src={user.profile_photo_url || undefined} alt={user.name} />
+            <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name} />
             <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
               {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>

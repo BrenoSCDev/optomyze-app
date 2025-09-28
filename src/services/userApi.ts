@@ -48,7 +48,7 @@ export const userApi = {
   // Toggle user status
   toggleUserStatus: async (id: number, is_active: boolean): Promise<User> => {
     try {
-      const response = await api.patch(`/api/users/${id}/status`, { is_active });
+      const response = await api.patch(`/api/users/${id}/toggle-status`, { is_active });
       return response.data;
     } catch (error) {
       console.error('Error toggling user status:', error);

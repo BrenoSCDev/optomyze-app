@@ -83,7 +83,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
             <TableRow key={user.id} className="hover:bg-muted/50">
               <TableCell>
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.profile_photo_url || undefined} alt={user.name} />
+                  <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name} />
                   <AvatarFallback>
                     {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>
