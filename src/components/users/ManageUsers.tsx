@@ -1,22 +1,5 @@
-import React, { useState } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { 
   Pagination, 
   PaginationContent, 
@@ -25,370 +8,473 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { MoreHorizontal, UserPlus, Filter, Edit, Trash2, UserX, UserCheck } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { UserPlus, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { User, UserFilters, ViewMode } from '@/types/user';
+import { userApi } from '@/services/userApi';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import UserCard from './UserCard';
+import UserTableView from './UserTableView';
+import UserFiltersComponent from './UserFilters';
 
-// Mock user data - expanded to show pagination
-const mockUsers = [
+// Mock user data for fallback
+const mockUsers: User[] = [
   {
     id: 1,
-    profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    status: "active",
-    role: "Admin",
-    registrationDate: "2024-01-15"
+    name: "Breno Castro",
+    email: "admin@optomyze.io",
+    email_verified_at: null,
+    phone: "+1-555-1111",
+    role: "admin",
+    is_active: true,
+    last_login_at: "2025-09-28T17:37:36.000000Z",
+    created_at: "2025-09-25T19:10:14.000000Z",
+    updated_at: "2025-09-25T19:10:14.000000Z",
+    profile_photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    background_image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
   },
   {
     id: 2,
-    profilePicture: "https://images.unsplash.com/photo-1494790108755-2616b612b522?w=150&h=150&fit=crop&crop=face",
     name: "Jane Smith",
     email: "jane.smith@example.com",
-    phone: "+1 (555) 987-6543",
-    status: "active",
-    role: "User",
-    registrationDate: "2024-02-20"
+    email_verified_at: "2024-02-20T10:00:00.000000Z",
+    phone: "+1-555-2222",
+    role: "manager",
+    is_active: true,
+    last_login_at: "2025-09-27T15:30:00.000000Z",
+    created_at: "2024-02-20T09:00:00.000000Z",
+    updated_at: "2025-09-27T15:30:00.000000Z",
+    profile_photo_url: "https://images.unsplash.com/photo-1494790108755-2616b612b522?w=150&h=150&fit=crop&crop=face",
+    background_image_url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"
   },
   {
     id: 3,
-    profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     name: "Mike Johnson",
     email: "mike.johnson@example.com",
-    phone: "+1 (555) 456-7890",
-    status: "inactive",
-    role: "User",
-    registrationDate: "2024-03-10"
+    email_verified_at: null,
+    phone: "+1-555-3333",
+    role: "user",
+    is_active: false,
+    last_login_at: "2025-09-20T08:15:00.000000Z",
+    created_at: "2024-03-10T12:00:00.000000Z",
+    updated_at: "2025-09-20T08:15:00.000000Z",
+    profile_photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    background_image_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop"
   },
   {
     id: 4,
-    profilePicture: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     name: "Sarah Wilson",
     email: "sarah.wilson@example.com",
-    phone: "+1 (555) 321-0987",
-    status: "active",
-    role: "Manager",
-    registrationDate: "2024-01-28"
-  },
-  {
-    id: 5,
-    profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-    name: "David Brown",
-    email: "david.brown@example.com",
-    phone: "+1 (555) 654-3210",
-    status: "pending",
-    role: "User",
-    registrationDate: "2024-03-25"
-  },
-  {
-    id: 6,
-    profilePicture: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=150&h=150&fit=crop&crop=face",
-    name: "Emily Davis",
-    email: "emily.davis@example.com",
-    phone: "+1 (555) 789-0123",
-    status: "active",
-    role: "User",
-    registrationDate: "2024-02-14"
-  },
-  {
-    id: 7,
-    profilePicture: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&h=150&fit=crop&crop=face",
-    name: "Alex Rodriguez",
-    email: "alex.rodriguez@example.com",
-    phone: "+1 (555) 111-2222",
-    status: "active",
-    role: "User",
-    registrationDate: "2024-01-05"
-  },
-  {
-    id: 8,
-    profilePicture: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face",
-    name: "Lisa Chen",
-    email: "lisa.chen@example.com",
-    phone: "+1 (555) 333-4444",
-    status: "inactive",
-    role: "Manager",
-    registrationDate: "2024-02-08"
-  },
-  {
-    id: 9,
-    profilePicture: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150&h=150&fit=crop&crop=face",
-    name: "Tom Anderson",
-    email: "tom.anderson@example.com",
-    phone: "+1 (555) 555-6666",
-    status: "pending",
-    role: "User",
-    registrationDate: "2024-03-15"
-  },
-  {
-    id: 10,
-    profilePicture: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face",
-    name: "Anna Martinez",
-    email: "anna.martinez@example.com",
-    phone: "+1 (555) 777-8888",
-    status: "active",
-    role: "User",
-    registrationDate: "2024-01-20"
-  },
-  {
-    id: 11,
-    profilePicture: "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=150&h=150&fit=crop&crop=face",
-    name: "Robert Taylor",
-    email: "robert.taylor@example.com",
-    phone: "+1 (555) 999-0000",
-    status: "active",
-    role: "Admin",
-    registrationDate: "2024-02-02"
-  },
-  {
-    id: 12,
-    profilePicture: "https://images.unsplash.com/photo-1485875437342-9b39470b3d95?w=150&h=150&fit=crop&crop=face",
-    name: "Nicole White",
-    email: "nicole.white@example.com",
-    phone: "+1 (555) 222-3333",
-    status: "inactive",
-    role: "User",
-    registrationDate: "2024-03-05"
+    email_verified_at: "2024-01-28T14:30:00.000000Z",
+    phone: "+1-555-4444",
+    role: "moderator",
+    is_active: true,
+    last_login_at: "2025-09-28T09:45:00.000000Z",
+    created_at: "2024-01-28T10:00:00.000000Z",
+    updated_at: "2025-09-28T09:45:00.000000Z",
+    profile_photo_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    background_image_url: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
   }
 ];
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 const ManageUsers = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  
+  // State
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState(mockUsers);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    return (localStorage.getItem('usersViewMode') as ViewMode) || 'grid';
+  });
+  const [filters, setFilters] = useState<UserFilters>({
+    search: '',
+    role: 'all',
+    status: 'all',
+  });
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  // Load users on component mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Save view mode preference
+  useEffect(() => {
+    localStorage.setItem('usersViewMode', viewMode);
+  }, [viewMode]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await userApi.getUsers();
+      setUsers(data);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+      setError(t('users.errors.load-failed'));
+      // Use mock data as fallback
+      setUsers(mockUsers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter users based on search and filters
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = !filters.search || 
+        user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.phone.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchesRole = filters.role === 'all' || 
+        user.role.toLowerCase() === filters.role.toLowerCase();
+
+      const matchesStatus = filters.status === 'all' || 
+        (filters.status === 'active' && user.is_active) ||
+        (filters.status === 'inactive' && !user.is_active);
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, filters]);
 
   // Calculate pagination
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentUsers = users.slice(startIndex, endIndex);
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusDisplay = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      active: t('users.manage.active'),
-      inactive: t('users.manage.inactive'),
-      pending: t('users.manage.pending')
-    };
-    return statusMap[status] || status;
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'Admin':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Manager':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'User':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getRoleDisplay = (role: string) => {
-    const roleMap: { [key: string]: string } = {
-      Admin: t('users.manage.admin'),
-      Manager: t('users.manage.manager'),
-      User: t('users.manage.user')
-    };
-    return roleMap[role] || role;
-  };
-
-  const handleEdit = (userId: number) => {
-    console.log('Edit user:', userId);
+  // Event handlers
+  const handleEdit = (user: User) => {
+    console.log('Edit user:', user);
+    toast({
+      title: t('users.actions.edit-title'),
+      description: `${t('users.actions.edit-description')} ${user.name}`,
+    });
     // TODO: Implement edit functionality
   };
 
-  const handleDelete = (userId: number) => {
-    console.log('Delete user:', userId);
-    // TODO: Implement delete functionality
+  const handleView = (user: User) => {
+    console.log('View user profile:', user);
+    toast({
+      title: t('users.actions.view-title'),
+      description: `${t('users.actions.view-description')} ${user.name}`,
+    });
+    // TODO: Implement view profile functionality
   };
 
-  const handleToggleStatus = (userId: number) => {
-    setUsers(prevUsers => 
-      prevUsers.map(user => 
-        user.id === userId 
-          ? { 
-              ...user, 
-              status: user.status === 'active' ? 'inactive' : 'active' 
-            }
-          : user
-      )
-    );
+  const handleToggleStatus = async (user: User) => {
+    try {
+      const updatedUser = await userApi.toggleUserStatus(user.id, !user.is_active);
+      setUsers(prevUsers => 
+        prevUsers.map(u => u.id === user.id ? updatedUser : u)
+      );
+      toast({
+        title: t('users.actions.status-updated'),
+        description: `${user.name} ${updatedUser.is_active ? t('users.actions.activated') : t('users.actions.deactivated')}`,
+      });
+    } catch (err) {
+      console.error('Failed to toggle user status:', err);
+      toast({
+        variant: "destructive",
+        title: t('users.errors.status-failed'),
+        description: t('users.errors.try-again'),
+      });
+    }
+  };
+
+  const handleDelete = (user: User) => {
+    setUserToDelete(user);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await userApi.deleteUser(userToDelete.id);
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+      toast({
+        title: t('users.actions.deleted'),
+        description: `${userToDelete.name} ${t('users.actions.deleted-description')}`,
+      });
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      toast({
+        variant: "destructive",
+        title: t('users.errors.delete-failed'),
+        description: t('users.errors.try-again'),
+      });
+    } finally {
+      setUserToDelete(null);
+    }
   };
 
   const handleCreateUser = () => {
     console.log('Create new user');
+    toast({
+      title: t('users.actions.create-title'),
+      description: t('users.actions.create-description'),
+    });
     // TODO: Implement create user functionality
   };
 
-  const handleFilter = () => {
-    console.log('Open filter');
-    // TODO: Implement filter functionality
+  const handleFiltersChange = (newFilters: UserFilters) => {
+    setFilters(newFilters);
   };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      role: 'all',
+      status: 'all',
+    });
+  };
+
+  const handleExport = () => {
+    // Simple CSV export
+    const csvContent = [
+      ['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login', 'Created At'].join(','),
+      ...filteredUsers.map(user => [
+        user.name,
+        user.email,
+        user.phone,
+        user.role,
+        user.is_active ? 'Active' : 'Inactive',
+        user.last_login_at || 'Never',
+        new Date(user.created_at).toLocaleDateString()
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `users-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: t('users.actions.exported'),
+      description: t('users.actions.exported-description'),
+    });
+  };
+
+  const handleRefresh = () => {
+    loadUsers();
+  };
+
+  if (loading) {
+    return (
+      <div className="glass-card p-6 m-6">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+          
+          <Skeleton className="h-16 w-full" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-80" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card p-6 m-6">
-      <div className="flex justify-between items-center mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">{t('users.manage.title')}</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            {t('users.manage.title')}
+          </h1>
           <p className="text-muted-foreground">
-            {t('users.manage.description')} ({users.length} {t('users.manage.total-users')})
+            {t('users.manage.description')}
           </p>
+          {error && (
+            <p className="text-destructive text-sm mt-1">
+              {error}
+            </p>
+          )}
         </div>
+        
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleFilter} className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            {t('users.manage.filter')}
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh} 
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {t('users.actions.refresh')}
           </Button>
           <Button onClick={handleCreateUser} className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
-            {t('users.manage.create-user')}
+            {t('users.actions.create-user')}
           </Button>
         </div>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-16"></TableHead>
-              <TableHead>{t('users.manage.name')}</TableHead>
-              <TableHead>{t('users.manage.email')}</TableHead>
-              <TableHead>{t('users.manage.phone')}</TableHead>
-              <TableHead>{t('users.manage.status')}</TableHead>
-              <TableHead>{t('users.manage.role')}</TableHead>
-              <TableHead>{t('users.manage.registration-date')}</TableHead>
-              <TableHead className="w-20">{t('users.manage.options')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentUsers.map((user) => (
-              <TableRow key={user.id} className="hover:bg-muted/50">
-                <TableCell>
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.profilePicture} alt={user.name} />
-                    <AvatarFallback>
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                </TableCell>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                <TableCell className="text-muted-foreground">{user.phone}</TableCell>
-                <TableCell>
-                  <Badge 
-                    variant="outline" 
-                    className={getStatusColor(user.status)}
-                  >
-                    {getStatusDisplay(user.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge 
-                    variant="outline" 
-                    className={getRoleColor(user.role)}
-                  >
-                    {getRoleDisplay(user.role)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(user.registrationDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(user.id)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        {t('users.manage.edit')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleStatus(user.id)}>
-                        {user.status === 'active' ? (
-                          <>
-                            <UserX className="mr-2 h-4 w-4" />
-                            {t('users.manage.disable')}
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck className="mr-2 h-4 w-4" />
-                            {t('users.manage.enable')}
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {t('users.manage.delete')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      {/* Filters */}
+      <div className="mb-6">
+        <UserFiltersComponent
+          filters={filters}
+          viewMode={viewMode}
+          totalUsers={filteredUsers.length}
+          onFiltersChange={handleFiltersChange}
+          onViewModeChange={setViewMode}
+          onClearFilters={handleClearFilters}
+          onExport={handleExport}
+        />
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-between items-center mt-6">
-          <div className="text-sm text-muted-foreground">
-            {t('users.manage.showing')} {startIndex + 1} {t('users.manage.to')} {Math.min(endIndex, users.length)} {t('users.manage.of')} {users.length} {t('users.manage.total-users')}
+      {/* Content */}
+      {currentUsers.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-muted-foreground mb-2">
+            {filters.search || filters.role !== 'all' || filters.status !== 'all' 
+              ? t('users.empty.no-results')
+              : t('users.empty.no-users')
+            }
           </div>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink 
-                    onClick={() => setCurrentPage(page)}
-                    isActive={currentPage === page}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          {(filters.search || filters.role !== 'all' || filters.status !== 'all') && (
+            <Button variant="outline" onClick={handleClearFilters}>
+              {t('users.filters.clear')}
+            </Button>
+          )}
         </div>
+      ) : (
+        <>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+              {currentUsers.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onEdit={handleEdit}
+                  onView={handleView}
+                  onToggleStatus={handleToggleStatus}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mb-6">
+              <UserTableView
+                users={currentUsers}
+                onEdit={handleEdit}
+                onView={handleView}
+                onToggleStatus={handleToggleStatus}
+                onDelete={handleDelete}
+              />
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                {t('users.pagination.showing')} {startIndex + 1} {t('users.pagination.to')} {Math.min(endIndex, filteredUsers.length)} {t('users.pagination.of')} {filteredUsers.length} {t('users.pagination.results')}
+              </div>
+              
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('users.delete.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('users.delete.description')} <strong>{userToDelete?.name}</strong>? {t('users.delete.warning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('users.delete.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('users.delete.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
