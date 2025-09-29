@@ -176,7 +176,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   // Filter leads based on active filters
   const filterLeads = (leads: any[], filters: any) => {
     return leads.filter(lead => {
-      // Name filters
+      
+      // Name filters - firstName and lastName are combined in the name field
       if (filters.firstName && !lead.name.toLowerCase().includes(filters.firstName.toLowerCase())) {
         return false;
       }
@@ -602,7 +603,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         <div
           className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
         >
-          {columns.map((column, index) => (
+          {filteredColumns.map((column, index) => (
             <KanbanColumn
               key={column.id}
               column={column}
