@@ -93,9 +93,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
   };
 
   const handleOpenFilters = () => {
-    toast.success('Filters feature coming soon!', {
-      description: 'This will open an advanced filtering panel.'
-    });
+    // Filters are now handled directly in the KanbanBoard component
   };
 
   const handleTagCreated = (newTag: any) => {

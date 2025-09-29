@@ -4,7 +4,7 @@
  * Main Kanban board layout with drag and drop functionality using react-beautiful-dnd
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +53,7 @@ import {
 import { timeAgo } from '@/lib/utils';
 import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
+import { LeadFilterDialog } from './LeadFilterDialog';
 import TagManagementModal from './TagManagementModal';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
@@ -73,9 +74,13 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const navigate = useNavigate();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  
+  // Filter state
+  const [activeFilters, setActiveFilters] = useState<any>({});
   
   // Tag modal state
   const [tagModalState, setTagModalState] = useState({
@@ -166,6 +171,95 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     })) || [];
 
   const [columns, setColumns] = useState(kanbanColumns);
+  const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
+
+  // Filter leads based on active filters
+  const filterLeads = (leads: any[], filters: any) => {
+    return leads.filter(lead => {
+      // Name filters
+      if (filters.firstName && !lead.name.toLowerCase().includes(filters.firstName.toLowerCase())) {
+        return false;
+      }
+      if (filters.lastName && !lead.name.toLowerCase().includes(filters.lastName.toLowerCase())) {
+        return false;
+      }
+      
+      // Email filter
+      if (filters.email && !lead.email.toLowerCase().includes(filters.email.toLowerCase())) {
+        return false;
+      }
+      
+      // Phone filter
+      if (filters.phone && !lead.phone.includes(filters.phone.replace(/\D/g, ''))) {
+        return false;
+      }
+      
+      // DDI filter
+      if (filters.ddi && !lead.phone.startsWith(filters.ddi)) {
+        return false;
+      }
+      
+      // Source platform filter
+      if (filters.sourcePlatform && lead.source !== filters.sourcePlatform) {
+        return false;
+      }
+      
+      // Stage filter
+      if (filters.stageId && lead.stage !== filters.stageId) {
+        return false;
+      }
+      
+      // Score range filter
+      if (filters.scoreRange) {
+        const [min, max] = filters.scoreRange;
+        if (lead.score < min || lead.score > max) {
+          return false;
+        }
+      }
+      
+      // Value range filter
+      if (filters.valueRange) {
+        const [min, max] = filters.valueRange;
+        if (lead.value < min || lead.value > max) {
+          return false;
+        }
+      }
+      
+      // Tags filter
+      if (filters.tags && filters.tags.length > 0) {
+        const leadTags = lead.tags.map(tag => typeof tag === 'string' ? tag : tag.name);
+        const hasMatchingTag = filters.tags.some(filterTag => leadTags.includes(filterTag));
+        if (!hasMatchingTag) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
+
+  // Apply filters to columns
+  useEffect(() => {
+    if (Object.keys(activeFilters).length === 0) {
+      setFilteredColumns(columns);
+    } else {
+      const filtered = columns.map(column => ({
+        ...column,
+        leads: filterLeads(column.leads, activeFilters)
+      }));
+      setFilteredColumns(filtered);
+    }
+  }, [columns, activeFilters]);
+
+  // Handle filter apply
+  const handleFilterApply = (filters: any) => {
+    setActiveFilters(filters);
+  };
+
+  // Handle filter clear
+  const handleFilterClear = () => {
+    setActiveFilters({});
+  };
   
   const handleAddLead = useCallback((columnId: string) => {
     setSelectedStageId(columnId);
@@ -437,11 +531,18 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           
           <Button
             variant="outline"
-            onClick={onOpenFilters}
-            className="glass-card border-white/20 hover:bg-white/10"
+            onClick={() => setFilterDialogOpen(true)}
+            className={`glass-card border-white/20 hover:bg-white/10 ${
+              Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
+            }`}
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
+            {Object.keys(activeFilters).length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
+                {Object.keys(activeFilters).length}
+              </span>
+            )}
           </Button>
           
           <Button
@@ -569,6 +670,16 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         lead={tagModalState.selectedLead}
         availableTags={availableTags}
         onTagsUpdated={handleTagsUpdated}
+      />
+
+      {/* Lead Filter Dialog */}
+      <LeadFilterDialog
+        isOpen={filterDialogOpen}
+        onClose={() => setFilterDialogOpen(false)}
+        funnelData={{ funnel }}
+        availableTags={availableTags}
+        onFilterApply={handleFilterApply}
+        onFilterClear={handleFilterClear}
       />
     </div>
   );
