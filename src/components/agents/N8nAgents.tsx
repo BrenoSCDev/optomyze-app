@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, FileText, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -18,6 +18,37 @@ import { SiN8N, SiWhatsapp, SiInstagram, SiTelegram } from "react-icons/si";
 import { BiLogoGmail } from "react-icons/bi";
 import api from '../../services/api';
 import ExecutionsModal from './ExecutionsModal';
+import ReportsModal from '../leads/ReportsModal';
+
+interface AgentData {
+  id: number;
+  company_id: number;
+  n8n_integration_id: number;
+  workflow_id: string;
+  workflow_name: string;
+  platform: string;
+  agent_name: string;
+  description: string | null;
+  configuration: string;
+  webhook_data: string | null;
+  status: string;
+  last_execution_at: string | null;
+  last_execution_result: string | null;
+  execution_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Report {
+  id: number;
+  lead_id: number;
+  n8n_agent_id: number;
+  platform: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  agent: AgentData;
+}
 
 interface Agent {
   id: number;
@@ -31,6 +62,15 @@ interface Agent {
   execution_count: number;
   created_at?: string;
   updated_at?: string;
+  reports?: {
+    id: number;
+    lead_id: number;
+    n8n_agent_id: number;
+    platform: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+  }[];
 }
 
 const N8nAgents: React.FC = () => {
@@ -42,6 +82,8 @@ const N8nAgents: React.FC = () => {
   const [executions, setExecutions] = useState([]);
   const [executionsLoading, setExecutionsLoading] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [reportsModalOpen, setReportsModalOpen] = useState(false);
+  const [selectedAgentForReports, setSelectedAgentForReports] = useState<Agent | null>(null);
   const { t } = useLanguage();
   const { toast } = useToast();
 
@@ -113,6 +155,26 @@ const N8nAgents: React.FC = () => {
     } finally {
       setExecutionsLoading(false);
     }
+  };
+
+  const handleViewReports = (agent: Agent) => {
+    setSelectedAgentForReports(agent);
+    setReportsModalOpen(true);
+  };
+
+  const handleCopyWorkflowId = (workflowId: string) => {
+    navigator.clipboard.writeText(workflowId).then(() => {
+      toast({
+        title: t('common.success'),
+        description: "Workflow ID copied to clipboard",
+      });
+    }).catch(() => {
+      toast({
+        title: t('common.error'),
+        description: "Failed to copy workflow ID",
+        variant: "destructive",
+      });
+    });
   };
 
   const handleSynchronize = async () => {
@@ -318,16 +380,40 @@ const N8nAgents: React.FC = () => {
                 
                 {/* Footer with additional info */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border/50">
-                  <span>ID: {agent.workflow_id || 'N/A'}</span>
-                                    <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                    onClick={() => handleViewExecutions(agent)}
-                  >
-                    <Clock className="w-3 h-3" />
-                    View Executions
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <span>ID: {agent.workflow_id || 'N/A'}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-muted"
+                      onClick={() => handleCopyWorkflowId(agent.workflow_id)}
+                      title="Copy workflow ID"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => handleViewReports(agent)}
+                    >
+                      <FileText className="w-3 h-3" />
+                      See Reports ({agent.reports?.length || 0})
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => handleViewExecutions(agent)}
+                    >
+                      <Clock className="w-3 h-3" />
+                      View Executions
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -345,6 +431,37 @@ const N8nAgents: React.FC = () => {
           executions={executions}
           agentName={selectedAgent?.agent_name || ''}
           isLoading={executionsLoading}
+        />
+
+        {/* Reports Modal */}
+        <ReportsModal
+          isOpen={reportsModalOpen}
+          onClose={() => {
+            setReportsModalOpen(false);
+            setSelectedAgentForReports(null);
+          }}
+          reports={(selectedAgentForReports?.reports || []).map(report => ({
+            ...report,
+            agent: {
+              id: selectedAgentForReports?.id || 0,
+              company_id: 1,
+              n8n_integration_id: 1,
+              workflow_id: selectedAgentForReports?.workflow_id || '',
+              workflow_name: selectedAgentForReports?.workflow_name || '',
+              platform: selectedAgentForReports?.platform || '',
+              agent_name: selectedAgentForReports?.agent_name || '',
+              description: selectedAgentForReports?.description,
+              configuration: '{}',
+              webhook_data: null,
+              status: selectedAgentForReports?.status || '',
+              last_execution_at: selectedAgentForReports?.last_execution_at,
+              last_execution_result: null,
+              execution_count: selectedAgentForReports?.execution_count || 0,
+              created_at: selectedAgentForReports?.created_at || '',
+              updated_at: selectedAgentForReports?.updated_at || ''
+            }
+          }))}
+          leadName={selectedAgentForReports?.agent_name || ''}
         />
       </div>
     </div>
