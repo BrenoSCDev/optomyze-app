@@ -131,7 +131,7 @@ const WhatsAppInbox = () => {
                 </div>
                 <div className="flex justify-end">
                   <div className="bg-green-100 rounded-lg p-3 max-w-xs">
-                    <p className="text-sm">I'm interested in your services</p>
+                    <p className="text-sm text-green-800">I'm interested in your services</p>
                     <span className="text-xs text-muted-foreground">10:32 AM</span>
                   </div>
                 </div>

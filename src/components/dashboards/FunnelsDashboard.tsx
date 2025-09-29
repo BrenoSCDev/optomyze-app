@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Settings, Trash2, Filter, AlertCircle, Eye, Cog, Users } from 'lucide-react';
+import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -332,7 +332,7 @@ const FunnelsDashboard = () => {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 neon-border"
-            onClick={() => navigate(`/?funnelId=${funnel.id}`)}
+            onClick={() => navigate(`/leads/${funnel.id}`)}
             title="View Funnel"
           >
             <Eye className="h-4 w-4" />
@@ -346,7 +346,7 @@ const FunnelsDashboard = () => {
             onClick={() => navigate(`/settings/funnels/${funnel.id}/stages`)}
             title="Manage Stages"
           >
-            <Users className="h-4 w-4" />
+            <ListTree className="h-4 w-4" />
           </Button>
 
           {/* Config Button */}
