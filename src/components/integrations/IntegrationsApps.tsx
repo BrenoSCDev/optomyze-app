@@ -76,7 +76,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary/50 text-primary-foreground rounded-lg cursor-not-allowed"
         >
           <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
-          Installing n8n...
+          Installing {integration.name}...
         </button>
       );
     }
@@ -234,7 +234,7 @@ const availableIntegrations: Integration[] = [
     description: t('integrations.meta-ads.description'),
     category: 'ads',
     available: false,
-    comingSoon: true
+    comingSoon: false // Can be installed
   }
 ];
 
@@ -245,20 +245,20 @@ const availableIntegrations: Integration[] = [
       setLoading(true);
       setError(null);
 
-      // Check n8n integration status
-      const n8nResponse = await api.get('/api/integrations/available');
+      // Check all integrations status
+      const response = await api.get('/api/integrations/available');
 
       // Update integrations with API data
       const updatedIntegrations = availableIntegrations.map(integration => {
-        if (integration.key === 'n8n') {
-          return {
-            ...integration,
-            available: n8nResponse.data.n8n_available,
-            status: n8nResponse.data.status,
-            lastUpdated: n8nResponse.data.last_updated || undefined
-          };
-        }
-        return integration;
+        // Map integration key to API response key (e.g., 'n8n' -> 'n8n_available')
+        const apiKey = `${integration.key.replace('-', '_')}_available`;
+        const isAvailable = response.data[apiKey] || false;
+
+        return {
+          ...integration,
+          available: isAvailable,
+          comingSoon: integration.comingSoon && !isAvailable, // Remove "coming soon" if available
+        };
       });
 
       setIntegrations(updatedIntegrations);
@@ -287,66 +287,67 @@ const availableIntegrations: Integration[] = [
         });
       }
     } else if (action === 'install') {
-      if (integrationKey === 'n8n') {
-        await installN8nIntegration();
-      } else {
-        toast({
-          title: t('integrations.installation'),
-          description: `Install ${integrationKey} integration - Coming soon!`,
-        });
-      }
+      await installIntegration(integrationKey);
     }
   };
 
-  // Install n8n integration
-  const installN8nIntegration = async () => {
+  // Install integration (scalable for all integrations)
+  const installIntegration = async (integrationKey: string) => {
     try {
       // Add to installing state
-      setInstallingIntegrations(prev => new Set(prev).add('n8n'));
+      setInstallingIntegrations(prev => new Set(prev).add(integrationKey));
 
-      // Make API call to install n8n integration
-      const response = await api.post('/api/integrations/n8n-integrations');
+      // Convert key to API endpoint (e.g., 'n8n' -> 'n8n-integrations', 'meta-ads' -> 'meta-ads')
+      const endpoint = integrationKey === 'n8n' 
+        ? '/api/integrations/n8n-integrations' 
+        : `/api/integrations/${integrationKey}`;
+
+      // Make API call to install integration
+      const response = await api.post(endpoint);
 
       // Update integration state to available
       setIntegrations(prev => prev.map(integration => 
-        integration.key === 'n8n' 
+        integration.key === integrationKey 
           ? { 
               ...integration, 
               available: true, 
               status: 'active',
+              comingSoon: false,
             }
           : integration
       ));
 
       // Show success state briefly
-      setJustInstalledIntegrations(prev => new Set(prev).add('n8n'));
+      setJustInstalledIntegrations(prev => new Set(prev).add(integrationKey));
       
+      const integrationName = integrations.find(i => i.key === integrationKey)?.name || integrationKey;
       toast({
         title: t('integrations.installation-successful'),
-        description: t('integrations.n8n.installation-successful'),
+        description: `${integrationName} has been installed successfully!`,
       });
 
       // Clear just installed state after animation
       setTimeout(() => {
         setJustInstalledIntegrations(prev => {
           const newSet = new Set(prev);
-          newSet.delete('n8n');
+          newSet.delete(integrationKey);
           return newSet;
         });
       }, 2000);
 
     } catch (error) {
-      console.error('Error installing n8n integration:', error);
+      console.error(`Error installing ${integrationKey} integration:`, error);
+      const integrationName = integrations.find(i => i.key === integrationKey)?.name || integrationKey;
       toast({
         title: t('integrations.installation-failed'),
-        description: "Failed to install n8n integration. Please try again.",
+        description: `Failed to install ${integrationName}. Please try again.`,
         variant: "destructive",
       });
     } finally {
       // Remove from installing state
       setInstallingIntegrations(prev => {
         const newSet = new Set(prev);
-        newSet.delete('n8n');
+        newSet.delete(integrationKey);
         return newSet;
       });
     }
