@@ -284,11 +284,16 @@ const MetaAds = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <FaMeta size={32}/>
-          <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
-            {t('dashboard.title.meta')}
-          </h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <FaMeta size={32}/>
+            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+              {t('dashboard.title.meta')}
+            </h1>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {t('meta.last-30-days')}
+          </div>
         </div>
         <p className="text-muted-foreground">{t('dashboard.subtitle.meta')}</p>
       </div>
