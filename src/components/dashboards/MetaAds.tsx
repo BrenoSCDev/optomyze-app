@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
+import { FaMeta } from "react-icons/fa6";
 
 interface MetaAdsCampaignData {
   campaign_id: string;
@@ -203,7 +204,7 @@ const MetaAds = () => {
     },
     { 
       title: t('meta.clicks'), 
-      value: aggregatedMetrics.totalClicks.toLocaleString(), 
+      value: aggregatedMetrics.totalClicks, 
       trend: { value: `CTR: ${avgCTR}%`, isPositive: parseFloat(avgCTR) > 1 }, 
       icon: <MousePointer className="h-5 w-5 text-primary" /> 
     },
@@ -235,7 +236,7 @@ const MetaAds = () => {
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
     { 
-      title: t('meta.cpm'), 
+      title: 'CPM', 
       value: `$${avgCPM}`, 
       trend: { value: 'Per 1k impressions', isPositive: parseFloat(avgCPM) < 50 }, 
       icon: <TrendingUp className="h-5 w-5 text-primary" /> 
@@ -283,9 +284,12 @@ const MetaAds = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          {t('dashboard.title.meta')}
-        </h1>
+        <div className="flex items-center gap-2 mb-2">
+          <FaMeta size={32}/>
+          <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+            {t('dashboard.title.meta')}
+          </h1>
+        </div>
         <p className="text-muted-foreground">{t('dashboard.subtitle.meta')}</p>
       </div>
 

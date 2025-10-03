@@ -43,8 +43,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
-import metaLogo from '@/assets/meta-logo.png';
-import googleLogo from '@/assets/google-logo.png';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
