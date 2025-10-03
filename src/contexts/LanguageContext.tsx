@@ -188,6 +188,10 @@ const translations = {
     'meta.daily-spend-trend': 'Daily Spend Trend (30 Days)',
     'meta.device-performance': 'Device Performance',
     'meta.this-month': 'This month',
+    'meta.last-30-days': 'Last 30 days',
+    
+    // Common
+    'common.days': 'days',
     
     // Google Ads
     'google-ads.total-spend': 'Total Spend',
@@ -681,6 +685,10 @@ const translations = {
     'meta.daily-spend-trend': 'Tendência de Gasto Diário (30 Dias)',
     'meta.device-performance': 'Performance por Dispositivo',
     'meta.this-month': 'Este mês',
+    'meta.last-30-days': 'Últimos 30 dias',
+    
+    // Common
+    'common.days': 'dias',
     
     // Google Ads
     'google-ads.total-spend': 'Gasto Total',
@@ -1105,6 +1113,10 @@ const translations = {
     'meta.daily-spend-trend': 'Täglicher Ausgaben-Trend (30 Tage)',
     'meta.device-performance': 'Geräte-Performance',
     'meta.this-month': 'Diesen Monat',
+    'meta.last-30-days': 'Letzte 30 Tage',
+    
+    // Common
+    'common.days': 'Tage',
     
     // Google Ads
     'google-ads.total-spend': 'Gesamtausgaben',
@@ -1440,6 +1452,10 @@ const translations = {
     'meta.daily-spend-trend': 'Tendencia de Gasto Diario (30 Días)',
     'meta.device-performance': 'Rendimiento por Dispositivo',
     'meta.this-month': 'Este mes',
+    'meta.last-30-days': 'Últimos 30 días',
+    
+    // Common
+    'common.days': 'días',
     
     // Google Ads
     'google-ads.total-spend': 'Gasto Total',
