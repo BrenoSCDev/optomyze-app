@@ -27,6 +27,7 @@ import { FaGoogle } from "react-icons/fa";
 import { useToast } from '../../hooks/use-toast';
 import { Check } from 'lucide-react';
 import N8nConfigModal from './N8nConfigModal';
+import MetaAdsConfigModal from './MetaAdsConfigModal';
 
 interface Integration {
   key: string;
@@ -198,6 +199,7 @@ const IntegrationsApps: React.FC = () => {
   const [installingIntegrations, setInstallingIntegrations] = useState<Set<string>>(new Set());
   const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
   const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
+  const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const { token } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -280,6 +282,8 @@ const availableIntegrations: Integration[] = [
     if (action === 'configure') {
       if (integrationKey === 'n8n') {
         setShowN8nConfigModal(true);
+      } else if (integrationKey === 'meta-ads') {
+        setShowMetaAdsConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -443,6 +447,13 @@ const availableIntegrations: Integration[] = [
         <N8nConfigModal
           open={showN8nConfigModal}
           onOpenChange={setShowN8nConfigModal}
+          onConfigurationSaved={handleN8nConfigSaved}
+        />
+
+        {/* Meta Ads Configuration Modal */}
+        <MetaAdsConfigModal
+          open={showMetaAdsConfigModal}
+          onOpenChange={setShowMetaAdsConfigModal}
           onConfigurationSaved={handleN8nConfigSaved}
         />
       </div>
