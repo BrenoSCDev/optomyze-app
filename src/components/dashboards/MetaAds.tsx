@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { FaMeta } from "react-icons/fa6";
+import { IoCalendarOutline } from "react-icons/io5";
 
 interface MetaAdsCampaignData {
   campaign_id: string;
@@ -291,7 +292,8 @@ const MetaAds = () => {
               {t('dashboard.title.meta')}
             </h1>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-md text-muted-foreground flex items-center gap-2">
+            <IoCalendarOutline />
             {t('meta.last-30-days')}
           </div>
         </div>
