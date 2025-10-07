@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell, ComposedChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
 import KPICard from '@/components/KPICard';
-import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings, Award, TrendingDown } from 'lucide-react';
+import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings, Award } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -414,96 +414,6 @@ const GoogleAds = () => {
         <p className="text-muted-foreground">{t('dashboard.subtitle.google-ads')}</p>
       </div>
 
-      {/* Top Performers Highlight */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Top by Conversions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="p-4 border-primary/20 bg-primary/5">
-            <div className="flex items-center gap-2 mb-3">
-              <Award className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold">Top by Conversions</h3>
-            </div>
-            <div className="space-y-2">
-              {topByConversions.slice(0, 1).map((campaign, idx) => (
-                <div key={campaign.campaign.id}>
-                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
-                    {campaign.campaign.name}
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
-                    {campaign.conversions.toFixed(0)} conversions
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    ${campaign.spend.toFixed(2)} spent
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Top by ROI */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="p-4 border-green-500/20 bg-green-500/5">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              <h3 className="font-semibold">Best ROI</h3>
-            </div>
-            <div className="space-y-2">
-              {topByROI.slice(0, 1).map((campaign) => (
-                <div key={campaign.campaign.id}>
-                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
-                    {campaign.campaign.name}
-                  </p>
-                  <p className="text-2xl font-bold text-green-500">
-                    {campaign.roi.toFixed(2)}x ROI
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    ${campaign.metrics.conversionsValue.toFixed(2)} value
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Needs Attention */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="p-4 border-amber-500/20 bg-amber-500/5">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingDown className="w-5 h-5 text-amber-500" />
-              <h3 className="font-semibold">Needs Attention</h3>
-            </div>
-            <div className="space-y-2">
-              {bottomByCPA.slice(0, 1).map((campaign) => (
-                <div key={campaign.campaign.id}>
-                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
-                    {campaign.campaign.name}
-                  </p>
-                  <p className="text-2xl font-bold text-amber-500">
-                    ${campaign.cpa.toFixed(2)} CPA
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {campaign.conversions.toFixed(0)} conversions
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-
       {/* Primary KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiData.map((kpi, index) => (
@@ -517,6 +427,40 @@ const GoogleAds = () => {
           <KPICard key={index} {...kpi} delay={index + 4} />
         ))}
       </div>
+
+      {/* Top by Conversions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <Card className="p-6 border-primary/20 bg-primary/5">
+          <div className="flex items-center gap-2 mb-4">
+            <Award className="w-6 h-6 text-primary" />
+            <h3 className="text-xl font-semibold">Top Campaigns by Conversions</h3>
+          </div>
+          <div className="space-y-3">
+            {topByConversions.slice(0, 3).map((campaign, idx) => (
+              <div key={campaign.campaign.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate" title={campaign.campaign.name}>
+                    {idx + 1}. {campaign.campaign.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    ${campaign.spend.toFixed(2)} spent
+                  </p>
+                </div>
+                <div className="text-right ml-4">
+                  <p className="text-2xl font-bold text-primary">
+                    {campaign.conversions.toFixed(0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">conversions</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </motion.div>
 
       {/* Campaign Metrics Comparison */}
       <motion.div
@@ -607,55 +551,6 @@ const GoogleAds = () => {
                 dot={{ fill: '#10B981', r: 4 }}
               />
             </ComposedChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Cost per Acquisition Analysis */}
-        <motion.div
-          className="chart-container"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          <h3 className="text-xl font-semibold mb-6 text-center">Cost per Acquisition (CPA)</h3>
-          <p className="text-sm text-muted-foreground text-center mb-4">
-            Lower CPA indicates better efficiency
-          </p>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart 
-              data={costVsPerformanceData}
-              layout="horizontal"
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis type="number" stroke="#9CA3AF" />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                stroke="#9CA3AF" 
-                fontSize={10}
-                width={150}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                }}
-                formatter={(value: number) => [`$${value.toFixed(2)}`, 'CPA']}
-              />
-              <Bar 
-                dataKey="cpa" 
-                fill="#F59E0B"
-                radius={[0, 4, 4, 0]}
-              >
-                {costVsPerformanceData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.cpa < 50 ? '#10B981' : entry.cpa < 100 ? '#F59E0B' : '#EF4444'} 
-                  />
-                ))}
-              </Bar>
-            </BarChart>
           </ResponsiveContainer>
         </motion.div>
       </div>
@@ -793,43 +688,18 @@ const GoogleAds = () => {
               <tr className="border-b border-white/10">
                 <th className="text-left p-3 font-medium">Campaign</th>
                 <th className="text-center p-3 font-medium">Status</th>
-                <th className="text-center p-3 font-medium">Performance</th>
                 <th className="text-right p-3 font-medium">Impressions</th>
                 <th className="text-right p-3 font-medium">Clicks</th>
                 <th className="text-right p-3 font-medium">CTR</th>
                 <th className="text-right p-3 font-medium">Spend</th>
                 <th className="text-right p-3 font-medium">Conversions</th>
                 <th className="text-right p-3 font-medium">CPA</th>
-                <th className="text-right p-3 font-medium">ROI</th>
               </tr>
             </thead>
             <tbody>
               {campaignsData.map((campaign, index) => {
                 const spend = parseFloat(campaign.metrics.costMicros) / 1000000;
                 const cpa = campaign.metrics.conversions > 0 ? spend / campaign.metrics.conversions : 0;
-                const roi = spend > 0 ? campaign.metrics.conversionsValue / spend : 0;
-                
-                // Performance indicator logic
-                let performanceIndicator = '';
-                let performanceColor = '';
-                if (campaign.campaign.status === 'ENABLED') {
-                  if (roi > 3) {
-                    performanceIndicator = '🔥 Excellent';
-                    performanceColor = 'text-green-500';
-                  } else if (roi > 1.5) {
-                    performanceIndicator = '✓ Good';
-                    performanceColor = 'text-primary';
-                  } else if (roi > 1) {
-                    performanceIndicator = '→ Fair';
-                    performanceColor = 'text-amber-500';
-                  } else if (campaign.metrics.conversions > 0) {
-                    performanceIndicator = '⚠ Review';
-                    performanceColor = 'text-orange-500';
-                  } else {
-                    performanceIndicator = '⚠ Poor';
-                    performanceColor = 'text-red-500';
-                  }
-                }
                 
                 return (
                   <motion.tr
@@ -855,9 +725,6 @@ const GoogleAds = () => {
                         {campaign.campaign.status}
                       </Badge>
                     </td>
-                    <td className={`p-3 text-center text-xs font-medium ${performanceColor}`}>
-                      {performanceIndicator}
-                    </td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.impressions).toLocaleString()}</td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.clicks).toLocaleString()}</td>
                     <td className="p-3 text-right">{(campaign.metrics.ctr * 100).toFixed(2)}%</td>
@@ -870,11 +737,6 @@ const GoogleAds = () => {
                     }`}>
                       ${cpa > 0 ? cpa.toFixed(2) : '—'}
                     </td>
-                    <td className={`p-3 text-right font-medium ${
-                      roi > 2 ? 'text-green-500' : roi > 1 ? 'text-primary' : 'text-red-500'
-                    }`}>
-                      {roi > 0 ? `${roi.toFixed(2)}x` : '—'}
-                    </td>
                   </motion.tr>
                 );
               })}
@@ -882,24 +744,18 @@ const GoogleAds = () => {
           </table>
         </div>
         
-        {/* Legend for Performance Indicators */}
+        {/* Legend for CPA */}
         <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
-          <h4 className="text-sm font-semibold mb-2">Performance Indicators:</h4>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+          <h4 className="text-sm font-semibold mb-2">CPA Color Guide:</h4>
+          <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-green-500">🔥 Excellent:</span> ROI &gt; 3x
+              <span className="text-green-500">● Excellent:</span> CPA &lt; $50
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-primary">✓ Good:</span> ROI &gt; 1.5x
+              <span className="text-amber-500">● Good:</span> CPA $50-$100
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-amber-500">→ Fair:</span> ROI &gt; 1x
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-orange-500">⚠ Review:</span> ROI &lt; 1x
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-red-500">⚠ Poor:</span> No conversions
+              <span className="text-red-500">● High:</span> CPA &gt; $100
             </div>
           </div>
         </div>
