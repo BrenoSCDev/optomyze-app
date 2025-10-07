@@ -28,6 +28,7 @@ import { useToast } from '../../hooks/use-toast';
 import { Check } from 'lucide-react';
 import N8nConfigModal from './N8nConfigModal';
 import MetaAdsConfigModal from './MetaAdsConfigModal';
+import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 
 interface Integration {
   key: string;
@@ -200,6 +201,7 @@ const IntegrationsApps: React.FC = () => {
   const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
   const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
+  const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const { token } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -284,6 +286,8 @@ const availableIntegrations: Integration[] = [
         setShowN8nConfigModal(true);
       } else if (integrationKey === 'meta-ads') {
         setShowMetaAdsConfigModal(true);
+      } else if (integrationKey === 'google-ads') {
+        setShowGoogleAdsConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -454,6 +458,13 @@ const availableIntegrations: Integration[] = [
         <MetaAdsConfigModal
           open={showMetaAdsConfigModal}
           onOpenChange={setShowMetaAdsConfigModal}
+          onConfigurationSaved={handleN8nConfigSaved}
+        />
+
+        {/* Google Ads Configuration Modal */}
+        <GoogleAdsConfigModal
+          open={showGoogleAdsConfigModal}
+          onOpenChange={setShowGoogleAdsConfigModal}
           onConfigurationSaved={handleN8nConfigSaved}
         />
       </div>
