@@ -14,7 +14,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell, ComposedChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings, Award } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -555,63 +555,6 @@ const GoogleAds = () => {
         </motion.div>
       </div>
 
-      {/* Efficiency Scatter Plot */}
-      <motion.div
-        className="chart-container"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.1 }}
-      >
-        <h3 className="text-xl font-semibold mb-6 text-center">Campaign Efficiency Matrix</h3>
-        <p className="text-sm text-muted-foreground text-center mb-4">
-          Bubble size represents Cost per Acquisition • Top-right quadrant shows high spend with high conversions
-        </p>
-        <ResponsiveContainer width="100%" height={400}>
-          <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="Spend" 
-              stroke="#9CA3AF"
-              label={{ value: 'Ad Spend ($)', position: 'insideBottom', offset: -5 }}
-            />
-            <YAxis 
-              type="number" 
-              dataKey="y" 
-              name="Conversions" 
-              stroke="#9CA3AF"
-              label={{ value: 'Conversions', angle: -90, position: 'insideLeft' }}
-            />
-            <ZAxis type="number" dataKey="z" range={[100, 1000]} />
-            <Tooltip
-              cursor={{ strokeDasharray: '3 3' }}
-              contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '8px',
-                color: '#000',
-              }}
-              itemStyle={{
-                color: '#000',
-              }}
-              formatter={(value: number, name: string) => {
-                if (name === 'Spend') return [`$${value.toFixed(2)}`, 'Spend'];
-                if (name === 'Conversions') return [value, 'Conversions'];
-                return [value, name];
-              }}
-            />
-            <Scatter name="Campaigns" data={costVsPerformanceData} fill="#8B5CF6">
-              {costVsPerformanceData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Scatter>
-          </ScatterChart>
-        </ResponsiveContainer>
-      </motion.div>
 
       {/* Original Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
