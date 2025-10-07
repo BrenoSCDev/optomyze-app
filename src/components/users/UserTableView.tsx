@@ -83,15 +83,15 @@ const UserTableView: React.FC<UserTableViewProps> = ({
             <TableRow key={user.id} className="hover:bg-muted/50">
               <TableCell>
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name} />
+                  <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name || 'User'} />
                   <AvatarFallback>
-                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
               </TableCell>
-              <TableCell className="font-medium">{user.name}</TableCell>
-              <TableCell className="text-muted-foreground">{user.email}</TableCell>
-              <TableCell className="text-muted-foreground">{user.phone}</TableCell>
+              <TableCell className="font-medium">{user.name || 'Unknown User'}</TableCell>
+              <TableCell className="text-muted-foreground">{user.email || 'No email'}</TableCell>
+              <TableCell className="text-muted-foreground">{user.phone || 'No phone'}</TableCell>
               <TableCell>
                 <Badge 
                   variant="outline" 
