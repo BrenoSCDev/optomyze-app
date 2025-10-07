@@ -220,7 +220,7 @@ const availableIntegrations: Integration[] = [
     description: t('integrations.google-ads.description'),
     category: 'ads',
     available: false,
-    comingSoon: true
+    comingSoon: false // Can be installed
   },
   {
     key: 'google-analytics',
