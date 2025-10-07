@@ -38,7 +38,7 @@ const UserCard: React.FC<UserCardProps> = ({
   };
 
   const getRoleColor = (role: string) => {
-    switch (role.toLowerCase()) {
+    switch (role?.toLowerCase()) {
       case 'admin':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'manager':
@@ -158,7 +158,7 @@ const UserCard: React.FC<UserCardProps> = ({
               variant="outline" 
               className={`${getRoleColor(user.role)} backdrop-blur-sm text-xs`}
             >
-              {user.role}
+              {user.role || 'user'}
             </Badge>
           </div>
 

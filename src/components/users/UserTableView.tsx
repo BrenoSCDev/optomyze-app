@@ -41,7 +41,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
   const { t } = useLanguage();
 
   const getRoleColor = (role: string) => {
-    switch (role.toLowerCase()) {
+    switch (role?.toLowerCase()) {
       case 'admin':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'manager':
@@ -97,7 +97,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
                   variant="outline" 
                   className={getRoleColor(user.role)}
                 >
-                  {user.role}
+                  {user.role || 'user'}
                 </Badge>
               </TableCell>
               <TableCell>
