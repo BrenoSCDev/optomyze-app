@@ -14,9 +14,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell, ComposedChart, Line, ScatterChart, Scatter, ZAxis } from 'recharts';
 import KPICard from '@/components/KPICard';
-import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings } from 'lucide-react';
+import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings, Award, TrendingDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -189,6 +189,87 @@ const GoogleAds = () => {
     }));
   };
 
+  // Prepare Campaign Metrics Comparison Data
+  const prepareCampaignMetricsData = () => {
+    return campaignsData
+      .filter((campaign) => campaign.campaign.status === 'ENABLED')
+      .slice(0, 8)
+      .map((campaign) => ({
+        name: campaign.campaign.name.length > 25 
+          ? campaign.campaign.name.substring(0, 25) + '...' 
+          : campaign.campaign.name,
+        impressions: parseInt(campaign.metrics.impressions),
+        clicks: parseInt(campaign.metrics.clicks),
+        conversions: Math.round(campaign.metrics.conversions),
+      }));
+  };
+
+  // Prepare Cost vs Performance Data
+  const prepareCostVsPerformanceData = () => {
+    return campaignsData
+      .filter((campaign) => campaign.campaign.status === 'ENABLED')
+      .map((campaign) => {
+        const spend = parseFloat(campaign.metrics.costMicros) / 1000000;
+        const conversions = campaign.metrics.conversions;
+        const cpa = conversions > 0 ? spend / conversions : 0;
+        
+        return {
+          name: campaign.campaign.name.length > 30 
+            ? campaign.campaign.name.substring(0, 30) + '...' 
+            : campaign.campaign.name,
+          spend: parseFloat(spend.toFixed(2)),
+          conversions: Math.round(conversions),
+          cpa: parseFloat(cpa.toFixed(2)),
+          // For scatter plot
+          x: spend,
+          y: conversions,
+          z: cpa * 10, // Size of bubble
+        };
+      })
+      .sort((a, b) => b.conversions - a.conversions);
+  };
+
+  // Identify top and bottom performers
+  const getTopPerformers = () => {
+    const enabledCampaigns = campaignsData
+      .filter((campaign) => campaign.campaign.status === 'ENABLED')
+      .map((campaign) => {
+        const spend = parseFloat(campaign.metrics.costMicros) / 1000000;
+        const conversions = campaign.metrics.conversions;
+        const cpa = conversions > 0 ? spend / conversions : Infinity;
+        const roi = campaign.metrics.conversionsValue / spend;
+        
+        return {
+          ...campaign,
+          spend,
+          conversions,
+          cpa,
+          roi,
+        };
+      });
+
+    // Top by conversions
+    const topByConversions = [...enabledCampaigns]
+      .sort((a, b) => b.conversions - a.conversions)
+      .slice(0, 3);
+
+    // Top by ROI
+    const topByROI = [...enabledCampaigns]
+      .filter(c => c.roi !== Infinity && !isNaN(c.roi))
+      .sort((a, b) => b.roi - a.roi)
+      .slice(0, 3);
+
+    // Bottom by CPA (worst performers)
+    const bottomByCPA = [...enabledCampaigns]
+      .filter(c => c.cpa !== Infinity && c.conversions > 0)
+      .sort((a, b) => b.cpa - a.cpa)
+      .slice(0, 3);
+
+    return { topByConversions, topByROI, bottomByCPA };
+  };
+
+  const { topByConversions, topByROI, bottomByCPA } = getTopPerformers();
+
   // Loading state
   if (loading) {
     return (
@@ -317,6 +398,8 @@ const GoogleAds = () => {
 
   const campaignComparisonData = prepareCampaignComparisonData();
   const statusData = prepareStatusData();
+  const campaignMetricsData = prepareCampaignMetricsData();
+  const costVsPerformanceData = prepareCostVsPerformanceData();
 
   return (
     <motion.div
@@ -329,6 +412,96 @@ const GoogleAds = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{t('dashboard.title.google-ads')}</h1>
         <p className="text-muted-foreground">{t('dashboard.subtitle.google-ads')}</p>
+      </div>
+
+      {/* Top Performers Highlight */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Top by Conversions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card className="p-4 border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-2 mb-3">
+              <Award className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold">Top by Conversions</h3>
+            </div>
+            <div className="space-y-2">
+              {topByConversions.slice(0, 1).map((campaign, idx) => (
+                <div key={campaign.campaign.id}>
+                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
+                    {campaign.campaign.name}
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {campaign.conversions.toFixed(0)} conversions
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ${campaign.spend.toFixed(2)} spent
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Top by ROI */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card className="p-4 border-green-500/20 bg-green-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              <h3 className="font-semibold">Best ROI</h3>
+            </div>
+            <div className="space-y-2">
+              {topByROI.slice(0, 1).map((campaign) => (
+                <div key={campaign.campaign.id}>
+                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
+                    {campaign.campaign.name}
+                  </p>
+                  <p className="text-2xl font-bold text-green-500">
+                    {campaign.roi.toFixed(2)}x ROI
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ${campaign.metrics.conversionsValue.toFixed(2)} value
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Needs Attention */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card className="p-4 border-amber-500/20 bg-amber-500/5">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingDown className="w-5 h-5 text-amber-500" />
+              <h3 className="font-semibold">Needs Attention</h3>
+            </div>
+            <div className="space-y-2">
+              {bottomByCPA.slice(0, 1).map((campaign) => (
+                <div key={campaign.campaign.id}>
+                  <p className="text-sm font-medium truncate" title={campaign.campaign.name}>
+                    {campaign.campaign.name}
+                  </p>
+                  <p className="text-2xl font-bold text-amber-500">
+                    ${campaign.cpa.toFixed(2)} CPA
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {campaign.conversions.toFixed(0)} conversions
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Primary KPIs */}
@@ -345,16 +518,212 @@ const GoogleAds = () => {
         ))}
       </div>
 
-      {/* Charts Section */}
+      {/* Campaign Metrics Comparison */}
+      <motion.div
+        className="chart-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <h3 className="text-xl font-semibold mb-6 text-center">Campaign Metrics Comparison</h3>
+        <p className="text-sm text-muted-foreground text-center mb-4">
+          Compare impressions, clicks, and conversions across campaigns
+        </p>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={campaignMetricsData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis 
+              dataKey="name" 
+              stroke="#9CA3AF" 
+              fontSize={10} 
+              angle={-45} 
+              textAnchor="end" 
+              height={120} 
+            />
+            <YAxis stroke="#9CA3AF" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Bar dataKey="impressions" fill="#8B5CF6" name="Impressions" />
+            <Bar dataKey="clicks" fill="#06B6D4" name="Clicks" />
+            <Bar dataKey="conversions" fill="#10B981" name="Conversions" />
+          </BarChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* Cost vs Performance Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Campaign Performance Comparison */}
+        {/* Spend vs Conversions */}
         <motion.div
           className="chart-container"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
         >
-          <h3 className="text-xl font-semibold mb-6 text-center">Top Campaigns Performance</h3>
+          <h3 className="text-xl font-semibold mb-6 text-center">Spend vs Conversions</h3>
+          <p className="text-sm text-muted-foreground text-center mb-4">
+            Compare ad spend with conversion performance
+          </p>
+          <ResponsiveContainer width="100%" height={350}>
+            <ComposedChart data={costVsPerformanceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis 
+                dataKey="name" 
+                stroke="#9CA3AF" 
+                fontSize={10} 
+                angle={-45} 
+                textAnchor="end" 
+                height={100} 
+              />
+              <YAxis yAxisId="left" stroke="#9CA3AF" />
+              <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                }}
+              />
+              <Legend />
+              <Bar 
+                yAxisId="left"
+                dataKey="spend" 
+                fill="#EF4444" 
+                radius={[4, 4, 0, 0]} 
+                name="Spend ($)" 
+              />
+              <Line 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="conversions" 
+                stroke="#10B981" 
+                strokeWidth={2}
+                name="Conversions"
+                dot={{ fill: '#10B981', r: 4 }}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Cost per Acquisition Analysis */}
+        <motion.div
+          className="chart-container"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.9 }}
+        >
+          <h3 className="text-xl font-semibold mb-6 text-center">Cost per Acquisition (CPA)</h3>
+          <p className="text-sm text-muted-foreground text-center mb-4">
+            Lower CPA indicates better efficiency
+          </p>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart 
+              data={costVsPerformanceData}
+              layout="horizontal"
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis type="number" stroke="#9CA3AF" />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                stroke="#9CA3AF" 
+                fontSize={10}
+                width={150}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                }}
+                formatter={(value: number) => [`$${value.toFixed(2)}`, 'CPA']}
+              />
+              <Bar 
+                dataKey="cpa" 
+                fill="#F59E0B"
+                radius={[0, 4, 4, 0]}
+              >
+                {costVsPerformanceData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.cpa < 50 ? '#10B981' : entry.cpa < 100 ? '#F59E0B' : '#EF4444'} 
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
+
+      {/* Efficiency Scatter Plot */}
+      <motion.div
+        className="chart-container"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.1 }}
+      >
+        <h3 className="text-xl font-semibold mb-6 text-center">Campaign Efficiency Matrix</h3>
+        <p className="text-sm text-muted-foreground text-center mb-4">
+          Bubble size represents Cost per Acquisition • Top-right quadrant shows high spend with high conversions
+        </p>
+        <ResponsiveContainer width="100%" height={400}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis 
+              type="number" 
+              dataKey="x" 
+              name="Spend" 
+              stroke="#9CA3AF"
+              label={{ value: 'Ad Spend ($)', position: 'insideBottom', offset: -5 }}
+            />
+            <YAxis 
+              type="number" 
+              dataKey="y" 
+              name="Conversions" 
+              stroke="#9CA3AF"
+              label={{ value: 'Conversions', angle: -90, position: 'insideLeft' }}
+            />
+            <ZAxis type="number" dataKey="z" range={[100, 1000]} />
+            <Tooltip
+              cursor={{ strokeDasharray: '3 3' }}
+              contentStyle={{
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+              }}
+              formatter={(value: number, name: string) => {
+                if (name === 'Spend') return [`$${value.toFixed(2)}`, 'Spend'];
+                if (name === 'Conversions') return [value, 'Conversions'];
+                return [value, name];
+              }}
+            />
+            <Scatter name="Campaigns" data={costVsPerformanceData} fill="#8B5CF6">
+              {costVsPerformanceData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* Original Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Campaigns by Spend and Conversions */}
+        <motion.div
+          className="chart-container"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 1.3 }}
+        >
+          <h3 className="text-xl font-semibold mb-6 text-center">Top Campaigns Overview</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={campaignComparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -379,7 +748,7 @@ const GoogleAds = () => {
           className="chart-container"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
+          transition={{ duration: 0.6, delay: 1.5 }}
         >
           <h3 className="text-xl font-semibold mb-6 text-center">Campaign Status Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -410,32 +779,57 @@ const GoogleAds = () => {
         </motion.div>
       </div>
 
-      {/* Campaign Details Table */}
+      {/* Campaign Details Table with Performance Indicators */}
       <motion.div
         className="chart-container"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
+        transition={{ duration: 0.6, delay: 1.7 }}
       >
-        <h3 className="text-xl font-semibold mb-6 text-center">All Campaigns</h3>
+        <h3 className="text-xl font-semibold mb-6 text-center">Detailed Campaign Performance</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left p-3 font-medium">Campaign</th>
                 <th className="text-center p-3 font-medium">Status</th>
+                <th className="text-center p-3 font-medium">Performance</th>
                 <th className="text-right p-3 font-medium">Impressions</th>
                 <th className="text-right p-3 font-medium">Clicks</th>
                 <th className="text-right p-3 font-medium">CTR</th>
                 <th className="text-right p-3 font-medium">Spend</th>
                 <th className="text-right p-3 font-medium">Conversions</th>
                 <th className="text-right p-3 font-medium">CPA</th>
+                <th className="text-right p-3 font-medium">ROI</th>
               </tr>
             </thead>
             <tbody>
               {campaignsData.map((campaign, index) => {
                 const spend = parseFloat(campaign.metrics.costMicros) / 1000000;
                 const cpa = campaign.metrics.conversions > 0 ? spend / campaign.metrics.conversions : 0;
+                const roi = spend > 0 ? campaign.metrics.conversionsValue / spend : 0;
+                
+                // Performance indicator logic
+                let performanceIndicator = '';
+                let performanceColor = '';
+                if (campaign.campaign.status === 'ENABLED') {
+                  if (roi > 3) {
+                    performanceIndicator = '🔥 Excellent';
+                    performanceColor = 'text-green-500';
+                  } else if (roi > 1.5) {
+                    performanceIndicator = '✓ Good';
+                    performanceColor = 'text-primary';
+                  } else if (roi > 1) {
+                    performanceIndicator = '→ Fair';
+                    performanceColor = 'text-amber-500';
+                  } else if (campaign.metrics.conversions > 0) {
+                    performanceIndicator = '⚠ Review';
+                    performanceColor = 'text-orange-500';
+                  } else {
+                    performanceIndicator = '⚠ Poor';
+                    performanceColor = 'text-red-500';
+                  }
+                }
                 
                 return (
                   <motion.tr
@@ -443,7 +837,7 @@ const GoogleAds = () => {
                     className="border-b border-white/5 hover:bg-white/5"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 1.2 + index * 0.05 }}
+                    transition={{ duration: 0.3, delay: 1.7 + index * 0.03 }}
                   >
                     <td className="p-3 font-medium max-w-xs truncate" title={campaign.campaign.name}>
                       {campaign.campaign.name}
@@ -461,6 +855,9 @@ const GoogleAds = () => {
                         {campaign.campaign.status}
                       </Badge>
                     </td>
+                    <td className={`p-3 text-center text-xs font-medium ${performanceColor}`}>
+                      {performanceIndicator}
+                    </td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.impressions).toLocaleString()}</td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.clicks).toLocaleString()}</td>
                     <td className="p-3 text-right">{(campaign.metrics.ctr * 100).toFixed(2)}%</td>
@@ -468,12 +865,43 @@ const GoogleAds = () => {
                     <td className="p-3 text-right text-primary font-medium">
                       {campaign.metrics.conversions.toFixed(0)}
                     </td>
-                    <td className="p-3 text-right">${cpa.toFixed(2)}</td>
+                    <td className={`p-3 text-right font-medium ${
+                      cpa < 50 ? 'text-green-500' : cpa < 100 ? 'text-amber-500' : 'text-red-500'
+                    }`}>
+                      ${cpa > 0 ? cpa.toFixed(2) : '—'}
+                    </td>
+                    <td className={`p-3 text-right font-medium ${
+                      roi > 2 ? 'text-green-500' : roi > 1 ? 'text-primary' : 'text-red-500'
+                    }`}>
+                      {roi > 0 ? `${roi.toFixed(2)}x` : '—'}
+                    </td>
                   </motion.tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+        
+        {/* Legend for Performance Indicators */}
+        <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+          <h4 className="text-sm font-semibold mb-2">Performance Indicators:</h4>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-green-500">🔥 Excellent:</span> ROI &gt; 3x
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-primary">✓ Good:</span> ROI &gt; 1.5x
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-amber-500">→ Fair:</span> ROI &gt; 1x
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-orange-500">⚠ Review:</span> ROI &lt; 1x
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-red-500">⚠ Poor:</span> No conversions
+            </div>
+          </div>
         </div>
       </motion.div>
     </motion.div>
