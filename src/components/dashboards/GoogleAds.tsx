@@ -437,10 +437,10 @@ const GoogleAds = () => {
         <Card className="p-6 border-primary/20 bg-primary/5">
           <div className="flex items-center gap-2 mb-4">
             <Award className="w-6 h-6 text-primary" />
-            <h3 className="text-xl font-semibold">Top Campaigns by Conversions</h3>
+            <h3 className="text-xl font-semibold">Top Campaign by Conversions</h3>
           </div>
           <div className="space-y-3">
-            {topByConversions.slice(0, 3).map((campaign, idx) => (
+            {topByConversions.slice(0, 1).map((campaign, idx) => (
               <div key={campaign.campaign.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate" title={campaign.campaign.name}>
@@ -587,9 +587,13 @@ const GoogleAds = () => {
             <Tooltip
               cursor={{ strokeDasharray: '3 3' }}
               contentStyle={{
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
                 borderRadius: '8px',
+                color: '#000',
+              }}
+              itemStyle={{
+                color: '#000',
               }}
               formatter={(value: number, name: string) => {
                 if (name === 'Spend') return [`$${value.toFixed(2)}`, 'Spend'];
