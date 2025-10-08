@@ -689,7 +689,7 @@ const FunnelsDashboard = () => {
 
       {/* Funnels Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <SkeletonCard key={index} />
           ))}
@@ -697,7 +697,7 @@ const FunnelsDashboard = () => {
       ) : funnels.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {funnels.map((funnel) => (
             <FunnelCard key={funnel.id} funnel={funnel} />
           ))}

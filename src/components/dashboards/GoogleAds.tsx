@@ -24,6 +24,8 @@ import { useToast } from '@/hooks/use-toast';
 import api from '@/services/api';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SiGoogleads } from "react-icons/si";
+import { IoCalendarOutline } from 'react-icons/io5';
 
 interface CampaignMetrics {
   clicks: string;
@@ -410,7 +412,18 @@ const GoogleAds = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{t('dashboard.title.google-ads')}</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <SiGoogleads size={28}/>
+            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+              {t('dashboard.title.google-ads')}
+            </h1>
+          </div>
+          <div className="text-md text-muted-foreground flex items-center gap-2">
+            <IoCalendarOutline />
+            {t('meta.last-30-days')}
+          </div>
+        </div>
         <p className="text-muted-foreground">{t('dashboard.subtitle.google-ads')}</p>
       </div>
 
@@ -501,7 +514,7 @@ const GoogleAds = () => {
       </motion.div>
 
       {/* Cost vs Performance Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1">
         {/* Spend vs Conversions */}
         <motion.div
           className="chart-container"
