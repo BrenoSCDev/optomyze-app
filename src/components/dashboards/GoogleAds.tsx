@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, PieChart, Pie, Cell, ComposedChart, Line } from 'recharts';
 import KPICard from '@/components/KPICard';
-import { DollarSign, Eye, MousePointer, Target, TrendingUp, AlertCircle, Settings, Award } from 'lucide-react';
+import { DollarSign, Eye, MousePointer, Target, TrendingUp, Award, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SiGoogleads } from "react-icons/si";
 import { IoCalendarOutline } from 'react-icons/io5';
+import { IntegrationWarning } from '@/components/ui/IntegrationWarning';
 
 interface CampaignMetrics {
   clicks: string;
@@ -291,30 +292,12 @@ const GoogleAds = () => {
   // Error state - not configured
   if (error === 'not_configured') {
     return (
-      <motion.div
-        className="flex items-center justify-center min-h-[400px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <Card className="max-w-md p-8 text-center space-y-6">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-            <AlertCircle className="w-8 h-8 text-destructive" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">Google Ads Not Configured</h3>
-            <p className="text-muted-foreground">
-              Please configure your Google Ads integration in the CRM App Store to view your campaign data.
-            </p>
-          </div>
-          <Button
-            onClick={() => navigate('/?tab=integrations')}
-            className="w-full"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Go to CRM App Store
-          </Button>
-        </Card>
-      </motion.div>
+      <IntegrationWarning
+        title="Google Ads Not Configured"
+        description="Please configure your Google Ads integration in the CRM App Store to view your campaign data."
+        buttonText="Go to CRM App Store"
+        onButtonClick={() => navigate('/?tab=integrations')}
+      />
     );
   }
 

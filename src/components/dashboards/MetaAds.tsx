@@ -16,16 +16,16 @@
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, ComposedChart } from 'recharts';
 import KPICard from '@/components/KPICard';
-import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, Monitor, AlertCircle, Settings } from 'lucide-react';
+import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, Monitor } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { FaMeta } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
+import { IntegrationWarning } from '@/components/ui/IntegrationWarning';
 
 interface MetaAdsCampaignData {
   campaign_id: string;
@@ -257,22 +257,13 @@ const MetaAds = () => {
 
   if (notConfigured) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="p-8 max-w-md text-center">
-          <AlertCircle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Meta Ads Not Configured</h2>
-          <p className="text-muted-foreground mb-6">
-            Please configure your Meta Ads integration in the CRM App Store to view your advertising performance data.
-          </p>
-          <Button 
-            onClick={() => navigate('/?section=integrations')}
-            className="gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Configure Meta Ads
-          </Button>
-        </Card>
-      </div>
+      <IntegrationWarning
+        title="Meta Ads Not Configured"
+        description="Please configure your Meta Ads integration in the CRM App Store to view your advertising performance data."
+        buttonText="Configure Meta Ads"
+        onButtonClick={() => navigate('/?section=integrations')}
+        iconColor="text-yellow-500"
+      />
     );
   }
 
