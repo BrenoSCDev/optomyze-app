@@ -65,15 +65,9 @@ const LoginForm = () => {
   };
 
   return (
-    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-      {/* Login Card */}
-      <div
-        className="glass-card rounded-3xl p-8 shadow-2xl border border-white/10 backdrop-blur-xl bg-white/5"
-        style={{
-          width: "clamp(95%, 70vw, 50%)", // 95% on small, 70% on medium, 55% on large
-          maxWidth: "600px", // optional: keeps it from being too wide on very large screens
-        }}
-      >
+    <div className="w-full max-w-md animate-fade-in">
+      {/* Glassmorphism Login Card */}
+      <div className="rounded-3xl p-8 lg:p-10 shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 transition-all duration-300 hover:bg-white/15 hover:shadow-glow">
         {/* Logo */}
         <div className="text-center mb-8">
           <img
@@ -81,8 +75,8 @@ const LoginForm = () => {
             alt="Optomyze"
             className="h-12 mx-auto mb-6 filter brightness-0 invert"
           />
-          <h1 className="text-3xl font-bold text-white mb-2">{t('auth.welcome')}</h1>
-          <p className="text-white/70">{t('auth.subtitle')}</p>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">{t('auth.welcome')}</h1>
+          <p className="text-white/80 text-sm lg:text-base">{t('auth.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -98,7 +92,7 @@ const LoginForm = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              className="bg-white/10 border-white/30 text-black placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12 [&::-webkit-input-placeholder]:text-white/60 [&::placeholder]:text-white/60"
+              className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12 transition-all"
               required
             />
           </div>
@@ -116,15 +110,14 @@ const LoginForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-white/10 border-white/30 text-black placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 [&::-webkit-input-placeholder]:text-white/60 [&::placeholder]:text-white/60"
+                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 transition-all"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                 disabled={isLoading}
-                style={{ color: "gray" }}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -135,8 +128,7 @@ const LoginForm = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            variant="black"
-            className="w-full transition-all duration-300 h-12 font-semibold"
+            className="w-full bg-white text-black hover:bg-white/90 transition-all duration-300 h-12 font-semibold shadow-lg hover:shadow-xl"
           >
             {isLoading ? (
               <>

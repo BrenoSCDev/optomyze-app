@@ -20,14 +20,14 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Spline 3D Background */}
-      <div className="absolute inset-0">
-        <Spline scene="https://prod.spline.design/ayqHAt3Hq5K8bxMZ/scene.splinecode" />
+    <div className="min-h-screen flex overflow-hidden">
+      {/* Left Half - Spline 3D Animation (Desktop Only) */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+        <Spline scene="https://prod.spline.design/3Lak4Ex5AvAtpnD5/scene.splinecode" />
       </div>
       
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      {/* Right Half - Login Form */}
+      <div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-black to-gray-800">
         <LoginForm />
       </div>
     </div>
