@@ -155,7 +155,7 @@ const ManageUsers = () => {
         user.phone.toLowerCase().includes(filters.search.toLowerCase());
 
       const matchesRole = filters.role === 'all' || 
-        user.role?.toLowerCase() === filters.role.toLowerCase();
+        user.role.toLowerCase() === filters.role.toLowerCase();
 
       const matchesStatus = filters.status === 'all' || 
         (filters.status === 'active' && user.is_active) ||

@@ -38,7 +38,7 @@ const UserCard: React.FC<UserCardProps> = ({
   };
 
   const getRoleColor = (role: string) => {
-    switch (role?.toLowerCase()) {
+    switch (role.toLowerCase()) {
       case 'admin':
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'manager':
@@ -139,18 +139,18 @@ const UserCard: React.FC<UserCardProps> = ({
         {/* Profile Photo */}
         <div className="mb-4">
           <Avatar className="h-16 w-16 border-4 border-white/30 shadow-lg">
-            <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name || 'User'} />
+            <AvatarImage src={`http://localhost/storage/${user.profile_pic}` || undefined} alt={user.name} />
             <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
-              {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+              {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </div>
 
         {/* User Info */}
         <div className="text-white">
-          <h3 className="text-xl font-bold mb-1 truncate">{user.name || 'Unknown User'}</h3>
-          <p className="text-white/90 text-sm mb-1 truncate">{user.email || 'No email'}</p>
-          <p className="text-white/80 text-xs mb-3 truncate">{user.phone || 'No phone'}</p>
+          <h3 className="text-xl font-bold mb-1 truncate">{user.name}</h3>
+          <p className="text-white/90 text-sm mb-1 truncate">{user.email}</p>
+          <p className="text-white/80 text-xs mb-3 truncate">{user.phone}</p>
           
           {/* Role Badge */}
           <div className="mb-3">
@@ -158,7 +158,7 @@ const UserCard: React.FC<UserCardProps> = ({
               variant="outline" 
               className={`${getRoleColor(user.role)} backdrop-blur-sm text-xs`}
             >
-              {user.role || 'user'}
+              {user.role}
             </Badge>
           </div>
 
