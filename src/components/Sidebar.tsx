@@ -289,15 +289,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                       key={item.id}
                       to={item.path}
                       className={({ isActive }) => `
-                        nav-item w-full justify-between ${
+                        nav-item w-full ${
                           isActive ? 'active' : ''
                         }
                       `}
                     >
+                      <IoFunnelOutline className="h-4 w-4" />
                       <span className="text-sm truncate">{item.label}</span>
-                      <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                        {item.count}
-                      </span>
                     </NavLink>
                   ))
                 ) : (
