@@ -46,8 +46,7 @@ import optomyzeLogo from '@/assets/optomyze.png';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
-import { FaGoogle } from "react-icons/fa";
-import { SiGoogleanalytics, SiN8N } from "react-icons/si";
+import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 
@@ -91,7 +90,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const dashboardItems = [
     { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
     { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> }, // Facebook/Instagram ads performance
-    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <FaGoogle size={16}/> }, // Google Ads campaign analytics
+    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <SiGoogleads size={16}/> }, // Google Ads campaign analytics
     { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
   ];
 
@@ -294,7 +293,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                         }
                       `}
                     >
-                      <IoFunnelOutline className="h-4 w-4" />
+                      <IoFunnelOutline size={14} />
                       <span className="text-sm truncate">{item.label}</span>
                     </NavLink>
                   ))

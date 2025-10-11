@@ -295,8 +295,9 @@ const GoogleAds = () => {
       <IntegrationWarning
         title="Google Ads Not Configured"
         description="Please configure your Google Ads integration in the CRM App Store to view your campaign data."
-        buttonText="Go to CRM App Store"
-        onButtonClick={() => navigate('/?tab=integrations')}
+        buttonText="Configure Google Ads"
+        onButtonClick={() => navigate('/?section=integrations')}
+        iconColor="text-yellow-500"
       />
     );
   }

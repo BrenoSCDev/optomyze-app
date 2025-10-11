@@ -128,7 +128,8 @@ const LoginForm = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-white text-black hover:bg-white/90 transition-all duration-300 h-12 font-semibold shadow-lg hover:shadow-xl"
+            variant="black"
+            className="w-full transition-all duration-300 h-12 font-semibold"
           >
             {isLoading ? (
               <>

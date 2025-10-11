@@ -21,9 +21,8 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
-import { SiN8N, SiGoogleanalytics } from "react-icons/si";
+import { SiN8N, SiGoogleanalytics, SiGoogleads } from "react-icons/si";
 import { FaMeta } from "react-icons/fa6";
-import { FaGoogle } from "react-icons/fa";
 import { useToast } from '../../hooks/use-toast';
 import { Check } from 'lucide-react';
 import N8nConfigModal from './N8nConfigModal';
@@ -138,7 +137,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           {integration.key === "n8n" ? (
             <SiN8N className="w-10 h-10 text-muted-foreground" />
           ) : integration.key === "google-ads" ? (
-            <FaGoogle className="w-8 h-8 text-muted-foreground" />
+            <SiGoogleads className="w-8 h-8 text-muted-foreground" />
           ) : integration.key === "google-analytics" ? (
             <SiGoogleanalytics className="w-8 h-8 text-muted-foreground" />
           ) : integration.key === "meta-ads" ? (

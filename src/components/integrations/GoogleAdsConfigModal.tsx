@@ -14,7 +14,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
 import { Loader2, Key, Hash, User, Webhook } from 'lucide-react';
-import { FaGoogle } from "react-icons/fa";
+import { SiGoogleads } from 'react-icons/si';
 
 interface GoogleAdsConfigModalProps {
   open: boolean;
@@ -111,7 +111,7 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <FaGoogle className="w-8 h-8 text-primary" />
+              <SiGoogleads className="w-8 h-8 text-primary" />
             </div>
             {t('integrations.google-ads.configure-title')}
           </DialogTitle>
