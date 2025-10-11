@@ -127,8 +127,8 @@ const Profile = () => {
       
       if (!hasTextChanges && !hasFileChanges) {
         toast({
-          title: "No Changes",
-          description: "No changes to save.",
+          title: t('profile.no-changes'),
+          description: t('profile.no-changes-description'),
         });
         return;
       }
@@ -140,8 +140,8 @@ const Profile = () => {
         updateUser(response.user);
         
         toast({
-          title: "Profile Updated",
-          description: response.message || "Your profile has been successfully updated.",
+          title: t('profile.updated'),
+          description: response.message || t('profile.updated-description'),
         });
         
         // Reset form states
@@ -159,7 +159,7 @@ const Profile = () => {
       
       // Handle different error types
       if (error.response?.status === 401) {
-        setError('Session expired. Please log in again.');
+        setError(t('profile.session-expired'));
       } else if (error.response?.status === 422) {
         // Validation errors from Laravel
         const validationErrors = error.response.data.errors;
@@ -168,7 +168,7 @@ const Profile = () => {
         // Client-side validation errors
         setError(error.message);
       } else {
-        setError('Failed to update profile. Please try again.');
+        setError(t('profile.update-error'));
       }
     } finally {
       setLoading(false);
@@ -184,17 +184,17 @@ const Profile = () => {
     } = {};
     
     if (!passwordData.currentPassword) {
-      errors.currentPassword = 'Current password is required';
+      errors.currentPassword = t('profile.current-password-required');
     }
     
     if (!passwordData.newPassword) {
-      errors.newPassword = 'New password is required';
+      errors.newPassword = t('profile.new-password-required');
     } else if (passwordData.newPassword.length < 6) {
-      errors.newPassword = 'Password must be at least 6 characters';
+      errors.newPassword = t('profile.password-min-length');
     }
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = t('profile.passwords-mismatch');
     }
 
     setPasswordErrors(errors);
@@ -206,8 +206,8 @@ const Profile = () => {
         await profileService.updatePassword(passwordData.currentPassword, passwordData.newPassword);
         
         toast({
-          title: "Password Updated",
-          description: "Your password has been successfully updated.",
+          title: t('profile.password-updated'),
+          description: t('profile.password-updated-description'),
         });
         
         setPasswordData({
@@ -224,9 +224,9 @@ const Profile = () => {
           const errorMessage = Object.values(validationErrors).flat().join(', ');
           setPasswordErrors({ currentPassword: errorMessage });
         } else if (error.response?.status === 400) {
-          setPasswordErrors({ currentPassword: 'Current password is incorrect' });
+          setPasswordErrors({ currentPassword: t('profile.current-password-incorrect') });
         } else {
-          setPasswordErrors({ currentPassword: 'Failed to update password. Please try again.' });
+          setPasswordErrors({ currentPassword: t('profile.password-update-error') });
         }
       } finally {
         setLoading(false);
@@ -240,12 +240,12 @@ const Profile = () => {
     if (file) {
       // Validate file immediately
       if (file.size > 2048 * 1024) {
-        setError('Profile picture must be less than 2MB');
+        setError(t('profile.profile-pic-size-error'));
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
+        setError(t('profile.invalid-image'));
         return;
       }
       
@@ -266,12 +266,12 @@ const Profile = () => {
     if (file) {
       // Validate file immediately
       if (file.size > 4096 * 1024) {
-        setError('Background picture must be less than 4MB');
+        setError(t('profile.bg-pic-size-error'));
         return;
       }
       
       if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
+        setError(t('profile.invalid-image'));
         return;
       }
       
@@ -376,7 +376,7 @@ const Profile = () => {
                 onClick={() => bgPicInputRef.current?.click()}
               >
                 <Camera className="w-4 h-4 mr-2" />
-                Change Background
+                {t('profile.change-background')}
               </Button>
               {bgPicPreview && bgPicPreview !== optomyzeLogo && (
                 <Button
@@ -456,7 +456,7 @@ const Profile = () => {
             {loading && uploadProgress > 0 && (
               <div className="mb-6">
                 <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
-                  <span>Uploading files...</span>
+                  <span>{t('profile.uploading')}</span>
                   <span>{uploadProgress}%</span>
                 </div>
                 <Progress value={uploadProgress} className="w-full" />
@@ -466,19 +466,19 @@ const Profile = () => {
             {/* Profile details card */}
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle>Account Information</CardTitle>
+                <CardTitle>{t('profile.account-info')}</CardTitle>
               </CardHeader>
               <CardContent className={loading ? 'pointer-events-none opacity-50' : ''}>
                 <Tabs defaultValue="profile" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="profile">Profile Details</TabsTrigger>
-                    <TabsTrigger value="password">Password & Security</TabsTrigger>
+                    <TabsTrigger value="profile">{t('profile.profile-details')}</TabsTrigger>
+                    <TabsTrigger value="password">{t('profile.password-security')}</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="profile" className="space-y-6 mt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name">{t('profile.full-name')}</Label>
                         <Input
                           id="name"
                           value={editData.name}
@@ -489,7 +489,7 @@ const Profile = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone">{t('profile.phone')}</Label>
                         <Input
                           id="phone"
                           value={editData.phone}
@@ -503,7 +503,7 @@ const Profile = () => {
 
                     {/* Email display (read-only) */}
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">{t('profile.email')}</Label>
                       <Input
                         id="email"
                         value={user?.email || ''}
@@ -511,14 +511,14 @@ const Profile = () => {
                         className="bg-muted"
                       />
                       <p className="text-sm text-muted-foreground">
-                        Email cannot be changed. Contact support if needed.
+                        {t('profile.email-readonly')}
                       </p>
                     </div>
 
                     {/* Company name display (read-only) */}
                     {user?.company_name && (
                       <div className="space-y-2">
-                        <Label htmlFor="company">Company</Label>
+                        <Label htmlFor="company">{t('profile.company')}</Label>
                         <Input
                           id="company"
                           value={user.company_name}
@@ -531,18 +531,18 @@ const Profile = () => {
                     {isEditing && (
                       <div className="flex justify-end space-x-4 pt-4">
                         <Button variant="outline" onClick={handleEditToggle} disabled={loading}>
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                         <Button onClick={handleSaveProfile} disabled={loading}>
                           {loading ? (
                             <>
                               <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                              {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Updating...'}
+                              {uploadProgress > 0 ? `${t('profile.uploading')} ${uploadProgress}%` : t('profile.updating')}
                             </>
                           ) : (
                             <>
                               <Save className="w-4 h-4 mr-2" />
-                              Save Changes
+                              {t('profile.save-changes')}
                             </>
                           )}
                         </Button>
@@ -553,65 +553,17 @@ const Profile = () => {
                   <TabsContent value="password" className="space-y-6 mt-6">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="currentPassword">Current Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="currentPassword"
-                            type={showCurrentPassword ? "text" : "password"}
-                            value={passwordData.currentPassword}
-                            onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                            className={passwordErrors.currentPassword ? "border-destructive" : ""}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          >
-                            {showCurrentPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        {passwordErrors.currentPassword && (
-                          <p className="text-sm text-destructive">{passwordErrors.currentPassword}</p>
-                        )}
+                        <Label htmlFor="currentPassword">{t('profile.current-password')}</Label>
+...
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="newPassword"
-                            type={showNewPassword ? "text" : "password"}
-                            value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                            className={passwordErrors.newPassword ? "border-destructive" : ""}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-                          >
-                            {showNewPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        {passwordErrors.newPassword && (
-                          <p className="text-sm text-destructive">{passwordErrors.newPassword}</p>
-                        )}
+                        <Label htmlFor="newPassword">{t('profile.new-password')}</Label>
+...
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Label htmlFor="confirmPassword">{t('profile.confirm-password')}</Label>
                         <div className="relative">
                           <Input
                             id="confirmPassword"
@@ -644,10 +596,10 @@ const Profile = () => {
                           {loading ? (
                             <>
                               <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
-                              Updating...
+                              {t('profile.updating')}
                             </>
                           ) : (
-                            'Update Password'
+                            t('profile.update-password')
                           )}
                         </Button>
                       </div>

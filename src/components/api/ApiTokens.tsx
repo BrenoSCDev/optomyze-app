@@ -53,8 +53,8 @@ const ApiTokens = () => {
       setTokens(response.data);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch API tokens",
+        title: t('common.error'),
+        description: t('api.tokens.fetch-error'),
         variant: "destructive",
       });
     } finally {
@@ -65,8 +65,8 @@ const ApiTokens = () => {
   const generateToken = async () => {
     if (!newTokenName.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter a token name",
+        title: t('common.error'),
+        description: t('api.tokens.name-required'),
         variant: "destructive",
       });
       return;
@@ -81,13 +81,13 @@ const ApiTokens = () => {
       setNewTokenName('');
       
       toast({
-        title: "Success",
-        description: "API token generated successfully",
+        title: t('common.success'),
+        description: t('api.tokens.generated-success'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to generate API token",
+        title: t('common.error'),
+        description: t('api.tokens.generate-error'),
         variant: "destructive",
       });
     }
@@ -102,13 +102,13 @@ const ApiTokens = () => {
       setTokenToDelete(null);
       
       toast({
-        title: "Success",
-        description: "API token deleted successfully",
+        title: t('common.success'),
+        description: t('api.tokens.deleted-success'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete API token",
+        title: t('common.error'),
+        description: t('api.tokens.delete-error'),
         variant: "destructive",
       });
     }
@@ -117,8 +117,8 @@ const ApiTokens = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copied",
-      description: "Token copied to clipboard",
+      title: t('api.tokens.copied'),
+      description: t('api.tokens.copied-description'),
     });
   };
 
@@ -161,7 +161,7 @@ const ApiTokens = () => {
                 <Button variant="ghost" className="w-full justify-between p-0 h-auto text-blue-800 dark:text-blue-200 hover:text-blue-800 hover:bg-transparent">
                   <div className="flex items-center gap-2">
                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <span className="font-medium">API Tokens Security Guide</span>
+                    <span className="font-medium">{t('api.tokens.security-guide')}</span>
                   </div>
                   {isInfoOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -175,19 +175,19 @@ const ApiTokens = () => {
                   <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Key className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      General Understanding
+                      {t('api.tokens.general-understanding')}
                     </h4>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
                         <div>
-                          <span className="font-medium">What API tokens are:</span> They are unique keys used to authenticate applications or users when interacting with APIs.
+                          <span className="font-medium">{t('api.tokens.what-are')}</span> {t('api.tokens.what-are-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></div>
                         <div>
-                          <span className="font-medium">Access level:</span> Tokens usually grant <strong>the same permissions as the user or system that created them</strong>, which can mean full access to company data.
+                          <span className="font-medium">{t('api.tokens.access-level')}</span> {t('api.tokens.access-level-description')}
                         </div>
                       </div>
                     </div>
@@ -196,37 +196,37 @@ const ApiTokens = () => {
                   <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      Security Considerations
+                      {t('api.tokens.security-considerations')}
                     </h4>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-3">
                         <Lock className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Confidentiality:</span> Tokens must be treated like <strong>passwords</strong>—never hard-coded in public code, never shared in plain text, and never posted in documentation or chat tools.
+                          <span className="font-medium">{t('api.tokens.confidentiality')}</span> {t('api.tokens.confidentiality-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <FileText className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Storage:</span> Store tokens in a <strong>secure secrets manager</strong> or encrypted environment variables, not in source code or emails.
+                          <span className="font-medium">{t('api.tokens.storage')}</span> {t('api.tokens.storage-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <RotateCcw className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Rotation:</span> Regularly regenerate tokens to reduce risk if one is leaked.
+                          <span className="font-medium">{t('api.tokens.rotation')}</span> {t('api.tokens.rotation-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <Ban className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Revocation:</span> Have a process to immediately revoke tokens that are no longer needed or may have been compromised.
+                          <span className="font-medium">{t('api.tokens.revocation')}</span> {t('api.tokens.revocation-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <Eye className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Least privilege principle:</span> If possible, issue tokens with only the minimal access required, not blanket permissions.
+                          <span className="font-medium">{t('api.tokens.least-privilege')}</span> {t('api.tokens.least-privilege-description')}
                         </div>
                       </div>
                     </div>
@@ -235,25 +235,25 @@ const ApiTokens = () => {
                   <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      Business Awareness
+                      {t('api.tokens.business-awareness')}
                     </h4>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="h-3 w-3 mt-1 text-orange-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Data exposure risk:</span> A leaked token can allow attackers to extract, modify, or delete CRM and customer data.
+                          <span className="font-medium">{t('api.tokens.data-exposure')}</span> {t('api.tokens.data-exposure-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <FileText className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Compliance impact:</span> Mishandling tokens can result in GDPR, HIPAA, or other regulatory issues.
+                          <span className="font-medium">{t('api.tokens.compliance')}</span> {t('api.tokens.compliance-description')}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <Eye className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                         <div>
-                          <span className="font-medium">Employee access control:</span> Only authorized staff should be able to generate, view, or manage tokens.
+                          <span className="font-medium">{t('api.tokens.employee-access')}</span> {t('api.tokens.employee-access-description')}
                         </div>
                       </div>
                     </div>
@@ -262,7 +262,7 @@ const ApiTokens = () => {
 
                 <div className="pt-2 border-t border-blue-200 dark:border-blue-700">
                   <p className="text-sm font-medium">
-                    👉 In short: <strong>API tokens are like digital master keys</strong> — they unlock systems, so they need strong policies around creation, storage, use, monitoring, and revocation.
+                    {t('api.tokens.summary')}
                   </p>
                 </div>
               </CollapsibleContent>
@@ -282,43 +282,43 @@ const ApiTokens = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-primary" />
-                API Tokens
+                {t('api.tokens.title')}
               </CardTitle>
               <CardDescription>
-                Manage your API tokens for accessing your account programmatically
+                {t('api.tokens.card-description')}
               </CardDescription>
             </div>
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Generate Token
+                  {t('api.tokens.generate-token')}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Generate New API Token</DialogTitle>
+                  <DialogTitle>{t('api.tokens.generate-new')}</DialogTitle>
                   <DialogDescription>
-                    Create a new API token to access your account programmatically.
+                    {t('api.tokens.generate-description')}
                   </DialogDescription>
                 </DialogHeader>
                 
                 {!generatedToken ? (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="tokenName">Token Name</Label>
+                      <Label htmlFor="tokenName">{t('api.tokens.token-name')}</Label>
                       <Input
                         id="tokenName"
                         value={newTokenName}
                         onChange={(e) => setNewTokenName(e.target.value)}
-                        placeholder="e.g., Production API Access"
+                        placeholder={t('api.tokens.token-name-placeholder')}
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <Label>Your New API Token</Label>
+                      <Label>{t('api.tokens.your-new-token')}</Label>
                       <div className="flex items-center gap-2 mt-2">
                         <Input
                           value={generatedToken}
@@ -334,7 +334,7 @@ const ApiTokens = () => {
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">
-                        Make sure to copy your token now. You won't be able to see it again!
+                        {t('api.tokens.copy-warning')}
                       </p>
                     </div>
                   </div>
@@ -344,15 +344,15 @@ const ApiTokens = () => {
                   {!generatedToken ? (
                     <>
                       <Button variant="outline" onClick={closeModal}>
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                       <Button onClick={generateToken}>
-                        Generate Token
+                        {t('api.tokens.generate-token')}
                       </Button>
                     </>
                   ) : (
                     <Button onClick={closeModal}>
-                      Done
+                      {t('api.tokens.done')}
                     </Button>
                   )}
                 </DialogFooter>
@@ -362,23 +362,23 @@ const ApiTokens = () => {
           <CardContent>
             {loading ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">Loading tokens...</p>
+                <p className="text-muted-foreground">{t('api.tokens.loading')}</p>
               </div>
             ) : tokens.length === 0 ? (
               <div className="text-center py-8 space-y-2">
                 <Key className="h-12 w-12 text-muted-foreground mx-auto" />
-                <h3 className="text-lg font-semibold">No API tokens yet</h3>
+                <h3 className="text-lg font-semibold">{t('api.tokens.no-tokens')}</h3>
                 <p className="text-muted-foreground">
-                  Generate your first API token to get started
+                  {t('api.tokens.no-tokens-description')}
                 </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('api.tokens.name')}</TableHead>
+                    <TableHead>{t('api.tokens.created')}</TableHead>
+                    <TableHead className="text-right">{t('api.tokens.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -407,21 +407,21 @@ const ApiTokens = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle className="flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-destructive" />
-                                Delete API Token
+                                {t('api.tokens.delete-token')}
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete the token "{token.name}"? This action cannot be undone and will immediately revoke access for any applications using this token.
+                                {t('api.tokens.delete-confirmation')} "{token.name}"? {t('api.tokens.delete-warning')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel onClick={() => setTokenToDelete(null)}>
-                                Cancel
+                                {t('common.cancel')}
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={deleteToken}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                Delete Token
+                                {t('api.tokens.delete-token')}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
