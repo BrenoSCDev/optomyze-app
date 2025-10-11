@@ -24,9 +24,12 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Parameter Row Component
 const ParameterRow = ({ name, type, required, description }) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="flex items-start gap-3 py-2 border-b border-border/10 last:border-b-0">
       <div className="min-w-0 flex-1">
@@ -35,7 +38,7 @@ const ParameterRow = ({ name, type, required, description }) => {
           <span className="text-xs text-muted-foreground">({type})</span>
           {required && (
             <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded">
-              required
+              {t('api.required')}
             </span>
           )}
         </div>
@@ -47,6 +50,7 @@ const ParameterRow = ({ name, type, required, description }) => {
 
 // API Endpoint Card Component
 const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
+  const { t } = useLanguage();
   const [requestBody, setRequestBody] = useState('');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -63,7 +67,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
 
   const executeRequest = async () => {
     if (!apiToken) {
-      alert('Please enter your API token first');
+      alert(t('api.token-required-alert'));
       return;
     }
 
@@ -125,37 +129,37 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
         <div className="border-t border-border p-6 space-y-6">
           {/* Description */}
           <div>
-            <h4 className="text-foreground font-semibold mb-2">Description</h4>
+            <h4 className="text-foreground font-semibold mb-2">{t('api.description')}</h4>
             <p className="text-muted-foreground">{endpoint.description}</p>
           </div>
 
           {/* Request Body (for POST/PUT) */}
           {endpoint.method !== 'GET' && (
             <div>
-              <h4 className="text-foreground font-semibold mb-2">Request Body</h4>
+              <h4 className="text-foreground font-semibold mb-2">{t('api.request-body')}</h4>
               <div className="space-y-4">
                 {/* Parameters Documentation */}
                 <Card className="bg-muted/30">
                   <CardContent className="p-4">
-                    <h5 className="text-primary font-medium mb-3">Available Parameters</h5>
+                    <h5 className="text-primary font-medium mb-3">{t('api.available-parameters')}</h5>
                     <div className="space-y-2 text-sm">
-                      <ParameterRow name="funnel_id" type="integer" required={true} description="ID of the funnel to create the lead in" />
-                      <ParameterRow name="first_name" type="string" required={false} description="Lead's first name (max: 100 chars)" />
-                      <ParameterRow name="last_name" type="string" required={false} description="Lead's last name (max: 100 chars)" />
-                      <ParameterRow name="email" type="string" required={false} description="Lead's email address" />
-                      <ParameterRow name="phone" type="string" required={false} description="Lead's phone number (max: 20 chars)" />
-                      <ParameterRow name="ddi" type="string" required={false} description="Country code (max: 20 chars)" />
-                      <ParameterRow name="source_platform" type="string" required={false} description="Platform source (max: 50 chars)" />
-                      <ParameterRow name="source_type" type="string" required={false} description="Type of source (max: 50 chars)" />
-                      <ParameterRow name="status" type="enum" required={false} description="new, contacted, qualified, unqualified, converted, lost" />
-                      <ParameterRow name="priority" type="enum" required={false} description="low, medium, high, urgent" />
-                      <ParameterRow name="estimated_value" type="number" required={false} description="Estimated lead value (min: 0)" />
-                      <ParameterRow name="currency" type="string" required={false} description="3-letter currency code (e.g., USD)" />
-                      <ParameterRow name="ai_score" type="number" required={false} description="AI score between 0-100" />
-                      <ParameterRow name="tags" type="array" required={false} description="Array of tag objects" />
-                      <ParameterRow name="custom_fields" type="object" required={false} description="Custom field data" />
-                      <ParameterRow name="notes" type="string" required={false} description="Additional notes about the lead" />
-                      <ParameterRow name="sync_enabled" type="boolean" required={false} description="Enable sync for this lead" />
+                      <ParameterRow name="funnel_id" type="integer" required={true} description={t('api.params.funnel-id')} />
+                      <ParameterRow name="first_name" type="string" required={false} description={t('api.params.first-name')} />
+                      <ParameterRow name="last_name" type="string" required={false} description={t('api.params.last-name')} />
+                      <ParameterRow name="email" type="string" required={false} description={t('api.params.email')} />
+                      <ParameterRow name="phone" type="string" required={false} description={t('api.params.phone')} />
+                      <ParameterRow name="ddi" type="string" required={false} description={t('api.params.ddi')} />
+                      <ParameterRow name="source_platform" type="string" required={false} description={t('api.params.source-platform')} />
+                      <ParameterRow name="source_type" type="string" required={false} description={t('api.params.source-type')} />
+                      <ParameterRow name="status" type="enum" required={false} description={t('api.params.status')} />
+                      <ParameterRow name="priority" type="enum" required={false} description={t('api.params.priority')} />
+                      <ParameterRow name="estimated_value" type="number" required={false} description={t('api.params.estimated-value')} />
+                      <ParameterRow name="currency" type="string" required={false} description={t('api.params.currency')} />
+                      <ParameterRow name="ai_score" type="number" required={false} description={t('api.params.ai-score')} />
+                      <ParameterRow name="tags" type="array" required={false} description={t('api.params.tags')} />
+                      <ParameterRow name="custom_fields" type="object" required={false} description={t('api.params.custom-fields')} />
+                      <ParameterRow name="notes" type="string" required={false} description={t('api.params.notes')} />
+                      <ParameterRow name="sync_enabled" type="boolean" required={false} description={t('api.params.sync-enabled')} />
                     </div>
                   </CardContent>
                 </Card>
@@ -163,7 +167,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
                 {/* Example Request */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-foreground font-medium">Example Request</h5>
+                    <h5 className="text-foreground font-medium">{t('api.example-request')}</h5>
                     <Button
                       variant="outline"
                       size="sm"
@@ -183,13 +187,13 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
                         "sync_enabled": true
                       }, null, 2))}
                     >
-                      Use Example
+                      {t('api.use-example')}
                     </Button>
                   </div>
                   <textarea
                     value={requestBody}
                     onChange={(e) => setRequestBody(e.target.value)}
-                    placeholder="Enter JSON request body here..."
+                    placeholder={t('api.json-placeholder')}
                     className="w-full h-64 p-4 rounded-lg bg-muted/50 border border-border text-foreground font-mono text-sm focus:border-primary focus:outline-none resize-none"
                   />
                 </div>
@@ -213,12 +217,12 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
               {loading ? (
                 <>
                   <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                  Testing...
+                  {t('api.testing')}
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  Try it out
+                  {t('api.try-it-out')}
                 </>
               )}
             </Button>
@@ -228,7 +232,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
                 variant="outline"
                 onClick={() => setResponse(null)}
               >
-                Clear Response
+                {t('api.clear-response')}
               </Button>
             )}
           </div>
@@ -236,7 +240,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
           {/* Response */}
           {response && (
             <div>
-              <h4 className="text-foreground font-semibold mb-2">Response</h4>
+              <h4 className="text-foreground font-semibold mb-2">{t('api.response')}</h4>
               <Card className="bg-muted/50">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 mb-3">
@@ -248,7 +252,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
                       {response.status}
                     </span>
                     <span className="text-muted-foreground text-sm">
-                      {response.status >= 200 && response.status < 300 ? 'Success' : 'Error'}
+                      {response.status >= 200 && response.status < 300 ? t('api.success') : t('api.error')}
                     </span>
                   </div>
                   
@@ -266,19 +270,20 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
 };
 
 const ApiSetup = () => {
+  const { t } = useLanguage();
   const [selectedEndpoint, setSelectedEndpoint] = useState(null);
   const [apiToken, setApiToken] = useState('');
   
   const endpoints = [
     {
-      category: 'Leads',
+      category: t('api.leads'),
       endpoints: [
         {
           id: 'create-lead',
           method: 'POST',
           path: '/leads',
-          summary: 'Create a new lead',
-          description: 'Creates a new lead in the specified funnel with comprehensive lead data including contact information, source tracking, priority, and custom fields.'
+          summary: t('api.create-lead-summary'),
+          description: t('api.create-lead-description')
         }
       ]
     }
@@ -297,13 +302,13 @@ const ApiSetup = () => {
         className="space-y-4"
       >
         <div className="flex items-center gap-2 text-muted-foreground text-sm mb-4">
-          <span>API</span>
+          <span>{t('api.api')}</span>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-foreground">API Setup</span>
+          <span className="text-foreground">{t('api.setup')}</span>
         </div>
         
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          API Documentation
+          {t('api.title')}
         </h1>
         
         {/* Base URL Display */}
@@ -313,7 +318,7 @@ const ApiSetup = () => {
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  Base URL
+                  {t('api.base-url')}
                 </h3>
                 <code className="text-primary text-lg font-mono">
                   http://crm-api.optomyze.io/api/v1
@@ -323,7 +328,7 @@ const ApiSetup = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => copyToClipboard('http://localhost/api/v1')}
-                title="Copy Base URL"
+                title={t('api.copy-base-url')}
               >
                 <Copy className="w-4 h-4" />
               </Button>
@@ -337,15 +342,15 @@ const ApiSetup = () => {
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
               <div>
-                <h3 className="text-yellow-800 dark:text-yellow-200 font-semibold mb-1">Authentication Required</h3>
+                <h3 className="text-yellow-800 dark:text-yellow-200 font-semibold mb-1">{t('api.auth-required')}</h3>
                 <p className="text-yellow-700 dark:text-yellow-300 text-sm mb-2">
-                  All API requests require authentication using a Bearer token in the Authorization header.
+                  {t('api.auth-description')}
                 </p>
                 <code className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
                   Authorization: Bearer {'<api_token>'}
                 </code>
                 <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-2">
-                  Generate your API token in the API Tokens section.
+                  {t('api.generate-token-hint')}
                 </p>
               </div>
             </div>
@@ -363,12 +368,12 @@ const ApiSetup = () => {
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
               <Key className="h-5 w-5 text-primary" />
-              API Token for Testing
+              {t('api.token-testing')}
             </h3>
             <div className="flex gap-3">
               <input
                 type="password"
-                placeholder="Enter your API token to test endpoints"
+                placeholder={t('api.token-placeholder')}
                 value={apiToken}
                 onChange={(e) => setApiToken(e.target.value)}
                 className="flex-1 px-4 py-2 rounded-lg bg-background border border-border text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none"
@@ -377,7 +382,7 @@ const ApiSetup = () => {
                 variant="outline"
                 onClick={() => setApiToken('')}
               >
-                Clear
+                {t('api.clear')}
               </Button>
             </div>
           </CardContent>
