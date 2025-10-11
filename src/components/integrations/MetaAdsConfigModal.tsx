@@ -48,7 +48,7 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
     if (!formData.account_id.trim() || !formData.access_token.trim()) {
       toast({
         title: t('common.error'),
-        description: "Please fill in all required fields.",
+        description: t('integrations.meta-ads.fill-required-fields'),
         variant: "destructive",
       });
       return;
@@ -64,7 +64,7 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
 
       toast({
         title: t('integrations.configuration-successful'),
-        description: "Meta Ads integration has been configured successfully!",
+        description: t('integrations.meta-ads.configuration-success-description'),
       });
 
       onConfigurationSaved();
@@ -104,10 +104,10 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
               <FaMeta className="w-8 h-8 text-primary" />
             </div>
-            Configure Meta Ads Integration
+            {t('integrations.meta-ads.configure-title')}
           </DialogTitle>
           <DialogDescription>
-            Enter your Meta Ads account credentials to connect your advertising account.
+            {t('integrations.meta-ads.configure-description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,19 +117,19 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="account_id" className="flex items-center gap-2">
                 <Hash className="w-4 h-4" />
-                Account ID
+                {t('integrations.meta-ads.account-id')}
               </Label>
               <Input
                 id="account_id"
                 type="text"
-                placeholder="act_1234567890"
+                placeholder={t('integrations.meta-ads.account-id-placeholder')}
                 value={formData.account_id}
                 onChange={(e) => handleInputChange('account_id', e.target.value)}
                 disabled={loading}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your Meta Ads account ID (e.g., act_1234567890)
+                {t('integrations.meta-ads.account-id-description')}
               </p>
             </div>
 
@@ -137,19 +137,19 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="access_token" className="flex items-center gap-2">
                 <Key className="w-4 h-4" />
-                Access Token
+                {t('integrations.meta-ads.access-token')}
               </Label>
               <Input
                 id="access_token"
                 type="password"
-                placeholder="Enter your Meta access token"
+                placeholder={t('integrations.meta-ads.access-token-placeholder')}
                 value={formData.access_token}
                 onChange={(e) => handleInputChange('access_token', e.target.value)}
                 disabled={loading}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your Meta Ads API access token for authentication
+                {t('integrations.meta-ads.access-token-description')}
               </p>
             </div>
           </div>
@@ -165,7 +165,7 @@ const MetaAdsConfigModal: React.FC<MetaAdsConfigModalProps> = ({
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {loading ? 'Saving Configuration...' : 'Save Configuration'}
+              {loading ? t('integrations.meta-ads.saving-configuration') : t('integrations.meta-ads.save-configuration')}
             </Button>
           </DialogFooter>
         </form>

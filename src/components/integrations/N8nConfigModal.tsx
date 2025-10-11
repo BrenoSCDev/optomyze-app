@@ -64,7 +64,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
     } catch {
       toast({
         title: t('common.error'),
-        description: `Please enter a valid URL for ${fieldName}.`,
+        description: `${t('integrations.n8n.invalid-url')} ${fieldName}`,
         variant: "destructive",
       });
       return false;
@@ -90,7 +90,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
 
       toast({
         title: t('integrations.configuration-successful'),
-        description: "n8n integration has been configured successfully!",
+        description: t('integrations.n8n.configuration-success-description'),
       });
 
       onConfigurationSaved();
@@ -157,7 +157,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your n8n API key for authentication
+                {t('integrations.n8n.api-key-description')}
               </p>
             </div>
 
@@ -165,18 +165,18 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="base_url" className="flex items-center gap-2">
                 <Globe className="w-4 h-4" />
-                Base URL
+                {t('integrations.n8n.base-url')}
               </Label>
               <Input
                 id="base_url"
                 type="url"
-                placeholder="https://your-n8n-instance.com"
+                placeholder={t('integrations.n8n.base-url-placeholder')}
                 value={formData.base_url}
                 onChange={(e) => handleInputChange('base_url', e.target.value)}
                 disabled={loading}
               />
               <p className="text-xs text-muted-foreground">
-                The base URL of your n8n instance
+                {t('integrations.n8n.base-url-description')}
               </p>
             </div>
 
@@ -195,7 +195,7 @@ const N8nConfigModal: React.FC<N8nConfigModalProps> = ({
                 disabled={loading}
               />
               <p className="text-xs text-muted-foreground">
-                The webhook endpoint where n8n will send data
+                {t('integrations.n8n.webhook-url-description')}
               </p>
             </div>
           </div>

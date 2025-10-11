@@ -51,7 +51,7 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
         !formData.developer_token.trim() || !formData.webhook_url.trim()) {
       toast({
         title: t('common.error'),
-        description: "Please fill in all required fields.",
+        description: t('integrations.google-ads.fill-required-fields'),
         variant: "destructive",
       });
       return;
@@ -69,7 +69,7 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
 
       toast({
         title: t('integrations.configuration-successful'),
-        description: "Google Ads integration has been configured successfully!",
+        description: t('integrations.google-ads.configuration-success-description'),
       });
 
       onConfigurationSaved();
@@ -113,10 +113,10 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
               <FaGoogle className="w-8 h-8 text-primary" />
             </div>
-            Configure Google Ads Integration
+            {t('integrations.google-ads.configure-title')}
           </DialogTitle>
           <DialogDescription>
-            Enter your Google Ads account credentials to connect your advertising account.
+            {t('integrations.google-ads.configure-description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,19 +126,19 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="customer_id" className="flex items-center gap-2">
                 <Hash className="w-4 h-4" />
-                Customer ID
+                {t('integrations.google-ads.customer-id')}
               </Label>
               <Input
                 id="customer_id"
                 type="text"
-                placeholder="123-456-7890"
+                placeholder={t('integrations.google-ads.customer-id-placeholder')}
                 value={formData.customer_id}
                 onChange={(e) => handleInputChange('customer_id', e.target.value)}
                 disabled={loading}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your Google Ads customer ID (e.g., 123-456-7890)
+                {t('integrations.google-ads.customer-id-description')}
               </p>
             </div>
 
@@ -146,19 +146,19 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="manager_id" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Manager ID
+                {t('integrations.google-ads.manager-id')}
               </Label>
               <Input
                 id="manager_id"
                 type="text"
-                placeholder="123-456-7890"
+                placeholder={t('integrations.google-ads.manager-id-placeholder')}
                 value={formData.manager_id}
                 onChange={(e) => handleInputChange('manager_id', e.target.value)}
                 disabled={loading}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your Google Ads manager account ID
+                {t('integrations.google-ads.manager-id-description')}
               </p>
             </div>
 
@@ -166,19 +166,19 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="developer_token" className="flex items-center gap-2">
                 <Key className="w-4 h-4" />
-                Developer Token
+                {t('integrations.google-ads.developer-token')}
               </Label>
               <Input
                 id="developer_token"
                 type="password"
-                placeholder="Enter your developer token"
+                placeholder={t('integrations.google-ads.developer-token-placeholder')}
                 value={formData.developer_token}
                 onChange={(e) => handleInputChange('developer_token', e.target.value)}
                 disabled={loading}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground">
-                Your Google Ads API developer token
+                {t('integrations.google-ads.developer-token-description')}
               </p>
             </div>
 
@@ -186,18 +186,18 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             <div className="space-y-2">
               <Label htmlFor="webhook_url" className="flex items-center gap-2">
                 <Webhook className="w-4 h-4" />
-                Webhook URL
+                {t('integrations.google-ads.webhook-url')}
               </Label>
               <Input
                 id="webhook_url"
                 type="url"
-                placeholder="https://your-webhook-url.com"
+                placeholder={t('integrations.google-ads.webhook-url-placeholder')}
                 value={formData.webhook_url}
                 onChange={(e) => handleInputChange('webhook_url', e.target.value)}
                 disabled={loading}
               />
               <p className="text-xs text-muted-foreground">
-                The webhook endpoint for receiving Google Ads data
+                {t('integrations.google-ads.webhook-url-description')}
               </p>
             </div>
           </div>
@@ -213,7 +213,7 @@ const GoogleAdsConfigModal: React.FC<GoogleAdsConfigModalProps> = ({
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {loading ? 'Saving Configuration...' : 'Save Configuration'}
+              {loading ? t('integrations.google-ads.saving-configuration') : t('integrations.google-ads.save-configuration')}
             </Button>
           </DialogFooter>
         </form>
