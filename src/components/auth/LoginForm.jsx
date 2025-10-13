@@ -3,10 +3,12 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '../ui/use-toast';
+import api from '../../services/api';
 import optomyzeLogo from '../../assets/optomyze.png';
 
 const LoginForm = () => {
@@ -14,6 +16,9 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
   
   const { login } = useAuth();
   const { t } = useLanguage();
@@ -145,14 +150,93 @@ const LoginForm = () => {
           <div className="text-center">
             <button
               type="button"
+              onClick={() => setShowForgotPassword(true)}
               className="text-sm text-white/60 hover:text-white transition-colors"
               disabled={isLoading}
             >
-              Forgot your password?
+              {t('auth.forgot-password')}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Forgot Password Modal */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('auth.forgot-password-title')}</DialogTitle>
+            <DialogDescription>
+              {t('auth.forgot-password-description')}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            if (!forgotEmail) {
+              toast({
+                title: t('auth.validation-error'),
+                description: t('auth.email-required'),
+                variant: 'destructive',
+              });
+              return;
+            }
+
+            setIsSendingReset(true);
+            try {
+              await api.post('/api/auth/forgot-pwd', { email: forgotEmail });
+              toast({
+                title: t('auth.reset-email-sent'),
+                description: t('auth.reset-email-sent-description'),
+              });
+              setShowForgotPassword(false);
+              setForgotEmail('');
+            } catch (error) {
+              toast({
+                title: t('auth.reset-failed'),
+                description: error.response?.data?.message || t('auth.reset-failed-description'),
+                variant: 'destructive',
+              });
+            } finally {
+              setIsSendingReset(false);
+            }
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">{t('auth.email')}</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                placeholder={t('auth.email-placeholder')}
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                disabled={isSendingReset}
+                required
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setForgotEmail('');
+                }}
+                disabled={isSendingReset}
+              >
+                {t('auth.cancel')}
+              </Button>
+              <Button type="submit" disabled={isSendingReset}>
+                {isSendingReset ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('auth.sending')}
+                  </>
+                ) : (
+                  t('auth.send-reset-link')
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
 
   );
