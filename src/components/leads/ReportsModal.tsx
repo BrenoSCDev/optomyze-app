@@ -120,11 +120,13 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                         <span className="text-2xl">{getPlatformIcon(report.platform)}</span>
                         <div>
                           <h4 className="text-white font-semibold">
-                            {report.agent.agent_name}
+                            {report.agent ? report.agent.agent_name : 'External Integration'}
                           </h4>
-                          <p className="text-gray-400 text-sm">
-                            {report.agent.workflow_name}
-                          </p>
+                          {report.agent && (
+                            <p className="text-gray-400 text-sm">
+                              {report.agent.workflow_name}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -140,13 +142,17 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                     <Badge className="text-xs font-medium border bg-primary/20 text-primary border-primary/30">
                       {report.platform}
                     </Badge>
-                    <Badge className={`text-xs font-medium border ${getStatusColor(report.agent.status)}`}>
-                      {report.agent.status}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-gray-400 text-sm">
-                      <Zap className="w-3 h-3" />
-                      <span>Executions: {report.agent.execution_count}</span>
-                    </div>
+                    {report.agent && (
+                      <>
+                        <Badge className={`text-xs font-medium border ${getStatusColor(report.agent.status)}`}>
+                          {report.agent.status}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-gray-400 text-sm">
+                          <Zap className="w-3 h-3" />
+                          <span>Executions: {report.agent.execution_count}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Report Content */}
@@ -158,7 +164,7 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                   </div>
 
                   {/* Additional Agent Details */}
-                  {report.agent.description && (
+                  {report.agent?.description && (
                     <div className="mt-4 pt-4 border-t border-white/10">
                       <h6 className="text-gray-400 text-xs uppercase tracking-wide mb-1">
                         Agent Description
@@ -170,12 +176,14 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                   )}
 
                   {/* Workflow ID */}
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
-                    <span>Workflow ID:</span>
-                    <code className="bg-black/30 px-2 py-1 rounded text-gray-300">
-                      {report.agent.workflow_id}
-                    </code>
-                  </div>
+                  {report.agent && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                      <span>Workflow ID:</span>
+                      <code className="bg-black/30 px-2 py-1 rounded text-gray-300">
+                        {report.agent.workflow_id}
+                      </code>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
