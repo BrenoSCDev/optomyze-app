@@ -57,6 +57,7 @@ import { LeadFilterDialog } from './LeadFilterDialog';
 import TagManagementModal from './TagManagementModal';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -72,6 +73,7 @@ interface KanbanBoardProps {
 
 const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -521,14 +523,17 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setTagDialogOpen(true)}
-            className="glass-card border-accent/30 hover:bg-accent/10"
-          >
-            <Tag className="h-4 w-4 mr-2" />
-            Create Tag
-          </Button>
+          {/* Create Tag Button - Hidden for Agent role */}
+          {user?.role?.toLowerCase() !== 'agent' && (
+            <Button
+              variant="outline"
+              onClick={() => setTagDialogOpen(true)}
+              className="glass-card border-accent/30 hover:bg-accent/10"
+            >
+              <Tag className="h-4 w-4 mr-2" />
+              Create Tag
+            </Button>
+          )}
           
           <Button
             variant="outline"

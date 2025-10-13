@@ -104,12 +104,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
       path: `/leads/${funnel.id}`
     }));
 
-  // Settings submenu items
+  // Settings submenu items - Filter based on user role
   const settingsItems = [
-    { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline /> },
-    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={18}/> },
-    { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage /> },
-  ];
+    { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
+    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={18}/>, restrictedFor: ['agent'] },
+    { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },
+  ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
 
   // Integrations submenu items
   const integrationsItems = [
@@ -543,64 +543,66 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
-        {/* Users Section */}
-        <div>
-          <button
-            onClick={() => toggleSection('users')}
-            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
-          >
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5" />
+        {/* Users Section - Hidden for Agent role */}
+        {user?.role !== 'agent' && (
+          <div>
+            <button
+              onClick={() => toggleSection('users')}
+              className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5" />
+                <AnimatePresence>
+                  {!effectivelyCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      {t('nav.users')}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
               <AnimatePresence>
                 {!effectivelyCollapsed && (
-                  <motion.span
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    {t('nav.users')}
-                  </motion.span>
+                    {expandedSection === 'users' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </button>
+
             <AnimatePresence>
-              {!effectivelyCollapsed && (
+              {expandedSection === 'users' && !effectivelyCollapsed && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  className="ml-4 space-y-1 mt-2"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  {expandedSection === 'users' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {usersItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSectionNavigation(item.id)}
+                      className={`nav-item w-full ${
+                        activeSection === item.id ? 'active' : ''
+                      }`}
+                    >
+                      {React.createElement(item.icon, { className: "h-4 w-4" })}
+                      <span className="text-sm">{item.label}</span>
+                    </button>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
-          </button>
-
-          <AnimatePresence>
-            {expandedSection === 'users' && !effectivelyCollapsed && (
-              <motion.div
-                className="ml-4 space-y-1 mt-2"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {usersItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
-                      activeSection === item.id ? 'active' : ''
-                    }`}
-                  >
-                    {React.createElement(item.icon, { className: "h-4 w-4" })}
-                    <span className="text-sm">{item.label}</span>
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+          </div>
+        )}
 
         {/* Chat Section */}
         <div>
