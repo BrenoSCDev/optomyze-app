@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Bot, Zap, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { FileText, Bot, Zap, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Agent {
   id: number;
@@ -43,6 +44,20 @@ interface ReportsModalProps {
 }
 
 const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, leadName }) => {
+  const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
+
+  const toggleReportExpansion = (reportId: number) => {
+    setExpandedReports((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(reportId)) {
+        newSet.delete(reportId);
+      } else {
+        newSet.add(reportId);
+      }
+      return newSet;
+    });
+  };
+
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
@@ -156,11 +171,49 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                   </div>
 
                   {/* Report Content */}
-                  <div className="bg-black/20 rounded-lg p-4 border border-white/5">
-                    <h5 className="text-white font-medium mb-2">Report Content:</h5>
-                    <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                      {report.content}
+                  <div className="bg-black/20 rounded-lg border border-white/5">
+                    <div className="p-4">
+                      <h5 className="text-white font-medium mb-2">Report Content:</h5>
+                      <motion.div
+                        initial={false}
+                        animate={{
+                          height: expandedReports.has(report.id) ? 'auto' : '120px'
+                        }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        className="overflow-hidden relative"
+                      >
+                        <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                          {report.content}
+                        </div>
+                        {!expandedReports.has(report.id) && (
+                          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        )}
+                      </motion.div>
                     </div>
+                    
+                    {/* See More/Less Button */}
+                    {report.content.length > 200 && (
+                      <div className="border-t border-white/5 px-4 py-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleReportExpansion(report.id)}
+                          className="w-full text-primary hover:text-primary/80 hover:bg-white/5 transition-colors"
+                        >
+                          {expandedReports.has(report.id) ? (
+                            <>
+                              <ChevronUp className="w-4 h-4 mr-1" />
+                              See Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-4 h-4 mr-1" />
+                              See More
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Additional Agent Details */}
