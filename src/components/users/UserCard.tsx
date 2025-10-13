@@ -69,7 +69,7 @@ const UserCard: React.FC<UserCardProps> = ({
       style={backgroundStyle}
     >
       {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
       
       {/* Action Buttons */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
