@@ -2,14 +2,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical, Edit, Eye, UserX, UserCheck, Trash2 } from 'lucide-react';
+import { UserX, UserCheck, Trash2 } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -78,50 +71,30 @@ const UserCard: React.FC<UserCardProps> = ({
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       
-      {/* Actions Menu */}
-      <div className="absolute top-4 right-4 z-10">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => onEdit(user)}>
-              <Edit className="mr-2 h-4 w-4" />
-              {t('users.card.edit')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onView(user)}>
-              <Eye className="mr-2 h-4 w-4" />
-              {t('users.card.view-profile')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-              {user.is_active ? (
-                <>
-                  <UserX className="mr-2 h-4 w-4" />
-                  {t('users.card.deactivate')}
-                </>
-              ) : (
-                <>
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  {t('users.card.activate')}
-                </>
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => onDelete(user)}
-              className="text-red-600 focus:text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t('users.card.delete')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* Action Buttons */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => onToggleStatus(user)}
+          className="h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white"
+          title={user.is_active ? t('users.card.deactivate') : t('users.card.activate')}
+        >
+          {user.is_active ? (
+            <UserX className="h-4 w-4" />
+          ) : (
+            <UserCheck className="h-4 w-4" />
+          )}
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => onDelete(user)}
+          className="h-8 w-8 bg-red-600/80 backdrop-blur-sm hover:bg-red-700/90 text-white"
+          title={t('users.card.delete')}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Status Badge */}
