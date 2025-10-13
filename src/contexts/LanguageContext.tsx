@@ -97,6 +97,7 @@ const translations = {
     'auth.reset-email-sent-description': 'Please check your email inbox (and spam folder) for the password reset link.',
     'auth.reset-failed': 'Reset Failed',
     'auth.reset-failed-description': 'Failed to send reset email. Please try again.',
+    'auth.cancel': 'Cancel',
     
     // User Info
     'user.loggedinas': 'Logged in as',
@@ -775,6 +776,7 @@ const translations = {
     'auth.reset-email-sent-description': 'Verifique sua caixa de entrada de email (e pasta de spam) para o link de redefinição de senha.',
     'auth.reset-failed': 'Redefinição Falhou',
     'auth.reset-failed-description': 'Falha ao enviar email de redefinição. Tente novamente.',
+    'auth.cancel': 'Cancelar',
     
     // User Info
     'user.loggedinas': 'Logado como',
@@ -1458,6 +1460,7 @@ const translations = {
     'auth.reset-email-sent-description': 'Bitte überprüfen Sie Ihren E-Mail-Posteingang (und Spam-Ordner) auf den Link zum Zurücksetzen des Passworts.',
     'auth.reset-failed': 'Zurücksetzen fehlgeschlagen',
     'auth.reset-failed-description': 'Fehler beim Senden der Reset-E-Mail. Bitte versuchen Sie es erneut.',
+    'auth.cancel': 'Abbrechen',
     
     // User Info
     'user.loggedinas': 'Angemeldet als',
@@ -1966,6 +1969,7 @@ const translations = {
     'auth.reset-email-sent-description': 'Por favor revisa tu bandeja de entrada de correo (y carpeta de spam) para el enlace de restablecimiento de contraseña.',
     'auth.reset-failed': 'Restablecimiento Fallido',
     'auth.reset-failed-description': 'Error al enviar correo de restablecimiento. Por favor intenta de nuevo.',
+    'auth.cancel': 'Cancelar',
     
     // User Info
     'user.loggedinas': 'Conectado como',
