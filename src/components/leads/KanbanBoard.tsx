@@ -102,43 +102,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     })
   );
 
-  // Custom collision detection for better column detection across screen sizes
-  const customCollisionDetection: CollisionDetection = (args) => {
-    // First try pointer-within detection for more precise column detection
-    const pointerCollisions = pointerWithin(args);
-    
-    if (pointerCollisions.length > 0) {
-      // Filter to only column IDs (exclude lead IDs)
-      const columnCollisions = pointerCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Fallback to rectangle intersection for edge cases
-    const rectCollisions = rectIntersection(args);
-    
-    if (rectCollisions.length > 0) {
-      // Filter to only column IDs
-      const columnCollisions = rectCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Final fallback to closest center, but still filter for columns
-    const centerCollisions = closestCenter(args);
-    return centerCollisions.filter(collision => 
-      columns.some(col => col.id === collision.id)
-    );
-  };
-  
   // Transform API data to kanban format
   const kanbanColumns = funnel.stages
     ?.sort((a: any, b: any) => a.order - b.order)
@@ -174,6 +137,51 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
   const [columns, setColumns] = useState(kanbanColumns);
   const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
+
+  // Custom collision detection for better column detection across screen sizes
+  const customCollisionDetection: CollisionDetection = (args) => {
+    const { droppableContainers } = args;
+    
+    // Get all column IDs from droppable containers
+    const columnIdsArray = Array.from(droppableContainers.keys());
+    
+    // Helper function to check if an ID is a column ID
+    const isColumnId = (id: any) => columnIdsArray.some(colId => colId === id);
+    
+    // First try pointer-within detection for more precise column detection
+    const pointerCollisions = pointerWithin(args);
+    
+    if (pointerCollisions.length > 0) {
+      // Filter to only column IDs (exclude lead IDs)
+      const columnCollisions = pointerCollisions.filter(collision => 
+        isColumnId(collision.id)
+      );
+      
+      if (columnCollisions.length > 0) {
+        return columnCollisions;
+      }
+    }
+    
+    // Fallback to rectangle intersection for edge cases
+    const rectCollisions = rectIntersection(args);
+    
+    if (rectCollisions.length > 0) {
+      // Filter to only column IDs
+      const columnCollisions = rectCollisions.filter(collision => 
+        isColumnId(collision.id)
+      );
+      
+      if (columnCollisions.length > 0) {
+        return columnCollisions;
+      }
+    }
+    
+    // Final fallback to closest center, but still filter for columns
+    const centerCollisions = closestCenter(args);
+    return centerCollisions.filter(collision => 
+      isColumnId(collision.id)
+    );
+  };
 
   // Filter leads based on active filters
   const filterLeads = (leads: any[], filters: any) => {
