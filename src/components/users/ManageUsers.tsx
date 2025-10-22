@@ -194,11 +194,11 @@ const ManageUsers = () => {
     try {
       const updatedUser = await userApi.toggleUserStatus(user.id, !user.is_active);
       setUsers(prevUsers => 
-        prevUsers.map(u => u.id === user.id ? updatedUser : u)
+        prevUsers.map(u => u.id === user.id ? updatedUser.user : u)
       );
       toast({
         title: t('users.actions.status-updated'),
-        description: `${user.name} ${updatedUser.is_active ? t('users.actions.activated') : t('users.actions.deactivated')}`,
+        description: `${user.name} ${updatedUser.user.is_active ? t('users.actions.activated') : t('users.actions.deactivated')}`,
       });
     } catch (err) {
       console.error('Failed to toggle user status:', err);

@@ -159,13 +159,13 @@ const ReportsModal: React.FC<ReportsModalProps> = ({ isOpen, onClose, reports, l
                     </Badge>
                     {report.agent && (
                       <>
-                        <Badge className={`text-xs font-medium border ${getStatusColor(report.agent.status)}`}>
+                        {/* <Badge className={`text-xs font-medium border ${getStatusColor(report.agent.status)}`}>
                           {report.agent.status}
-                        </Badge>
-                        <div className="flex items-center gap-1 text-gray-400 text-sm">
+                        </Badge> */}
+                        {/* <div className="flex items-center gap-1 text-gray-400 text-sm">
                           <Zap className="w-3 h-3" />
                           <span>Executions: {report.agent.execution_count}</span>
-                        </div>
+                        </div> */}
                       </>
                     )}
                   </div>
