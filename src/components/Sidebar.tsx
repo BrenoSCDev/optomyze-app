@@ -43,6 +43,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
+import { getStorageUrl } from '@/lib/constants';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
@@ -704,7 +705,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                         <div className="flex-shrink-0">
                           {user.profile_pic ? (
                             <img 
-                              src={`http://localhost/storage/${user.profile_pic}`} 
+                              src={getStorageUrl(user.profile_pic)} 
                               alt={user.name}
                               className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
                             />

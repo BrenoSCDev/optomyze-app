@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { getStorageUrl } from '@/lib/constants';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
@@ -33,10 +34,10 @@ const Profile = () => {
 
   // File upload states
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
+  const [profilePicPreview, setProfilePicPreview] = useState(getStorageUrl(user?.profile_pic) || '');
   console.log(profilePicPreview)
   const [bgPicFile, setBgPicFile] = useState<File | null>(null);
-  const [bgPicPreview, setBgPicPreview] = useState(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
+  const [bgPicPreview, setBgPicPreview] = useState(getStorageUrl(user?.bg_pic) || '');
 
   // UI states
   const [loading, setLoading] = useState(false);
@@ -67,8 +68,8 @@ const Profile = () => {
         name: user.name || '',
         phone: user.phone || '',
       });
-      setProfilePicPreview(user.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
-      setBgPicPreview(user.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
+      setProfilePicPreview(getStorageUrl(user.profile_pic) || '');
+      setBgPicPreview(getStorageUrl(user.bg_pic) || '');
     }
   }, [user]);
 
@@ -81,8 +82,8 @@ const Profile = () => {
       });
       setProfilePicFile(null);
       setBgPicFile(null);
-      setProfilePicPreview(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
-      setBgPicPreview(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
+      setProfilePicPreview(getStorageUrl(user?.profile_pic) || '');
+      setBgPicPreview(getStorageUrl(user?.bg_pic) || '');
       setError(null);
       
       // Reset file inputs
@@ -289,7 +290,7 @@ const Profile = () => {
 
   const handleRemoveProfilePic = () => {
     setProfilePicFile(null);
-    setProfilePicPreview(user?.profile_pic ? `http://localhost/storage/${user.profile_pic}` : '');
+    setProfilePicPreview(getStorageUrl(user?.profile_pic) || '');
     
     // Reset file input
     if (profilePicInputRef.current) {
@@ -299,7 +300,7 @@ const Profile = () => {
 
   const handleRemoveBgPic = () => {
     setBgPicFile(null);
-    setBgPicPreview(user?.bg_pic ? `http://localhost/storage/${user.bg_pic}` : '');
+    setBgPicPreview(getStorageUrl(user?.bg_pic) || '');
     
     // Reset file input
     if (bgPicInputRef.current) {

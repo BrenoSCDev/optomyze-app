@@ -78,9 +78,10 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
         body = JSON.parse(requestBody);
       }
 
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
       const response = await axios({
         method: endpoint.method.toLowerCase(),
-        url: `http://crm-api.optomyze.io/api/v1${endpoint.path}`,
+        url: `${API_BASE_URL}/api/v1${endpoint.path}`,
         headers: {
           'Authorization': `Bearer ${apiToken}`,
           'Content-Type': 'application/json'
@@ -289,6 +290,10 @@ const ApiSetup = () => {
     }
   ];
 
+  // Get API base URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
+  const API_FULL_URL = `${API_BASE_URL}/api/v1`;
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
   };
@@ -321,13 +326,13 @@ const ApiSetup = () => {
                   {t('api.base-url')}
                 </h3>
                 <code className="text-primary text-lg font-mono">
-                  http://crm-api.optomyze.io/api/v1
+                  {API_FULL_URL}
                 </code>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => copyToClipboard('http://localhost/api/v1')}
+                onClick={() => copyToClipboard(API_FULL_URL)}
                 title={t('api.copy-base-url')}
               >
                 <Copy className="w-4 h-4" />
