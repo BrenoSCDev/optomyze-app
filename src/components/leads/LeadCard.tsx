@@ -8,8 +8,6 @@ import { Lead } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { 
   Mail, 
   Phone, 
@@ -17,25 +15,32 @@ import {
   Clock, 
   DollarSign,
   TrendingUp,
-  GripVertical
+  GripVertical,
+  Tag
 } from 'lucide-react';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import {
+  CSS,
+} from '@dnd-kit/utilities';
 
 interface LeadCardProps {
   lead: Lead;
   isDragging?: boolean;
+  isMoving?: boolean;
+  onTagClick?: (lead: Lead) => void;
+  onLeadClick?: (leadId: string) => void;
 }
 
-const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick }: LeadCardProps) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging: isSortableDragging,
-  } = useSortable({
-    id: lead.id,
-  });
+  } = useSortable({ id: lead.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -93,23 +98,39 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
           >
             <GripVertical className="h-3 w-3 text-muted-foreground" />
           </div>
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-              {getInitials(lead.name)}
-            </AvatarFallback>
-          </Avatar>
-        </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm truncate">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLeadClick?.(lead.id);
+            }}
+            className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
+          >
             {lead.name}
           </h3>
         </div>
         
-        {/* Lead Score */}
-        <div className="flex items-center gap-1">
-          <TrendingUp className="h-3 w-3 text-accent" />
-          <span className="text-xs font-medium text-accent">{lead.score}%</span>
+        {/* Lead Score & Tag Icon */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <TrendingUp className="h-3 w-3 text-accent" />
+            <span className="text-xs font-medium text-accent">{lead.score}%</span>
+          </div>
+          
+          {/* Tag Management Button */}
+          {onTagClick && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTagClick(lead);
+              }}
+              className="p-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-400/50 transition-all duration-200 group"
+              title="Manage Tags"
+            >
+              <Tag className="w-3 h-3 text-gray-400 group-hover:text-purple-400" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -117,7 +138,7 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
       <div className="space-y-1 mb-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Mail className="h-3 w-3" />
-          <span className="truncate">{lead.email}</span>
+          <span className="truncate">{lead.email ? lead.email : "No email informed"}</span>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Phone className="h-3 w-3" />
@@ -126,7 +147,7 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
       </div>
 
       {/* Tags */}
-      {lead.tags.length > 0 && (
+      {lead.tags && lead.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {lead.tags.slice(0, 2).map((tag, index) => (
             <Badge
@@ -134,7 +155,7 @@ const LeadCard = ({ lead, isDragging }: LeadCardProps) => {
               variant="secondary"
               className="text-xs px-2 py-0.5 bg-accent/20 text-accent border-accent/30"
             >
-              {tag}
+              {typeof tag === 'string' ? tag : tag.name}
             </Badge>
           ))}
           {lead.tags.length > 2 && (

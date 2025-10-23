@@ -15,8 +15,9 @@
  * - Icon-only mode when collapsed
  */
 
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, 
@@ -29,13 +30,26 @@ import {
   X,
   TrendingUp,
   BarChart,
-  Plug
+  Plug,
+  LogOut,
+  Tag,
+  Bot,
+  Key,
+  MessageCircle,
+  UserCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
-import metaLogo from '@/assets/meta-logo.png';
-import googleLogo from '@/assets/google-logo.png';
+import { getStorageUrl } from '@/lib/constants';
 import OptoIcon from '@/assets/opto-icon.png';
+import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
+import { FaMeta } from "react-icons/fa6";
+import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
+import { RiAppsFill } from "react-icons/ri";
+import { BsDatabaseFillGear } from "react-icons/bs";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -45,48 +59,105 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: SidebarProps) => {
-  // Controls whether the Dashboard submenu is expanded or collapsed
-  const [dashboardExpanded, setDashboardExpanded] = useState(true);
-  // Controls whether the Leads submenu is expanded or collapsed
-  const [leadsExpanded, setLeadsExpanded] = useState(false);
+  // Controls which menu section is currently expanded (only one at a time)
+  const [expandedSection, setExpandedSection] = useState<string>('dashboard');
+  // Controls hover state for collapsed sidebar
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  // Controls user dropdown
+  const [userDropdownOpen, setUserDropdownOpen] = useState<boolean>(false);
+  
+  // Helper function to toggle section and close others
+  const toggleSection = (sectionName: string) => {
+    setExpandedSection(expandedSection === sectionName ? '' : sectionName);
+  };
+  
+  const { funnels, logout, user } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle navigation for dashboard and settings sections
+  const handleSectionNavigation = (sectionId: string) => {
+    if (sectionId === 'leads') {
+      // If clicking leads without specific funnel, go to default dashboard
+      navigate('/');
+    } else {
+      // For dashboard and settings sections, navigate to home with section parameter
+      navigate(`/?section=${sectionId}`);
+    }
+  };
 
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
-    { id: 'optomyze-metrics', label: 'Optomyze Metrics', icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
-    { id: 'meta-ads', label: 'Meta Ads', icon: () => <img src={metaLogo} alt="Meta" className="h-4 w-4" /> }, // Facebook/Instagram ads performance
-    { id: 'google-ads', label: 'Google Ads', icon: () => <img src={googleLogo} alt="Google" className="h-4 w-4" /> }, // Google Ads campaign analytics
-    { id: 'google-analytics', label: 'Google Analytics', icon: BarChart }, // Website traffic data
+    { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
+    { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> }, // Facebook/Instagram ads performance
+    { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <SiGoogleads size={16}/> }, // Google Ads campaign analytics
+    { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
   ];
 
-  // Leads submenu items - each represents a different sales funnel
-  const leadsItems = [
-    { id: 'b2b-enterprise', label: 'B2B Enterprise Sales', count: 347 },
-    { id: 'ecommerce-conversion', label: 'E-commerce Conversion', count: 892 },
-    { id: 'saas-trial', label: 'SaaS Trial to Paid', count: 156 },
-    { id: 'real-estate', label: 'Real Estate Prospects', count: 234 },
-    { id: 'digital-marketing', label: 'Digital Marketing Leads', count: 567 },
+  // Dynamic leads submenu items from API - only show active funnels
+  const leadsItems = funnels
+    .filter(funnel => funnel.is_active)
+    .map(funnel => ({
+      id: funnel.id.toString(),
+      label: funnel.name,
+      count: funnel.nleads,
+      path: `/leads/${funnel.id}`
+    }));
+
+  // Settings submenu items - Filter based on user role
+  const settingsItems = [
+    { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
+    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={18}/>, restrictedFor: ['agent'] },
+    { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },
+  ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
+
+  // Integrations submenu items
+  const integrationsItems = [
+    { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
+  ];
+
+  // AI Agents submenu items
+  const aiAgentsItems = [
+    { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
+  ];
+
+  // API submenu items
+  const apiItems = [
+    { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
+    { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
+  ];
+
+  // Users submenu items
+  const usersItems = [
+    { id: 'manage-users', label: 'Manage Users', icon: () => <Users size={18}/> },
+  ];
+
+  // Chat submenu items
+  const chatItems = [
+    { id: 'whatsapp-inbox', label: 'WhatsApp Inbox', icon: () => <MessageCircle size={18}/> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
-    { id: 'integrations', label: 'Integrations', icon: Plug }, // Future: Third-party integrations
-    { id: 'settings', label: 'Settings', icon: Settings }, // Future: App configuration
-    { id: 'api', label: 'API', icon: Database }, // Future: API management & documentation
-    { id: 'users', label: 'Users', icon: Users }, // Future: User management system
+    { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
   ];
+
+  // Calculate effective collapsed state (considering hover)
+  const effectivelyCollapsed = isCollapsed && !isHovered;
 
   return (
     <motion.div
       className={`fixed left-0 top-0 h-full glass-card z-50 transition-all duration-300 ${
-        isCollapsed ? 'w-16' : 'w-64'
+        effectivelyCollapsed ? 'w-16' : 'w-64'
       }`}
       initial={false}
-      animate={{ width: isCollapsed ? 64 : 256 }}
+      animate={{ width: effectivelyCollapsed ? 64 : 256 }}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <AnimatePresence>
-          {!isCollapsed && (
+          {!effectivelyCollapsed && (
             <motion.div
               className="flex items-center gap-3"
               initial={{ opacity: 0, x: -20 }}
@@ -105,47 +176,47 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           onClick={onToggle}
           className="text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border"
         >
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          {effectivelyCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </Button>
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2">
+      <nav className="p-4 space-y-2" onMouseEnter={() => isCollapsed && setIsHovered(true)} onMouseLeave={() => isCollapsed && setIsHovered(false)}>
         {/* Dashboard Section */}
         <div>
           <button
-            onClick={() => setDashboardExpanded(!dashboardExpanded)}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            onClick={() => toggleSection('dashboard')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    Dashboard
+                    {t('nav.dashboard')}
                   </motion.span>
                 )}
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {dashboardExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'dashboard' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {dashboardExpanded && !isCollapsed && (
+            {expandedSection === 'dashboard' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -156,12 +227,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 {dashboardItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => onSectionChange(item.id)}
+                    onClick={() => handleSectionNavigation(item.id)}
                     className={`nav-item w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                     {React.createElement(item.icon, { className: "h-4 w-4" })}
                     <span className="text-sm">{item.label}</span>
                   </button>
                 ))}
@@ -173,38 +244,38 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Leads Section */}
         <div>
           <button
-            onClick={() => setLeadsExpanded(!leadsExpanded)}
-            className={`nav-item w-full ${!isCollapsed ? 'justify-between' : 'justify-center'}`}
+            onClick={() => toggleSection('leads')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5" />
               <AnimatePresence>
-                {!isCollapsed && (
+                {!effectivelyCollapsed && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    Leads
+                    {t('nav.leads')}
                   </motion.span>
                 )}
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {leadsExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'leads' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {leadsExpanded && !isCollapsed && (
+            {expandedSection === 'leads' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -212,18 +283,380 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                {leadsItems.map((item) => (
+                {leadsItems.length > 0 ? (
+                  leadsItems.map((item) => (
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      className={({ isActive }) => `
+                        nav-item w-full ${
+                          isActive ? 'active' : ''
+                        }
+                      `}
+                    >
+                      <IoFunnelOutline size={14} />
+                      <span className="text-sm truncate">{item.label}</span>
+                    </NavLink>
+                  ))
+                ) : (
+                  <div className="ml-4 text-sm text-muted-foreground">
+                    No funnels available
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Settings Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('settings')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.settings')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'settings' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'settings' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {settingsItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => onSectionChange(item.id)}
-                    className={`nav-item w-full justify-between ${
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    <span className="text-sm truncate">{item.label}</span>
-                    <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                      {item.count}
-                    </span>
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Integrations Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('integrations')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Plug className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.integrations')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'integrations' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'integrations' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {integrationsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* AI Agents Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('aiAgents')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Bot className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.ai-agents')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'aiAgents' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'aiAgents' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {aiAgentsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    <item.icon />
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* API Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('api')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Database className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.api')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'api' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'api' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {apiItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-4 w-4" })}
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Users Section - Hidden for Agent role */}
+        {user?.role !== 'agent' && (
+          <div>
+            <button
+              onClick={() => toggleSection('users')}
+              className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5" />
+                <AnimatePresence>
+                  {!effectivelyCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      {t('nav.users')}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {expandedSection === 'users' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+
+            <AnimatePresence>
+              {expandedSection === 'users' && !effectivelyCollapsed && (
+                <motion.div
+                  className="ml-4 space-y-1 mt-2"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {usersItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSectionNavigation(item.id)}
+                      className={`nav-item w-full ${
+                        activeSection === item.id ? 'active' : ''
+                      }`}
+                    >
+                      {React.createElement(item.icon, { className: "h-4 w-4" })}
+                      <span className="text-sm">{item.label}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Chat Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('chat')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <MessageCircle className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.chat')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'chat' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'chat' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {chatItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-4 w-4" })}
+                    <span className="text-sm">{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -232,18 +665,17 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         </div>
 
         {/* Main Navigation Items */}
-        {mainItems.map((item) => (
+        {mainItems.filter(item => item.id !== 'integrations').map((item) => (
           <button
             key={item.id}
-            onClick={() => onSectionChange(item.id)}
-            className={`nav-item w-full ${isCollapsed ? 'justify-center' : ''} ${
+            onClick={() => handleSectionNavigation(item.id)}
+            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
               activeSection === item.id ? 'active' : ''
             }`}
-            disabled
           >
             <item.icon className="h-5 w-5" />
             <AnimatePresence>
-              {!isCollapsed && (
+              {!effectivelyCollapsed && (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -255,6 +687,75 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
             </AnimatePresence>
           </button>
         ))}
+
+        {/* User Info with Dropdown */}
+        <div className="mt-8 pt-4 border-t border-white/10">
+          <AnimatePresence>
+            {!effectivelyCollapsed && user && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full p-3 glass-card backdrop-blur-md bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-xl shadow-lg overflow-hidden hover:from-white/15 hover:to-white/10 transition-all duration-300">
+                      <div className="flex items-center gap-3">
+                        {/* Profile Picture or Initial */}
+                        <div className="flex-shrink-0">
+                          {user.profile_pic ? (
+                            <img 
+                              src={getStorageUrl(user.profile_pic)} 
+                              alt={user.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-white/20">
+                              <span className="text-white font-semibold text-lg">
+                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* User Info */}
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
+                          <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                          {user.company_name && (
+                            <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{user.company_name}</div>
+                          )}
+                        </div>
+
+                        {/* Dropdown indicator */}
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20"
+                    sideOffset={8}
+                  >
+                    <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
+                      <Link to="/profile" className="flex items-center w-full">
+                        <UserCircle className="h-4 w-4 mr-2" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-white hover:text-black"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t('nav.logout')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </nav>
     </motion.div>
   );

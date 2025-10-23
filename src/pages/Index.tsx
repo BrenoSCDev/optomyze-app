@@ -10,14 +10,24 @@
  * - Animated background with floating particles
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
+import TagsDashboard from '@/components/dashboards/TagsDashboard';
+import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
+import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
+import IntegrationsApps from '@/components/integrations/IntegrationsApps';
+import N8nAgents from '@/components/agents/N8nAgents';
+import ApiTokens from '@/components/api/ApiTokens';
+import ApiSetup from '@/components/api/ApiSetup';
+import ManageUsers from '@/components/users/ManageUsers';
+import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -25,6 +35,25 @@ const Index = () => {
   
   // Active dashboard section state - determines which analytics dashboard to display
   const [activeSection, setActiveSection] = useState('optomyze-metrics');
+  
+  const location = useLocation();
+  const { funnelId } = useParams();
+
+  // Check for section parameter in URL and update active section
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const section = searchParams.get('section');
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [location.search]);
+
+  // Set active section to leads management if we have a funnelId
+  useEffect(() => {
+    if (funnelId) {
+      setActiveSection('leads');
+    }
+  }, [funnelId]);
 
   // Toggle sidebar collapse/expand functionality
   const toggleSidebar = () => {
@@ -47,17 +76,49 @@ const Index = () => {
       case 'google-analytics':
         return <GoogleAnalytics />; // Website traffic and user behavior metrics
       
-      // Leads Management - Different Sales Funnels
-      case 'b2b-enterprise':
-        return <LeadsManagement funnelId="b2b-enterprise" />;
-      case 'ecommerce-conversion':
-        return <LeadsManagement funnelId="ecommerce-conversion" />;
-      case 'saas-trial':
-        return <LeadsManagement funnelId="saas-trial" />;
-      case 'real-estate':
-        return <LeadsManagement funnelId="real-estate" />;
-      case 'digital-marketing':
-        return <LeadsManagement funnelId="digital-marketing" />;
+      // Settings sections
+      case 'languages':
+        return <LanguagesDashboard />; // Language selection interface
+      case 'funnels':
+        return <FunnelsDashboard />; // Funnels management interface
+      case 'tags':
+        return <TagsDashboard />; // Tags management interface
+      case 'general':
+      case 'users':
+      case 'api-keys':
+        return (
+          <div className="text-center py-12">
+            <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">🚧</span>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Coming Soon</h3>
+            <p className="text-muted-foreground">This feature is under development.</p>
+          </div>
+        );
+      case 'integrations':
+        return <IntegrationsApps />;
+      
+      // AI Agents sections
+      case 'n8n-agents':
+        return <N8nAgents />;
+      
+      // Leads Management - Dynamic funnel routing
+      case 'leads':
+        return <LeadsManagement funnelId={funnelId} />;
+      
+      // API sections
+      case 'api-tokens':
+        return <ApiTokens />;
+      case 'api-setup':
+        return <ApiSetup />;
+      
+      // Users sections
+      case 'manage-users':
+        return <ManageUsers />;
+      
+      // Chat sections
+      case 'whatsapp-inbox':
+        return <WhatsAppInbox />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
