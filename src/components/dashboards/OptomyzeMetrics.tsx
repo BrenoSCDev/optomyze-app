@@ -13,7 +13,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, LineChart, Line } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus } from 'lucide-react';
@@ -296,12 +296,6 @@ const OptomyzeMetrics = () => {
         )}
       </div>
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {secondaryKpis.map((kpi, index) => (
-          <KPICard key={index} {...kpi} delay={index + 4} />
-        ))}
-      </div>
 
       {/* Monthly Lead Flow */}
       <motion.div

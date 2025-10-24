@@ -608,10 +608,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         <div className="relative">
           {/* Horizontal Scroll Container */}
           <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30 scroll-smooth w-[1200px]">
-            {columns.map((column) => (
+          {columns.map((column, index) => (
               <KanbanColumn
                 key={column.id}
                 column={column}
+                index={index}
                 onAddLead={handleAddLead}
               />
             ))}
