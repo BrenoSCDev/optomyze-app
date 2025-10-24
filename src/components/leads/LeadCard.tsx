@@ -83,7 +83,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
       ref={setNodeRef}
       style={style}
       className={`glass-card p-4 cursor-pointer transition-all duration-300 ${
-        isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
+        isDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
       }`}
       whileHover={{ y: -2 }}
       layout
@@ -91,13 +91,12 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
     >
       {/* Lead Header */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 transition-colors"
-            {...listeners}
-          >
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
-          </div>
+        <div
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 transition-colors"
+          {...listeners}
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
         
         <div className="flex-1 min-w-0">
           <button
@@ -108,7 +107,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
             className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
           >
             {lead.name}
-          </h3>
+          </button>
         </div>
         
         {/* Lead Score & Tag Icon */}
