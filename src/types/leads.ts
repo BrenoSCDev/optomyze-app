@@ -9,8 +9,8 @@ export interface Lead {
   name: string;
   email: string;
   phone: string;
-  // company: string;
-  // title: string;
+  company: string;
+  title: string;
   score: number;
   value: number;
   source: 'Meta Ads' | 'Google Ads' | 'Organic' | 'Referral' | 'Direct';
