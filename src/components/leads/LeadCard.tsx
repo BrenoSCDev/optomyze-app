@@ -79,24 +79,28 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
   };
 
   return (
-    <motion.div
-      ref={setNodeRef}
-      style={style}
-      className={`glass-card p-4 cursor-pointer transition-all duration-300 ${
-        isDragging || isSortableDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-102'
-      }`}
-      whileHover={{ y: -2 }}
-      layout
-      {...attributes}
-    >
-      {/* Lead Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-white/10 transition-colors"
-            {...listeners}
-          >
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
+    <div className="relative">
+      <motion.div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 relative ${getPriorityColor(lead.priority)} ${
+          isDragging ? 'opacity-20 scale-95' : 'hover:scale-102'
+        } ${isMoving ? 'opacity-60' : ''}`}
+        whileHover={{ y: isDragging ? 0 : -2 }}
+        layout
+      >
+        {/* Lead Header */}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <div {...listeners} className="cursor-grab active:cursor-grabbing">
+              <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+            </div>
+            <Avatar className="h-10 w-10">
+              <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
+                {getInitials(lead.name)}
+              </AvatarFallback>
+            </Avatar>
           </div>
         
         <div className="flex-1 min-w-0">
@@ -108,7 +112,10 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
             className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
           >
             {lead.name}
-          </h3>
+          </button>
+          <p className="text-xs text-muted-foreground truncate">
+            {lead.company} - {lead.title}
+          </p>
         </div>
         
         {/* Lead Score & Tag Icon */}
@@ -170,13 +177,12 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
       )}
 
       {/* Bottom Section */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/10">
-        {/* <div className="flex items-center gap-2">
-          <DollarSign className="h-3 w-3 text-green-400" />
-          <span className="text-xs font-medium text-green-400">
-            {formatCurrency(lead.value)}
-          </span>
-        </div> */}
+      <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
+      
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>{lead.lastActivity}</span>
+        </div>
         
         <div className="flex items-center gap-2">
           <Badge
@@ -185,14 +191,24 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
             {lead.source}
           </Badge>
         </div>
-        {/* Last Activity */}
-        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          <span>{lead.lastActivity}</span>
-        </div>
       </div>
-
-    </motion.div>
+      </motion.div>
+      
+      {/* Loading Overlay for Moving State */}
+      {isMoving && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="flex items-center gap-2 px-3 py-2 bg-background/80 rounded-lg border border-border">
+            <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+            <span className="text-xs font-medium text-foreground">Moving...</span>
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 };
 
