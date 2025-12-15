@@ -11,6 +11,7 @@ export interface Task {
   completed_at: string | null;
   assigned_to: number | null;
   created_by: number | null;
+  reminder: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ export interface CreateTaskPayload {
   status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   due_date?: string;
   assigned_to?: number;
+  reminder?: boolean;
 }
 
 export const taskApi = {

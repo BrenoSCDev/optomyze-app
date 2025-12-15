@@ -12,7 +12,8 @@ import {
   ListTodo,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -261,6 +262,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {task.reminder && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-400">
+              <Bell className="w-3.5 h-3.5" />
+              <span>Reminder</span>
+            </div>
+          )}
           {task.due_date && (
             <div className={`flex items-center gap-1.5 text-xs ${
               isOverdue ? 'text-red-400' : 'text-gray-400'

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -54,7 +55,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     status: 'pending' as 'pending' | 'in_progress' | 'completed' | 'cancelled',
     due_date: undefined as Date | undefined,
-    assigned_to: 'unassigned' as string
+    assigned_to: 'unassigned' as string,
+    reminder: false
   });
 
   useEffect(() => {
@@ -69,7 +71,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           priority: editTask.priority || 'medium',
           status: editTask.status || 'pending',
           due_date: editTask.due_date ? parseISO(editTask.due_date) : undefined,
-          assigned_to: editTask.assigned_to ? editTask.assigned_to.toString() : 'unassigned'
+          assigned_to: editTask.assigned_to ? editTask.assigned_to.toString() : 'unassigned',
+          reminder: editTask.reminder || false
         });
       } else {
         // Reset form for new task
@@ -79,7 +82,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           priority: 'medium',
           status: 'pending',
           due_date: undefined,
-          assigned_to: 'unassigned'
+          assigned_to: 'unassigned',
+          reminder: false
         });
       }
     }
@@ -119,7 +123,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           : undefined,
         assigned_to: formData.assigned_to && formData.assigned_to !== 'unassigned' 
           ? parseInt(formData.assigned_to) 
-          : undefined
+          : undefined,
+        reminder: formData.reminder
       };
 
       if (isEditMode && editTask) {
@@ -333,6 +338,18 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                     )}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Reminder Switch */}
+              <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4">
+                <div>
+                  <Label className="text-white">Reminder</Label>
+                  <p className="text-xs text-gray-400 mt-0.5">Enable notifications for this task</p>
+                </div>
+                <Switch
+                  checked={formData.reminder}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, reminder: checked }))}
+                />
               </div>
             </div>
             
