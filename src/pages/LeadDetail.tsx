@@ -40,28 +40,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
 
-interface Lead {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  ddi: string;
-  source_platform: string;
-  source_type: string;
-  status: string;
-  priority: string;
-  estimated_value: number;
-  currency: string;
-  ai_score: number;
-  language: string;
-  external_id: string;
-  sync_enabled: boolean;
-  notes: string;
-  created_at: string;
-  updated_at: string;
-}
-
 interface Transaction {
   id: number;
   lead_id: number;
@@ -105,6 +83,30 @@ interface Report {
   agent: Agent;
 }
 
+interface Lead {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  ddi: string;
+  source_platform: string;
+  source_type: string;
+  status: string;
+  priority: string;
+  estimated_value: number;
+  currency: string;
+  ai_score: number;
+  language: string;
+  external_id: string;
+  sync_enabled: boolean;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  transactions?: Transaction[];
+  reports?: Report[];
+}
+
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
@@ -130,7 +132,18 @@ const LeadDetailPage = () => {
       setError(null);
       
       const response = await api.get(`/api/leads/${leadId}`);
-      setLeadData(response.data);
+      const data = response.data;
+      
+      // Handle both structures: transactions/reports inside lead object or at root level
+      const lead = data.lead || data;
+      const transactions = data.transactions || lead.transactions || [];
+      const reports = data.reports || lead.reports || [];
+      
+      setLeadData({
+        lead,
+        transactions,
+        reports
+      });
       
     } catch (err: any) {
       console.error('Error fetching lead data:', err);
