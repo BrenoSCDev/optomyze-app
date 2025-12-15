@@ -36,7 +36,8 @@ import {
   Bot,
   Key,
   MessageCircle,
-  UserCircle
+  UserCircle,
+  CalendarDays
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -136,6 +137,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Chat submenu items
   const chatItems = [
     { id: 'whatsapp-inbox', label: 'WhatsApp Inbox', icon: () => <MessageCircle size={18}/> },
+  ];
+
+  // Calendars submenu items
+  const calendarsItems = [
+    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <CalendarDays size={18}/> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
@@ -664,7 +670,65 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
-        {/* Main Navigation Items */}
+        {/* Calendars Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('calendars')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <CalendarDays className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.calendars')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'calendars' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'calendars' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {calendarsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-4 w-4" })}
+                    <span className="text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {mainItems.filter(item => item.id !== 'integrations').map((item) => (
           <button
             key={item.id}
