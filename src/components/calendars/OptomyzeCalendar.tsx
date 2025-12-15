@@ -13,28 +13,164 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
 
-// Mock events data
+// Mock events data - spread across December 2025 and January 2026
 const mockEvents = [
+  // December 2025
   {
     id: 1,
-    title: 'Sales Call - John Doe',
-    date: new Date(2025, 11, 16, 10, 0),
-    endDate: new Date(2025, 11, 16, 11, 0),
+    title: 'Team Kickoff Meeting',
+    date: new Date(2025, 11, 1, 9, 0),
+    endDate: new Date(2025, 11, 1, 10, 0),
+    type: 'internal',
+    attendee: 'All Teams',
+    location: 'Main Conference Room'
+  },
+  {
+    id: 2,
+    title: 'Client Discovery Call',
+    date: new Date(2025, 11, 2, 14, 0),
+    endDate: new Date(2025, 11, 2, 15, 0),
+    type: 'call',
+    attendee: 'BlueTech Inc',
+    location: 'Zoom Meeting'
+  },
+  {
+    id: 3,
+    title: 'Product Demo - Enterprise',
+    date: new Date(2025, 11, 3, 11, 0),
+    endDate: new Date(2025, 11, 3, 12, 30),
+    type: 'meeting',
+    attendee: 'GlobalCorp',
+    location: 'Google Meet'
+  },
+  {
+    id: 4,
+    title: 'Sales Pipeline Review',
+    date: new Date(2025, 11, 4, 10, 0),
+    endDate: new Date(2025, 11, 4, 11, 0),
+    type: 'internal',
+    attendee: 'Sales Team',
+    location: 'Office'
+  },
+  {
+    id: 5,
+    title: 'Follow-up Call - Sarah',
+    date: new Date(2025, 11, 5, 9, 30),
+    endDate: new Date(2025, 11, 5, 10, 0),
+    type: 'call',
+    attendee: 'Sarah Wilson',
+    location: 'Phone'
+  },
+  {
+    id: 6,
+    title: 'Contract Negotiation',
+    date: new Date(2025, 11, 5, 15, 0),
+    endDate: new Date(2025, 11, 5, 16, 30),
+    type: 'meeting',
+    attendee: 'TechStart LLC',
+    location: 'Client Office'
+  },
+  {
+    id: 7,
+    title: 'Weekly Standup',
+    date: new Date(2025, 11, 8, 9, 0),
+    endDate: new Date(2025, 11, 8, 9, 30),
+    type: 'internal',
+    attendee: 'Dev Team',
+    location: 'Office'
+  },
+  {
+    id: 8,
+    title: 'Investor Presentation',
+    date: new Date(2025, 11, 9, 14, 0),
+    endDate: new Date(2025, 11, 9, 16, 0),
+    type: 'meeting',
+    attendee: 'VC Partners',
+    location: 'Board Room'
+  },
+  {
+    id: 9,
+    title: 'New Lead Intro Call',
+    date: new Date(2025, 11, 10, 10, 0),
+    endDate: new Date(2025, 11, 10, 10, 45),
+    type: 'call',
+    attendee: 'DataFlow Systems',
+    location: 'Zoom Meeting'
+  },
+  {
+    id: 10,
+    title: 'Training Session',
+    date: new Date(2025, 11, 10, 14, 0),
+    endDate: new Date(2025, 11, 10, 16, 0),
+    type: 'internal',
+    attendee: 'New Hires',
+    location: 'Training Room'
+  },
+  {
+    id: 11,
+    title: 'Partnership Discussion',
+    date: new Date(2025, 11, 11, 11, 0),
+    endDate: new Date(2025, 11, 11, 12, 0),
+    type: 'meeting',
+    attendee: 'PartnerCo',
+    location: 'Google Meet'
+  },
+  {
+    id: 12,
+    title: 'Client Onboarding',
+    date: new Date(2025, 11, 12, 9, 0),
+    endDate: new Date(2025, 11, 12, 11, 0),
+    type: 'meeting',
+    attendee: 'NewClient Inc',
+    location: 'On-site'
+  },
+  {
+    id: 13,
+    title: 'Sales Call - John',
+    date: new Date(2025, 11, 15, 10, 0),
+    endDate: new Date(2025, 11, 15, 11, 0),
     type: 'call',
     attendee: 'John Doe',
     location: 'Zoom Meeting'
   },
   {
-    id: 2,
+    id: 14,
+    title: 'Team Lunch',
+    date: new Date(2025, 11, 15, 12, 0),
+    endDate: new Date(2025, 11, 15, 13, 30),
+    type: 'internal',
+    attendee: 'All Staff',
+    location: 'Restaurant'
+  },
+  {
+    id: 15,
     title: 'Product Demo',
-    date: new Date(2025, 11, 17, 14, 0),
-    endDate: new Date(2025, 11, 17, 15, 30),
+    date: new Date(2025, 11, 16, 14, 0),
+    endDate: new Date(2025, 11, 16, 15, 30),
     type: 'meeting',
     attendee: 'Acme Corp',
     location: 'Google Meet'
   },
   {
-    id: 3,
+    id: 16,
+    title: 'Support Call',
+    date: new Date(2025, 11, 16, 16, 0),
+    endDate: new Date(2025, 11, 16, 16, 30),
+    type: 'call',
+    attendee: 'Existing Client',
+    location: 'Phone'
+  },
+  {
+    id: 17,
+    title: 'Strategy Meeting',
+    date: new Date(2025, 11, 17, 9, 0),
+    endDate: new Date(2025, 11, 17, 11, 0),
+    type: 'internal',
+    attendee: 'Leadership',
+    location: 'Board Room'
+  },
+  {
+    id: 18,
     title: 'Follow-up Call',
     date: new Date(2025, 11, 18, 9, 0),
     endDate: new Date(2025, 11, 18, 9, 30),
@@ -43,25 +179,25 @@ const mockEvents = [
     location: 'Phone'
   },
   {
-    id: 4,
-    title: 'Team Standup',
-    date: new Date(2025, 11, 15, 9, 0),
-    endDate: new Date(2025, 11, 15, 9, 30),
+    id: 19,
+    title: 'Client Presentation',
+    date: new Date(2025, 11, 18, 14, 0),
+    endDate: new Date(2025, 11, 18, 15, 30),
+    type: 'meeting',
+    attendee: 'BigCorp',
+    location: 'Client HQ'
+  },
+  {
+    id: 20,
+    title: 'Sprint Planning',
+    date: new Date(2025, 11, 19, 10, 0),
+    endDate: new Date(2025, 11, 19, 12, 0),
     type: 'internal',
-    attendee: 'Sales Team',
+    attendee: 'Dev Team',
     location: 'Office'
   },
   {
-    id: 5,
-    title: 'Client Onboarding',
-    date: new Date(2025, 11, 19, 11, 0),
-    endDate: new Date(2025, 11, 19, 12, 0),
-    type: 'meeting',
-    attendee: 'NewTech Inc',
-    location: 'On-site'
-  },
-  {
-    id: 6,
+    id: 21,
     title: 'Quarterly Review',
     date: new Date(2025, 11, 20, 15, 0),
     endDate: new Date(2025, 11, 20, 17, 0),
@@ -70,13 +206,86 @@ const mockEvents = [
     location: 'Conference Room A'
   },
   {
-    id: 7,
-    title: 'Discovery Call - TechStart',
+    id: 22,
+    title: 'Discovery Call',
     date: new Date(2025, 11, 22, 10, 0),
     endDate: new Date(2025, 11, 22, 10, 45),
     type: 'call',
     attendee: 'TechStart LLC',
     location: 'Zoom Meeting'
+  },
+  {
+    id: 23,
+    title: 'Contract Signing',
+    date: new Date(2025, 11, 22, 14, 0),
+    endDate: new Date(2025, 11, 22, 15, 0),
+    type: 'meeting',
+    attendee: 'MegaCorp',
+    location: 'Legal Office'
+  },
+  {
+    id: 24,
+    title: 'Year-End Review',
+    date: new Date(2025, 11, 23, 9, 0),
+    endDate: new Date(2025, 11, 23, 12, 0),
+    type: 'internal',
+    attendee: 'All Departments',
+    location: 'Main Hall'
+  },
+  {
+    id: 25,
+    title: 'Holiday Party',
+    date: new Date(2025, 11, 24, 18, 0),
+    endDate: new Date(2025, 11, 24, 22, 0),
+    type: 'internal',
+    attendee: 'Company Wide',
+    location: 'Event Center'
+  },
+  {
+    id: 26,
+    title: 'New Year Planning',
+    date: new Date(2025, 11, 29, 10, 0),
+    endDate: new Date(2025, 11, 29, 12, 0),
+    type: 'internal',
+    attendee: 'Leadership',
+    location: 'Board Room'
+  },
+  {
+    id: 27,
+    title: 'Client Check-in',
+    date: new Date(2025, 11, 30, 11, 0),
+    endDate: new Date(2025, 11, 30, 11, 30),
+    type: 'call',
+    attendee: 'Key Accounts',
+    location: 'Phone'
+  },
+  {
+    id: 28,
+    title: 'Q1 Kickoff Prep',
+    date: new Date(2025, 11, 31, 9, 0),
+    endDate: new Date(2025, 11, 31, 11, 0),
+    type: 'internal',
+    attendee: 'Sales Team',
+    location: 'Office'
+  },
+  // January 2026
+  {
+    id: 29,
+    title: 'New Year Kickoff',
+    date: new Date(2026, 0, 2, 9, 0),
+    endDate: new Date(2026, 0, 2, 11, 0),
+    type: 'internal',
+    attendee: 'All Staff',
+    location: 'Main Hall'
+  },
+  {
+    id: 30,
+    title: 'Q1 Goals Meeting',
+    date: new Date(2026, 0, 3, 14, 0),
+    endDate: new Date(2026, 0, 3, 16, 0),
+    type: 'internal',
+    attendee: 'Department Heads',
+    location: 'Board Room'
   },
 ];
 
