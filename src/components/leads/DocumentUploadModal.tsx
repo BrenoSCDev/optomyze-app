@@ -11,12 +11,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { createDocument, LeadDocument } from '@/services/documentApi';
 
 interface DocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   leadId: number;
-  onDocumentUploaded?: (document: any) => void;
+  onDocumentUploaded?: (document: LeadDocument) => void;
 }
 
 const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
@@ -72,21 +73,15 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     setIsUploading(true);
     
     try {
-      // TODO: Implement backend upload logic
-      // For now, just simulate success
-      const mockDocument = {
-        id: Date.now(),
-        title: title.trim(),
-        description: description.trim(),
-        file_name: file.name,
-        file_url: URL.createObjectURL(file),
-        file_type: file.type,
-        file_size: file.size,
-        created_at: new Date().toISOString()
-      };
+      const newDocument = await createDocument(
+        leadId,
+        title.trim(),
+        description.trim() || null,
+        file
+      );
       
       toast.success('Document uploaded successfully');
-      onDocumentUploaded?.(mockDocument);
+      onDocumentUploaded?.(newDocument);
       handleClose();
     } catch (error) {
       console.error('Error uploading document:', error);
