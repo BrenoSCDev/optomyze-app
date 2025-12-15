@@ -133,7 +133,8 @@ const FunnelsDashboard = () => {
         const updatedGlobalFunnels = [...(authFunnels || []), {
           id: response.data.id,
           name: response.data.name,
-          nleads: response.data.nleads || 0
+          nleads: response.data.nleads || 0,
+          is_active: response.data.is_active ?? true
         }];
         updateFunnels(updatedGlobalFunnels);
       }
