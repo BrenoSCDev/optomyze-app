@@ -780,6 +780,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
   lead: Lead; 
   onUpdate: () => void; 
 }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -817,13 +818,13 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
     try {
       await api.put(`/api/leads/${lead.id}`, formData);
       
-      toast.success('Lead updated successfully');
+      toast.success(t('lead-details.update-success'));
       onUpdate();
       onClose();
       
     } catch (error: any) {
       console.error('Error updating lead:', error);
-      toast.error('Failed to update lead');
+      toast.error(t('lead-details.update-error'));
     } finally {
       setLoading(false);
     }
@@ -842,7 +843,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
         <form onSubmit={handleSubmit}>
           {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 className="text-xl font-semibold text-white">Edit Lead</h3>
+            <h3 className="text-xl font-semibold text-white">{t('lead-details.edit-modal-title')}</h3>
             <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10">
               <X className="w-5 h-5 text-gray-400" />
             </button>
@@ -853,25 +854,25 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
             {/* Personal Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
-                label="First Name"
+                label={t('lead-details.first-name')}
                 value={formData.first_name}
                 onChange={(value) => setFormData(prev => ({...prev, first_name: value}))}
                 required
               />
               <FormField
-                label="Last Name"
+                label={t('lead-details.last-name')}
                 value={formData.last_name}
                 onChange={(value) => setFormData(prev => ({...prev, last_name: value}))}
                 required
               />
               <FormField
-                label="Email"
+                label={t('lead-details.email')}
                 type="email"
                 value={formData.email}
                 onChange={(value) => setFormData(prev => ({...prev, email: value}))}
               />
               <FormField
-                label="Phone"
+                label={t('lead-details.phone')}
                 value={formData.phone}
                 onChange={(value) => setFormData(prev => ({...prev, phone: value}))}
               />
@@ -879,7 +880,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
             
             {/* Additional Fields */}
             <FormField
-              label="Notes"
+              label={t('lead-details.notes')}
               type="textarea"
               value={formData.notes}
               onChange={(value) => setFormData(prev => ({...prev, notes: value}))}
@@ -895,7 +896,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
               variant="outline"
               disabled={loading}
             >
-              Cancel
+              {t('lead-details.cancel')}
             </Button>
             <Button
               type="submit"
@@ -905,10 +906,10 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  {t('lead-details.saving')}
                 </>
               ) : (
-                'Save Changes'
+                t('lead-details.save-changes')
               )}
             </Button>
           </div>

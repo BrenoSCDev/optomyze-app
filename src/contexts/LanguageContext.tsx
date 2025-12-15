@@ -742,6 +742,9 @@ const translations = {
     'lead-details.update-success': 'Lead updated successfully',
     'lead-details.update-error': 'Failed to update lead',
     'lead-details.load-error': 'Failed to load lead data',
+    'lead-details.first-name': 'First Name',
+    'lead-details.last-name': 'Last Name',
+    'lead-details.cancel': 'Cancel',
     
     // Tasks Section
     'tasks.title': 'Tasks',
@@ -1523,6 +1526,9 @@ const translations = {
     'lead-details.update-success': 'Lead atualizado com sucesso',
     'lead-details.update-error': 'Falha ao atualizar lead',
     'lead-details.load-error': 'Falha ao carregar dados do lead',
+    'lead-details.first-name': 'Nome',
+    'lead-details.last-name': 'Sobrenome',
+    'lead-details.cancel': 'Cancelar',
     
     // Tasks Section
     'tasks.title': 'Tarefas',
@@ -2128,6 +2134,9 @@ const translations = {
     'lead-details.update-success': 'Lead erfolgreich aktualisiert',
     'lead-details.update-error': 'Lead konnte nicht aktualisiert werden',
     'lead-details.load-error': 'Lead-Daten konnten nicht geladen werden',
+    'lead-details.first-name': 'Vorname',
+    'lead-details.last-name': 'Nachname',
+    'lead-details.cancel': 'Abbrechen',
     
     // Tasks Section
     'tasks.title': 'Aufgaben',
@@ -2733,6 +2742,9 @@ const translations = {
     'lead-details.update-success': 'Lead actualizado exitosamente',
     'lead-details.update-error': 'Error al actualizar lead',
     'lead-details.load-error': 'Error al cargar datos del lead',
+    'lead-details.first-name': 'Nombre',
+    'lead-details.last-name': 'Apellido',
+    'lead-details.cancel': 'Cancelar',
     
     // Tasks Section
     'tasks.title': 'Tareas',
