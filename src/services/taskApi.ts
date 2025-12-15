@@ -40,7 +40,8 @@ export const taskApi = {
   updateTask: async (taskId: number, taskData: Partial<CreateTaskPayload>): Promise<Task> => {
     try {
       const response = await api.put(`/api/tasks/${taskId}`, taskData);
-      return response.data;
+      // Backend may return { message: string, task: Task }
+      return response.data.task || response.data;
     } catch (error) {
       console.error('Error updating task:', error);
       throw error;

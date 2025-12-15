@@ -9,20 +9,37 @@ import {
   ChevronUp,
   Calendar,
   User,
-  ListTodo
+  ListTodo,
+  MoreVertical,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Task } from '@/services/taskApi';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface TasksSectionProps {
   tasks: Task[];
   loading?: boolean;
   onCreateTask: () => void;
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
 }
 
-const TasksSection: React.FC<TasksSectionProps> = ({ tasks, loading, onCreateTask }) => {
+const TasksSection: React.FC<TasksSectionProps> = ({ 
+  tasks, 
+  loading, 
+  onCreateTask,
+  onEditTask,
+  onDeleteTask
+}) => {
   if (loading) {
     return (
       <motion.div 
@@ -71,9 +88,16 @@ const TasksSection: React.FC<TasksSectionProps> = ({ tasks, loading, onCreateTas
         <EmptyTasksState onCreateTask={onCreateTask} />
       ) : (
         <div className="space-y-3">
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+          <AnimatePresence>
+            {tasks.map((task) => (
+              <TaskCard 
+                key={task.id} 
+                task={task} 
+                onEdit={() => onEditTask(task)}
+                onDelete={() => onDeleteTask(task)}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </motion.div>
@@ -94,7 +118,13 @@ const EmptyTasksState: React.FC<{ onCreateTask: () => void }> = ({ onCreateTask 
   </div>
 );
 
-const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
+interface TaskCardProps {
+  task: Task;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   
   const isCompleted = task.status === 'completed';
@@ -140,13 +170,12 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
   };
 
   const formatDate = (dateString: string) => {
-    // Parse date as UTC and display in local format without timezone shift
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
       year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-      timeZone: 'UTC' // Keep the date as sent from backend
+      timeZone: 'UTC'
     });
   };
 
@@ -157,11 +186,13 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
 
   return (
     <motion.div 
-      className={`rounded-lg border border-white/10 p-4 transition-all hover:border-white/20 ${
+      className={`group rounded-lg border border-white/10 p-4 transition-all hover:border-white/20 ${
         isDimmed ? 'opacity-60' : ''
       }`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+      layout
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -203,8 +234,33 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
           </div>
         </div>
         
-        {/* Meta info */}
+        {/* Meta info and Actions */}
         <div className="flex flex-col items-end gap-2 shrink-0">
+          {/* Actions Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 md:opacity-0 opacity-100 hover:bg-white/10 transition-all">
+                <MoreVertical className="w-4 h-4 text-gray-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-gray-900 border-white/10">
+              <DropdownMenuItem 
+                onClick={onEdit}
+                className="text-gray-300 focus:bg-white/10 focus:text-white cursor-pointer"
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit Task
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={onDelete}
+                className="text-red-400 focus:bg-red-600/20 focus:text-red-400 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Task
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {task.due_date && (
             <div className={`flex items-center gap-1.5 text-xs ${
               isOverdue ? 'text-red-400' : 'text-gray-400'

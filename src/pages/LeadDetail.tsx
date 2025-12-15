@@ -41,6 +41,7 @@ import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
 import TasksSection from '@/components/leads/TasksSection';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
+import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import { Task } from '@/services/taskApi';
 
 interface Transaction {
@@ -129,6 +130,8 @@ const LeadDetailPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reportsModalOpen, setReportsModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -184,6 +187,38 @@ const LeadDetailPage = () => {
     });
   };
 
+  const handleTaskUpdated = (updatedTask: Task) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: prev.tasks.map(t => t.id === updatedTask.id ? updatedTask : t)
+      };
+    });
+    setEditingTask(null);
+  };
+
+  const handleTaskDeleted = (taskId: number) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: prev.tasks.filter(t => t.id !== taskId)
+      };
+    });
+    setDeletingTask(null);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setTaskModalOpen(true);
+  };
+
+  const handleCloseTaskModal = () => {
+    setTaskModalOpen(false);
+    setEditingTask(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
@@ -233,6 +268,8 @@ const LeadDetailPage = () => {
             <TasksSection 
               tasks={leadData.tasks || []} 
               onCreateTask={() => setTaskModalOpen(true)}
+              onEditTask={handleEditTask}
+              onDeleteTask={(task) => setDeletingTask(task)}
             />
           </div>
           
@@ -258,12 +295,22 @@ const LeadDetailPage = () => {
           leadName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
         />
 
-        {/* Task Creation Modal */}
+        {/* Task Creation/Edit Modal */}
         <TaskCreationModal
           isOpen={taskModalOpen}
-          onClose={() => setTaskModalOpen(false)}
+          onClose={handleCloseTaskModal}
           leadId={leadData.lead.id}
           onTaskCreated={handleTaskCreated}
+          editTask={editingTask}
+          onTaskUpdated={handleTaskUpdated}
+        />
+
+        {/* Task Delete Dialog */}
+        <TaskDeleteDialog
+          isOpen={!!deletingTask}
+          onClose={() => setDeletingTask(null)}
+          task={deletingTask}
+          onTaskDeleted={handleTaskDeleted}
         />
       </div>
     </div>

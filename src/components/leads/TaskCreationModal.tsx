@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { taskApi, CreateTaskPayload, Task } from '@/services/taskApi';
 import { userApi } from '@/services/userApi';
 import { User } from '@/types/user';
@@ -30,17 +30,23 @@ interface TaskCreationModalProps {
   onClose: () => void;
   leadId: number;
   onTaskCreated: (task: Task) => void;
+  editTask?: Task | null;
+  onTaskUpdated?: (task: Task) => void;
 }
 
 const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   isOpen,
   onClose,
   leadId,
-  onTaskCreated
+  onTaskCreated,
+  editTask,
+  onTaskUpdated
 }) => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  
+  const isEditMode = !!editTask;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -54,17 +60,30 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
-      // Reset form when opening
-      setFormData({
-        title: '',
-        description: '',
-        priority: 'medium',
-        status: 'pending',
-        due_date: undefined,
-        assigned_to: 'unassigned'
-      });
+      
+      if (editTask) {
+        // Pre-fill form with existing task data
+        setFormData({
+          title: editTask.title || '',
+          description: editTask.description || '',
+          priority: editTask.priority || 'medium',
+          status: editTask.status || 'pending',
+          due_date: editTask.due_date ? parseISO(editTask.due_date) : undefined,
+          assigned_to: editTask.assigned_to ? editTask.assigned_to.toString() : 'unassigned'
+        });
+      } else {
+        // Reset form for new task
+        setFormData({
+          title: '',
+          description: '',
+          priority: 'medium',
+          status: 'pending',
+          due_date: undefined,
+          assigned_to: 'unassigned'
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, editTask]);
 
   const fetchUsers = async () => {
     try {
@@ -103,15 +122,23 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           : undefined
       };
 
-      const newTask = await taskApi.createTask(payload);
+      if (isEditMode && editTask) {
+        // Update existing task
+        const updatedTask = await taskApi.updateTask(editTask.id, payload);
+        toast.success('Task updated successfully');
+        onTaskUpdated?.(updatedTask);
+      } else {
+        // Create new task
+        const newTask = await taskApi.createTask(payload);
+        toast.success('Task created successfully');
+        onTaskCreated(newTask);
+      }
       
-      toast.success('Task created successfully');
-      onTaskCreated(newTask);
       onClose();
       
     } catch (error: any) {
-      console.error('Error creating task:', error);
-      toast.error(error.response?.data?.message || 'Failed to create task');
+      console.error('Error saving task:', error);
+      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} task`);
     } finally {
       setLoading(false);
     }
@@ -132,7 +159,9 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           <form onSubmit={handleSubmit}>
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h3 className="text-xl font-semibold text-white">Create New Task</h3>
+              <h3 className="text-xl font-semibold text-white">
+                {isEditMode ? 'Edit Task' : 'Create New Task'}
+              </h3>
               <button 
                 type="button" 
                 onClick={onClose} 
@@ -326,10 +355,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
+                    {isEditMode ? 'Saving...' : 'Creating...'}
                   </>
                 ) : (
-                  'Create Task'
+                  isEditMode ? 'Save Changes' : 'Create Task'
                 )}
               </Button>
             </div>
