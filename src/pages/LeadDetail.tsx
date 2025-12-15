@@ -43,9 +43,10 @@ import ReportsModal from '@/components/leads/ReportsModal';
 import TasksSection from '@/components/leads/TasksSection';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
-import DocumentsSection, { LeadDocument } from '@/components/leads/DocumentsSection';
+import DocumentsSection from '@/components/leads/DocumentsSection';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import { Task } from '@/services/taskApi';
+import { LeadDocument } from '@/services/documentApi';
 
 interface Transaction {
   id: number;
@@ -113,6 +114,7 @@ interface Lead {
   transactions?: Transaction[];
   reports?: Report[];
   tasks?: Task[];
+  docs?: LeadDocument[];
 }
 
 interface LeadData {
@@ -120,6 +122,7 @@ interface LeadData {
   transactions: Transaction[];
   reports: Report[];
   tasks: Task[];
+  docs: LeadDocument[];
 }
 
 const LeadDetailPage = () => {
@@ -136,7 +139,6 @@ const LeadDetailPage = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
-  const [documents, setDocuments] = useState<LeadDocument[]>([]);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -153,12 +155,14 @@ const LeadDetailPage = () => {
       const transactions = data.transactions || lead.transactions || [];
       const reports = data.reports || lead.reports || [];
       const tasks = data.tasks || lead.tasks || [];
+      const docs = lead.docs || [];
       
       setLeadData({
         lead,
         transactions,
         reports,
-        tasks
+        tasks,
+        docs
       });
       
     } catch (err: any) {
@@ -225,7 +229,23 @@ const LeadDetailPage = () => {
   };
 
   const handleDocumentUploaded = (newDocument: LeadDocument) => {
-    setDocuments(prev => [newDocument, ...prev]);
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        docs: [newDocument, ...prev.docs]
+      };
+    });
+  };
+
+  const handleDocumentDeleted = (documentId: number) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        docs: prev.docs.filter(d => d.id !== documentId)
+      };
+    });
   };
 
   if (loading) {
@@ -281,8 +301,9 @@ const LeadDetailPage = () => {
               onDeleteTask={(task) => setDeletingTask(task)}
             />
             <DocumentsSection 
-              documents={documents}
+              documents={leadData.docs || []}
               onUploadClick={() => setDocumentModalOpen(true)}
+              onDocumentDeleted={handleDocumentDeleted}
             />
           </div>
           
