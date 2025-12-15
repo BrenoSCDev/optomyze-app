@@ -43,6 +43,8 @@ import ReportsModal from '@/components/leads/ReportsModal';
 import TasksSection from '@/components/leads/TasksSection';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
+import DocumentsSection, { LeadDocument } from '@/components/leads/DocumentsSection';
+import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import { Task } from '@/services/taskApi';
 
 interface Transaction {
@@ -133,6 +135,8 @@ const LeadDetailPage = () => {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [documentModalOpen, setDocumentModalOpen] = useState(false);
+  const [documents, setDocuments] = useState<LeadDocument[]>([]);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -220,6 +224,10 @@ const LeadDetailPage = () => {
     setEditingTask(null);
   };
 
+  const handleDocumentUploaded = (newDocument: LeadDocument) => {
+    setDocuments(prev => [newDocument, ...prev]);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
@@ -272,6 +280,10 @@ const LeadDetailPage = () => {
               onEditTask={handleEditTask}
               onDeleteTask={(task) => setDeletingTask(task)}
             />
+            <DocumentsSection 
+              documents={documents}
+              onUploadClick={() => setDocumentModalOpen(true)}
+            />
           </div>
           
           {/* Right Column - Activity Timeline */}
@@ -312,6 +324,14 @@ const LeadDetailPage = () => {
           onClose={() => setDeletingTask(null)}
           task={deletingTask}
           onTaskDeleted={handleTaskDeleted}
+        />
+
+        {/* Document Upload Modal */}
+        <DocumentUploadModal
+          isOpen={documentModalOpen}
+          onClose={() => setDocumentModalOpen(false)}
+          leadId={leadData.lead.id}
+          onDocumentUploaded={handleDocumentUploaded}
         />
       </div>
     </div>
