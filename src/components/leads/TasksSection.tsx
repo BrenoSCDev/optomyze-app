@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Task } from '@/services/taskApi';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,8 @@ const TasksSection: React.FC<TasksSectionProps> = ({
   onEditTask,
   onDeleteTask
 }) => {
+  const { t } = useLanguage();
+  
   if (loading) {
     return (
       <motion.div 
@@ -72,7 +75,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-white flex items-center gap-2">
           <ListTodo className="w-5 h-5" />
-          Tasks
+          {t('tasks.title')}
           {tasks.length > 0 && (
             <Badge variant="secondary" className="ml-2 bg-primary/20 text-primary border-primary/30">
               {tasks.length}
@@ -81,7 +84,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
         </h3>
         <Button onClick={onCreateTask} size="sm" className="bg-primary hover:bg-primary/80">
           <Plus className="w-4 h-4 mr-2" />
-          New Task
+          {t('tasks.new-task')}
         </Button>
       </div>
 

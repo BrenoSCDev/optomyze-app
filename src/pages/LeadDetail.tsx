@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -129,6 +130,7 @@ const LeadDetailPage = () => {
   const { leadId, funnelId } = useParams<{ leadId: string; funnelId: string }>();
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { t } = useLanguage();
   
   const [leadData, setLeadData] = useState<LeadData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,8 +169,8 @@ const LeadDetailPage = () => {
       
     } catch (err: any) {
       console.error('Error fetching lead data:', err);
-      setError(err.response?.data?.message || 'Failed to load lead data');
-      toast.error('Failed to load lead data');
+      setError(err.response?.data?.message || t('lead-details.load-error'));
+      toast.error(t('lead-details.load-error'));
     } finally {
       setLoading(false);
     }
@@ -253,7 +255,7 @@ const LeadDetailPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
         <div className="flex items-center gap-3 text-white">
           <Loader2 className="w-6 h-6 animate-spin" />
-          <span>Loading lead details...</span>
+          <span>{t('lead-details.loading')}</span>
         </div>
       </div>
     );
@@ -264,11 +266,11 @@ const LeadDetailPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
         <div className="glass-card p-8 text-center max-w-md">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">Lead Not Found</h3>
-          <p className="text-gray-400 mb-6">{error || 'The requested lead could not be found.'}</p>
+          <h3 className="text-xl font-semibold text-white mb-2">{t('lead-details.not-found')}</h3>
+          <p className="text-gray-400 mb-6">{error || t('lead-details.not-found-description')}</p>
           <Button onClick={handleBack} variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+            {t('lead-details.go-back')}
           </Button>
         </div>
       </div>
@@ -373,6 +375,8 @@ const LeadDetailHeader = ({
   onViewReports: () => void;
   reportsCount: number;
 }) => {
+  const { t } = useLanguage();
+  
   const getStatusColor = (status: string) => {
     const colors = {
       'new': 'bg-blue-600/20 text-blue-400 border-blue-600/30',
@@ -411,10 +415,10 @@ const LeadDetailHeader = ({
           className="hover:text-white transition-colors flex items-center gap-1"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t('lead-details.back')}
         </button>
         <ChevronRight className="w-4 h-4" />
-        <span>Lead Details</span>
+        <span>{t('lead-details.breadcrumb')}</span>
       </div>
       
       {/* Main Header */}
@@ -448,7 +452,7 @@ const LeadDetailHeader = ({
                 </Badge>
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${getPriorityColor(lead.priority)}`}></div>
-                  <span className="text-gray-400 text-sm capitalize">{lead.priority} priority</span>
+                  <span className="text-gray-400 text-sm capitalize">{lead.priority} {t('lead-details.priority')}</span>
                 </div>
                 <span className="text-gray-400 text-sm">#{lead.id}</span>
               </div>
@@ -459,7 +463,7 @@ const LeadDetailHeader = ({
           <div className="flex items-center gap-3">
             <Button onClick={onViewReports} variant="outline" className="glass-card">
               <FileText className="w-4 h-4 mr-2" />
-              See Reports
+              {t('lead-details.see-reports')}
               {reportsCount > 0 && (
                 <Badge className="ml-2 bg-primary/20 text-primary border-primary/30">
                   {reportsCount}
@@ -468,7 +472,7 @@ const LeadDetailHeader = ({
             </Button>
             <Button onClick={onEdit} className="bg-primary hover:bg-primary/80">
               <Edit className="w-4 h-4 mr-2" />
-              Edit Lead
+              {t('lead-details.edit-lead')}
             </Button>
             <Button variant="outline" size="icon" className="glass-card">
               <MoreVertical className="w-4 h-4" />
@@ -482,6 +486,8 @@ const LeadDetailHeader = ({
 
 // Lead Info Section Component
 const LeadInfoSection = ({ lead }: { lead: Lead }) => {
+  const { t } = useLanguage();
+  
   return (
     <motion.div 
       className="glass-card p-6"
@@ -489,20 +495,20 @@ const LeadInfoSection = ({ lead }: { lead: Lead }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <h3 className="text-xl font-semibold text-white mb-4">Lead Information</h3>
+      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.lead-information')}</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="Source Platform" value={lead.source_platform} icon={<Globe className="w-4 h-4" />} />
-        <InfoItem label="Source Type" value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} />
-        <InfoItem label="Language" value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} />
-        <InfoItem label="Currency" value={lead.currency} icon={<DollarSign className="w-4 h-4" />} />
-        <InfoItem label="External ID" value={lead.external_id || 'Not set'} icon={<Hash className="w-4 h-4" />} />
-        <InfoItem label="Sync Enabled" value={lead.sync_enabled ? 'Yes' : 'No'} icon={<RefreshCw className="w-4 h-4" />} />
+        <InfoItem label={t('lead-details.source-platform')} value={lead.source_platform} icon={<Globe className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+        <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+        <InfoItem label={t('lead-details.language')} value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+        <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+        <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+        <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
       </div>
       
       {lead.notes && (
         <div className="mt-6 pt-6 border-t border-white/10">
-          <h4 className="text-white font-medium mb-2">Notes</h4>
+          <h4 className="text-white font-medium mb-2">{t('lead-details.notes')}</h4>
           <p className="text-gray-400 text-sm leading-relaxed">{lead.notes}</p>
         </div>
       )}
@@ -511,20 +517,22 @@ const LeadInfoSection = ({ lead }: { lead: Lead }) => {
 };
 
 // Info Item Component
-const InfoItem = ({ label, value, icon }: { label: string; value: string | undefined; icon: React.ReactNode }) => (
+const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string | undefined; icon: React.ReactNode; notSet: string }) => (
   <div className="flex items-center gap-3">
     <div className="p-2 rounded-lg bg-primary/20 text-primary">
       {icon}
     </div>
     <div>
       <p className="text-gray-400 text-xs uppercase tracking-wide">{label}</p>
-      <p className="text-white font-medium">{value || 'Not set'}</p>
+      <p className="text-white font-medium">{value || notSet}</p>
     </div>
   </div>
 );
 
 // Lead Metrics Section Component
 const LeadMetricsSection = ({ lead }: { lead: Lead }) => {
+  const { t } = useLanguage();
+  
   const getDaysActive = () => {
     const created = new Date(lead.created_at);
     const now = new Date();
@@ -538,23 +546,23 @@ const LeadMetricsSection = ({ lead }: { lead: Lead }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <h3 className="text-xl font-semibold text-white mb-4">Performance Metrics</h3>
+      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.performance-metrics')}</h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <MetricCard
-          label="AI Score"
-          value={lead.ai_score ? `${lead.ai_score}%` : 'Not scored'}
+          label={t('lead-details.ai-score')}
+          value={lead.ai_score ? `${lead.ai_score}%` : t('lead-details.not-scored')}
           icon={<Brain className="w-5 h-5" />}
           color="purple"
         />
         <MetricCard
-          label="Estimated Value"
-          value={lead.estimated_value ? `${lead.currency} ${parseFloat(lead.estimated_value.toString()).toLocaleString()}` : 'Not set'}
+          label={t('lead-details.estimated-value')}
+          value={lead.estimated_value ? `${lead.currency} ${parseFloat(lead.estimated_value.toString()).toLocaleString()}` : t('lead-details.not-set')}
           icon={<TrendingUp className="w-5 h-5" />}
           color="green"
         />
         <MetricCard
-          label="Days Active"
+          label={t('lead-details.days-active')}
           value={getDaysActive().toString()}
           icon={<Calendar className="w-5 h-5" />}
           color="blue"
@@ -585,10 +593,12 @@ const MetricCard = ({ label, value, icon, color }: { label: string; value: strin
 
 // Lead Contact Section Component
 const LeadContactSection = ({ lead }: { lead: Lead }) => {
+  const { t } = useLanguage();
+  
   const copyToClipboard = (text: string, label: string) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard`);
+    toast.success(`${label} ${t('lead-details.copied')}`);
   };
 
   return (
@@ -598,22 +608,22 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <h3 className="text-xl font-semibold text-white mb-4">Contact Information</h3>
+      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.contact-information')}</h3>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
           <div className="flex items-center gap-3">
             <Mail className="w-5 h-5 text-blue-400" />
             <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">Email</p>
-              <p className="text-white font-medium">{lead.email || 'Not provided'}</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
+              <p className="text-white font-medium">{lead.email || t('lead-details.not-provided')}</p>
             </div>
           </div>
           {lead.email && (
             <button
-              onClick={() => copyToClipboard(lead.email, 'Email')}
+              onClick={() => copyToClipboard(lead.email, t('lead-details.email'))}
               className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-              title="Copy email"
+              title={`Copy ${t('lead-details.email').toLowerCase()}`}
             >
               <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
             </button>
@@ -624,15 +634,15 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-green-400" />
             <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">Phone</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
               <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
             </div>
           </div>
           {lead.phone && (
             <button
-              onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, 'Phone')}
+              onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, t('lead-details.phone'))}
               className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-              title="Copy phone"
+              title={`Copy ${t('lead-details.phone').toLowerCase()}`}
             >
               <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
             </button>
@@ -643,14 +653,14 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
           <div className="flex items-center gap-3">
             <User className="w-5 h-5 text-purple-400" />
             <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">Full Name</p>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>
               <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
             </div>
           </div>
           <button
-            onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, 'Name')}
+            onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
             className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-            title="Copy name"
+            title={`Copy ${t('lead-details.full-name').toLowerCase()}`}
           >
             <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
           </button>
@@ -662,6 +672,8 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
 
 // Activity Timeline Component
 const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] }) => {
+  const { t } = useLanguage();
+  
   const getTransactionIcon = (type: string) => {
     const icons = {
       'stage_change': <ArrowRight className="w-4 h-4" />,
@@ -686,7 +698,7 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    return date.toLocaleDateString() + ` ${t('lead-details.at')} ` + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   };
 
   return (
@@ -696,13 +708,12 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
     >
-      <h3 className="text-xl font-semibold text-white mb-6">Activity Timeline</h3>
+      <h3 className="text-xl font-semibold text-white mb-6">{t('lead-details.activity-timeline')}</h3>
       
       <div className="space-y-4">
         {transactions.length > 0 ? (
           transactions.map((transaction, index) => (
             <div key={transaction.id} className="flex gap-4">
-              {/* Timeline Line */}
               <div className="flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full ${getTransactionColor(transaction.type)} flex items-center justify-center text-white`}>
                   {getTransactionIcon(transaction.type)}
@@ -712,7 +723,6 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
                 )}
               </div>
               
-              {/* Transaction Content */}
               <div className="flex-1 pb-8">
                 <div className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
                   <div className="flex items-center justify-between mb-2">
@@ -728,24 +738,23 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
                     {transaction.description}
                   </p>
                   
-                  {/* Additional Details */}
                   {transaction.type === 'stage_change' && (
                     <div className="flex items-center gap-2 text-xs">
                       <span className="bg-red-600/20 text-red-400 px-2 py-1 rounded">
-                        Stage {transaction.from_stage_id}
+                        {t('lead-details.stage')} {transaction.from_stage_id}
                       </span>
                       <ArrowRight className="w-3 h-3 text-gray-400" />
                       <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded">
-                        Stage {transaction.to_stage_id}
+                        {t('lead-details.stage')} {transaction.to_stage_id}
                       </span>
                     </div>
                   )}
                   
                   <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    <span>Source: {transaction.source}</span>
+                    <span>{t('lead-details.source')}: {transaction.source}</span>
                     {transaction.is_automated && (
                       <Badge variant="secondary" className="bg-purple-600/20 text-purple-400 px-2 py-1">
-                        Automated
+                        {t('lead-details.automated')}
                       </Badge>
                     )}
                   </div>
@@ -756,7 +765,7 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
         ) : (
           <div className="text-center py-8">
             <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400">No activity recorded yet</p>
+            <p className="text-gray-400">{t('lead-details.no-activity')}</p>
           </div>
         )}
       </div>

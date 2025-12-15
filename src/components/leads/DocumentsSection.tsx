@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { getStorageUrl } from '@/lib/constants';
 import { deleteDocument } from '@/services/documentApi';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ interface DocumentsSectionProps {
 }
 
 const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUploadClick, onDocumentDeleted }) => {
+  const { t } = useLanguage();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LeadDocument | null>(null);
   const [previewDoc, setPreviewDoc] = useState<LeadDocument | null>(null);
