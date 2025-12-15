@@ -29,7 +29,8 @@ export const taskApi = {
   createTask: async (taskData: CreateTaskPayload): Promise<Task> => {
     try {
       const response = await api.post('/api/tasks', taskData);
-      return response.data;
+      // Backend returns { message: string, task: Task }
+      return response.data.task || response.data;
     } catch (error) {
       console.error('Error creating task:', error);
       throw error;
