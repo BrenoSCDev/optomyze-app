@@ -828,6 +828,18 @@ const translations = {
     'documents.upload-success': 'Document uploaded successfully',
     'documents.upload-error': 'Failed to upload document',
     'documents.uploading': 'Uploading...',
+    
+    // Calendars
+    'nav.calendars': 'Calendars',
+    'calendar.optomyze.title': 'Optomyze Calendar',
+    'calendar.optomyze.description': 'Manage your appointments, meetings, and scheduled events',
+    'calendar.new-event': 'New Event',
+    'calendar.today': 'Today',
+    'calendar.more': 'more',
+    'calendar.select-date': 'Select a date',
+    'calendar.no-events': 'No events scheduled',
+    'calendar.no-events-description': 'Click to create a new event for this day',
+    'calendar.upcoming-events': 'Upcoming Events',
   },
   'pt-BR': {
     // Navigation
@@ -1644,6 +1656,18 @@ const translations = {
     'documents.upload-success': 'Documento enviado com sucesso',
     'documents.upload-error': 'Falha ao enviar documento',
     'documents.uploading': 'Enviando...',
+    
+    // Calendars
+    'nav.calendars': 'Calendários',
+    'calendar.optomyze.title': 'Calendário Optomyze',
+    'calendar.optomyze.description': 'Gerencie seus compromissos, reuniões e eventos agendados',
+    'calendar.new-event': 'Novo Evento',
+    'calendar.today': 'Hoje',
+    'calendar.more': 'mais',
+    'calendar.select-date': 'Selecione uma data',
+    'calendar.no-events': 'Nenhum evento agendado',
+    'calendar.no-events-description': 'Clique para criar um novo evento para este dia',
+    'calendar.upcoming-events': 'Próximos Eventos',
   },
   de: {
     // Navigation
@@ -2284,6 +2308,18 @@ const translations = {
     'documents.upload-success': 'Dokument erfolgreich hochgeladen',
     'documents.upload-error': 'Dokument konnte nicht hochgeladen werden',
     'documents.uploading': 'Hochladen...',
+    
+    // Calendars
+    'nav.calendars': 'Kalender',
+    'calendar.optomyze.title': 'Optomyze Kalender',
+    'calendar.optomyze.description': 'Verwalten Sie Ihre Termine, Besprechungen und geplanten Ereignisse',
+    'calendar.new-event': 'Neues Ereignis',
+    'calendar.today': 'Heute',
+    'calendar.more': 'mehr',
+    'calendar.select-date': 'Datum auswählen',
+    'calendar.no-events': 'Keine Ereignisse geplant',
+    'calendar.no-events-description': 'Klicken Sie, um ein neues Ereignis für diesen Tag zu erstellen',
+    'calendar.upcoming-events': 'Kommende Ereignisse',
   },
   es: {
     // Navigation
@@ -2924,6 +2960,18 @@ const translations = {
     'documents.upload-success': 'Documento subido exitosamente',
     'documents.upload-error': 'Error al subir documento',
     'documents.uploading': 'Subiendo...',
+    
+    // Calendars
+    'nav.calendars': 'Calendarios',
+    'calendar.optomyze.title': 'Calendario Optomyze',
+    'calendar.optomyze.description': 'Gestiona tus citas, reuniones y eventos programados',
+    'calendar.new-event': 'Nuevo Evento',
+    'calendar.today': 'Hoy',
+    'calendar.more': 'más',
+    'calendar.select-date': 'Selecciona una fecha',
+    'calendar.no-events': 'No hay eventos programados',
+    'calendar.no-events-description': 'Haz clic para crear un nuevo evento para este día',
+    'calendar.upcoming-events': 'Próximos Eventos',
   }
 };
 

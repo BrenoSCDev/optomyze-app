@@ -28,6 +28,7 @@ import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
 import ManageUsers from '@/components/users/ManageUsers';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
+import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -119,6 +120,10 @@ const Index = () => {
       // Chat sections
       case 'whatsapp-inbox':
         return <WhatsAppInbox />;
+      
+      // Calendars sections
+      case 'optomyze-calendar':
+        return <OptomyzeCalendar />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
