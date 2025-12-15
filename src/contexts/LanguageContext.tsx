@@ -793,6 +793,10 @@ const translations = {
     'tasks.modal.update-success': 'Task updated successfully',
     'tasks.modal.create-error': 'Failed to create task',
     'tasks.modal.update-error': 'Failed to update task',
+    'tasks.card.see-more': 'See More',
+    'tasks.card.see-less': 'See Less',
+    'tasks.card.created-by': 'Created by:',
+    'tasks.card.overdue': 'Overdue',
     
     // Documents Section
     'documents.title': 'Documents',
@@ -1605,6 +1609,10 @@ const translations = {
     'tasks.modal.update-success': 'Tarefa atualizada com sucesso',
     'tasks.modal.create-error': 'Falha ao criar tarefa',
     'tasks.modal.update-error': 'Falha ao atualizar tarefa',
+    'tasks.card.see-more': 'Ver Mais',
+    'tasks.card.see-less': 'Ver Menos',
+    'tasks.card.created-by': 'Criado por:',
+    'tasks.card.overdue': 'Atrasada',
     
     // Documents Section
     'documents.title': 'Documentos',
@@ -2241,6 +2249,10 @@ const translations = {
     'tasks.modal.update-success': 'Aufgabe erfolgreich aktualisiert',
     'tasks.modal.create-error': 'Aufgabe konnte nicht erstellt werden',
     'tasks.modal.update-error': 'Aufgabe konnte nicht aktualisiert werden',
+    'tasks.card.see-more': 'Mehr Anzeigen',
+    'tasks.card.see-less': 'Weniger Anzeigen',
+    'tasks.card.created-by': 'Erstellt von:',
+    'tasks.card.overdue': 'Überfällig',
     
     // Documents Section
     'documents.title': 'Dokumente',
@@ -2877,6 +2889,10 @@ const translations = {
     'tasks.modal.update-success': 'Tarea actualizada exitosamente',
     'tasks.modal.create-error': 'Error al crear tarea',
     'tasks.modal.update-error': 'Error al actualizar tarea',
+    'tasks.card.see-more': 'Ver Más',
+    'tasks.card.see-less': 'Ver Menos',
+    'tasks.card.created-by': 'Creado por:',
+    'tasks.card.overdue': 'Vencida',
     
     // Documents Section
     'documents.title': 'Documentos',
