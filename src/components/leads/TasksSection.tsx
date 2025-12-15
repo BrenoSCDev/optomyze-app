@@ -108,19 +108,23 @@ const TasksSection: React.FC<TasksSectionProps> = ({
   );
 };
 
-const EmptyTasksState: React.FC<{ onCreateTask: () => void }> = ({ onCreateTask }) => (
-  <div className="text-center py-12">
-    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-      <ListTodo className="w-8 h-8 text-primary/60" />
+const EmptyTasksState: React.FC<{ onCreateTask: () => void }> = ({ onCreateTask }) => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="text-center py-12">
+      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <ListTodo className="w-8 h-8 text-primary/60" />
+      </div>
+      <h4 className="text-white font-medium mb-2">{t('tasks.no-tasks')}</h4>
+      <p className="text-gray-400 text-sm mb-4">{t('tasks.no-tasks-description')}</p>
+      <Button onClick={onCreateTask} variant="outline" size="sm" className="glass-card">
+        <Plus className="w-4 h-4 mr-2" />
+        {t('tasks.create-first')}
+      </Button>
     </div>
-    <h4 className="text-white font-medium mb-2">No tasks yet</h4>
-    <p className="text-gray-400 text-sm mb-4">Create the first task for this lead.</p>
-    <Button onClick={onCreateTask} variant="outline" size="sm" className="glass-card">
-      <Plus className="w-4 h-4 mr-2" />
-      Create Task
-    </Button>
-  </div>
-);
+  );
+};
 
 interface TaskCardProps {
   task: Task;
@@ -129,6 +133,7 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   
   const isCompleted = task.status === 'completed';
@@ -183,6 +188,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
     });
   };
 
+  const getPriorityLabel = (priority: string) => {
+    return t(`tasks.priority.${priority}`);
+  };
+
+  const getStatusLabel = (status: string) => {
+    return t(`tasks.status.${status}`);
+  };
+
   const hasLongDescription = task.description && task.description.length > 100;
   const displayDescription = expanded || !hasLongDescription 
     ? task.description 
@@ -217,9 +230,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
                   className="text-primary text-xs mt-1 flex items-center gap-1 hover:text-primary/80 transition-colors"
                 >
                   {expanded ? (
-                    <>See Less <ChevronUp className="w-3 h-3" /></>
+                    <>{t('tasks.card.see-less')} <ChevronUp className="w-3 h-3" /></>
                   ) : (
-                    <>See More <ChevronDown className="w-3 h-3" /></>
+                    <>{t('tasks.card.see-more')} <ChevronDown className="w-3 h-3" /></>
                   )}
                 </button>
               )}
@@ -229,11 +242,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={`text-xs font-medium border ${getPriorityBadge(task.priority)}`}>
-              {task.priority}
+              {getPriorityLabel(task.priority)}
             </Badge>
             <Badge className={`text-xs font-medium border flex items-center gap-1 ${getStatusBadge(task.status)}`}>
               {getStatusIcon(task.status)}
-              {task.status.replace('_', ' ')}
+              {getStatusLabel(task.status)}
             </Badge>
           </div>
         </div>
@@ -253,14 +266,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
                 className="text-gray-300 focus:bg-white/10 focus:text-white cursor-pointer"
               >
                 <Pencil className="w-4 h-4 mr-2" />
-                Edit Task
+                {t('tasks.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={onDelete}
                 className="text-red-400 focus:bg-red-600/20 focus:text-red-400 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Task
+                {t('tasks.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -268,7 +281,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           {task.reminder && (
             <div className="flex items-center gap-1.5 text-xs text-amber-400">
               <Bell className="w-3.5 h-3.5" />
-              <span>Reminder</span>
+              <span>{t('tasks.reminder')}</span>
             </div>
           )}
           {task.due_date ? (
@@ -283,7 +296,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           ) : (
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
               <Calendar className="w-3.5 h-3.5" />
-              <span>No due date</span>
+              <span>{t('tasks.no-due-date')}</span>
             </div>
           )}
         </div>
@@ -293,7 +306,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
       <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap gap-x-6 gap-y-2 text-xs">
         {task.creator && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">Created by:</span>
+            <span className="text-gray-500">{t('tasks.card.created-by')}</span>
             <div className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-gray-400" />
               <span className="text-gray-300">{task.creator.name}</span>
@@ -303,7 +316,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
         )}
         {task.assignee && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">Assigned to:</span>
+            <span className="text-gray-500">{t('tasks.assigned-to')}</span>
             <div className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-primary" />
               <span className="text-gray-300">{task.assignee.name}</span>
