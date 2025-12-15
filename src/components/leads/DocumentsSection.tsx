@@ -204,11 +204,13 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
           <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
             {previewDoc && isPreviewSupported(previewDoc.path) ? (
               isImageFile(previewDoc.path) ? (
-                <img 
-                  src={getStorageUrl(previewDoc.path)} 
-                  alt={previewDoc.title}
-                  className="max-w-full h-auto mx-auto rounded-lg"
-                />
+                <div className="flex items-center justify-center">
+                  <img 
+                    src={getStorageUrl(previewDoc.path)} 
+                    alt={previewDoc.title}
+                    className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                  />
+                </div>
               ) : (
                 <iframe
                   src={getStorageUrl(previewDoc.path)}
