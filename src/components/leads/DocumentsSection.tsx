@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Upload, File, Download, Trash2, Loader2 } from 'lucide-react';
+import { FileText, Upload, File, Download, Trash2, Loader2, Eye, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getStorageUrl } from '@/lib/constants';
 import { deleteDocument } from '@/services/documentApi';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,20 +41,45 @@ interface DocumentsSectionProps {
 const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUploadClick, onDocumentDeleted }) => {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LeadDocument | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<LeadDocument | null>(null);
+
+  const getFileExtension = (path: string) => {
+    return path?.split('.').pop()?.toLowerCase() || '';
+  };
 
   const getFileIcon = (path: string) => {
-    const ext = path?.split('.').pop()?.toLowerCase();
+    const ext = getFileExtension(path);
     if (ext === 'pdf') return <FileText className="w-5 h-5 text-red-400" />;
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return <FileText className="w-5 h-5 text-blue-400" />;
-    if (['doc', 'docx'].includes(ext || '')) return <FileText className="w-5 h-5 text-blue-500" />;
-    if (['xls', 'xlsx'].includes(ext || '')) return <FileText className="w-5 h-5 text-green-500" />;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-5 h-5 text-blue-400" />;
+    if (['doc', 'docx'].includes(ext)) return <FileText className="w-5 h-5 text-blue-500" />;
+    if (['xls', 'xlsx'].includes(ext)) return <FileText className="w-5 h-5 text-green-500" />;
     return <File className="w-5 h-5 text-gray-400" />;
+  };
+
+  const isPreviewSupported = (path: string) => {
+    const ext = getFileExtension(path);
+    return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+  };
+
+  const isImageFile = (path: string) => {
+    const ext = getFileExtension(path);
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+  };
+
+  const handlePreviewClick = (doc: LeadDocument) => {
+    setPreviewDoc(doc);
   };
 
   const handleDownload = (doc: LeadDocument) => {
     const url = getStorageUrl(doc.path);
     if (url) {
-      window.open(url, '_blank');
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.title;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -129,9 +160,9 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                     variant="ghost" 
                     size="icon" 
                     className="h-8 w-8 text-gray-400 hover:text-white"
-                    onClick={() => handleDownload(doc)}
+                    onClick={() => handlePreviewClick(doc)}
                   >
-                    <Download className="w-4 h-4" />
+                    <Eye className="w-4 h-4" />
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -153,6 +184,59 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
         )}
       </motion.div>
 
+      {/* Document Preview Modal */}
+      <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden">
+          <DialogHeader className="p-4 border-b border-white/10">
+            <div className="flex items-center justify-between pr-8">
+              <DialogTitle className="text-white truncate">{previewDoc?.title}</DialogTitle>
+              <Button 
+                onClick={() => previewDoc && handleDownload(previewDoc)}
+                size="sm" 
+                className="bg-primary hover:bg-primary/80"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
+            {previewDoc && isPreviewSupported(previewDoc.path) ? (
+              isImageFile(previewDoc.path) ? (
+                <img 
+                  src={getStorageUrl(previewDoc.path)} 
+                  alt={previewDoc.title}
+                  className="max-w-full h-auto mx-auto rounded-lg"
+                />
+              ) : (
+                <iframe
+                  src={getStorageUrl(previewDoc.path)}
+                  className="w-full h-[70vh] rounded-lg bg-white"
+                  title={previewDoc.title}
+                />
+              )
+            ) : (
+              <div className="text-center py-16">
+                <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-400 mb-2">Preview not available for this file type</p>
+                <p className="text-gray-500 text-sm mb-6">
+                  Download the file to view its contents
+                </p>
+                <Button 
+                  onClick={() => previewDoc && handleDownload(previewDoc)}
+                  className="bg-primary hover:bg-primary/80"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download File
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
         <AlertDialogContent className="bg-gray-900 border-white/10">
           <AlertDialogHeader>
