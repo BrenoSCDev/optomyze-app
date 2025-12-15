@@ -268,7 +268,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
               <span>Reminder</span>
             </div>
           )}
-          {task.due_date && (
+          {task.due_date ? (
             <div className={`flex items-center gap-1.5 text-xs ${
               isOverdue ? 'text-red-400' : 'text-gray-400'
             }`}>
@@ -276,6 +276,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
               <span className={isOverdue ? 'font-medium' : ''}>
                 {formatDate(task.due_date)}
               </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>No due date</span>
             </div>
           )}
         </div>
