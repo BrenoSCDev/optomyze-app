@@ -186,18 +186,29 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
 
       {/* Document Preview Modal */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden [&>button]:hidden">
           <DialogHeader className="p-4 border-b border-white/10">
-            <div className="flex items-center justify-between pr-8">
-              <DialogTitle className="text-white truncate">{previewDoc?.title}</DialogTitle>
-              <Button 
-                onClick={() => previewDoc && handleDownload(previewDoc)}
-                size="sm" 
-                className="bg-primary hover:bg-primary/80"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download
-              </Button>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-white truncate pr-4">{previewDoc?.title}</DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={() => previewDoc && handleDownload(previewDoc)}
+                  size="sm" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+                <Button 
+                  onClick={() => setPreviewDoc(null)}
+                  size="sm" 
+                  variant="ghost"
+                  className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Close
+                </Button>
+              </div>
             </div>
           </DialogHeader>
           
