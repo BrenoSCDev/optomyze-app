@@ -140,11 +140,13 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
   };
 
   const formatDate = (dateString: string) => {
+    // Parse date as UTC and display in local format without timezone shift
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
-      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+      timeZone: 'UTC' // Keep the date as sent from backend
     });
   };
 
