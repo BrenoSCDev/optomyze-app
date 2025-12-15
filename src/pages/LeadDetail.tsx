@@ -44,8 +44,6 @@ import TasksSection from '@/components/leads/TasksSection';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import { Task } from '@/services/taskApi';
-import DocumentsSection from '@/components/documents/DocumentsSection';
-import { LeadDocument } from '@/types/document';
 
 interface Transaction {
   id: number;
@@ -113,7 +111,6 @@ interface Lead {
   transactions?: Transaction[];
   reports?: Report[];
   tasks?: Task[];
-  docs?: LeadDocument[];
 }
 
 interface LeadData {
@@ -121,7 +118,6 @@ interface LeadData {
   transactions: Transaction[];
   reports: Report[];
   tasks: Task[];
-  docs: LeadDocument[];
 }
 
 const LeadDetailPage = () => {
@@ -148,19 +144,17 @@ const LeadDetailPage = () => {
       const response = await api.get(`/api/leads/${leadId}`);
       const data = response.data;
       
-      // Handle both structures: transactions/reports/tasks/docs inside lead object or at root level
+      // Handle both structures: transactions/reports/tasks inside lead object or at root level
       const lead = data.lead || data;
       const transactions = data.transactions || lead.transactions || [];
       const reports = data.reports || lead.reports || [];
       const tasks = data.tasks || lead.tasks || [];
-      const docs = data.docs || lead.docs || [];
       
       setLeadData({
         lead,
         transactions,
         reports,
-        tasks,
-        docs
+        tasks
       });
       
     } catch (err: any) {
@@ -277,11 +271,6 @@ const LeadDetailPage = () => {
               onCreateTask={() => setTaskModalOpen(true)}
               onEditTask={handleEditTask}
               onDeleteTask={(task) => setDeletingTask(task)}
-            />
-            <DocumentsSection
-              documents={leadData.docs || []}
-              leadId={leadData.lead.id}
-              onDocumentsChange={(docs) => setLeadData(prev => prev ? { ...prev, docs } : prev)}
             />
           </div>
           
