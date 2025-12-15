@@ -35,7 +35,7 @@ export const createDocument = async (
     },
   });
 
-  return response.data;
+  return response.data.data;
 };
 
 export const deleteDocument = async (documentId: number): Promise<void> => {
