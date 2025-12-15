@@ -32,7 +32,8 @@ import {
   X,
   Loader2,
   AlertCircle,
-  User
+  User,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -543,6 +544,12 @@ const MetricCard = ({ label, value, icon, color }: { label: string; value: strin
 
 // Lead Contact Section Component
 const LeadContactSection = ({ lead }: { lead: Lead }) => {
+  const copyToClipboard = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
   return (
     <motion.div 
       className="glass-card p-6"
@@ -553,28 +560,59 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
       <h3 className="text-xl font-semibold text-white mb-4">Contact Information</h3>
       
       <div className="space-y-4">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-          <Mail className="w-5 h-5 text-blue-400" />
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">Email</p>
-            <p className="text-white font-medium">{lead.email || 'Not provided'}</p>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+          <div className="flex items-center gap-3">
+            <Mail className="w-5 h-5 text-blue-400" />
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">Email</p>
+              <p className="text-white font-medium">{lead.email || 'Not provided'}</p>
+            </div>
           </div>
+          {lead.email && (
+            <button
+              onClick={() => copyToClipboard(lead.email, 'Email')}
+              className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+              title="Copy email"
+            >
+              <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+            </button>
+          )}
         </div>
         
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-          <Phone className="w-5 h-5 text-green-400" />
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">Phone</p>
-            <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+          <div className="flex items-center gap-3">
+            <Phone className="w-5 h-5 text-green-400" />
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">Phone</p>
+              <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
+            </div>
           </div>
+          {lead.phone && (
+            <button
+              onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, 'Phone')}
+              className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+              title="Copy phone"
+            >
+              <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+            </button>
+          )}
         </div>
         
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-          <User className="w-5 h-5 text-purple-400" />
-          <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">Full Name</p>
-            <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-purple-400" />
+            <div>
+              <p className="text-gray-400 text-xs uppercase tracking-wide">Full Name</p>
+              <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
+            </div>
           </div>
+          <button
+            onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, 'Name')}
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+            title="Copy name"
+          >
+            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+          </button>
         </div>
       </div>
     </motion.div>
