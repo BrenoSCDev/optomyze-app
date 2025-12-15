@@ -309,6 +309,24 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </Popover>
               </div>
 
+              {/* Creator Info (Edit Mode Only) */}
+              {isEditMode && editTask?.creator && (
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                  <Label className="text-gray-400 text-xs mb-2 block">Created By</Label>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <span className="text-primary text-sm font-medium">
+                        {editTask.creator.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">{editTask.creator.name}</p>
+                      <p className="text-gray-400 text-xs">{editTask.creator.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Assigned To */}
               <div>
                 <Label className="text-white mb-2 block">Assigned To</Label>
@@ -332,7 +350,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                           value={user.id.toString()} 
                           className="text-gray-300 focus:bg-white/10 focus:text-white"
                         >
-                          {user.name}
+                          <div className="flex flex-col">
+                            <span>{user.name}</span>
+                            <span className="text-gray-500 text-xs">{user.email}</span>
+                          </div>
                         </SelectItem>
                       ))
                     )}
