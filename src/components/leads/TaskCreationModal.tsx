@@ -48,7 +48,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     status: 'pending' as 'pending' | 'in_progress' | 'completed' | 'cancelled',
     due_date: undefined as Date | undefined,
-    assigned_to: '' as string
+    assigned_to: 'unassigned' as string
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
         priority: 'medium',
         status: 'pending',
         due_date: undefined,
-        assigned_to: ''
+        assigned_to: 'unassigned'
       });
     }
   }, [isOpen]);
@@ -98,7 +98,9 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
         due_date: formData.due_date 
           ? format(formData.due_date, 'yyyy-MM-dd HH:mm:ss')
           : undefined,
-        assigned_to: formData.assigned_to ? parseInt(formData.assigned_to) : undefined
+        assigned_to: formData.assigned_to && formData.assigned_to !== 'unassigned' 
+          ? parseInt(formData.assigned_to) 
+          : undefined
       };
 
       const newTask = await taskApi.createTask(payload);
@@ -284,7 +286,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                     <SelectValue placeholder="Select user (optional)" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-white/10">
-                    <SelectItem value="" className="text-gray-300 focus:bg-white/10 focus:text-white">
+                    <SelectItem value="unassigned" className="text-gray-300 focus:bg-white/10 focus:text-white">
                       Unassigned
                     </SelectItem>
                     {loadingUsers ? (
