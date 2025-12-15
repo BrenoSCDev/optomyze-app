@@ -25,6 +25,7 @@ import { taskApi, CreateTaskPayload, Task } from '@/services/taskApi';
 import { userApi } from '@/services/userApi';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TaskCreationModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   editTask,
   onTaskUpdated
 }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -105,7 +107,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     e.preventDefault();
     
     if (!formData.title.trim()) {
-      toast.error('Title is required');
+      toast.error(t('tasks.modal.title-required'));
       return;
     }
 
@@ -130,12 +132,12 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
       if (isEditMode && editTask) {
         // Update existing task
         const updatedTask = await taskApi.updateTask(editTask.id, payload);
-        toast.success('Task updated successfully');
+        toast.success(t('tasks.modal.update-success'));
         onTaskUpdated?.(updatedTask);
       } else {
         // Create new task
         const newTask = await taskApi.createTask(payload);
-        toast.success('Task created successfully');
+        toast.success(t('tasks.modal.create-success'));
         onTaskCreated(newTask);
       }
       
@@ -143,7 +145,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
       
     } catch (error: any) {
       console.error('Error saving task:', error);
-      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} task`);
+      toast.error(error.response?.data?.message || t(isEditMode ? 'tasks.modal.update-error' : 'tasks.modal.create-error'));
     } finally {
       setLoading(false);
     }
@@ -155,7 +157,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     <AnimatePresence>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <motion.div 
-          className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto"
+          className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -165,7 +167,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <h3 className="text-xl font-semibold text-white">
-                {isEditMode ? 'Edit Task' : 'Create New Task'}
+                {isEditMode ? t('tasks.modal.edit-title') : t('tasks.modal.create-title')}
               </h3>
               <button 
                 type="button" 
@@ -181,13 +183,13 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
               {/* Title */}
               <div>
                 <Label htmlFor="title" className="text-white mb-2 block">
-                  Title <span className="text-red-400">*</span>
+                  {t('tasks.modal.title-label')} <span className="text-red-400">*</span>
                 </Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enter task title"
+                  placeholder={t('tasks.modal.title-placeholder')}
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary"
                   required
                 />
@@ -196,13 +198,13 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
               {/* Description */}
               <div>
                 <Label htmlFor="description" className="text-white mb-2 block">
-                  Description
+                  {t('tasks.modal.description-label')}
                 </Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Enter task description (optional)"
+                  placeholder={t('tasks.modal.description-placeholder')}
                   className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary resize-none min-h-[100px]"
                   rows={4}
                 />
@@ -211,7 +213,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
               {/* Priority & Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white mb-2 block">Priority</Label>
+                  <Label className="text-white mb-2 block">{t('tasks.modal.priority-label')}</Label>
                   <Select
                     value={formData.priority}
                     onValueChange={(value) => setFormData(prev => ({ 
@@ -226,25 +228,25 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                       <SelectItem value="low" className="text-gray-300 focus:bg-white/10 focus:text-white">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-gray-500" />
-                          Low
+                          {t('tasks.priority.low')}
                         </span>
                       </SelectItem>
                       <SelectItem value="medium" className="text-gray-300 focus:bg-white/10 focus:text-white">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-blue-500" />
-                          Medium
+                          {t('tasks.priority.medium')}
                         </span>
                       </SelectItem>
                       <SelectItem value="high" className="text-gray-300 focus:bg-white/10 focus:text-white">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-orange-500" />
-                          High
+                          {t('tasks.priority.high')}
                         </span>
                       </SelectItem>
                       <SelectItem value="urgent" className="text-gray-300 focus:bg-white/10 focus:text-white">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-red-500" />
-                          Urgent
+                          {t('tasks.priority.urgent')}
                         </span>
                       </SelectItem>
                     </SelectContent>
@@ -252,7 +254,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </div>
 
                 <div>
-                  <Label className="text-white mb-2 block">Status</Label>
+                  <Label className="text-white mb-2 block">{t('tasks.modal.status-label')}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value) => setFormData(prev => ({ 
@@ -265,16 +267,16 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                     </SelectTrigger>
                     <SelectContent className="bg-gray-900 border-white/10">
                       <SelectItem value="pending" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        Pending
+                        {t('tasks.status.pending')}
                       </SelectItem>
                       <SelectItem value="in_progress" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        In Progress
+                        {t('tasks.status.in_progress')}
                       </SelectItem>
                       <SelectItem value="completed" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        Completed
+                        {t('tasks.status.completed')}
                       </SelectItem>
                       <SelectItem value="cancelled" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        Cancelled
+                        {t('tasks.status.cancelled')}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -283,7 +285,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
 
               {/* Due Date */}
               <div>
-                <Label className="text-white mb-2 block">Due Date</Label>
+                <Label className="text-white mb-2 block">{t('tasks.modal.due-date-label')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -294,7 +296,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.due_date ? format(formData.due_date, "PPP") : "Select due date"}
+                      {formData.due_date ? format(formData.due_date, "PPP") : t('tasks.modal.select-due-date')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-gray-900 border-white/10" align="start">
@@ -312,7 +314,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
               {/* Creator Info (Edit Mode Only) */}
               {isEditMode && editTask?.creator && (
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                  <Label className="text-gray-400 text-xs mb-2 block">Created By</Label>
+                  <Label className="text-gray-400 text-xs mb-2 block">{t('tasks.modal.created-by')}</Label>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                       <span className="text-primary text-sm font-medium">
@@ -329,20 +331,20 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
 
               {/* Assigned To */}
               <div>
-                <Label className="text-white mb-2 block">Assigned To</Label>
+                <Label className="text-white mb-2 block">{t('tasks.modal.assigned-to-label')}</Label>
                 <Select
                   value={formData.assigned_to}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Select user (optional)" />
+                    <SelectValue placeholder={t('tasks.modal.select-user')} />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-white/10">
                     <SelectItem value="unassigned" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                      Unassigned
+                      {t('tasks.modal.unassigned')}
                     </SelectItem>
                     {loadingUsers ? (
-                      <div className="p-2 text-center text-gray-400 text-sm">Loading users...</div>
+                      <div className="p-2 text-center text-gray-400 text-sm">{t('tasks.modal.loading-users')}</div>
                     ) : (
                       users.map((user) => (
                         <SelectItem 
@@ -364,8 +366,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
               {/* Reminder Switch */}
               <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4">
                 <div>
-                  <Label className="text-white">Reminder</Label>
-                  <p className="text-xs text-gray-400 mt-0.5">Enable notifications for this task</p>
+                  <Label className="text-white">{t('tasks.modal.reminder-label')}</Label>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('tasks.modal.reminder-description')}</p>
                 </div>
                 <Switch
                   checked={formData.reminder}
@@ -383,7 +385,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 disabled={loading}
                 className="border-white/10 hover:bg-white/10"
               >
-                Cancel
+                {t('tasks.modal.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -393,10 +395,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isEditMode ? 'Saving...' : 'Creating...'}
+                    {isEditMode ? t('tasks.modal.saving') : t('tasks.modal.creating')}
                   </>
                 ) : (
-                  isEditMode ? 'Save Changes' : 'Create Task'
+                  isEditMode ? t('tasks.modal.save') : t('tasks.modal.create')
                 )}
               </Button>
             </div>
