@@ -278,13 +278,31 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
               </span>
             </div>
           )}
-          {task.assigned_to && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <User className="w-3.5 h-3.5" />
-              <span>Assigned</span>
-            </div>
-          )}
         </div>
+      </div>
+      
+      {/* Creator and Assignee Info */}
+      <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+        {task.creator && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500">Created by:</span>
+            <div className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-gray-400" />
+              <span className="text-gray-300">{task.creator.name}</span>
+              <span className="text-gray-500">({task.creator.email})</span>
+            </div>
+          </div>
+        )}
+        {task.assignee && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500">Assigned to:</span>
+            <div className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-primary" />
+              <span className="text-gray-300">{task.assignee.name}</span>
+              <span className="text-gray-500">({task.assignee.email})</span>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

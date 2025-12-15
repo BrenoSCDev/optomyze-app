@@ -1,5 +1,12 @@
 import api from './api';
 
+interface TaskUser {
+  id: number;
+  name: string;
+  email: string;
+  profile_pic: string | null;
+}
+
 export interface Task {
   id: number;
   lead_id: number;
@@ -14,6 +21,8 @@ export interface Task {
   reminder: boolean;
   created_at: string;
   updated_at: string;
+  assignee?: TaskUser | null;
+  creator?: TaskUser | null;
 }
 
 export interface CreateTaskPayload {
