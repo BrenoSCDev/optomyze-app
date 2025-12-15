@@ -39,6 +39,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
+import TasksSection from '@/components/leads/TasksSection';
+import TaskCreationModal from '@/components/leads/TaskCreationModal';
+import { Task } from '@/services/taskApi';
 
 interface Transaction {
   id: number;
@@ -105,12 +108,14 @@ interface Lead {
   updated_at: string;
   transactions?: Transaction[];
   reports?: Report[];
+  tasks?: Task[];
 }
 
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
   reports: Report[];
+  tasks: Task[];
 }
 
 const LeadDetailPage = () => {
@@ -123,6 +128,7 @@ const LeadDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [reportsModalOpen, setReportsModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -134,15 +140,17 @@ const LeadDetailPage = () => {
       const response = await api.get(`/api/leads/${leadId}`);
       const data = response.data;
       
-      // Handle both structures: transactions/reports inside lead object or at root level
+      // Handle both structures: transactions/reports/tasks inside lead object or at root level
       const lead = data.lead || data;
       const transactions = data.transactions || lead.transactions || [];
       const reports = data.reports || lead.reports || [];
+      const tasks = data.tasks || lead.tasks || [];
       
       setLeadData({
         lead,
         transactions,
-        reports
+        reports,
+        tasks
       });
       
     } catch (err: any) {
@@ -164,6 +172,16 @@ const LeadDetailPage = () => {
     } else {
       navigate('/');
     }
+  };
+
+  const handleTaskCreated = (newTask: Task) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: [newTask, ...prev.tasks]
+      };
+    });
   };
 
   if (loading) {
@@ -212,6 +230,10 @@ const LeadDetailPage = () => {
             <LeadInfoSection lead={leadData.lead} />
             <LeadMetricsSection lead={leadData.lead} />
             <LeadContactSection lead={leadData.lead} />
+            <TasksSection 
+              tasks={leadData.tasks || []} 
+              onCreateTask={() => setTaskModalOpen(true)}
+            />
           </div>
           
           {/* Right Column - Activity Timeline */}
@@ -234,6 +256,14 @@ const LeadDetailPage = () => {
           onClose={() => setReportsModalOpen(false)}
           reports={leadData.reports || []}
           leadName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
+        />
+
+        {/* Task Creation Modal */}
+        <TaskCreationModal
+          isOpen={taskModalOpen}
+          onClose={() => setTaskModalOpen(false)}
+          leadId={leadData.lead.id}
+          onTaskCreated={handleTaskCreated}
         />
       </div>
     </div>
