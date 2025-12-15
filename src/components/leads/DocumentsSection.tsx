@@ -96,10 +96,10 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
     try {
       await deleteDocument(confirmDelete.id);
       onDocumentDeleted?.(confirmDelete.id);
-      toast.success('Document deleted successfully');
+      toast.success(t('documents.delete-success'));
     } catch (error) {
       console.error('Error deleting document:', error);
-      toast.error('Failed to delete document');
+      toast.error(t('documents.delete-error'));
     } finally {
       setDeletingId(null);
       setConfirmDelete(null);
@@ -123,18 +123,18 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
         transition={{ delay: 0.4 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-white">Documents</h3>
+          <h3 className="text-xl font-semibold text-white">{t('documents.title')}</h3>
           <Button onClick={onUploadClick} size="sm" className="bg-primary hover:bg-primary/80">
             <Upload className="w-4 h-4 mr-2" />
-            Upload Document
+            {t('documents.upload')}
           </Button>
         </div>
 
         {documents.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">No documents uploaded yet</p>
-            <p className="text-gray-500 text-xs mt-1">Upload documents related to this lead</p>
+            <p className="text-gray-400 text-sm">{t('documents.no-documents')}</p>
+            <p className="text-gray-500 text-xs mt-1">{t('documents.no-documents-description')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -199,7 +199,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download
+                  {t('documents.download')}
                 </Button>
                 <Button 
                   onClick={() => setPreviewDoc(null)}
@@ -208,7 +208,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10"
                 >
                   <X className="w-4 h-4 mr-2" />
-                  Close
+                  {t('documents.close')}
                 </Button>
               </div>
             </div>
@@ -234,16 +234,16 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
             ) : (
               <div className="text-center py-16">
                 <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-400 mb-2">Preview not available for this file type</p>
+                <p className="text-gray-400 mb-2">{t('documents.preview-not-available')}</p>
                 <p className="text-gray-500 text-sm mb-6">
-                  Download the file to view its contents
+                  {t('documents.download-to-view')}
                 </p>
                 <Button 
                   onClick={() => previewDoc && handleDownload(previewDoc)}
                   className="bg-primary hover:bg-primary/80"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download File
+                  {t('documents.download-file')}
                 </Button>
               </div>
             )}
@@ -255,20 +255,20 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
       <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
         <AlertDialogContent className="bg-gray-900 border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Document</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">{t('documents.delete-title')}</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400">
-              Are you sure you want to delete "{confirmDelete?.title}"? This action cannot be undone.
+              {t('documents.delete-confirm')} "{confirmDelete?.title}"? {t('documents.delete-warning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-              Cancel
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
