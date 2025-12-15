@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { createDocument, LeadDocument } from '@/services/documentApi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DocumentUploadModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
   leadId,
   onDocumentUploaded
 }) => {
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -61,12 +63,12 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     e.preventDefault();
     
     if (!title.trim()) {
-      toast.error('Please enter a document title');
+      toast.error(t('documents.title-required'));
       return;
     }
     
     if (!file) {
-      toast.error('Please select a file to upload');
+      toast.error(t('documents.file-required'));
       return;
     }
 
@@ -80,12 +82,12 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
         file
       );
       
-      toast.success('Document uploaded successfully');
+      toast.success(t('documents.upload-success'));
       onDocumentUploaded?.(newDocument);
       handleClose();
     } catch (error) {
       console.error('Error uploading document:', error);
-      toast.error('Failed to upload document');
+      toast.error(t('documents.upload-error'));
     } finally {
       setIsUploading(false);
     }
@@ -110,34 +112,34 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md bg-gray-900 border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-white">Upload Document</DialogTitle>
+          <DialogTitle className="text-white">{t('documents.upload-title')}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-gray-300">Title *</Label>
+            <Label htmlFor="title" className="text-gray-300">{t('documents.title-field')} *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter document title"
+              placeholder={t('documents.title-placeholder')}
               className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-300">Description</Label>
+            <Label htmlFor="description" className="text-gray-300">{t('documents.description-field')}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter document description (optional)"
+              placeholder={t('documents.description-placeholder')}
               className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 min-h-[80px]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-300">File *</Label>
+            <Label className="text-gray-300">{t('documents.file-field')} *</Label>
             <div
               onClick={() => fileInputRef.current?.click()}
               onDrop={handleDrop}
@@ -181,10 +183,10 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 <>
                   <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                   <p className="text-gray-400 text-sm">
-                    Click to upload or drag and drop
+                    {t('documents.drag-drop')}
                   </p>
                   <p className="text-gray-500 text-xs mt-1">
-                    PDF, Word, Excel, Images up to 10MB
+                    {t('documents.file-types')}
                   </p>
                 </>
               )}
@@ -193,18 +195,18 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={isUploading} className="bg-primary hover:bg-primary/80">
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading...
+                  {t('documents.uploading')}
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  Upload
+                  {t('documents.upload')}
                 </>
               )}
             </Button>
