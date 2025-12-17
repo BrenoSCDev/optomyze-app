@@ -257,6 +257,16 @@ const ManageUsers = () => {
   };
 
   const handleExport = () => {
+    // Helper to safely format dates
+    const formatDate = (dateStr: string | null | undefined) => {
+      if (!dateStr) return 'N/A';
+      try {
+        return new Date(dateStr).toLocaleDateString();
+      } catch {
+        return 'N/A';
+      }
+    };
+
     // Simple CSV export
     const csvContent = [
       ['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login', 'Created At'].join(','),
@@ -267,7 +277,7 @@ const ManageUsers = () => {
         user.role,
         user.is_active ? 'Active' : 'Inactive',
         user.last_login_at || 'Never',
-        new Date(user.created_at).toLocaleDateString()
+        formatDate(user.created_at)
       ].join(','))
     ].join('\n');
 
