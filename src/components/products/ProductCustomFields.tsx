@@ -44,11 +44,24 @@ const ProductCustomFields = ({
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  // Ensure we always have an array
-  const normalizeFields = (fields: ProductCustomField[] | null | undefined): ProductCustomField[] => {
+  // Ensure we always have an array (API may return JSON string)
+  const normalizeFields = (fields: any): ProductCustomField[] => {
     if (!fields) return [];
-    if (!Array.isArray(fields)) return [];
-    return fields;
+
+    if (Array.isArray(fields)) return fields;
+
+    if (typeof fields === 'string') {
+      try {
+        const parsed = JSON.parse(fields);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    if (typeof fields === 'object' && Array.isArray(fields.data)) return fields.data;
+
+    return [];
   };
 
   const [customFields, setCustomFields] = useState<ProductCustomField[]>(normalizeFields(productCustomFields));
