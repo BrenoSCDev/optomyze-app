@@ -4,7 +4,14 @@
  * Handles all product image-related API operations
  */
 
-import api from './api';
+import api, { API_BASE_URL } from './api';
+
+// Helper to get full image URL
+export const getFullImageUrl = (url: string): string => {
+  if (!url || url === '/placeholder.svg') return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${API_BASE_URL}/${url.replace(/^\//, '')}`;
+};
 
 export interface ProductImage {
   id: number;
