@@ -330,17 +330,21 @@ const CustomProductFields = () => {
               key={field.id}
               className="flex items-center justify-between p-4 rounded-lg border bg-background/50"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium uppercase text-muted-foreground">
-                    {field.field_type}
-                  </span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-sm font-mono text-muted-foreground">
+              <div className="flex-1 space-y-2">
+                {/* Primary info - Field Key & Type with emphasis */}
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-semibold text-foreground">
                     {field.field_key}
                   </span>
+                  <span className="px-2 py-0.5 text-xs font-medium uppercase rounded-md bg-primary/10 text-primary">
+                    {field.field_type}
+                  </span>
                 </div>
-                {renderFieldValue(field)}
+                {/* Default value display */}
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{t('settings.crm-panel.products.customFields.fieldValue')}:</span>
+                  {renderFieldValue(field)}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button
