@@ -109,6 +109,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Settings submenu items - Filter based on user role
   const settingsItems = [
+    { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={OptoIcon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
     { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={13}/>, restrictedFor: ['agent'] },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },

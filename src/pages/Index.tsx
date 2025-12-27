@@ -30,6 +30,7 @@ import ManageUsers from '@/components/users/ManageUsers';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 import ManageProducts from '@/components/products/ManageProducts';
+import CrmPanel from '@/components/settings/CrmPanel';
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -78,6 +79,8 @@ const Index = () => {
         return <GoogleAnalytics />; // Website traffic and user behavior metrics
       
       // Settings sections
+      case 'crm-panel':
+        return <CrmPanel />;
       case 'languages':
         return <LanguagesDashboard />; // Language selection interface
       case 'funnels':
