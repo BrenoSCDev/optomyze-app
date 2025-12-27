@@ -40,6 +40,7 @@ import {
 
 interface ProductImageGalleryProps {
   productId: number;
+  onImageChange?: () => void;
 }
 
 // Sortable wrapper component
@@ -82,7 +83,7 @@ const SortableImageCard = ({
   );
 };
 
-const ProductImageGallery = ({ productId }: ProductImageGalleryProps) => {
+const ProductImageGallery = ({ productId, onImageChange }: ProductImageGalleryProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
 
@@ -138,6 +139,9 @@ const ProductImageGallery = ({ productId }: ProductImageGalleryProps) => {
         description: t('products.images.upload-success'),
       });
       fetchImages();
+      if (data.is_primary) {
+        onImageChange?.(); // Notify parent if uploaded as primary
+      }
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -156,6 +160,7 @@ const ProductImageGallery = ({ productId }: ProductImageGalleryProps) => {
         description: t('products.images.primary-set-success'),
       });
       fetchImages();
+      onImageChange?.(); // Notify parent to refresh product card
     } catch (error) {
       toast({
         variant: 'destructive',

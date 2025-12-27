@@ -332,7 +332,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
             <Separator />
 
             {/* Image Gallery */}
-            <ProductImageGallery productId={productIdForImages} />
+            <ProductImageGallery productId={productIdForImages} onImageChange={onSuccess} />
           </div>
         ) : createdProductId ? (
           /* Product just created - show image upload section */
@@ -343,7 +343,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
               </p>
             </div>
 
-            <ProductImageGallery productId={createdProductId} />
+            <ProductImageGallery productId={createdProductId} onImageChange={onSuccess} />
 
             <div className="flex justify-end pt-4 border-t border-border">
               <Button onClick={handleCloseComplete}>
