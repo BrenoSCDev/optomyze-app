@@ -9,7 +9,7 @@ import { Package, Briefcase, Edit, Trash2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
-import { getProductImages, getPrimaryImageUrl, type ProductImage } from '@/services/productImageApi';
+import { getProductImages, getPrimaryImageUrl, getFullImageUrl } from '@/services/productImageApi';
 
 interface ProductCardProps {
   product: Product;
@@ -52,11 +52,11 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
     <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
       {/* Product Image or Icon */}
       <div className="flex items-center justify-center w-full aspect-square max-h-32 mx-auto mb-4 rounded-lg bg-muted/30 overflow-hidden">
-        {loadingImage ? (
+      {loadingImage ? (
           <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         ) : primaryImageUrl ? (
           <img
-            src={primaryImageUrl}
+            src={getFullImageUrl(primaryImageUrl)}
             alt={product.name}
             className="w-full h-full object-cover"
             loading="lazy"
