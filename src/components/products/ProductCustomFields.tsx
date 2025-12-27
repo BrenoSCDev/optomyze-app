@@ -44,7 +44,14 @@ const ProductCustomFields = ({
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const [customFields, setCustomFields] = useState<ProductCustomField[]>(productCustomFields);
+  // Ensure we always have an array
+  const normalizeFields = (fields: ProductCustomField[] | null | undefined): ProductCustomField[] => {
+    if (!fields) return [];
+    if (!Array.isArray(fields)) return [];
+    return fields;
+  };
+
+  const [customFields, setCustomFields] = useState<ProductCustomField[]>(normalizeFields(productCustomFields));
   const [selectedFieldKey, setSelectedFieldKey] = useState<string>('');
   const [addingField, setAddingField] = useState(false);
   const [savingFields, setSavingFields] = useState<Record<string, boolean>>({});
@@ -52,7 +59,7 @@ const ProductCustomFields = ({
 
   // Sync with parent when productCustomFields changes
   useEffect(() => {
-    setCustomFields(productCustomFields);
+    setCustomFields(normalizeFields(productCustomFields));
   }, [productCustomFields]);
 
   // Get available fields that are not already attached
