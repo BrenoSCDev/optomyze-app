@@ -33,6 +33,7 @@ const translations = {
     'nav.funnels': 'Funnels',
     'nav.tags': 'Tags',
     'nav.apiKeys': 'API Keys',
+    'nav.crm-panel': 'CRM Panel',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metrics',
@@ -46,6 +47,10 @@ const translations = {
     'settings.languages.description': 'Select your preferred language for the CRM interface',
     'settings.languages.current': 'Current Language',
     'settings.languages.select': 'Select Language',
+    'settings.crm-panel.title': 'CRM Panel',
+    'settings.crm-panel.description': 'Configure and customize your CRM settings',
+    'settings.crm-panel.coming-soon': 'Coming Soon',
+    'settings.crm-panel.coming-soon-description': 'CRM Panel settings and configurations are under development.',
 
     // Tags
     'tags.title': 'Tags Management',
@@ -967,6 +972,7 @@ const translations = {
     'nav.funnels': 'Funis',
     'nav.tags': 'Tags',
     'nav.apiKeys': 'Chaves API',
+    'nav.crm-panel': 'Painel CRM',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
@@ -980,6 +986,10 @@ const translations = {
     'settings.languages.description': 'Selecione seu idioma preferido para a interface do CRM',
     'settings.languages.current': 'Idioma Atual',
     'settings.languages.select': 'Selecionar Idioma',
+    'settings.crm-panel.title': 'Painel CRM',
+    'settings.crm-panel.description': 'Configure e personalize as configurações do CRM',
+    'settings.crm-panel.coming-soon': 'Em Breve',
+    'settings.crm-panel.coming-soon-description': 'Configurações do Painel CRM estão em desenvolvimento.',
 
     // Tags
     'tags.title': 'Gerenciamento de Tags',
@@ -1905,6 +1915,8 @@ const translations = {
     'nav.general': 'Allgemein',
     'nav.funnels': 'Verkaufstrichter',
     'nav.apiKeys': 'API-Schlüssel',
+    'nav.crm-panel': 'CRM-Panel',
+    'nav.tags': 'Tags',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
@@ -1918,6 +1930,10 @@ const translations = {
     'settings.languages.description': 'Wählen Sie Ihre bevorzugte Sprache für die CRM-Oberfläche',
     'settings.languages.current': 'Aktuelle Sprache',
     'settings.languages.select': 'Sprache auswählen',
+    'settings.crm-panel.title': 'CRM-Panel',
+    'settings.crm-panel.description': 'Konfigurieren und passen Sie Ihre CRM-Einstellungen an',
+    'settings.crm-panel.coming-soon': 'Demnächst',
+    'settings.crm-panel.coming-soon-description': 'CRM-Panel-Einstellungen und -Konfigurationen befinden sich in Entwicklung.',
 
     // Tags
     'tags.title': 'Tag-Verwaltung',
@@ -2668,6 +2684,7 @@ const translations = {
     'nav.general': 'General',
     'nav.tags': 'Etiquetas',
     'nav.apiKeys': 'Claves API',
+    'nav.crm-panel': 'Panel CRM',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
@@ -2681,6 +2698,10 @@ const translations = {
     'settings.languages.description': 'Selecciona tu idioma preferido para la interfaz del CRM',
     'settings.languages.current': 'Idioma Actual',
     'settings.languages.select': 'Seleccionar Idioma',
+    'settings.crm-panel.title': 'Panel CRM',
+    'settings.crm-panel.description': 'Configura y personaliza los ajustes de tu CRM',
+    'settings.crm-panel.coming-soon': 'Próximamente',
+    'settings.crm-panel.coming-soon-description': 'Los ajustes del Panel CRM están en desarrollo.',
 
     // Tags
     'tags.title': 'Gestión de Etiquetas',
