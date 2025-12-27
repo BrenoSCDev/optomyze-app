@@ -55,6 +55,13 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
   // Product ID for image management (either from editing or just created)
   const productIdForImages = product?.id || createdProductId;
 
+  // Normalize custom fields to ensure array format
+  const normalizeCustomFields = (fields: any): ProductCustomFieldValue[] => {
+    if (!fields) return [];
+    if (!Array.isArray(fields)) return [];
+    return fields;
+  };
+
   useEffect(() => {
     if (product) {
       setFormData({
@@ -66,7 +73,9 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
         category: product.category || '',
         is_active: product.is_active,
       });
-      setProductCustomFields(product.custom_fields || []);
+      const normalizedFields = normalizeCustomFields(product.custom_fields);
+      console.log('Loading product custom_fields:', product.custom_fields, '-> normalized:', normalizedFields);
+      setProductCustomFields(normalizedFields);
       setCreatedProductId(null);
     } else {
       setFormData({
