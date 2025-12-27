@@ -338,6 +338,7 @@ const ManageProducts = () => {
         onClose={handleModalClose}
         product={selectedProduct}
         onSuccess={fetchProducts}
+        availableCustomFields={customFields}
       />
 
       {/* Delete Confirmation Dialog */}
