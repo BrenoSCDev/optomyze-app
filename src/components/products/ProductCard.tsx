@@ -1,13 +1,15 @@
 /**
  * PRODUCT CARD COMPONENT
  * 
- * Displays a single product in a card format with actions
+ * Displays a single product in a card format with actions and primary image
  */
 
+import { useState, useEffect } from 'react';
 import { Package, Briefcase, Edit, Trash2, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
+import { getProductImages, getPrimaryImageUrl, type ProductImage } from '@/services/productImageApi';
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +20,26 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardProps) => {
   const { t } = useLanguage();
+  const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState(true);
+
+  useEffect(() => {
+    const fetchPrimaryImage = async () => {
+      try {
+        setLoadingImage(true);
+        const images = await getProductImages(product.id);
+        const url = getPrimaryImageUrl(images);
+        setPrimaryImageUrl(url !== '/placeholder.svg' ? url : null);
+      } catch (error) {
+        // Silently fail - will show icon instead
+        setPrimaryImageUrl(null);
+      } finally {
+        setLoadingImage(false);
+      }
+    };
+
+    fetchPrimaryImage();
+  }, [product.id]);
 
   const formatPrice = (price: number) => {
     return parseFloat(String(price)).toLocaleString('en-US', {
@@ -28,12 +50,21 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
 
   return (
     <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
-      {/* Product Icon */}
-      <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-lg bg-primary/20">
-        {product.type === 'service' ? (
-          <Briefcase className="w-8 h-8 text-primary" />
+      {/* Product Image or Icon */}
+      <div className="flex items-center justify-center w-full aspect-square max-h-32 mx-auto mb-4 rounded-lg bg-muted/30 overflow-hidden">
+        {loadingImage ? (
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        ) : primaryImageUrl ? (
+          <img
+            src={primaryImageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : product.type === 'service' ? (
+          <Briefcase className="w-12 h-12 text-primary" />
         ) : (
-          <Package className="w-8 h-8 text-primary" />
+          <Package className="w-12 h-12 text-primary" />
         )}
       </div>
 
