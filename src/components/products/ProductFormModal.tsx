@@ -140,8 +140,8 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
     onClose();
   };
 
-  // Product Data Form Component
-  const ProductDataForm = ({ isCreateMode = false }: { isCreateMode?: boolean }) => (
+  // Form content - inlined to prevent focus loss on re-render
+  const renderFormContent = (isCreateMode = false) => (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Error Display */}
       {error && (
@@ -188,11 +188,11 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
 
       {/* Product Name */}
       <div>
-        <Label htmlFor="name">
+        <Label htmlFor="product-name">
           {t('products.name-label')} <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="name"
+          id="product-name"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           required
@@ -207,11 +207,11 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* SKU */}
         <div>
-          <Label htmlFor="sku">
+          <Label htmlFor="product-sku">
             {t('products.sku-label')} <span className="text-destructive">*</span>
           </Label>
           <Input
-            id="sku"
+            id="product-sku"
             value={formData.sku}
             onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value.toUpperCase() }))}
             required
@@ -224,13 +224,13 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
 
         {/* Base Price */}
         <div>
-          <Label htmlFor="base_price">
+          <Label htmlFor="product-price">
             {t('products.price-label')} <span className="text-destructive">*</span>
           </Label>
           <div className="relative mt-2">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
             <Input
-              id="base_price"
+              id="product-price"
               type="number"
               step="0.01"
               min="0"
@@ -247,9 +247,9 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
 
       {/* Category */}
       <div>
-        <Label htmlFor="category">{t('products.category-label')}</Label>
+        <Label htmlFor="product-category">{t('products.category-label')}</Label>
         <Input
-          id="category"
+          id="product-category"
           value={formData.category}
           onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
           disabled={loading}
@@ -260,9 +260,9 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
 
       {/* Description */}
       <div>
-        <Label htmlFor="description">{t('products.description-label')}</Label>
+        <Label htmlFor="product-description">{t('products.description-label')}</Label>
         <Textarea
-          id="description"
+          id="product-description"
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           disabled={loading}
@@ -325,21 +325,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
     </form>
   );
 
-  // Custom Fields Placeholder Component
-  const CustomFieldsPlaceholder = () => (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-        <Settings2 className="w-8 h-8 text-muted-foreground" />
-      </div>
-      <h4 className="text-lg font-medium text-foreground mb-2">
-        {t('products.custom-fields.title')}
-      </h4>
-      <p className="text-sm text-muted-foreground max-w-md">
-        {t('products.custom-fields.coming-soon')}
-      </p>
-    </div>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseComplete}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -373,16 +358,26 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
             </TabsList>
 
             <div className="flex-1 overflow-y-auto scrollbar-thin mt-4">
-              <TabsContent value="data" className="m-0">
-                <ProductDataForm />
+              <TabsContent value="data" className="m-0" forceMount hidden={activeTab !== 'data'}>
+                {renderFormContent()}
               </TabsContent>
 
-              <TabsContent value="images" className="m-0">
+              <TabsContent value="images" className="m-0" forceMount hidden={activeTab !== 'images'}>
                 <ProductImageGallery productId={productIdForImages} onImageChange={onSuccess} />
               </TabsContent>
 
-              <TabsContent value="custom-fields" className="m-0">
-                <CustomFieldsPlaceholder />
+              <TabsContent value="custom-fields" className="m-0" forceMount hidden={activeTab !== 'custom-fields'}>
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+                    <Settings2 className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h4 className="text-lg font-medium text-foreground mb-2">
+                    {t('products.custom-fields.title')}
+                  </h4>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {t('products.custom-fields.coming-soon')}
+                  </p>
+                </div>
               </TabsContent>
             </div>
           </Tabs>
@@ -425,7 +420,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         ) : (
           /* Create form - no tabs */
           <div className="flex-1 overflow-y-auto scrollbar-thin">
-            <ProductDataForm isCreateMode />
+            {renderFormContent(true)}
           </div>
         )}
       </DialogContent>
