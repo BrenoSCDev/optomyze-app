@@ -12,6 +12,11 @@ export interface ProductMetadata {
   [key: string]: any;
 }
 
+export interface ProductCustomFieldValue {
+  field_key: string;
+  field_value: string | boolean | number | null;
+}
+
 export interface Product {
   id: number;
   company_id: number;
@@ -23,6 +28,7 @@ export interface Product {
   category: string | null;
   is_active: boolean;
   metadata: ProductMetadata | null;
+  custom_fields: ProductCustomFieldValue[] | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
