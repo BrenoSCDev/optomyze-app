@@ -840,6 +840,18 @@ const translations = {
     'calendar.no-events': 'No events scheduled',
     'calendar.no-events-description': 'Click to create a new event for this day',
     'calendar.upcoming-events': 'Upcoming Events',
+    
+    // Products
+    'nav.products': 'Products',
+    'products.manage': 'Manage Products',
+    'products.title': 'Product Management',
+    'products.breadcrumb': 'Products / Manage',
+    'products.description': 'Create and manage your product catalog',
+    'products.new-product': 'New Product',
+    'products.search-placeholder': 'Search products...',
+    'products.no-products': 'No products yet',
+    'products.no-products-description': 'Create your first product to start building your catalog.',
+    'products.create-first': 'Create First Product',
   },
   'pt-BR': {
     // Navigation
@@ -1668,6 +1680,18 @@ const translations = {
     'calendar.no-events': 'Nenhum evento agendado',
     'calendar.no-events-description': 'Clique para criar um novo evento para este dia',
     'calendar.upcoming-events': 'Próximos Eventos',
+    
+    // Products
+    'nav.products': 'Produtos',
+    'products.manage': 'Gerenciar Produtos',
+    'products.title': 'Gerenciamento de Produtos',
+    'products.breadcrumb': 'Produtos / Gerenciar',
+    'products.description': 'Crie e gerencie seu catálogo de produtos',
+    'products.new-product': 'Novo Produto',
+    'products.search-placeholder': 'Buscar produtos...',
+    'products.no-products': 'Nenhum produto ainda',
+    'products.no-products-description': 'Crie seu primeiro produto para começar a construir seu catálogo.',
+    'products.create-first': 'Criar Primeiro Produto',
   },
   de: {
     // Navigation
@@ -2320,6 +2344,18 @@ const translations = {
     'calendar.no-events': 'Keine Ereignisse geplant',
     'calendar.no-events-description': 'Klicken Sie, um ein neues Ereignis für diesen Tag zu erstellen',
     'calendar.upcoming-events': 'Kommende Ereignisse',
+    
+    // Products
+    'nav.products': 'Produkte',
+    'products.manage': 'Produkte verwalten',
+    'products.title': 'Produktverwaltung',
+    'products.breadcrumb': 'Produkte / Verwalten',
+    'products.description': 'Erstellen und verwalten Sie Ihren Produktkatalog',
+    'products.new-product': 'Neues Produkt',
+    'products.search-placeholder': 'Produkte suchen...',
+    'products.no-products': 'Noch keine Produkte',
+    'products.no-products-description': 'Erstellen Sie Ihr erstes Produkt, um Ihren Katalog aufzubauen.',
+    'products.create-first': 'Erstes Produkt erstellen',
   },
   es: {
     // Navigation
@@ -2972,6 +3008,18 @@ const translations = {
     'calendar.no-events': 'No hay eventos programados',
     'calendar.no-events-description': 'Haz clic para crear un nuevo evento para este día',
     'calendar.upcoming-events': 'Próximos Eventos',
+    
+    // Products
+    'nav.products': 'Productos',
+    'products.manage': 'Gestionar Productos',
+    'products.title': 'Gestión de Productos',
+    'products.breadcrumb': 'Productos / Gestionar',
+    'products.description': 'Crea y gestiona tu catálogo de productos',
+    'products.new-product': 'Nuevo Producto',
+    'products.search-placeholder': 'Buscar productos...',
+    'products.no-products': 'Aún no hay productos',
+    'products.no-products-description': 'Crea tu primer producto para comenzar a construir tu catálogo.',
+    'products.create-first': 'Crear Primer Producto',
   }
 };
 
