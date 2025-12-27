@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Bell, Package, DollarSign, Settings, List } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
+import ProductFieldsSettings from './ProductFieldsSettings';
 
 const CrmPanel = () => {
   const { t } = useLanguage();
@@ -146,8 +147,8 @@ const CrmPanel = () => {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="py-4 px-2 text-muted-foreground border-t">
-                    <p>{t('settings.crm-panel.products.customFieldsPlaceholder')}</p>
+                  <div className="py-4 px-2 border-t">
+                    <ProductFieldsSettings />
                   </div>
                 </AccordionContent>
               </AccordionItem>
