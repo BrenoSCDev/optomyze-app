@@ -37,7 +37,8 @@ import {
   Key,
   MessageCircle,
   UserCircle,
-  CalendarDays
+  CalendarDays,
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -141,7 +142,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Calendars submenu items
   const calendarsItems = [
-    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> },
+    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
+  ];
+
+  // Products submenu items
+  const productsItems = [
+    { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
@@ -713,6 +719,65 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 transition={{ duration: 0.3 }}
               >
                 {calendarsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item-sub w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Products Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('products')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Package className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.products')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'products' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'products' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {productsItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}

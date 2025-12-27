@@ -29,7 +29,7 @@ import ApiSetup from '@/components/api/ApiSetup';
 import ManageUsers from '@/components/users/ManageUsers';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
-
+import ManageProducts from '@/components/products/ManageProducts';
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -124,6 +124,10 @@ const Index = () => {
       // Calendars sections
       case 'optomyze-calendar':
         return <OptomyzeCalendar />;
+      
+      // Products sections
+      case 'manage-products':
+        return <ManageProducts />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
