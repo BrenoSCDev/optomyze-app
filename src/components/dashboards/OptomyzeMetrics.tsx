@@ -17,6 +17,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus } from 'lucide-react';
+import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
@@ -255,9 +256,12 @@ const OptomyzeMetrics = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-            {t('dashboard.title.optomyze')}
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <img src={OptoIcon} alt="Optomyze" className="h-8 w-8" />
+            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+              {t('dashboard.title.optomyze')}
+            </h1>
+          </div>
           <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
         </div>
         <ErrorState onRetry={fetchMetricsData} error={error} />
@@ -277,9 +281,12 @@ const OptomyzeMetrics = () => {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent mb-2">
-          {t('dashboard.title.optomyze')}
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <img src={OptoIcon} alt="Optomyze" className="h-8 w-8" />
+          <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+            {t('dashboard.title.optomyze')}
+          </h1>
+        </div>
         <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
       </div>
 
