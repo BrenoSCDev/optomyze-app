@@ -141,7 +141,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Calendars submenu items
   const calendarsItems = [
-    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <CalendarDays size={18}/> },
+    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
