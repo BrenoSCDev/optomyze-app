@@ -58,13 +58,28 @@ export interface PaginatedResponse<T> {
   last_page: number;
 }
 
+export interface CustomField {
+  id: number;
+  company_id: number;
+  field_key: string;
+  field_type: string;
+  field_value: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductsApiResponse {
+  products: PaginatedResponse<Product>;
+  fields: CustomField[];
+}
+
 export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
 
 // Get all products with filters and pagination
-export const getProducts = async (filters: ProductFilters = {}): Promise<PaginatedResponse<Product>> => {
+export const getProducts = async (filters: ProductFilters = {}): Promise<ProductsApiResponse> => {
   const params = new URLSearchParams();
   
   if (filters.search) params.append('search', filters.search);
