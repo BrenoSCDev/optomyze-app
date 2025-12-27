@@ -234,12 +234,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                     {React.createElement(item.icon, { className: "h-4 w-4" })}
-                    <span className="text-sm">{item.label}</span>
+                     {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -295,13 +295,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                       key={item.id}
                       to={item.path}
                       className={({ isActive }) => `
-                        nav-item w-full ${
+                        nav-item-sub w-full ${
                           isActive ? 'active' : ''
                         }
                       `}
                     >
-                      <IoFunnelOutline size={14} />
-                      <span className="text-sm truncate">{item.label}</span>
+                      <IoFunnelOutline size={12} />
+                      <span className="truncate">{item.label}</span>
                     </NavLink>
                   ))
                 ) : (
@@ -360,12 +360,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
                     <item.icon />
-                    <span className="text-sm">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -419,12 +419,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
                     <item.icon />
-                    <span className="text-sm">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -478,12 +478,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
                     <item.icon />
-                    <span className="text-sm">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -537,12 +537,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    {React.createElement(item.icon, { className: "h-4 w-4" })}
-                    <span className="text-sm">{item.label}</span>
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -597,12 +597,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     <button
                       key={item.id}
                       onClick={() => handleSectionNavigation(item.id)}
-                      className={`nav-item w-full ${
+                      className={`nav-item-sub w-full ${
                         activeSection === item.id ? 'active' : ''
                       }`}
                     >
-                      {React.createElement(item.icon, { className: "h-4 w-4" })}
-                      <span className="text-sm">{item.label}</span>
+                      {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                      <span>{item.label}</span>
                     </button>
                   ))}
                 </motion.div>
@@ -657,12 +657,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    {React.createElement(item.icon, { className: "h-4 w-4" })}
-                    <span className="text-sm">{item.label}</span>
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -716,12 +716,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   <button
                     key={item.id}
                     onClick={() => handleSectionNavigation(item.id)}
-                    className={`nav-item w-full ${
+                    className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}
                   >
-                    {React.createElement(item.icon, { className: "h-4 w-4" })}
-                    <span className="text-sm">{item.label}</span>
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </motion.div>
