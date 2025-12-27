@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Package, DollarSign } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Bell, Package, DollarSign, Settings, List } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 
 const CrmPanel = () => {
@@ -111,14 +112,46 @@ const CrmPanel = () => {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-                <Package className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {t('settings.crm-panel.products.placeholder')}
-              </p>
-            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {/* General Settings */}
+              <AccordionItem value="general-settings" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Settings className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.crm-panel.products.generalSettings')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 text-muted-foreground border-t">
+                    <p>{t('settings.crm-panel.products.generalSettingsPlaceholder')}</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Custom Fields Settings */}
+              <AccordionItem value="custom-fields" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <List className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.crm-panel.products.customFieldsSettings')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 text-muted-foreground border-t">
+                    <p>{t('settings.crm-panel.products.customFieldsPlaceholder')}</p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </TabsContent>
 
