@@ -110,7 +110,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Settings submenu items - Filter based on user role
   const settingsItems = [
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
-    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={18}/>, restrictedFor: ['agent'] },
+    { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={13}/>, restrictedFor: ['agent'] },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },
   ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
 
