@@ -3,10 +3,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List, Tag, Users, Zap, Shield } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, Clock, XCircle, ArrowRightLeft, CheckSquare } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useSettingsPanel } from '@/hooks/useSettingsPanel';
+import { useFunnelSettings } from '@/hooks/useFunnelSettings';
+import { FunnelStage } from '@/services/funnelSettingsApi';
 
 // Product Settings
 import ProductBehaviorSection from './products/ProductBehaviorSection';
@@ -22,9 +25,21 @@ import NotificationsSection from './sales/NotificationsSection';
 import AutomationsSection from './sales/AutomationsSection';
 import PermissionsSection from './sales/PermissionsSection';
 
+// Funnel Settings
+import FunnelStructureSection from './funnels/FunnelStructureSection';
+import StageEntryRulesSection from './funnels/StageEntryRulesSection';
+import AutomatedTransitionsSection from './funnels/AutomatedTransitionsSection';
+import StageActionsSection from './funnels/StageActionsSection';
+import InactivityRulesSection from './funnels/InactivityRulesSection';
+import LossHandlingSection from './funnels/LossHandlingSection';
+import ConversionSettingsSection from './funnels/ConversionSettingsSection';
+
 const CrmPanel = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('notifications');
+  const [editingStage, setEditingStage] = useState<FunnelStage | null>(null);
+  const [stageDialogOpen, setStageDialogOpen] = useState(false);
+
   const {
     settings,
     loading,
@@ -39,7 +54,47 @@ const CrmPanel = () => {
     resetSalesSettings,
   } = useSettingsPanel();
 
-  if (loading) {
+  const {
+    settings: funnelSettings,
+    loading: funnelLoading,
+    saving: funnelSaving,
+    selectedFunnelId,
+    selectedFunnel,
+    setSelectedFunnelId,
+    hasChanges: hasFunnelChanges,
+    updateSettings: updateFunnelSettings,
+    updateFunnel,
+    addFunnel,
+    deleteFunnel,
+    setDefaultFunnel,
+    saveSettings: saveFunnelSettings,
+    resetChanges: resetFunnelChanges,
+  } = useFunnelSettings();
+
+  const handleEditStage = (stage: FunnelStage) => {
+    setEditingStage(stage);
+    setStageDialogOpen(true);
+  };
+
+  const handleUpdateStageRules = (rules: FunnelStage['entryRules']) => {
+    if (!editingStage || !selectedFunnel) return;
+    const updatedStages = selectedFunnel.stages.map(s =>
+      s.id === editingStage.id ? { ...s, entryRules: rules } : s
+    );
+    updateFunnel(selectedFunnel.id, { stages: updatedStages });
+    setEditingStage({ ...editingStage, entryRules: rules });
+  };
+
+  const handleUpdateStageActions = (actions: FunnelStage['actions']) => {
+    if (!editingStage || !selectedFunnel) return;
+    const updatedStages = selectedFunnel.stages.map(s =>
+      s.id === editingStage.id ? { ...s, actions } : s
+    );
+    updateFunnel(selectedFunnel.id, { stages: updatedStages });
+    setEditingStage({ ...editingStage, actions });
+  };
+
+  if (loading || funnelLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -109,28 +164,194 @@ const CrmPanel = () => {
         {/* Funnels Tab */}
         <TabsContent value="funnels" className="mt-0">
           <div className="glass-card p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <IoFunnelOutline className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <IoFunnelOutline className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {t('settings.crm-panel.funnels.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.crm-panel.funnels.description')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {t('settings.crm-panel.funnels.title')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('settings.crm-panel.funnels.description')}
-                </p>
-              </div>
+              {hasFunnelChanges() && (
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={resetFunnelChanges} disabled={funnelSaving}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button onClick={saveFunnelSettings} disabled={funnelSaving}>
+                    {funnelSaving ? t('common.saving') : t('common.save')}
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-                <IoFunnelOutline className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {t('settings.crm-panel.funnels.placeholder')}
-              </p>
-            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {/* Funnel Structure */}
+              <AccordionItem value="funnel-structure" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <IoFunnelOutline className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.structure')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <FunnelStructureSection
+                      funnels={funnelSettings.funnels}
+                      selectedFunnelId={selectedFunnelId}
+                      onSelectFunnel={setSelectedFunnelId}
+                      onAddFunnel={addFunnel}
+                      onUpdateFunnel={updateFunnel}
+                      onDeleteFunnel={deleteFunnel}
+                      onSetDefault={setDefaultFunnel}
+                      onEditStage={handleEditStage}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Automated Transitions */}
+              <AccordionItem value="transitions" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <ArrowRightLeft className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.auto-transitions')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <AutomatedTransitionsSection
+                      transitions={funnelSettings.automatedTransitions}
+                      funnels={funnelSettings.funnels}
+                      onUpdate={(transitions) => updateFunnelSettings({ automatedTransitions: transitions })}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Inactivity Rules */}
+              <AccordionItem value="inactivity" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.inactivity-rules')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <InactivityRulesSection
+                      rules={funnelSettings.inactivityRules}
+                      onUpdate={(rules) => updateFunnelSettings({ inactivityRules: rules })}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Conversion Settings */}
+              <AccordionItem value="conversion" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.conversion-settings')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <ConversionSettingsSection
+                      settings={funnelSettings.conversionSettings}
+                      onUpdate={(settings) => updateFunnelSettings({ conversionSettings: settings })}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Loss Handling */}
+              <AccordionItem value="loss-handling" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <XCircle className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.loss-handling')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <LossHandlingSection
+                      settings={funnelSettings.lossHandlingSettings}
+                      onUpdate={(settings) => updateFunnelSettings({ lossHandlingSettings: settings })}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
+
+          {/* Stage Rules & Actions Dialog */}
+          <Dialog open={stageDialogOpen} onOpenChange={setStageDialogOpen}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingStage?.name} - {t('settings.funnels.stage-config')}
+                </DialogTitle>
+              </DialogHeader>
+
+              {editingStage && (
+                <Accordion type="single" collapsible className="w-full space-y-4">
+                  <AccordionItem value="entry-rules" className="border rounded-lg px-4">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <span className="font-medium">{t('settings.funnels.entry-rules')}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="py-3 border-t">
+                        <StageEntryRulesSection
+                          stage={editingStage}
+                          onUpdate={handleUpdateStageRules}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="stage-actions" className="border rounded-lg px-4">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <span className="font-medium">{t('settings.funnels.stage-actions')}</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="py-3 border-t">
+                        <StageActionsSection
+                          actions={editingStage.actions}
+                          onUpdate={handleUpdateStageActions}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* Products Tab */}
