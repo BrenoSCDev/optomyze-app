@@ -19,20 +19,18 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { createProduct, updateProduct, type Product, type ProductFormData, type CustomField, type ProductCustomFieldValue } from '@/services/productApi';
+import { createProduct, updateProduct, type Product, type ProductFormData } from '@/services/productApi';
 import { useToast } from '@/hooks/use-toast';
 import ProductImageGallery from './ProductImageGallery';
-import ProductCustomFields from './ProductCustomFields';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   product?: Product | null;
   onSuccess: () => void;
-  availableCustomFields?: CustomField[];
 }
 
-const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustomFields = [] }: ProductFormModalProps) => {
+const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const isEdit = !!product;
@@ -41,7 +39,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
   const [error, setError] = useState<string | null>(null);
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('data');
-  const [productCustomFields, setProductCustomFields] = useState<ProductCustomFieldValue[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
@@ -55,27 +52,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
   // Product ID for image management (either from editing or just created)
   const productIdForImages = product?.id || createdProductId;
 
-  // Normalize custom fields to ensure array format (API may return JSON string)
-  const normalizeCustomFields = (fields: any): ProductCustomFieldValue[] => {
-    if (!fields) return [];
-
-    if (Array.isArray(fields)) return fields;
-
-    if (typeof fields === 'string') {
-      try {
-        const parsed = JSON.parse(fields);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-
-    // Support common wrapper shapes (just in case)
-    if (typeof fields === 'object' && Array.isArray(fields.data)) return fields.data;
-
-    return [];
-  };
-
   useEffect(() => {
     if (product) {
       setFormData({
@@ -87,7 +63,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
         category: product.category || '',
         is_active: product.is_active,
       });
-      setProductCustomFields(normalizeCustomFields(product.custom_fields));
       setCreatedProductId(null);
     } else {
       setFormData({
@@ -99,7 +74,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
         category: '',
         is_active: true,
       });
-      setProductCustomFields([]);
       setCreatedProductId(null);
     }
     setError(null);
@@ -393,12 +367,17 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess, availableCustom
               </TabsContent>
 
               <TabsContent value="custom-fields" className="m-0" forceMount hidden={activeTab !== 'custom-fields'}>
-                <ProductCustomFields
-                  productId={productIdForImages!}
-                  productCustomFields={productCustomFields}
-                  availableFields={availableCustomFields}
-                  onFieldsChange={setProductCustomFields}
-                />
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+                    <Settings2 className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h4 className="text-lg font-medium text-foreground mb-2">
+                    {t('products.custom-fields.title')}
+                  </h4>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {t('products.custom-fields.coming-soon')}
+                  </p>
+                </div>
               </TabsContent>
             </div>
           </Tabs>

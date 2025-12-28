@@ -12,11 +12,6 @@ export interface ProductMetadata {
   [key: string]: any;
 }
 
-export interface ProductCustomFieldValue {
-  field_key: string;
-  field_value: string | boolean | number | null;
-}
-
 export interface Product {
   id: number;
   company_id: number;
@@ -28,7 +23,6 @@ export interface Product {
   category: string | null;
   is_active: boolean;
   metadata: ProductMetadata | null;
-  custom_fields: ProductCustomFieldValue[] | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -64,28 +58,13 @@ export interface PaginatedResponse<T> {
   last_page: number;
 }
 
-export interface CustomField {
-  id: number;
-  company_id: number;
-  field_key: string;
-  field_type: string;
-  field_value: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ProductsApiResponse {
-  products: PaginatedResponse<Product>;
-  fields: CustomField[];
-}
-
 export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
 
 // Get all products with filters and pagination
-export const getProducts = async (filters: ProductFilters = {}): Promise<ProductsApiResponse> => {
+export const getProducts = async (filters: ProductFilters = {}): Promise<PaginatedResponse<Product>> => {
   const params = new URLSearchParams();
   
   if (filters.search) params.append('search', filters.search);

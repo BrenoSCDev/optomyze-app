@@ -23,7 +23,6 @@ import {
   toggleProductActive,
   type Product,
   type ProductFilters,
-  type CustomField,
 } from '@/services/productApi';
 import ProductCard from './ProductCard';
 import ProductFormModal from './ProductFormModal';
@@ -35,7 +34,6 @@ const ManageProducts = () => {
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -73,13 +71,12 @@ const ManageProducts = () => {
     try {
       setLoading(true);
       const response = await getProducts(filters);
-      setProducts(response.products.data);
-      setCustomFields(response.fields || []);
+      setProducts(response.data);
       setPagination({
-        current_page: response.products.current_page,
-        per_page: response.products.per_page,
-        total: response.products.total,
-        last_page: response.products.last_page,
+        current_page: response.current_page,
+        per_page: response.per_page,
+        total: response.total,
+        last_page: response.last_page,
       });
     } catch (err) {
       toast({
@@ -338,7 +335,6 @@ const ManageProducts = () => {
         onClose={handleModalClose}
         product={selectedProduct}
         onSuccess={fetchProducts}
-        availableCustomFields={customFields}
       />
 
       {/* Delete Confirmation Dialog */}
