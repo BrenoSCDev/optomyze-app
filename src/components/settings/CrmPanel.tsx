@@ -3,12 +3,49 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Users, Zap, Shield } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
+import { Button } from '@/components/ui/button';
+import { useSettingsPanel } from '@/hooks/useSettingsPanel';
+
+// Product Settings
+import ProductBehaviorSection from './products/ProductBehaviorSection';
+import CustomFieldsSection from './products/CustomFieldsSection';
+import PricingRulesSection from './products/PricingRulesSection';
+
+// Sales Settings
+import PipelinesSection from './sales/PipelinesSection';
+import DealDefaultsSection from './sales/DealDefaultsSection';
+import DealRulesSection from './sales/DealRulesSection';
+import CommissionsSection from './sales/CommissionsSection';
+import NotificationsSection from './sales/NotificationsSection';
+import AutomationsSection from './sales/AutomationsSection';
+import PermissionsSection from './sales/PermissionsSection';
 
 const CrmPanel = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('notifications');
+  const {
+    settings,
+    loading,
+    saving,
+    updateProductSettings,
+    updateSalesSettings,
+    hasProductChanges,
+    hasSalesChanges,
+    saveProductSettings,
+    saveSalesSettings,
+    resetProductSettings,
+    resetSalesSettings,
+  } = useSettingsPanel();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -99,41 +136,54 @@ const CrmPanel = () => {
         {/* Products Tab */}
         <TabsContent value="products" className="mt-0">
           <div className="glass-card p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Package className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {t('settings.crm-panel.products.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.crm-panel.products.description')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {t('settings.crm-panel.products.title')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('settings.crm-panel.products.description')}
-                </p>
-              </div>
+              {hasProductChanges() && (
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={resetProductSettings} disabled={saving}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button onClick={saveProductSettings} disabled={saving}>
+                    {saving ? t('common.saving') : t('common.save')}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
-              {/* General Settings */}
-              <AccordionItem value="general-settings" className="border rounded-lg px-4 bg-background/50">
+              <AccordionItem value="default-behavior" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Settings className="w-4 h-4 text-primary" />
                     </div>
                     <span className="font-semibold text-foreground">
-                      {t('settings.crm-panel.products.generalSettings')}
+                      {t('settings.products.default-behavior')}
                     </span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="py-4 px-2 text-muted-foreground border-t">
-                    <p>{t('settings.crm-panel.products.generalSettingsPlaceholder')}</p>
+                  <div className="py-4 px-2 border-t">
+                    <ProductBehaviorSection 
+                      settings={settings.product_settings} 
+                      onUpdate={updateProductSettings} 
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Custom Fields Settings */}
               <AccordionItem value="custom-fields" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
@@ -141,13 +191,37 @@ const CrmPanel = () => {
                       <List className="w-4 h-4 text-primary" />
                     </div>
                     <span className="font-semibold text-foreground">
-                      {t('settings.crm-panel.products.customFieldsSettings')}
+                      {t('settings.products.custom-fields')}
                     </span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="py-4 px-2 text-muted-foreground border-t">
-                    <p>{t('settings.crm-panel.products.customFieldsPlaceholder')}</p>
+                  <div className="py-4 px-2 border-t">
+                    <CustomFieldsSection 
+                      settings={settings.product_settings} 
+                      onUpdate={updateProductSettings} 
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="pricing-rules" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.products.pricing-rules')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <PricingRulesSection 
+                      settings={settings.product_settings} 
+                      onUpdate={updateProductSettings} 
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -158,27 +232,159 @@ const CrmPanel = () => {
         {/* Sales Tab */}
         <TabsContent value="sales" className="mt-0">
           <div className="glass-card p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {t('settings.crm-panel.sales.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.crm-panel.sales.description')}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">
-                  {t('settings.crm-panel.sales.title')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('settings.crm-panel.sales.description')}
-                </p>
-              </div>
+              {hasSalesChanges() && (
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={resetSalesSettings} disabled={saving}>
+                    {t('common.cancel')}
+                  </Button>
+                  <Button onClick={saveSalesSettings} disabled={saving}>
+                    {saving ? t('common.saving') : t('common.save')}
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-                <DollarSign className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {t('settings.crm-panel.sales.placeholder')}
-              </p>
-            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              <AccordionItem value="pipelines" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <IoFunnelOutline className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.pipelines')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <PipelinesSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="deal-defaults" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Settings className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.deal-defaults')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <DealDefaultsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="deal-rules" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <List className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.deal-rules')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <DealRulesSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="commissions" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.commissions')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <CommissionsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="notifications" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Bell className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.notifications')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <NotificationsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="automations" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Zap className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.automations')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <AutomationsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="permissions" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.sales.permissions')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <PermissionsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </TabsContent>
       </Tabs>
