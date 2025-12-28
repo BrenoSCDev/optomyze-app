@@ -12,12 +12,13 @@ import {
   NotificationChannel,
   NotificationPriority,
   RecipientType,
+  NotificationChannels,
 } from '@/services/notificationSettingsApi';
 import { ChevronDown, ChevronUp, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
 interface Props {
   events: NotificationEvent[];
-  enabledChannels: { [key: string]: boolean };
+  enabledChannels: NotificationChannels;
   onUpdate: (eventId: string, updates: Partial<NotificationEvent>) => void;
 }
 

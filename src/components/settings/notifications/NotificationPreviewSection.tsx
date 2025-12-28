@@ -9,6 +9,7 @@ import {
   NotificationEvent,
   NotificationChannel,
   NotificationTemplate,
+  NotificationChannels,
   mockUsers,
 } from '@/services/notificationSettingsApi';
 import { Send, Mail, MessageCircle, Hash, Bell, Smartphone } from 'lucide-react';
@@ -16,7 +17,7 @@ import { Send, Mail, MessageCircle, Hash, Bell, Smartphone } from 'lucide-react'
 interface Props {
   events: NotificationEvent[];
   templates: NotificationTemplate[];
-  enabledChannels: { [key: string]: boolean };
+  enabledChannels: NotificationChannels;
 }
 
 const channelIcons = {
