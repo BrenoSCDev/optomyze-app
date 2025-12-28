@@ -3,8 +3,6 @@ import {
   SettingsPanel, 
   ProductSettings, 
   SalesSettings,
-  getSettings, 
-  saveSettings, 
   defaultSettings 
 } from '@/services/settingsApi';
 import { useToast } from '@/hooks/use-toast';
@@ -18,12 +16,15 @@ export const useSettingsPanel = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Using mock data for now - replace with API call when backend is ready
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getSettings();
-      setSettings(data);
-      setOriginalSettings(data);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      // Use default settings as mock data
+      setSettings(defaultSettings);
+      setOriginalSettings(defaultSettings);
     } catch (error) {
       console.error('Failed to load settings:', error);
       toast({
@@ -62,12 +63,12 @@ export const useSettingsPanel = () => {
     return JSON.stringify(settings.sales_settings) !== JSON.stringify(originalSettings.sales_settings);
   }, [settings.sales_settings, originalSettings.sales_settings]);
 
+  // Mock save - replace with API call when backend is ready
   const saveProductSettings = useCallback(async () => {
     try {
       setSaving(true);
-      const updated = await saveSettings(settings);
-      setSettings(updated);
-      setOriginalSettings(updated);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setOriginalSettings(settings);
       toast({
         title: t('common.success'),
         description: t('settings.panel.save-success'),
@@ -84,12 +85,12 @@ export const useSettingsPanel = () => {
     }
   }, [settings, toast, t]);
 
+  // Mock save - replace with API call when backend is ready
   const saveSalesSettings = useCallback(async () => {
     try {
       setSaving(true);
-      const updated = await saveSettings(settings);
-      setSettings(updated);
-      setOriginalSettings(updated);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setOriginalSettings(settings);
       toast({
         title: t('common.success'),
         description: t('settings.panel.save-success'),
