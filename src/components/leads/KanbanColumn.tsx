@@ -31,9 +31,11 @@ interface KanbanColumnProps {
   onTagClick?: (lead: any) => void;
   onLeadClick?: (leadId: string) => void;
   activeId?: string | null;
+  stageValueEstimated?: number;
+  stageCurrency?: string;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, stageValueEstimated, stageCurrency }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const { isOver, setNodeRef } = useDroppable({
@@ -63,16 +65,17 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
       data-column-id={column.id}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground">{column.title}</h3>
-              <Badge
-                variant="secondary"
-                className="bg-muted/50 text-muted-foreground"
-              >
-                {column.leads.length}
-              </Badge>
-            </div>
+      <div className="flex flex-col gap-1 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-foreground">{column.title}</h3>
+            <Badge
+              variant="secondary"
+              className="bg-muted/50 text-muted-foreground"
+            >
+              {column.leads.length}
+            </Badge>
+          </div>
             
             <div className="flex items-center gap-1">
               <Button
@@ -89,10 +92,18 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
                 size="icon"
                 className="h-8 w-8 hover:bg-primary/10"
               >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </div>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+        
+        {/* Stage Estimated Value */}
+        {stageValueEstimated !== undefined && stageValueEstimated > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || 'USD' }).format(stageValueEstimated)}
+          </span>
+        )}
+      </div>
 
       {/* Column Body */}
       <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">

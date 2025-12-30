@@ -146,6 +146,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       title: stage.name,
       description: stage.description,
       type: stage.type,
+      valueEstimated: stage.value_estimated || 0,
+      currency: stage.currency || funnel.currency || 'USD',
       leads: stage.active_leads.map((lead: any) => ({
         id: lead.id.toString(),
         name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
@@ -154,7 +156,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         company: lead.custom_fields?.industry || 'N/A',
         title: lead.custom_fields?.title || 'Contact',
         score: parseFloat(lead.ai_score || '0'),
-        value: parseFloat(lead.estimated_value || '0'),
+        value: parseFloat(lead.value_estimated || lead.estimated_value || '0'),
         source: lead.source_platform || 'Direct',
         tags: Array.isArray(lead.tags) ? lead.tags : [],
         lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
@@ -502,6 +504,16 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
             </Badge>
           </div>
+          
+          {/* Funnel Estimated Value */}
+          {funnel.value_estimated > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-muted-foreground">Estimated Funnel Value</span>
+              <span className="text-lg font-semibold text-foreground">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(funnel.value_estimated)}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Right Side Actions */}
@@ -623,6 +635,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               onTagClick={handleTagClick}
               onLeadClick={handleLeadClick}
               activeId={activeId}
+              stageValueEstimated={(column as any).valueEstimated}
+              stageCurrency={(column as any).currency}
             />
           ))}
         </div>
