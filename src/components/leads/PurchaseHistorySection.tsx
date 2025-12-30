@@ -19,7 +19,9 @@ import {
   User,
   Calendar,
   Trash2,
-  Loader2
+  Loader2,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +38,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/services/api';
+import SaleDocumentUploadModal from './SaleDocumentUploadModal';
+
 interface SaleProduct {
   id: number;
   product_id: number;
@@ -58,7 +62,7 @@ interface SaleDocument {
   id: number;
   name: string;
   url?: string;
-  created_at: string;
+  created_at?: string;
 }
 
 interface SaleUser {
@@ -81,15 +85,21 @@ export interface Sale {
   user?: SaleUser;
   items?: SaleProduct[];
   charges?: SaleCharge[];
+  docs?: SaleDocument[];
   documents?: SaleDocument[];
 }
 
 interface PurchaseHistorySectionProps {
   sales: Sale[];
   onSaleDeleted?: (saleId: number) => void;
+  onSaleUpdated?: (saleId: number, updatedSale: Partial<Sale>) => void;
 }
 
-const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ sales, onSaleDeleted }) => {
+const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ 
+  sales, 
+  onSaleDeleted,
+  onSaleUpdated 
+}) => {
   const { t } = useLanguage();
   
   const sortedSales = [...sales].sort((a, b) => 
@@ -108,19 +118,35 @@ const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ sales, 
   return (
     <div className="space-y-4">
       {sortedSales.map((sale) => (
-        <SaleCard key={sale.id} sale={sale} onDeleted={onSaleDeleted} />
+        <SaleCard 
+          key={sale.id} 
+          sale={sale} 
+          onDeleted={onSaleDeleted}
+          onUpdated={onSaleUpdated}
+        />
       ))}
     </div>
   );
 };
 
-const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> = ({ sale, onDeleted }) => {
+interface SaleCardProps {
+  sale: Sale;
+  onDeleted?: (saleId: number) => void;
+  onUpdated?: (saleId: number, updatedSale: Partial<Sale>) => void;
+}
+
+const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDocDialogOpen, setDeleteDocDialogOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState<SaleDocument | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeletingDoc, setIsDeletingDoc] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [localDocs, setLocalDocs] = useState<SaleDocument[]>(sale.docs || sale.documents || []);
   
   const getStatusColor = (status: string) => {
     const colors = {
@@ -166,10 +192,58 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
     }
   };
 
+  const handleDocumentUploaded = (doc: { id: number; name: string; url: string }) => {
+    const newDoc: SaleDocument = {
+      id: doc.id,
+      name: doc.name,
+      url: doc.url,
+      created_at: new Date().toISOString(),
+    };
+    setLocalDocs(prev => [...prev, newDoc]);
+    onUpdated?.(sale.id, { docs: [...localDocs, newDoc] });
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!docToDelete) return;
+    
+    setIsDeletingDoc(true);
+    try {
+      await api.delete(`/api/sales/docs/${docToDelete.id}`);
+      toast({
+        title: t('lead-details.delete-document-success'),
+        description: t('lead-details.delete-document-success-description'),
+      });
+      const updatedDocs = localDocs.filter(d => d.id !== docToDelete.id);
+      setLocalDocs(updatedDocs);
+      onUpdated?.(sale.id, { docs: updatedDocs });
+      setDeleteDocDialogOpen(false);
+      setDocToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      toast({
+        title: t('lead-details.delete-document-error'),
+        description: t('lead-details.delete-document-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingDoc(false);
+    }
+  };
+
+  const openDocumentDeleteDialog = (doc: SaleDocument) => {
+    setDocToDelete(doc);
+    setDeleteDocDialogOpen(true);
+  };
+
+  const handleDownloadDocument = (doc: SaleDocument) => {
+    if (doc.url) {
+      window.open(doc.url, '_blank');
+    }
+  };
+
   const totalCharges = sale.charges_total || 0;
   const items = sale.items || [];
   const charges = sale.charges || [];
-  const documents = sale.documents || [];
 
   return (
     <motion.div 
@@ -301,16 +375,56 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
 
       {/* Documents Section */}
       <div className="mt-4 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2 text-gray-300 mb-2">
-          <FileText className="w-4 h-4" />
-          <span className="text-sm font-medium">{t('lead-details.documents')}</span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2 text-gray-300">
+            <FileText className="w-4 h-4" />
+            <span className="text-sm font-medium">
+              {t('lead-details.documents')} ({localDocs.length})
+            </span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
+            onClick={() => setUploadModalOpen(true)}
+          >
+            <Upload className="w-3 h-3 mr-1" />
+            {t('lead-details.upload')}
+          </Button>
         </div>
-        {documents.length > 0 ? (
+        {localDocs.length > 0 ? (
           <div className="space-y-2">
-            {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
-                <span className="text-white">{doc.name}</span>
-                <span className="text-xs text-gray-400">{formatDate(doc.created_at)}</span>
+            {localDocs.map((doc) => (
+              <div key={doc.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+                  <span className="text-white truncate">{doc.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {doc.created_at && (
+                    <span className="text-xs text-gray-400 mr-2 hidden sm:inline">
+                      {formatDate(doc.created_at)}
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-gray-400 hover:text-primary hover:bg-primary/10"
+                    onClick={() => handleDownloadDocument(doc)}
+                    title={t('lead-details.download-document')}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-gray-400 hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => openDocumentDeleteDialog(doc)}
+                    title={t('lead-details.delete-document')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -325,7 +439,7 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
           variant="outline" 
           size="sm" 
           className="glass-card text-xs"
-          onClick={() => {/* TODO: Implement upload */}}
+          onClick={() => setUploadModalOpen(true)}
         >
           <Upload className="w-3 h-3 mr-1" />
           {t('lead-details.upload-document')}
@@ -348,7 +462,15 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
         </Button>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Upload Modal */}
+      <SaleDocumentUploadModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        saleId={sale.id}
+        onDocumentUploaded={handleDocumentUploaded}
+      />
+
+      {/* Delete Sale Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-background border-border">
           <AlertDialogHeader>
@@ -370,6 +492,42 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.deleting')}
+                </>
+              ) : (
+                t('common.delete')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Document Confirmation Dialog */}
+      <AlertDialog open={deleteDocDialogOpen} onOpenChange={setDeleteDocDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.delete-document-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('lead-details.delete-document-confirmation')}
+              {docToDelete && (
+                <span className="block mt-2 font-medium text-foreground">
+                  "{docToDelete.name}"
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingDoc}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteDocument}
+              disabled={isDeletingDoc}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingDoc ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   {t('common.deleting')}
