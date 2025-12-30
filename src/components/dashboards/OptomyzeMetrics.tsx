@@ -735,82 +735,84 @@ const OptomyzeMetrics = () => {
         )}
       </div>
 
-      {/* Revenue & Deals Row */}
+      {/* Monthly Revenue & Lead Flow Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <MonthlyRevenueChart showComparison={showYearComparison} />
-        <DealsStatusChart />
+        
+        {/* Monthly Lead Flow */}
+        {loading ? (
+          <SkeletonChart />
+        ) : (
+          <motion.div
+            className="chart-container"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+                <YAxis stroke="#9CA3AF" fontSize={12} />
+                <Tooltip contentStyle={chartTooltipStyle} />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="leads"
+                  stroke="#8B5CF6"
+                  strokeWidth={3}
+                  fill="url(#leadsGradient)"
+                  dot={false}
+                  activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            
+            {/* Summary Stats */}
+            {monthlyData.length > 0 && (
+              <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-green-400">
+                    {Math.max(...monthlyData.map((d: any) => d.leads))}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{t('metrics.peak-month')}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-blue-400">
+                    {Math.round(monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0) / monthlyData.length)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">
+                    {monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{t('metrics.total-leads-summary')}</p>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
       </div>
 
-      {/* Leads & Pipeline Row */}
+      {/* Deals Status & Lead Pipeline Breakdown Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <DealsStatusChart />
+        <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
+      </div>
+
+      {/* Leads by Stage & Pipeline Value Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <LeadsByStageChart />
         <PipelineValueChart />
       </div>
-      
-      {/* Monthly Lead Flow */}
-      {loading ? (
-        <SkeletonChart />
-      ) : (
-        <motion.div
-          className="chart-container"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={monthlyData}>
-              <defs>
-                <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-              <YAxis stroke="#9CA3AF" fontSize={12} />
-              <Tooltip contentStyle={chartTooltipStyle} />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="leads"
-                stroke="#8B5CF6"
-                strokeWidth={3}
-                fill="url(#leadsGradient)"
-                dot={false}
-                activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          
-          {/* Summary Stats */}
-          {monthlyData.length > 0 && (
-            <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-400">
-                  {Math.max(...monthlyData.map((d: any) => d.leads))}
-                </p>
-                <p className="text-sm text-muted-foreground">{t('metrics.peak-month')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-400">
-                  {Math.round(monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0) / monthlyData.length)}
-                </p>
-                <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-primary">
-                  {monthlyData.reduce((sum: number, d: any) => sum + d.leads, 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">{t('metrics.total-leads-summary')}</p>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Lead Breakdown Funnel */}
-      <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
     </motion.div>
   );
 };
