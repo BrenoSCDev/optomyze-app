@@ -12,8 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, Package, Calculator, FileText, DollarSign, Percent } from 'lucide-react';
@@ -190,8 +188,8 @@ const StartPurchaseModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4 -mr-4 [&_[data-radix-scroll-area-thumb]]:bg-primary/50 [&_[data-radix-scroll-area-thumb]]:rounded-full [&_[data-radix-scroll-area-track]]:bg-white/5">
-          <div className="space-y-6 pb-4">
+        <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-white/5">
+          <div className="space-y-6 pb-4 pr-2">
             {/* 1. Selected Products Summary */}
             <div className="space-y-3">
               <Label className="text-white font-medium flex items-center gap-2">
@@ -406,7 +404,7 @@ const StartPurchaseModal = ({
               <p className="text-xs text-gray-500 italic mt-2">{t('sale.preview-note')}</p>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="mt-4 border-t border-white/10 pt-4">
           <Button variant="outline" onClick={handleClose} disabled={isSubmitting} className="glass-card">
