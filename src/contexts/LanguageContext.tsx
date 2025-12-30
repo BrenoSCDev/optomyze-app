@@ -464,6 +464,7 @@ const translations = {
     'sale.created-error': 'Failed to create sale',
     'sale.validation.products-required': 'Please select at least one product',
     'sale.validation.commission-required': 'Commission value is required',
+    'sale.reference-value-hint': 'Based on products subtotal',
 
     'tags.title': 'Tags Management',
     'tags.breadcrumb': 'Settings / Tags',
