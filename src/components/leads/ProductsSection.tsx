@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Package, Plus, ImageOff } from 'lucide-react';
+import { getFullImageUrl } from '@/services/productImageApi';
 
 export interface LeadProduct {
   id: number;
@@ -43,15 +44,7 @@ const ProductsSection = ({ products, onAddProducts }: ProductsSectionProps) => {
 
   const getImageUrl = (product: LeadProduct): string | null => {
     if (!product.primary_image?.url) return null;
-    
-    const baseUrl = import.meta.env.VITE_API_URL || '';
-    const url = product.primary_image.url;
-    
-    // If already absolute URL, return as is
-    if (url.startsWith('http')) return url;
-    
-    // Otherwise, prepend base URL
-    return `${baseUrl}${url}`;
+    return getFullImageUrl(product.primary_image.url);
   };
 
   return (
