@@ -13,7 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   MoreVertical,
-  Users
+  Users,
+  DollarSign
 } from 'lucide-react';
 import {
   useDroppable,
@@ -99,9 +100,10 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
         
         {/* Stage Estimated Value */}
         {stageValueEstimated !== undefined && stageValueEstimated > 0 && (
-          <span className="text-xs text-muted-foreground">
+          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium w-fit">
+            <DollarSign className="h-3 w-3 mr-1" />
             {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || 'USD' }).format(stageValueEstimated)}
-          </span>
+          </Badge>
         )}
       </div>
 

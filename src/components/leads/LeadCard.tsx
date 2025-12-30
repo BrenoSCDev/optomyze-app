@@ -181,8 +181,10 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
 
       {/* Lead Estimated Value */}
       {lead.value > 0 && (
-        <div className="text-xs text-muted-foreground mt-2">
-          Estimated: {formatCurrency(lead.value, leadCurrency)}
+        <div className="mt-2">
+          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium">
+            Estimated: {formatCurrency(lead.value, leadCurrency)}
+          </Badge>
         </div>
       )}
 
