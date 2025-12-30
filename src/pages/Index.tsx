@@ -15,6 +15,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
+import PlanUsage from '@/components/dashboards/PlanUsage';
 import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
@@ -71,6 +72,8 @@ const Index = () => {
     switch (activeSection) {
       case 'optomyze-metrics':
         return <OptomyzeMetrics />; // Main company metrics and lead generation data
+      case 'plan-usage':
+        return <PlanUsage />; // Plan usage and limits dashboard
       case 'meta-ads':
         return <MetaAds />; // Facebook/Instagram advertising analytics
       case 'google-ads':

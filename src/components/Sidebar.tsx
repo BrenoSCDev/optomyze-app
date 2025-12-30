@@ -92,6 +92,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Dashboard submenu items - each represents a different analytics platform
   const dashboardItems = [
     { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> }, // Main company KPIs and lead data
+    { id: 'plan-usage', label: t('dashboard.plan-usage'), icon: () => <img src={OptoIcon} alt="Plan Usage" className="h-4 w-4" /> }, // Plan usage metrics
     { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> }, // Facebook/Instagram ads performance
     { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <SiGoogleads size={16}/> }, // Google Ads campaign analytics
     { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
