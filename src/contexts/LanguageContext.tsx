@@ -37,9 +37,32 @@ const translations = {
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metrics',
+    'dashboard.plan-usage': 'Plan Usage',
     'dashboard.meta-ads': 'Meta Ads',
     'dashboard.google-ads': 'Google Ads',
     'dashboard.google-analytics': 'Google Analytics',
+    
+    // Plan Usage
+    'planUsage.title': 'Plan Usage',
+    'planUsage.description': 'Monitor your plan limits and resource consumption',
+    'planUsage.plan': 'Plan',
+    'planUsage.activePlan': 'Active',
+    'planUsage.renewsOn': 'Renews on',
+    'planUsage.upgradePlan': 'Upgrade Plan',
+    'planUsage.usageOverview': 'Usage Overview',
+    'planUsage.usageSummary': 'Usage Summary',
+    'planUsage.summaryDescription': 'Overview of your current plan consumption',
+    'planUsage.nearLimit': 'Near Limit',
+    'planUsage.critical': 'Critical',
+    'planUsage.avgUsage': 'Avg. Usage',
+    'planUsage.totalMetrics': 'Total Metrics',
+    'planUsage.metrics.leads': 'Leads',
+    'planUsage.metrics.users': 'Users',
+    'planUsage.metrics.storage': 'Storage',
+    'planUsage.metrics.deals': 'Active Deals',
+    'planUsage.metrics.tasks': 'Tasks',
+    'planUsage.metrics.integrations': 'Integrations',
+    'planUsage.metrics.products': 'Products',
     
     // Settings
     'settings.title': 'Settings',
@@ -1329,9 +1352,32 @@ const translations = {
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
+    'dashboard.plan-usage': 'Uso do Plano',
     'dashboard.meta-ads': 'Meta Ads',
     'dashboard.google-ads': 'Google Ads',
     'dashboard.google-analytics': 'Google Analytics',
+    
+    // Plan Usage
+    'planUsage.title': 'Uso do Plano',
+    'planUsage.description': 'Monitore os limites do seu plano e consumo de recursos',
+    'planUsage.plan': 'Plano',
+    'planUsage.activePlan': 'Ativo',
+    'planUsage.renewsOn': 'Renova em',
+    'planUsage.upgradePlan': 'Atualizar Plano',
+    'planUsage.usageOverview': 'Visão Geral do Uso',
+    'planUsage.usageSummary': 'Resumo do Uso',
+    'planUsage.summaryDescription': 'Visão geral do consumo atual do seu plano',
+    'planUsage.nearLimit': 'Próximo do Limite',
+    'planUsage.critical': 'Crítico',
+    'planUsage.avgUsage': 'Uso Médio',
+    'planUsage.totalMetrics': 'Total de Métricas',
+    'planUsage.metrics.leads': 'Leads',
+    'planUsage.metrics.users': 'Usuários',
+    'planUsage.metrics.storage': 'Armazenamento',
+    'planUsage.metrics.deals': 'Negócios Ativos',
+    'planUsage.metrics.tasks': 'Tarefas',
+    'planUsage.metrics.integrations': 'Integrações',
+    'planUsage.metrics.products': 'Produtos',
     
     // Settings
     'settings.title': 'Configurações',
@@ -2627,9 +2673,32 @@ const translations = {
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
+    'dashboard.plan-usage': 'Plannutzung',
     'dashboard.meta-ads': 'Meta Ads',
     'dashboard.google-ads': 'Google Ads',
     'dashboard.google-analytics': 'Google Analytics',
+    
+    // Plan Usage
+    'planUsage.title': 'Plannutzung',
+    'planUsage.description': 'Überwachen Sie Ihre Plangrenzen und Ressourcenverbrauch',
+    'planUsage.plan': 'Plan',
+    'planUsage.activePlan': 'Aktiv',
+    'planUsage.renewsOn': 'Verlängert am',
+    'planUsage.upgradePlan': 'Plan Upgraden',
+    'planUsage.usageOverview': 'Nutzungsübersicht',
+    'planUsage.usageSummary': 'Nutzungszusammenfassung',
+    'planUsage.summaryDescription': 'Übersicht über Ihren aktuellen Planverbrauch',
+    'planUsage.nearLimit': 'Nahe am Limit',
+    'planUsage.critical': 'Kritisch',
+    'planUsage.avgUsage': 'Durchschn. Nutzung',
+    'planUsage.totalMetrics': 'Gesamtmetriken',
+    'planUsage.metrics.leads': 'Leads',
+    'planUsage.metrics.users': 'Benutzer',
+    'planUsage.metrics.storage': 'Speicher',
+    'planUsage.metrics.deals': 'Aktive Deals',
+    'planUsage.metrics.tasks': 'Aufgaben',
+    'planUsage.metrics.integrations': 'Integrationen',
+    'planUsage.metrics.products': 'Produkte',
     
     // Settings
     'settings.title': 'Einstellungen',
@@ -3749,9 +3818,32 @@ const translations = {
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
+    'dashboard.plan-usage': 'Uso del Plan',
     'dashboard.meta-ads': 'Meta Ads',
     'dashboard.google-ads': 'Google Ads',
     'dashboard.google-analytics': 'Google Analytics',
+    
+    // Plan Usage
+    'planUsage.title': 'Uso del Plan',
+    'planUsage.description': 'Monitorea los límites de tu plan y consumo de recursos',
+    'planUsage.plan': 'Plan',
+    'planUsage.activePlan': 'Activo',
+    'planUsage.renewsOn': 'Se renueva el',
+    'planUsage.upgradePlan': 'Actualizar Plan',
+    'planUsage.usageOverview': 'Resumen de Uso',
+    'planUsage.usageSummary': 'Resumen de Uso',
+    'planUsage.summaryDescription': 'Resumen del consumo actual de tu plan',
+    'planUsage.nearLimit': 'Cerca del Límite',
+    'planUsage.critical': 'Crítico',
+    'planUsage.avgUsage': 'Uso Promedio',
+    'planUsage.totalMetrics': 'Total de Métricas',
+    'planUsage.metrics.leads': 'Leads',
+    'planUsage.metrics.users': 'Usuarios',
+    'planUsage.metrics.storage': 'Almacenamiento',
+    'planUsage.metrics.deals': 'Negocios Activos',
+    'planUsage.metrics.tasks': 'Tareas',
+    'planUsage.metrics.integrations': 'Integraciones',
+    'planUsage.metrics.products': 'Productos',
     
     // Settings
     'settings.title': 'Configuración',
