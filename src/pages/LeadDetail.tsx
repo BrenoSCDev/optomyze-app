@@ -285,6 +285,18 @@ const LeadDetailPage = () => {
     });
   };
 
+  const handleSaleDeleted = (saleId: number) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lead: {
+          ...prev.lead,
+          sales: prev.lead.sales?.filter(s => s.id !== saleId) || []
+        }
+      };
+    });
+  };
   const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
     setLeadData(prev => {
       if (!prev) return prev;
@@ -398,7 +410,10 @@ const LeadDetailPage = () => {
                 </TabsContent>
                 
                 <TabsContent value="purchases" className="mt-0">
-                  <PurchaseHistorySection sales={leadData.lead.sales || []} />
+                  <PurchaseHistorySection 
+                    sales={leadData.lead.sales || []} 
+                    onSaleDeleted={handleSaleDeleted}
+                  />
                 </TabsContent>
               </Tabs>
             </motion.div>
