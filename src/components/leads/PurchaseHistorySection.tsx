@@ -73,6 +73,8 @@ export interface Sale {
   status: 'pending' | 'sent' | 'closed' | 'lost';
   subtotal: number;
   total_value: number;
+  charges_total: number;
+  final_total: number;
   currency: string;
   created_at: string;
   updated_at?: string;
@@ -164,7 +166,7 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
     }
   };
 
-  const totalCharges = sale.charges?.reduce((sum, c) => sum + (c.calculated_amount || 0), 0) || 0;
+  const totalCharges = sale.charges_total || 0;
   const items = sale.items || [];
   const charges = sale.charges || [];
   const documents = sale.documents || [];
@@ -218,7 +220,7 @@ const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> =
         </div>
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.total')}</p>
-          <p className="text-lg font-bold text-primary">{formatCurrency(sale.total_value || 0, sale.currency)}</p>
+          <p className="text-lg font-bold text-primary">{formatCurrency(sale.final_total || 0, sale.currency)}</p>
         </div>
       </div>
 
