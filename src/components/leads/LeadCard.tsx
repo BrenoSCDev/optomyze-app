@@ -11,12 +11,11 @@ import { motion } from 'framer-motion';
 import { 
   Mail, 
   Phone, 
-  Building, 
   Clock, 
-  DollarSign,
   TrendingUp,
   GripVertical,
-  Tag
+  Tag,
+  User
 } from 'lucide-react';
 import {
   useSortable,
@@ -204,6 +203,16 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
           </Badge>
         </div>
       </div>
+
+      {/* Assigned User */}
+      {(lead as any).assigned_user && (
+        <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10">
+          <User className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
+            {(lead as any).assigned_user.name}
+          </span>
+        </div>
+      )}
       </motion.div>
       
       {/* Loading Overlay for Moving State */}
