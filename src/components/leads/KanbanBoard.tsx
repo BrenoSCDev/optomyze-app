@@ -14,7 +14,8 @@ import {
   Filter, 
   Tag,
   UserPlus,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 import {
   DndContext,
@@ -58,6 +59,7 @@ import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
+import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -87,11 +89,33 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   // Filter state
   const [activeFilters, setActiveFilters] = useState<any>({});
   
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+  
   // Tag modal state
   const [tagModalState, setTagModalState] = useState({
     isOpen: false,
     selectedLead: null
   });
+
+  // Handle export to Excel
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Small delay for visual feedback
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const exportData = prepareFunnelExportData(funnel);
+      exportFunnelToExcel(exportData);
+      
+      toast.success(`Exported ${exportData.leads.length} leads to Excel`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export leads. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [funnel]);
 
   // DnD sensors with improved detection
   const sensors = useSensors(
@@ -537,9 +561,15 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             variant="outline"
             size="sm"
             className="glass-card border-white/20 hover:bg-white/10"
+            onClick={handleExport}
+            disabled={isExporting}
           >
-            <Download className="h-4 w-4 mr-1" />
-            Export
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-1" />
+            )}
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
           
           {/* Create Tag Button - Hidden for Agent role */}
