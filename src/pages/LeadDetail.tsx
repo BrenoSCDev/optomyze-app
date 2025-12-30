@@ -120,7 +120,7 @@ interface Lead {
   source_type: string;
   status: string;
   priority: string;
-  estimated_value: number;
+  value_estimated: number;
   currency: string;
   ai_score: number;
   language: string;
@@ -656,7 +656,7 @@ const LeadMetricsSection = ({ lead }: { lead: Lead }) => {
         />
         <MetricCard
           label={t('lead-details.estimated-value')}
-          value={lead.estimated_value ? `${lead.currency} ${parseFloat(lead.estimated_value.toString()).toLocaleString()}` : t('lead-details.not-set')}
+          value={lead.value_estimated ? `${lead.currency} ${parseFloat(lead.value_estimated.toString()).toLocaleString()}` : t('lead-details.not-set')}
           icon={<TrendingUp className="w-5 h-5" />}
           color="green"
         />
@@ -887,7 +887,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
     phone: '',
     ddi: '+55',
     source_platform: 'Direct',
-    estimated_value: '',
+    value_estimated: '',
     currency: 'USD',
     notes: ''
   });
@@ -903,7 +903,7 @@ const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: {
         phone: lead.phone || '',
         ddi: lead.ddi || '+55',
         source_platform: lead.source_platform || 'Direct',
-        estimated_value: lead.estimated_value?.toString() || '',
+        value_estimated: lead.value_estimated?.toString() || '',
         currency: lead.currency || 'USD',
         notes: lead.notes || ''
       });
