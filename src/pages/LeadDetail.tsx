@@ -55,6 +55,7 @@ import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import DocumentsSection from '@/components/leads/DocumentsSection';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
+import ProductsSection, { LeadProduct } from '@/components/leads/ProductsSection';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -132,6 +133,7 @@ interface Lead {
   reports?: Report[];
   tasks?: Task[];
   docs?: LeadDocument[];
+  products?: LeadProduct[];
 }
 
 interface LeadData {
@@ -339,6 +341,10 @@ const LeadDetailPage = () => {
               documents={leadData.docs || []}
               onUploadClick={() => setDocumentModalOpen(true)}
               onDocumentDeleted={handleDocumentDeleted}
+            />
+            <ProductsSection 
+              products={leadData.lead.products || []}
+              onAddProducts={() => {}}
             />
           </div>
           
