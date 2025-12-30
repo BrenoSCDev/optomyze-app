@@ -36,11 +36,13 @@ import {
   User,
   Copy,
   UserCheck,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ShoppingBag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +59,7 @@ import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import ProductsSection, { LeadProduct } from '@/components/leads/ProductsSection';
 import AddProductsModal from '@/components/leads/AddProductsModal';
+import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -135,6 +138,7 @@ interface Lead {
   tasks?: Task[];
   docs?: LeadDocument[];
   products?: LeadProduct[];
+  sales?: Sale[];
 }
 
 interface CompanyProduct {
@@ -358,9 +362,46 @@ const LeadDetailPage = () => {
             />
           </div>
           
-          {/* Right Column - Activity Timeline */}
+          {/* Right Column - Activity & Purchase History */}
           <div className="space-y-6">
-            <LeadActivityTimeline transactions={leadData.transactions} />
+            <motion.div 
+              className="glass-card p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Tabs defaultValue="activity" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-4">
+                  <TabsTrigger 
+                    value="activity" 
+                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                  >
+                    <Activity className="w-4 h-4 mr-2" />
+                    {t('lead-details.activity-timeline')}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="purchases" 
+                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                  >
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    {t('lead-details.purchase-history')}
+                    {(leadData.lead.sales?.length || 0) > 0 && (
+                      <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+                        {leadData.lead.sales?.length}
+                      </Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="activity" className="mt-0">
+                  <ActivityTimelineContent transactions={leadData.transactions} />
+                </TabsContent>
+                
+                <TabsContent value="purchases" className="mt-0">
+                  <PurchaseHistorySection sales={leadData.lead.sales || []} />
+                </TabsContent>
+              </Tabs>
+            </motion.div>
           </div>
         </div>
         
@@ -769,8 +810,8 @@ const LeadContactSection = ({ lead }: { lead: Lead }) => {
   );
 };
 
-// Activity Timeline Component
-const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] }) => {
+// Activity Timeline Content Component (used inside tabs)
+const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[] }) => {
   const { t } = useLanguage();
   
   const getTransactionIcon = (type: string) => {
@@ -801,74 +842,65 @@ const LeadActivityTimeline = ({ transactions }: { transactions: Transaction[] })
   };
 
   return (
-    <motion.div 
-      className="glass-card p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-    >
-      <h3 className="text-xl font-semibold text-white mb-6">{t('lead-details.activity-timeline')}</h3>
-      
-      <div className="space-y-4">
-        {transactions.length > 0 ? (
-          transactions.map((transaction, index) => (
-            <div key={transaction.id} className="flex gap-4">
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full ${getTransactionColor(transaction.type)} flex items-center justify-center text-white`}>
-                  {getTransactionIcon(transaction.type)}
-                </div>
-                {index < transactions.length - 1 && (
-                  <div className="w-px h-8 bg-white/10 mt-2"></div>
-                )}
+    <div className="space-y-4">
+      {transactions.length > 0 ? (
+        transactions.map((transaction, index) => (
+          <div key={transaction.id} className="flex gap-4">
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full ${getTransactionColor(transaction.type)} flex items-center justify-center text-white`}>
+                {getTransactionIcon(transaction.type)}
               </div>
-              
-              <div className="flex-1 pb-8">
-                <div className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-white font-medium capitalize">
-                      {transaction.type.replace('_', ' ')}
-                    </h4>
-                    <span className="text-xs text-gray-400">
-                      {formatDate(transaction.created_at)}
+              {index < transactions.length - 1 && (
+                <div className="w-px h-8 bg-white/10 mt-2"></div>
+              )}
+            </div>
+            
+            <div className="flex-1 pb-8">
+              <div className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-white font-medium capitalize">
+                    {transaction.type.replace('_', ' ')}
+                  </h4>
+                  <span className="text-xs text-gray-400">
+                    {formatDate(transaction.created_at)}
+                  </span>
+                </div>
+                
+                <p className="text-gray-400 text-sm mb-2">
+                  {transaction.description}
+                </p>
+                
+                {transaction.type === 'stage_change' && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="bg-red-600/20 text-red-400 px-2 py-1 rounded">
+                      {t('lead-details.stage')} {transaction.from_stage_id}
+                    </span>
+                    <ArrowRight className="w-3 h-3 text-gray-400" />
+                    <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded">
+                      {t('lead-details.stage')} {transaction.to_stage_id}
                     </span>
                   </div>
-                  
-                  <p className="text-gray-400 text-sm mb-2">
-                    {transaction.description}
-                  </p>
-                  
-                  {transaction.type === 'stage_change' && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="bg-red-600/20 text-red-400 px-2 py-1 rounded">
-                        {t('lead-details.stage')} {transaction.from_stage_id}
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-gray-400" />
-                      <span className="bg-green-600/20 text-green-400 px-2 py-1 rounded">
-                        {t('lead-details.stage')} {transaction.to_stage_id}
-                      </span>
-                    </div>
+                )}
+                
+                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                  <span>{t('lead-details.source')}: {transaction.source}</span>
+                  {transaction.is_automated && (
+                    <Badge variant="secondary" className="bg-purple-600/20 text-purple-400 px-2 py-1">
+                      {t('lead-details.automated')}
+                    </Badge>
                   )}
-                  
-                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                    <span>{t('lead-details.source')}: {transaction.source}</span>
-                    {transaction.is_automated && (
-                      <Badge variant="secondary" className="bg-purple-600/20 text-purple-400 px-2 py-1">
-                        {t('lead-details.automated')}
-                      </Badge>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center py-8">
-            <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400">{t('lead-details.no-activity')}</p>
           </div>
-        )}
-      </div>
-    </motion.div>
+        ))
+      ) : (
+        <div className="text-center py-8">
+          <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-400">{t('lead-details.no-activity')}</p>
+        </div>
+      )}
+    </div>
   );
 };
 
