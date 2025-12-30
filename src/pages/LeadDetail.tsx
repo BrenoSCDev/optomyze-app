@@ -656,7 +656,7 @@ const LeadMetricsSection = ({ lead }: { lead: Lead }) => {
         />
         <MetricCard
           label={t('lead-details.estimated-value')}
-          value={lead.value_estimated ? `${lead.currency} ${parseFloat(lead.value_estimated.toString()).toLocaleString()}` : t('lead-details.not-set')}
+          value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: lead.currency || 'USD' }).format(lead.value_estimated) : t('lead-details.not-set')}
           icon={<TrendingUp className="w-5 h-5" />}
           color="green"
         />
