@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FunnelSettingsDropdownProps {
   showEstimatedValues: boolean;
@@ -29,6 +30,8 @@ const FunnelSettingsDropdown = ({
   onShowEstimatedValuesChange,
   onShowAssignedUserChange,
 }: FunnelSettingsDropdownProps) => {
+  const { t } = useLanguage();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,14 +41,14 @@ const FunnelSettingsDropdown = ({
           className="glass-card border-white/20 hover:bg-white/10"
         >
           <Settings className="h-4 w-4 mr-1" />
-          Settings
+          {t('funnel.page.settings')}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
         className="w-72 bg-background border border-border shadow-lg z-50"
       >
-        <DropdownMenuLabel className="text-foreground">Display Settings</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-foreground">{t('funnel.page.display-settings')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         <div className="p-3 space-y-4">
@@ -55,7 +58,7 @@ const FunnelSettingsDropdown = ({
               htmlFor="show-kpis" 
               className="text-sm text-foreground cursor-pointer flex-1"
             >
-              Show Estimated Values
+              {t('funnel.page.show-estimated-values')}
             </Label>
             <Switch
               id="show-kpis"
@@ -70,7 +73,7 @@ const FunnelSettingsDropdown = ({
               htmlFor="show-assigned-user" 
               className="text-sm text-foreground cursor-pointer flex-1"
             >
-              Show Assigned User on Leads
+              {t('funnel.page.show-assigned-user')}
             </Label>
             <Switch
               id="show-assigned-user"

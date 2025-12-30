@@ -58,6 +58,7 @@ import FunnelSettingsDropdown from './FunnelSettingsDropdown';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 
@@ -76,6 +77,7 @@ interface KanbanBoardProps {
 const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -531,14 +533,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               variant="secondary"
               className="bg-primary/20 text-primary px-3 py-1"
             >
-              {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
+              {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} {t('funnel.page.total-leads')}
             </Badge>
           </div>
           
           {/* Funnel Estimated Value */}
           {displaySettings.showEstimatedValues && funnel.value_estimated > 0 && (
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">Estimated Funnel Value</span>
+              <span className="text-sm text-muted-foreground">{t('funnel.page.estimated-funnel-value')}</span>
               <Badge className="px-3 text-sm font-semibold">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(funnel.value_estimated)}
               </Badge>
@@ -569,7 +571,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             ) : (
               <Download className="h-4 w-4 mr-1" />
             )}
-            {isExporting ? 'Exporting...' : 'Export'}
+            {isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}
           </Button>
           
           {/* Create Tag Button - Hidden for Agent role */}
@@ -581,7 +583,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               className="glass-card border-accent/30 hover:bg-accent/10"
             >
               <Tag className="h-4 w-4 mr-1" />
-              Create Tag
+              {t('funnel.page.create-tag')}
             </Button>
           )}
           
@@ -594,7 +596,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             }`}
           >
             <Filter className="h-4 w-4 mr-1" />
-            Filters
+            {t('funnel.page.filters')}
             {Object.keys(activeFilters).length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
                 {Object.keys(activeFilters).length}
@@ -611,7 +613,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
             <UserPlus className="h-4 w-4 mr-1" />
-            Create Lead
+            {t('funnel.page.create-lead')}
           </Button>
         </div>
       </div>

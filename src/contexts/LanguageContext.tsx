@@ -1357,6 +1357,20 @@ const translations = {
     'products.tabs.custom-fields': 'Custom Fields',
     'products.custom-fields.title': 'Custom Fields',
     'products.custom-fields.coming-soon': 'Custom fields will allow you to add additional product attributes. This feature is coming soon.',
+
+    // Funnel Page
+    'funnel.page.settings': 'Settings',
+    'funnel.page.display-settings': 'Display Settings',
+    'funnel.page.show-estimated-values': 'Show Estimated Values',
+    'funnel.page.show-assigned-user': 'Show Assigned User on Leads',
+    'funnel.page.export': 'Export',
+    'funnel.page.exporting': 'Exporting...',
+    'funnel.page.create-tag': 'Create Tag',
+    'funnel.page.filters': 'Filters',
+    'funnel.page.create-lead': 'Create Lead',
+    'funnel.page.total-leads': 'total leads',
+    'funnel.page.estimated-funnel-value': 'Estimated Funnel Value',
+    'funnel.page.estimated': 'Estimated',
   },
   'pt-BR': {
     // Navigation
@@ -2702,6 +2716,20 @@ const translations = {
     'products.images.reorder-success': 'Imagens reordenadas',
     'products.images.reorder-error': 'Falha ao reordenar imagens',
     'products.images.add-after-create': 'Você pode adicionar imagens após criar o produto.',
+
+    // Funnel Page
+    'funnel.page.settings': 'Configurações',
+    'funnel.page.display-settings': 'Configurações de Exibição',
+    'funnel.page.show-estimated-values': 'Mostrar Valores Estimados',
+    'funnel.page.show-assigned-user': 'Mostrar Usuário Atribuído nos Leads',
+    'funnel.page.export': 'Exportar',
+    'funnel.page.exporting': 'Exportando...',
+    'funnel.page.create-tag': 'Criar Tag',
+    'funnel.page.filters': 'Filtros',
+    'funnel.page.create-lead': 'Criar Lead',
+    'funnel.page.total-leads': 'leads no total',
+    'funnel.page.estimated-funnel-value': 'Valor Estimado do Funil',
+    'funnel.page.estimated': 'Estimado',
   },
   de: {
     // Navigation
@@ -3872,6 +3900,20 @@ const translations = {
     'products.images.reorder-success': 'Bilder neu geordnet',
     'products.images.reorder-error': 'Fehler beim Neuordnen der Bilder',
     'products.images.add-after-create': 'Sie können Bilder nach dem Erstellen des Produkts hinzufügen.',
+
+    // Funnel Page
+    'funnel.page.settings': 'Einstellungen',
+    'funnel.page.display-settings': 'Anzeigeeinstellungen',
+    'funnel.page.show-estimated-values': 'Geschätzte Werte anzeigen',
+    'funnel.page.show-assigned-user': 'Zugewiesenen Benutzer bei Leads anzeigen',
+    'funnel.page.export': 'Exportieren',
+    'funnel.page.exporting': 'Exportiere...',
+    'funnel.page.create-tag': 'Tag erstellen',
+    'funnel.page.filters': 'Filter',
+    'funnel.page.create-lead': 'Lead erstellen',
+    'funnel.page.total-leads': 'Leads insgesamt',
+    'funnel.page.estimated-funnel-value': 'Geschätzter Funnelwert',
+    'funnel.page.estimated': 'Geschätzt',
   },
   es: {
     // Navigation
@@ -5041,6 +5083,20 @@ const translations = {
     'products.images.reorder-success': 'Imágenes reordenadas',
     'products.images.reorder-error': 'Error al reordenar imágenes',
     'products.images.add-after-create': 'Puedes agregar imágenes después de crear el producto.',
+
+    // Funnel Page
+    'funnel.page.settings': 'Configuración',
+    'funnel.page.display-settings': 'Configuración de Visualización',
+    'funnel.page.show-estimated-values': 'Mostrar Valores Estimados',
+    'funnel.page.show-assigned-user': 'Mostrar Usuario Asignado en Leads',
+    'funnel.page.export': 'Exportar',
+    'funnel.page.exporting': 'Exportando...',
+    'funnel.page.create-tag': 'Crear Etiqueta',
+    'funnel.page.filters': 'Filtros',
+    'funnel.page.create-lead': 'Crear Lead',
+    'funnel.page.total-leads': 'leads en total',
+    'funnel.page.estimated-funnel-value': 'Valor Estimado del Embudo',
+    'funnel.page.estimated': 'Estimado',
   }
 };
 
