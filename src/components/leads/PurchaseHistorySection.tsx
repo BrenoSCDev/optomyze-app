@@ -18,12 +18,24 @@ import {
   ChevronUp,
   User,
   Calendar,
-  DollarSign
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import api from '@/services/api';
 interface SaleProduct {
   id: number;
   product_id: number;
@@ -72,9 +84,10 @@ export interface Sale {
 
 interface PurchaseHistorySectionProps {
   sales: Sale[];
+  onSaleDeleted?: (saleId: number) => void;
 }
 
-const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ sales }) => {
+const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ sales, onSaleDeleted }) => {
   const { t } = useLanguage();
   
   const sortedSales = [...sales].sort((a, b) => 
@@ -93,16 +106,19 @@ const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({ sales }
   return (
     <div className="space-y-4">
       {sortedSales.map((sale) => (
-        <SaleCard key={sale.id} sale={sale} />
+        <SaleCard key={sale.id} sale={sale} onDeleted={onSaleDeleted} />
       ))}
     </div>
   );
 };
 
-const SaleCard: React.FC<{ sale: Sale }> = ({ sale }) => {
+const SaleCard: React.FC<{ sale: Sale; onDeleted?: (saleId: number) => void }> = ({ sale, onDeleted }) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const getStatusColor = (status: string) => {
     const colors = {
@@ -124,6 +140,28 @@ const SaleCard: React.FC<{ sale: Sale }> = ({ sale }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await api.delete(`/api/sales/${sale.id}`);
+      toast({
+        title: t('lead-details.delete-sale-success'),
+        description: t('lead-details.delete-sale-success-description'),
+      });
+      onDeleted?.(sale.id);
+      setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to delete sale:', error);
+      toast({
+        title: t('lead-details.delete-sale-error'),
+        description: t('lead-details.delete-sale-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const totalCharges = sale.charges?.reduce((sum, c) => sum + (c.calculated_amount || 0), 0) || 0;
@@ -292,15 +330,55 @@ const SaleCard: React.FC<{ sale: Sale }> = ({ sale }) => {
         </Button>
         <Button 
           variant="outline" 
-          size="sm" 
-          className="glass-card text-xs opacity-50 cursor-not-allowed"
+          size="icon"
+          className="glass-card h-8 w-8"
           disabled
         >
-          <Edit className="w-3 h-3 mr-1" />
-          {t('lead-details.edit-sale')}
+          <Edit className="w-4 h-4" />
         </Button>
-        <span className="text-xs text-gray-500 ml-2">{t('lead-details.coming-soon')}</span>
+        <Button 
+          variant="outline" 
+          size="icon"
+          className="glass-card h-8 w-8 hover:bg-destructive/20 hover:text-destructive hover:border-destructive/50"
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.delete-sale-title')}</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>{t('lead-details.delete-sale-confirmation')}</p>
+              <p className="text-yellow-500 font-medium">
+                {t('lead-details.delete-sale-billing-warning')}
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.deleting')}
+                </>
+              ) : (
+                t('common.delete')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
