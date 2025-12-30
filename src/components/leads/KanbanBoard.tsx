@@ -16,7 +16,9 @@ import {
   UserPlus,
   TrendingUp,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Settings,
+  Download
 } from 'lucide-react';
 import {
   DndContext,
@@ -523,6 +525,24 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
+          {/* Settings Button */}
+          <Button
+            variant="outline"
+            className="glass-card border-white/20 hover:bg-white/10"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+          
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            className="glass-card border-white/20 hover:bg-white/10"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          
           {/* Create Tag Button - Hidden for Agent role */}
           {user?.role?.toLowerCase() !== 'agent' && (
             <Button
