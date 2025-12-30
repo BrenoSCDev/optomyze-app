@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree, Settings, Download } from 'lucide-react';
+import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -486,22 +486,13 @@ const FunnelsDashboard = () => {
           </nav>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="neon-border" size="lg">
-            <Settings className="h-4 w-4 mr-2" />
-            {t('common.settings')}
-          </Button>
-          <Button variant="outline" className="neon-border" size="lg">
-            <Download className="h-4 w-4 mr-2" />
-            {t('common.export')}
-          </Button>
-          <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
-            <DialogTrigger asChild>
-              <Button className="neon-border" size="lg">
-                <Plus className="h-4 w-4 mr-2" />
-                {t('funnels.new-funnel')}
-              </Button>
-            </DialogTrigger>
+        <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
+          <DialogTrigger asChild>
+            <Button className="neon-border" size="lg">
+              <Plus className="h-4 w-4 mr-2" />
+              {t('funnels.new-funnel')}
+            </Button>
+          </DialogTrigger>
           <DialogContent className="glass-card max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-foreground futuristic-text">{t('funnels.create-new')}</DialogTitle>
@@ -695,7 +686,6 @@ const FunnelsDashboard = () => {
             </div>
           </DialogContent>
         </Dialog>
-        </div>
       </div>
 
       {/* Funnels Grid */}
