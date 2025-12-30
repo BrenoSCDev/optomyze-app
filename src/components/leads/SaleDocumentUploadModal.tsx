@@ -123,7 +123,12 @@ const SaleDocumentUploadModal: React.FC<SaleDocumentUploadModalProps> = ({
         description: t('lead-details.document-upload-success-description'),
       });
 
-      onDocumentUploaded(data.doc);
+      // Backend returns document directly, map to expected format
+      onDocumentUploaded({
+        id: data.id,
+        name: data.filename || documentName || selectedFile.name,
+        url: data.storage_path,
+      });
       handleClose();
     } catch (error) {
       console.error('Failed to upload document:', error);
