@@ -4,20 +4,25 @@
  * Modal for adding products to a lead with quantity support
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Package, Loader2, Minus, Plus, Search } from 'lucide-react';
+import { X, Package, Loader2, Minus, Plus } from 'lucide-react';
 import api from '@/services/api';
 import { toast } from 'sonner';
 
 export interface CompanyProduct {
   id: number;
   name: string;
+}
+
+interface LeadProduct {
+  id: number;
+  quantity: number;
 }
 
 interface SelectedProduct {
@@ -30,6 +35,7 @@ interface AddProductsModalProps {
   onClose: () => void;
   leadId: number;
   products: CompanyProduct[];
+  leadProducts: LeadProduct[];
   onProductsAdded: () => void;
 }
 
@@ -37,17 +43,24 @@ const AddProductsModal = ({
   isOpen, 
   onClose, 
   leadId, 
-  products, 
+  products,
+  leadProducts,
   onProductsAdded 
 }: AddProductsModalProps) => {
   const { t } = useLanguage();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Initialize selectedProducts with existing lead products when modal opens
+  useEffect(() => {
+    if (isOpen && leadProducts.length > 0) {
+      const initialSelected = leadProducts.map(p => ({
+        id: p.id,
+        quantity: p.quantity
+      }));
+      setSelectedProducts(initialSelected);
+    }
+  }, [isOpen, leadProducts]);
 
   const isProductSelected = (productId: number): boolean => {
     return selectedProducts.some(p => p.id === productId);
@@ -95,7 +108,6 @@ const AddProductsModal = ({
 
   const handleClose = () => {
     setSelectedProducts([]);
-    setSearchTerm('');
     onClose();
   };
 
@@ -137,30 +149,16 @@ const AddProductsModal = ({
               <X className="w-5 h-5" />
             </Button>
           </div>
-          
-          {/* Search */}
-          <div className="p-4 border-b border-white/10">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder={t('lead-details.search-products')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10"
-              />
-            </div>
-          </div>
 
           {/* Products List */}
           <ScrollArea className="max-h-[300px]">
             <div className="p-4 space-y-2">
-              {filteredProducts.length === 0 ? (
+              {products.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   {t('lead-details.no-products-available')}
                 </div>
               ) : (
-                filteredProducts.map((product) => {
+                products.map((product) => {
                   const isSelected = isProductSelected(product.id);
                   const quantity = getProductQuantity(product.id);
                   
