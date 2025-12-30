@@ -69,14 +69,17 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  // Access lead's currency if available (extended Lead type)
+  const leadCurrency = (lead as any).currency || 'USD';
 
   return (
     <div className="relative">
@@ -173,6 +176,13 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
               +{lead.tags.length - 2}
             </Badge>
           )}
+        </div>
+      )}
+
+      {/* Lead Estimated Value */}
+      {lead.value > 0 && (
+        <div className="text-xs text-muted-foreground mt-2">
+          Estimated: {formatCurrency(lead.value, leadCurrency)}
         </div>
       )}
 
