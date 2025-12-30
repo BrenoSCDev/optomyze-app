@@ -1,15 +1,16 @@
 /**
  * PRODUCTS SECTION
  * 
- * Displays products of interest linked to a lead
+ * Displays products of interest linked to a lead with selection capability
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, Plus, ImageOff } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Package, Plus, ImageOff, ShoppingCart } from 'lucide-react';
 import { getFullImageUrl } from '@/services/productImageApi';
 
 export interface LeadProduct {
@@ -30,10 +31,12 @@ export interface LeadProduct {
 interface ProductsSectionProps {
   products: LeadProduct[];
   onAddProducts?: () => void;
+  onStartPurchase?: (selectedProducts: LeadProduct[]) => void;
 }
 
-const ProductsSection = ({ products, onAddProducts }: ProductsSectionProps) => {
+const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsSectionProps) => {
   const { t } = useLanguage();
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
 
   const formatPrice = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -47,6 +50,28 @@ const ProductsSection = ({ products, onAddProducts }: ProductsSectionProps) => {
     return getFullImageUrl(product.primary_image.url);
   };
 
+  const toggleProductSelection = (productId: number) => {
+    setSelectedProductIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleStartPurchase = () => {
+    const selectedProducts = products.filter(p => selectedProductIds.has(p.id));
+    if (onStartPurchase && selectedProducts.length > 0) {
+      onStartPurchase(selectedProducts);
+      setSelectedProductIds(new Set());
+    }
+  };
+
+  const hasSelectedProducts = selectedProductIds.size > 0;
+
   return (
     <motion.div 
       className="glass-card p-6"
@@ -59,15 +84,27 @@ const ProductsSection = ({ products, onAddProducts }: ProductsSectionProps) => {
           <Package className="w-5 h-5 text-primary" />
           {t('lead-details.products-of-interest')}
         </h3>
-        <Button 
-          onClick={onAddProducts} 
-          variant="outline" 
-          size="sm"
-          className="glass-card"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          {t('lead-details.add-products')}
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasSelectedProducts && (
+            <Button 
+              onClick={handleStartPurchase} 
+              size="sm"
+              className="bg-primary hover:bg-primary/80"
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              {t('sale.start-purchase')}
+            </Button>
+          )}
+          <Button 
+            onClick={onAddProducts} 
+            variant="outline" 
+            size="sm"
+            className="glass-card"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {t('lead-details.add-products')}
+          </Button>
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -78,7 +115,14 @@ const ProductsSection = ({ products, onAddProducts }: ProductsSectionProps) => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} formatPrice={formatPrice} getImageUrl={getImageUrl} />
+            <ProductCard 
+              key={product.id} 
+              product={product} 
+              formatPrice={formatPrice} 
+              getImageUrl={getImageUrl}
+              isSelected={selectedProductIds.has(product.id)}
+              onToggleSelect={() => toggleProductSelection(product.id)}
+            />
           ))}
         </div>
       )}
@@ -90,15 +134,31 @@ interface ProductCardProps {
   product: LeadProduct;
   formatPrice: (value: number) => string;
   getImageUrl: (product: LeadProduct) => string | null;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }
 
-const ProductCard = ({ product, formatPrice, getImageUrl }: ProductCardProps) => {
+const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSelect }: ProductCardProps) => {
   const { t } = useLanguage();
   const imageUrl = getImageUrl(product);
   const showQuantityDetails = product.quantity > 1;
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:bg-white/10 transition-colors">
+    <div 
+      className={`relative bg-white/5 border rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer ${
+        isSelected ? 'border-primary bg-primary/10' : 'border-white/10'
+      }`}
+      onClick={onToggleSelect}
+    >
+      {/* Checkbox Overlay */}
+      <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onToggleSelect}
+          className="bg-white/10 border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+        />
+      </div>
+
       {/* Product Image */}
       <div className="aspect-video w-full bg-gray-800 flex items-center justify-center relative overflow-hidden">
         {imageUrl ? (

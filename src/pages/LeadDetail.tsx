@@ -60,6 +60,7 @@ import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal
 import ProductsSection, { LeadProduct } from '@/components/leads/ProductsSection';
 import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
+import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -173,6 +174,9 @@ const LeadDetailPage = () => {
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
   const [addProductsModalOpen, setAddProductsModalOpen] = useState(false);
+  const [startPurchaseModalOpen, setStartPurchaseModalOpen] = useState(false);
+  const [selectedProductsForPurchase, setSelectedProductsForPurchase] = useState<LeadProduct[]>([]);
+
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
     
@@ -297,6 +301,7 @@ const LeadDetailPage = () => {
       };
     });
   };
+
   const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
     setLeadData(prev => {
       if (!prev) return prev;
@@ -308,6 +313,11 @@ const LeadDetailPage = () => {
         }
       };
     });
+  };
+
+  const handleStartPurchase = (selectedProducts: LeadProduct[]) => {
+    setSelectedProductsForPurchase(selectedProducts);
+    setStartPurchaseModalOpen(true);
   };
 
   if (loading) {
@@ -371,6 +381,7 @@ const LeadDetailPage = () => {
             <ProductsSection 
               products={leadData.lead.products || []}
               onAddProducts={() => setAddProductsModalOpen(true)}
+              onStartPurchase={handleStartPurchase}
             />
           </div>
           
@@ -480,6 +491,15 @@ const LeadDetailPage = () => {
           products={leadData.products || []}
           leadProducts={leadData.lead.products?.map(p => ({ id: p.id, quantity: p.quantity })) || []}
           onProductsAdded={fetchLeadData}
+        />
+
+        {/* Start Purchase Modal */}
+        <StartPurchaseModal
+          isOpen={startPurchaseModalOpen}
+          onClose={() => setStartPurchaseModalOpen(false)}
+          leadId={leadData.lead.id}
+          selectedProducts={selectedProductsForPurchase}
+          onSaleCreated={fetchLeadData}
         />
       </div>
     </div>
