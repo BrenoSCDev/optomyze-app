@@ -23,6 +23,7 @@ import {
 import {
   CSS,
 } from '@dnd-kit/utilities';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCardProps {
   lead: Lead;
@@ -35,6 +36,7 @@ interface LeadCardProps {
 }
 
 const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
+  const { t } = useLanguage();
   const {
     attributes,
     listeners,
@@ -184,7 +186,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       {showEstimatedValue && lead.value > 0 && (
         <div className="mt-2">
           <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium">
-            Estimated: {formatCurrency(lead.value, leadCurrency)}
+            {t('funnel.page.estimated')}: {formatCurrency(lead.value, leadCurrency)}
           </Badge>
         </div>
       )}
