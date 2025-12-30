@@ -34,11 +34,19 @@ import {
   Loader2,
   AlertCircle,
   User,
-  Copy
+  Copy,
+  UserCheck,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
 import TasksSection from '@/components/leads/TasksSection';
@@ -46,6 +54,7 @@ import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import DocumentsSection from '@/components/leads/DocumentsSection';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
+import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -131,6 +140,7 @@ interface LeadData {
   reports: Report[];
   tasks: Task[];
   docs: LeadDocument[];
+  users: CompanyUser[];
 }
 
 const LeadDetailPage = () => {
@@ -148,7 +158,7 @@ const LeadDetailPage = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
-
+  const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
     
@@ -165,13 +175,15 @@ const LeadDetailPage = () => {
       const reports = data.reports || lead.reports || [];
       const tasks = data.tasks || lead.tasks || [];
       const docs = lead.docs || [];
+      const users = data.users || [];
       
       setLeadData({
         lead,
         transactions,
         reports,
         tasks,
-        docs
+        docs,
+        users
       });
       
     } catch (err: any) {
@@ -257,6 +269,19 @@ const LeadDetailPage = () => {
     });
   };
 
+  const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lead: {
+          ...prev.lead,
+          assigned_user: { id: userId, name: userName, email: userEmail }
+        }
+      };
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
@@ -294,6 +319,7 @@ const LeadDetailPage = () => {
           onBack={handleBack}
           onViewReports={() => setReportsModalOpen(true)}
           reportsCount={leadData.reports?.length || 0}
+          onAssignUser={() => setAssignUserModalOpen(true)}
         />
         
         {/* Main Content Grid */}
@@ -363,6 +389,16 @@ const LeadDetailPage = () => {
           leadId={leadData.lead.id}
           onDocumentUploaded={handleDocumentUploaded}
         />
+
+        {/* Assign User Modal */}
+        <AssignUserModal
+          isOpen={assignUserModalOpen}
+          onClose={() => setAssignUserModalOpen(false)}
+          leadId={leadData.lead.id}
+          users={leadData.users || []}
+          currentAssignedUserId={leadData.lead.assigned_user?.id}
+          onUserAssigned={handleUserAssigned}
+        />
       </div>
     </div>
   );
@@ -374,13 +410,15 @@ const LeadDetailHeader = ({
   onEdit, 
   onBack, 
   onViewReports, 
-  reportsCount 
+  reportsCount,
+  onAssignUser
 }: { 
   lead: Lead; 
   onEdit: () => void; 
   onBack: () => void; 
   onViewReports: () => void;
   reportsCount: number;
+  onAssignUser: () => void;
 }) => {
   const { t } = useLanguage();
   
@@ -481,9 +519,31 @@ const LeadDetailHeader = ({
               <Edit className="w-4 h-4 mr-2" />
               {t('lead-details.edit-lead')}
             </Button>
-            <Button variant="outline" size="icon" className="glass-card">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+            
+            {/* Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="glass-card">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-gray-800 border-white/10 z-50">
+                <DropdownMenuItem 
+                  onClick={() => {}}
+                  className="text-white hover:bg-gray-700 focus:bg-gray-700 cursor-pointer"
+                >
+                  <ArrowRightLeft className="w-4 h-4 mr-2" />
+                  {t('lead-details.move-stage')}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={onAssignUser}
+                  className="text-white hover:bg-gray-700 focus:bg-gray-700 cursor-pointer"
+                >
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  {t('lead-details.assign-user')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
