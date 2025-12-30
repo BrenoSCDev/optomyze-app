@@ -509,7 +509,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           {funnel.value_estimated > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-muted-foreground">Estimated Funnel Value</span>
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1 text-base font-semibold">
+              <Badge className="px-3 text-sm font-semibold">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(funnel.value_estimated)}
               </Badge>
             </div>

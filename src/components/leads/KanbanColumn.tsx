@@ -100,8 +100,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
         
         {/* Stage Estimated Value */}
         {stageValueEstimated !== undefined && stageValueEstimated > 0 && (
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium w-fit">
-            <DollarSign className="h-3 w-3 mr-1" />
+          <Badge className="text-xs font-medium w-fit">
             {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || 'USD' }).format(stageValueEstimated)}
           </Badge>
         )}
