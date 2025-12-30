@@ -1202,6 +1202,7 @@ const translations = {
     'lead-details.delete-document-success-description': 'The document has been successfully deleted.',
     'lead-details.delete-document-error': 'Failed to delete document',
     'lead-details.delete-document-error-description': 'An error occurred while deleting the document. Please try again.',
+    'lead-details.preview-document': 'Preview document',
     
     // Tasks Section
     'tasks.title': 'Tasks',
@@ -2612,6 +2613,7 @@ const translations = {
     'lead-details.delete-document-success-description': 'O documento foi excluído com sucesso.',
     'lead-details.delete-document-error': 'Falha ao excluir documento',
     'lead-details.delete-document-error-description': 'Ocorreu um erro ao excluir o documento. Por favor, tente novamente.',
+    'lead-details.preview-document': 'Visualizar documento',
     
     // Tasks Section
     'tasks.title': 'Tarefas',
@@ -3847,6 +3849,7 @@ const translations = {
     'lead-details.delete-document-success-description': 'Das Dokument wurde erfolgreich gelöscht.',
     'lead-details.delete-document-error': 'Fehler beim Löschen des Dokuments',
     'lead-details.delete-document-error-description': 'Beim Löschen des Dokuments ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+    'lead-details.preview-document': 'Dokument anzeigen',
     
     // Tasks Section
     'tasks.title': 'Aufgaben',
@@ -5081,6 +5084,7 @@ const translations = {
     'lead-details.delete-document-success-description': 'El documento se ha eliminado correctamente.',
     'lead-details.delete-document-error': 'Error al eliminar documento',
     'lead-details.delete-document-error-description': 'Se produjo un error al eliminar el documento. Por favor, inténtelo de nuevo.',
+    'lead-details.preview-document': 'Vista previa del documento',
     
     // Tasks Section
     'tasks.title': 'Tareas',

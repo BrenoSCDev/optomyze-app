@@ -21,7 +21,9 @@ import {
   Trash2,
   Loader2,
   Download,
-  ExternalLink
+  Eye,
+  X,
+  File
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,8 +38,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/services/api';
+import { getStorageUrl } from '@/lib/constants';
 import SaleDocumentUploadModal from './SaleDocumentUploadModal';
 
 interface SaleProduct {
@@ -61,6 +70,8 @@ interface SaleCharge {
 interface SaleDocument {
   id: number;
   name: string;
+  filename?: string;
+  storage_path?: string;
   url?: string;
   created_at?: string;
 }
@@ -147,6 +158,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const [isDeletingDoc, setIsDeletingDoc] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [localDocs, setLocalDocs] = useState<SaleDocument[]>(sale.docs || sale.documents || []);
+  const [previewDoc, setPreviewDoc] = useState<SaleDocument | null>(null);
   
   const getStatusColor = (status: string) => {
     const colors = {
@@ -168,6 +180,36 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  const getDocPath = (doc: SaleDocument) => {
+    return doc.storage_path || doc.url || '';
+  };
+
+  const getDocName = (doc: SaleDocument) => {
+    return doc.filename || doc.name || 'Document';
+  };
+
+  const getFileExtension = (path: string) => {
+    return path?.split('.').pop()?.toLowerCase() || '';
+  };
+
+  const isPreviewSupported = (path: string) => {
+    const ext = getFileExtension(path);
+    return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+  };
+
+  const isImageFile = (path: string) => {
+    const ext = getFileExtension(path);
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+  };
+
+  const getFileIcon = (path: string) => {
+    const ext = getFileExtension(path);
+    if (ext === 'pdf') return <FileText className="w-4 h-4 text-red-400" />;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-4 h-4 text-blue-400" />;
+    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-500" />;
+    return <File className="w-4 h-4 text-gray-400" />;
   };
 
   const handleDelete = async () => {
@@ -196,6 +238,8 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
     const newDoc: SaleDocument = {
       id: doc.id,
       name: doc.name,
+      filename: doc.name,
+      storage_path: doc.url,
       url: doc.url,
       created_at: new Date().toISOString(),
     };
@@ -235,9 +279,23 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
     setDeleteDocDialogOpen(true);
   };
 
+  const handlePreviewDocument = (doc: SaleDocument) => {
+    setPreviewDoc(doc);
+  };
+
   const handleDownloadDocument = (doc: SaleDocument) => {
-    if (doc.url) {
-      window.open(doc.url, '_blank');
+    const path = getDocPath(doc);
+    if (path) {
+      const url = getStorageUrl(path);
+      if (url) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = getDocName(doc);
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     }
   };
 
@@ -397,8 +455,8 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
             {localDocs.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-                  <span className="text-white truncate">{doc.name}</span>
+                  {getFileIcon(getDocPath(doc))}
+                  <span className="text-white truncate">{getDocName(doc)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {doc.created_at && (
@@ -410,10 +468,10 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-gray-400 hover:text-primary hover:bg-primary/10"
-                    onClick={() => handleDownloadDocument(doc)}
-                    title={t('lead-details.download-document')}
+                    onClick={() => handlePreviewDocument(doc)}
+                    title={t('lead-details.preview-document')}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <Eye className="w-3.5 h-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -470,6 +528,73 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
         onDocumentUploaded={handleDocumentUploaded}
       />
 
+      {/* Document Preview Modal */}
+      <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden [&>button]:hidden">
+          <DialogHeader className="p-4 border-b border-white/10">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-white truncate pr-4">
+                {previewDoc && getDocName(previewDoc)}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={() => previewDoc && handleDownloadDocument(previewDoc)}
+                  size="sm" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('documents.download')}
+                </Button>
+                <Button 
+                  onClick={() => setPreviewDoc(null)}
+                  size="sm" 
+                  variant="ghost"
+                  className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  {t('documents.close')}
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
+            {previewDoc && isPreviewSupported(getDocPath(previewDoc)) ? (
+              isImageFile(getDocPath(previewDoc)) ? (
+                <div className="flex items-center justify-center">
+                  <img 
+                    src={getStorageUrl(getDocPath(previewDoc))} 
+                    alt={getDocName(previewDoc)}
+                    className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                  />
+                </div>
+              ) : (
+                <iframe
+                  src={getStorageUrl(getDocPath(previewDoc))}
+                  className="w-full h-[70vh] rounded-lg bg-white"
+                  title={getDocName(previewDoc)}
+                />
+              )
+            ) : (
+              <div className="text-center py-16">
+                <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-400 mb-2">{t('documents.preview-not-available')}</p>
+                <p className="text-gray-500 text-sm mb-6">
+                  {t('documents.download-to-view')}
+                </p>
+                <Button 
+                  onClick={() => previewDoc && handleDownloadDocument(previewDoc)}
+                  className="bg-primary hover:bg-primary/80"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('documents.download-file')}
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Sale Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-background border-border">
@@ -513,7 +638,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               {t('lead-details.delete-document-confirmation')}
               {docToDelete && (
                 <span className="block mt-2 font-medium text-foreground">
-                  "{docToDelete.name}"
+                  "{getDocName(docToDelete)}"
                 </span>
               )}
             </AlertDialogDescription>
