@@ -206,10 +206,10 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
 
   const getFileIcon = (path: string) => {
     const ext = getFileExtension(path);
-    if (ext === 'pdf') return <FileText className="w-4 h-4 text-red-400" />;
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-4 h-4 text-blue-400" />;
-    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-500" />;
-    return <File className="w-4 h-4 text-gray-400" />;
+    if (ext === 'pdf') return <FileText className="w-4 h-4 text-red-400 flex-shrink-0" />;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />;
+    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />;
+    return <File className="w-4 h-4 text-gray-400 flex-shrink-0" />;
   };
 
   const handleDelete = async () => {
