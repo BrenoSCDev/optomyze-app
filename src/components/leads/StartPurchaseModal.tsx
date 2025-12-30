@@ -51,7 +51,6 @@ const StartPurchaseModal = ({
   const [pricingModel, setPricingModel] = useState<PricingModel>('product');
   const [commissionType, setCommissionType] = useState<ChargeType>('percentage');
   const [commissionValue, setCommissionValue] = useState<number>(0);
-  const [referenceValue, setReferenceValue] = useState<number>(0);
   const [charges, setCharges] = useState<Charge[]>([]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +63,6 @@ const StartPurchaseModal = ({
     setPricingModel('product');
     setCommissionType('percentage');
     setCommissionValue(0);
-    setReferenceValue(0);
     setCharges([]);
     setNotes('');
     onClose();
@@ -75,12 +73,12 @@ const StartPurchaseModal = ({
     return selectedProducts.reduce((sum, p) => sum + p.total_price, 0);
   }, [selectedProducts]);
 
-  // Calculate commission subtotal
+  // Calculate commission subtotal (reference value is always products subtotal)
   const commissionSubtotal = useMemo(() => {
     if (pricingModel === 'product') return 0;
     if (commissionType === 'fixed') return commissionValue;
-    return (referenceValue * commissionValue) / 100;
-  }, [pricingModel, commissionType, commissionValue, referenceValue]);
+    return (productsSubtotal * commissionValue) / 100;
+  }, [pricingModel, commissionType, commissionValue, productsSubtotal]);
 
   // Calculate base subtotal (products + commission)
   const baseSubtotal = useMemo(() => {
@@ -148,7 +146,7 @@ const StartPurchaseModal = ({
       if (pricingModel === 'commission' || pricingModel === 'hybrid') {
         payload.commission_type = commissionType;
         payload.commission_value = commissionValue;
-        payload.reference_value = referenceValue;
+        payload.reference_value = productsSubtotal;
       }
 
       // Add charges if any
@@ -192,7 +190,7 @@ const StartPurchaseModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4 -mr-4">
+        <ScrollArea className="flex-1 pr-4 -mr-4 [&_[data-radix-scroll-area-thumb]]:bg-primary/50 [&_[data-radix-scroll-area-thumb]]:rounded-full [&_[data-radix-scroll-area-track]]:bg-white/5">
           <div className="space-y-6 pb-4">
             {/* 1. Selected Products Summary */}
             <div className="space-y-3">
@@ -294,15 +292,10 @@ const StartPurchaseModal = ({
                   {commissionType === 'percentage' && (
                     <div className="space-y-2">
                       <Label className="text-gray-400 text-sm">{t('sale.reference-value')}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={referenceValue}
-                        onChange={(e) => setReferenceValue(Number(e.target.value))}
-                        className="bg-white/5 border-white/10 text-white"
-                        placeholder="10000"
-                      />
+                      <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white">
+                        {formatPrice(productsSubtotal)}
+                      </div>
+                      <p className="text-xs text-gray-500">{t('sale.reference-value-hint')}</p>
                     </div>
                   )}
                 </div>
