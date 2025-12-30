@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import api from '@/services/api';
 
 interface SaleDocumentUploadModalProps {
   isOpen: boolean;
@@ -109,20 +110,13 @@ const SaleDocumentUploadModal: React.FC<SaleDocumentUploadModalProps> = ({
         formData.append('name', documentName.trim());
       }
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/sales/${saleId}/docs`, {
-        method: 'POST',
+      const response = await api.post(`/api/sales/${saleId}/docs`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       
       toast({
         title: t('lead-details.document-upload-success'),
