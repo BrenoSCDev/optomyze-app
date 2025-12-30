@@ -5,6 +5,7 @@
  * Features:
  * - 6 KPI cards with real-time data from API
  * - Interactive charts: Sales funnel, monthly trends, lead breakdown
+ * - Revenue overview, pipeline value comparison, deals status
  * - Recharts integration for professional data visualization
  * - Responsive grid layout that adapts to screen size
  * - Real API data with loading states and error handling
@@ -13,17 +14,92 @@
  */
 
 import { motion } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
+  BarChart, Bar, PieChart, Pie, Cell, ComposedChart, Line
+} from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus, Filter, BarChart3, PieChartIcon } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useState, useEffect, useMemo } from 'react';
 import api from '@/services/api';
 
-// Skeleton Components
+// ============= MOCK DATA (Replace with API calls later) =============
+
+// Mock Monthly Revenue Data
+const getMockMonthlyRevenue = () => [
+  { month: 'Jan', currentYear: 45000, previousYear: 38000 },
+  { month: 'Feb', currentYear: 52000, previousYear: 42000 },
+  { month: 'Mar', currentYear: 48000, previousYear: 45000 },
+  { month: 'Apr', currentYear: 61000, previousYear: 48000 },
+  { month: 'May', currentYear: 55000, previousYear: 52000 },
+  { month: 'Jun', currentYear: 67000, previousYear: 58000 },
+  { month: 'Jul', currentYear: 72000, previousYear: 62000 },
+  { month: 'Aug', currentYear: 69000, previousYear: 65000 },
+  { month: 'Sep', currentYear: 78000, previousYear: 70000 },
+  { month: 'Oct', currentYear: 82000, previousYear: 74000 },
+  { month: 'Nov', currentYear: 88000, previousYear: 78000 },
+  { month: 'Dec', currentYear: 95000, previousYear: 85000 },
+];
+
+// Mock Funnels Data
+const getMockFunnels = () => [
+  { id: '1', name: 'Sales Pipeline' },
+  { id: '2', name: 'Marketing Funnel' },
+  { id: '3', name: 'Support Pipeline' },
+];
+
+// Mock Leads by Stage Data (per funnel)
+const getMockLeadsByStage = (funnelId: string) => {
+  const data: Record<string, Array<{ stage: string; count: number; color: string }>> = {
+    '1': [
+      { stage: 'New', count: 145, color: '#8B5CF6' },
+      { stage: 'Contacted', count: 98, color: '#A78BFA' },
+      { stage: 'Qualified', count: 72, color: '#C4B5FD' },
+      { stage: 'Proposal', count: 45, color: '#10B981' },
+      { stage: 'Won', count: 28, color: '#34D399' },
+      { stage: 'Lost', count: 18, color: '#EF4444' },
+    ],
+    '2': [
+      { stage: 'New', count: 220, color: '#8B5CF6' },
+      { stage: 'Contacted', count: 180, color: '#A78BFA' },
+      { stage: 'Qualified', count: 120, color: '#C4B5FD' },
+      { stage: 'Proposal', count: 65, color: '#10B981' },
+      { stage: 'Won', count: 42, color: '#34D399' },
+      { stage: 'Lost', count: 35, color: '#EF4444' },
+    ],
+    '3': [
+      { stage: 'New', count: 85, color: '#8B5CF6' },
+      { stage: 'Contacted', count: 62, color: '#A78BFA' },
+      { stage: 'Qualified', count: 48, color: '#C4B5FD' },
+      { stage: 'Proposal', count: 30, color: '#10B981' },
+      { stage: 'Won', count: 18, color: '#34D399' },
+      { stage: 'Lost', count: 12, color: '#EF4444' },
+    ],
+  };
+  return data[funnelId] || data['1'];
+};
+
+// Mock Pipeline Value vs Closed Sales Data
+const getMockPipelineComparison = () => [
+  { funnel: 'Sales Pipeline', estimatedValue: 450000, closedValue: 280000 },
+  { funnel: 'Marketing Funnel', estimatedValue: 320000, closedValue: 185000 },
+  { funnel: 'Support Pipeline', estimatedValue: 180000, closedValue: 120000 },
+];
+
+// Mock Deals Status Distribution
+const getMockDealsStatus = () => [
+  { name: 'Pending', value: 42, color: '#F59E0B' },
+  { name: 'Sent', value: 28, color: '#3B82F6' },
+  { name: 'Closed (Won)', value: 65, color: '#10B981' },
+  { name: 'Lost', value: 18, color: '#EF4444' },
+];
+
+// ============= SKELETON COMPONENTS =============
+
 const SkeletonKPICard = () => (
   <div className="kpi-card floating animate-pulse">
     <div className="flex items-center justify-between mb-4">
@@ -45,7 +121,8 @@ const SkeletonChart = () => (
   </div>
 );
 
-// Error State Component
+// ============= ERROR STATE COMPONENT =============
+
 const ErrorState = ({ onRetry, error }: { onRetry: () => void; error: any }) => {
   const { t } = useLanguage();
   
@@ -68,8 +145,361 @@ const ErrorState = ({ onRetry, error }: { onRetry: () => void; error: any }) => 
   );
 };
 
-// Lead Breakdown Funnel Component
+// ============= CHART TOOLTIP STYLES =============
+
+const chartTooltipStyle = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '8px',
+  color: 'hsl(var(--foreground))'
+};
+
+// ============= MONTHLY REVENUE CHART =============
+
+const MonthlyRevenueChart = ({ showComparison }: { showComparison: boolean }) => {
+  const { t } = useLanguage();
+  const data = getMockMonthlyRevenue();
+  
+  const totalCurrentYear = data.reduce((sum, d) => sum + d.currentYear, 0);
+  const totalPreviousYear = data.reduce((sum, d) => sum + d.previousYear, 0);
+  const growthRate = ((totalCurrentYear - totalPreviousYear) / totalPreviousYear * 100).toFixed(1);
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.4 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-primary" />
+          {t('metrics.monthly-revenue-overview')}
+        </h3>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">{t('metrics.yoy-growth')}:</span>
+          <span className={`font-semibold ${Number(growthRate) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {Number(growthRate) >= 0 ? '+' : ''}{growthRate}%
+          </span>
+        </div>
+      </div>
+      
+      <ResponsiveContainer width="100%" height={350}>
+        <ComposedChart data={data}>
+          <defs>
+            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#10B981" stopOpacity={0.1}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
+          <YAxis 
+            stroke="#9CA3AF" 
+            fontSize={12}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+          />
+          <Tooltip 
+            contentStyle={chartTooltipStyle}
+            formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+          />
+          <Legend />
+          <Bar 
+            dataKey="currentYear" 
+            name={t('metrics.current-year')}
+            fill="url(#revenueGradient)" 
+            radius={[4, 4, 0, 0]}
+          />
+          {showComparison && (
+            <Line 
+              type="monotone" 
+              dataKey="previousYear" 
+              name={t('metrics.previous-year')}
+              stroke="#8B5CF6" 
+              strokeWidth={2}
+              dot={{ fill: '#8B5CF6', strokeWidth: 2 }}
+            />
+          )}
+        </ComposedChart>
+      </ResponsiveContainer>
+
+      {/* Summary Stats */}
+      <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
+        <div className="text-center">
+          <p className="text-2xl font-bold text-green-400">
+            ${(totalCurrentYear / 1000).toFixed(0)}k
+          </p>
+          <p className="text-sm text-muted-foreground">{t('metrics.total-revenue-ytd')}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-blue-400">
+            ${(Math.max(...data.map(d => d.currentYear)) / 1000).toFixed(0)}k
+          </p>
+          <p className="text-sm text-muted-foreground">{t('metrics.best-month')}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-primary">
+            ${(totalCurrentYear / 12 / 1000).toFixed(0)}k
+          </p>
+          <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= LEADS BY STAGE CHART =============
+
+const LeadsByStageChart = () => {
+  const { t } = useLanguage();
+  const funnels = getMockFunnels();
+  const [selectedFunnel, setSelectedFunnel] = useState(funnels[0].id);
+  
+  const stageData = useMemo(() => getMockLeadsByStage(selectedFunnel), [selectedFunnel]);
+  const totalLeads = stageData.reduce((sum, d) => sum + d.count, 0);
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.5 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <Filter className="w-5 h-5 text-primary" />
+          {t('metrics.leads-by-stage')}
+        </h3>
+        <Select value={selectedFunnel} onValueChange={setSelectedFunnel}>
+          <SelectTrigger className="w-[180px] glass-card">
+            <SelectValue placeholder={t('metrics.select-funnel')} />
+          </SelectTrigger>
+          <SelectContent className="bg-card border-border">
+            {funnels.map(funnel => (
+              <SelectItem key={funnel.id} value={funnel.id}>
+                {funnel.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={stageData} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+          <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+          <YAxis 
+            type="category" 
+            dataKey="stage" 
+            stroke="#9CA3AF" 
+            fontSize={12} 
+            width={80}
+          />
+          <Tooltip 
+            contentStyle={chartTooltipStyle}
+            formatter={(value: number) => [value, t('metrics.leads')]}
+          />
+          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+            {stageData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Stage Summary */}
+      <div className="mt-4 flex flex-wrap gap-3 justify-center">
+        {stageData.map((stage) => (
+          <div 
+            key={stage.stage} 
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-sm"
+          >
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
+            <span>{stage.stage}:</span>
+            <span className="font-semibold">{stage.count}</span>
+            <span className="text-muted-foreground">
+              ({((stage.count / totalLeads) * 100).toFixed(0)}%)
+            </span>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= PIPELINE VALUE COMPARISON CHART =============
+
+const PipelineValueChart = () => {
+  const { t } = useLanguage();
+  const data = getMockPipelineComparison();
+  
+  const dataWithGap = data.map(item => ({
+    ...item,
+    gap: item.estimatedValue - item.closedValue,
+    conversionRate: ((item.closedValue / item.estimatedValue) * 100).toFixed(1)
+  }));
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.6 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-primary" />
+          {t('metrics.pipeline-vs-closed')}
+        </h3>
+      </div>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={dataWithGap} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+          <XAxis 
+            type="number" 
+            stroke="#9CA3AF" 
+            fontSize={12}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+          />
+          <YAxis 
+            type="category" 
+            dataKey="funnel" 
+            stroke="#9CA3AF" 
+            fontSize={12} 
+            width={120}
+          />
+          <Tooltip 
+            contentStyle={chartTooltipStyle}
+            formatter={(value: number, name: string) => [
+              `$${value.toLocaleString()}`, 
+              name === 'estimatedValue' ? t('metrics.estimated') : 
+              name === 'closedValue' ? t('metrics.closed') : t('metrics.gap')
+            ]}
+          />
+          <Legend />
+          <Bar 
+            dataKey="estimatedValue" 
+            name={t('metrics.estimated-value')}
+            fill="#8B5CF6" 
+            radius={[0, 4, 4, 0]}
+          />
+          <Bar 
+            dataKey="closedValue" 
+            name={t('metrics.closed-value')}
+            fill="#10B981" 
+            radius={[0, 4, 4, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Conversion Gap Cards */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {dataWithGap.map((item) => (
+          <div key={item.funnel} className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-sm text-muted-foreground mb-1">{item.funnel}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-green-400">{item.conversionRate}%</span>
+              <span className="text-sm text-red-400">
+                -{((item.gap / item.estimatedValue) * 100).toFixed(0)}% {t('metrics.gap')}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= DEALS STATUS DISTRIBUTION CHART =============
+
+const DealsStatusChart = () => {
+  const { t } = useLanguage();
+  const data = getMockDealsStatus();
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.7 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <PieChartIcon className="w-5 h-5 text-primary" />
+          {t('metrics.deals-status')}
+        </h3>
+        <span className="text-sm text-muted-foreground">
+          {t('metrics.total')}: <span className="font-semibold text-foreground">{total}</span> {t('metrics.deals')}
+        </span>
+      </div>
+
+      <div className="flex flex-col lg:flex-row items-center gap-8">
+        <ResponsiveContainer width="100%" height={280}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={110}
+              innerRadius={60}
+              paddingAngle={2}
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+              ))}
+            </Pie>
+            <Tooltip 
+              contentStyle={chartTooltipStyle}
+              formatter={(value: number) => [value, t('metrics.deals')]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+
+        {/* Legend with counts */}
+        <div className="flex flex-col gap-3 min-w-[180px]">
+          {data.map((item) => (
+            <div key={item.name} className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-sm">{item.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">{item.value}</span>
+                <span className="text-muted-foreground text-sm">
+                  ({((item.value / total) * 100).toFixed(0)}%)
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= LEAD BREAKDOWN FUNNEL =============
+
 const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
+  const { t } = useLanguage();
+  
   if (isLoading) {
     return <SkeletonChart />;
   }
@@ -79,7 +509,6 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   }
 
   const stats = data.data.lead_statistics;
-  const { t } = useLanguage();
   
   const funnelData = [
     {
@@ -114,7 +543,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
       <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-pipeline-breakdown')}</h3>
       
       <div className="space-y-4">
-        {funnelData.map((item, index) => {
+        {funnelData.map((item) => {
           const percentage = funnelData[0].value > 0 ? (item.value / funnelData[0].value) * 100 : 0;
           
           return (
@@ -154,11 +583,14 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   );
 };
 
+// ============= MAIN COMPONENT =============
+
 const OptomyzeMetrics = () => {
   const { t } = useLanguage();
   const [metricsData, setMetricsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
+  const [showYearComparison, setShowYearComparison] = useState(true);
 
   const fetchMetricsData = async () => {
     try {
@@ -198,7 +630,7 @@ const OptomyzeMetrics = () => {
 
     const { lead_statistics, conversion_rate, average_conversion_time, performance_comparison } = metricsData.data;
 
-      return [
+    return [
       {
         title: t('metrics.total-leads'),
         value: lead_statistics.total_leads,
@@ -302,6 +734,18 @@ const OptomyzeMetrics = () => {
           ))
         )}
       </div>
+
+      {/* Revenue & Deals Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <MonthlyRevenueChart showComparison={showYearComparison} />
+        <DealsStatusChart />
+      </div>
+
+      {/* Leads & Pipeline Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <LeadsByStageChart />
+        <PipelineValueChart />
+      </div>
       
       {/* Monthly Lead Flow */}
       {loading ? (
@@ -325,14 +769,7 @@ const OptomyzeMetrics = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
               <YAxis stroke="#9CA3AF" fontSize={12} />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  color: 'hsl(var(--foreground))'
-                }}
-              />
+              <Tooltip contentStyle={chartTooltipStyle} />
               <Legend />
               <Area
                 type="monotone"
