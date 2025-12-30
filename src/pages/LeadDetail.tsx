@@ -422,6 +422,7 @@ const LeadDetailPage = () => {
           onClose={() => setAddProductsModalOpen(false)}
           leadId={leadData.lead.id}
           products={leadData.products || []}
+          leadProducts={leadData.lead.products?.map(p => ({ id: p.id, quantity: p.quantity })) || []}
           onProductsAdded={fetchLeadData}
         />
       </div>
