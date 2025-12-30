@@ -1171,7 +1171,13 @@ const translations = {
     'lead-details.no-documents-uploaded': 'No documents uploaded',
     'lead-details.upload-document': 'Upload Document',
     'lead-details.edit-sale': 'Edit Sale',
-    'lead-details.coming-soon': 'Coming soon',
+    'lead-details.delete-sale-title': 'Delete Sale',
+    'lead-details.delete-sale-confirmation': 'Are you sure you want to delete this sale? This action cannot be undone.',
+    'lead-details.delete-sale-billing-warning': 'Warning: Deleting this sale will affect billing reports, revenue calculations, and commission tracking. All associated products, charges, and documents will also be removed.',
+    'lead-details.delete-sale-success': 'Sale deleted',
+    'lead-details.delete-sale-success-description': 'The sale has been successfully deleted.',
+    'lead-details.delete-sale-error': 'Failed to delete sale',
+    'lead-details.delete-sale-error-description': 'An error occurred while deleting the sale. Please try again.',
     
     // Tasks Section
     'tasks.title': 'Tasks',
@@ -2551,7 +2557,13 @@ const translations = {
     'lead-details.no-documents-uploaded': 'Nenhum documento enviado',
     'lead-details.upload-document': 'Enviar Documento',
     'lead-details.edit-sale': 'Editar Venda',
-    'lead-details.coming-soon': 'Em breve',
+    'lead-details.delete-sale-title': 'Excluir Venda',
+    'lead-details.delete-sale-confirmation': 'Tem certeza de que deseja excluir esta venda? Esta ação não pode ser desfeita.',
+    'lead-details.delete-sale-billing-warning': 'Aviso: Excluir esta venda afetará relatórios de faturamento, cálculos de receita e rastreamento de comissões. Todos os produtos, cobranças e documentos associados também serão removidos.',
+    'lead-details.delete-sale-success': 'Venda excluída',
+    'lead-details.delete-sale-success-description': 'A venda foi excluída com sucesso.',
+    'lead-details.delete-sale-error': 'Falha ao excluir venda',
+    'lead-details.delete-sale-error-description': 'Ocorreu um erro ao excluir a venda. Por favor, tente novamente.',
     
     // Tasks Section
     'tasks.title': 'Tarefas',
@@ -3756,7 +3768,13 @@ const translations = {
     'lead-details.no-documents-uploaded': 'Keine Dokumente hochgeladen',
     'lead-details.upload-document': 'Dokument hochladen',
     'lead-details.edit-sale': 'Verkauf bearbeiten',
-    'lead-details.coming-soon': 'Demnächst',
+    'lead-details.delete-sale-title': 'Verkauf löschen',
+    'lead-details.delete-sale-confirmation': 'Sind Sie sicher, dass Sie diesen Verkauf löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'lead-details.delete-sale-billing-warning': 'Warnung: Das Löschen dieses Verkaufs wirkt sich auf Abrechnungsberichte, Umsatzberechnungen und Provisionsverfolgung aus. Alle zugehörigen Produkte, Gebühren und Dokumente werden ebenfalls entfernt.',
+    'lead-details.delete-sale-success': 'Verkauf gelöscht',
+    'lead-details.delete-sale-success-description': 'Der Verkauf wurde erfolgreich gelöscht.',
+    'lead-details.delete-sale-error': 'Fehler beim Löschen des Verkaufs',
+    'lead-details.delete-sale-error-description': 'Beim Löschen des Verkaufs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
     
     // Tasks Section
     'tasks.title': 'Aufgaben',
@@ -4960,7 +4978,13 @@ const translations = {
     'lead-details.no-documents-uploaded': 'No hay documentos subidos',
     'lead-details.upload-document': 'Subir Documento',
     'lead-details.edit-sale': 'Editar Venta',
-    'lead-details.coming-soon': 'Próximamente',
+    'lead-details.delete-sale-title': 'Eliminar Venta',
+    'lead-details.delete-sale-confirmation': '¿Está seguro de que desea eliminar esta venta? Esta acción no se puede deshacer.',
+    'lead-details.delete-sale-billing-warning': 'Advertencia: Eliminar esta venta afectará los informes de facturación, los cálculos de ingresos y el seguimiento de comisiones. Todos los productos, cargos y documentos asociados también se eliminarán.',
+    'lead-details.delete-sale-success': 'Venta eliminada',
+    'lead-details.delete-sale-success-description': 'La venta se ha eliminado correctamente.',
+    'lead-details.delete-sale-error': 'Error al eliminar la venta',
+    'lead-details.delete-sale-error-description': 'Se produjo un error al eliminar la venta. Por favor, inténtelo de nuevo.',
     
     // Tasks Section
     'tasks.title': 'Tareas',
