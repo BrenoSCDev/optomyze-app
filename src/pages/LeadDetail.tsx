@@ -56,6 +56,7 @@ import DocumentsSection from '@/components/leads/DocumentsSection';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import ProductsSection, { LeadProduct } from '@/components/leads/ProductsSection';
+import AddProductsModal from '@/components/leads/AddProductsModal';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -136,6 +137,11 @@ interface Lead {
   products?: LeadProduct[];
 }
 
+interface CompanyProduct {
+  id: number;
+  name: string;
+}
+
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
@@ -143,6 +149,7 @@ interface LeadData {
   tasks: Task[];
   docs: LeadDocument[];
   users: CompanyUser[];
+  products: CompanyProduct[];
 }
 
 const LeadDetailPage = () => {
@@ -161,6 +168,7 @@ const LeadDetailPage = () => {
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
+  const [addProductsModalOpen, setAddProductsModalOpen] = useState(false);
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
     
@@ -178,6 +186,7 @@ const LeadDetailPage = () => {
       const tasks = data.tasks || lead.tasks || [];
       const docs = lead.docs || [];
       const users = data.users || [];
+      const companyProducts = data.products || [];
       
       setLeadData({
         lead,
@@ -185,7 +194,8 @@ const LeadDetailPage = () => {
         reports,
         tasks,
         docs,
-        users
+        users,
+        products: companyProducts
       });
       
     } catch (err: any) {
@@ -344,7 +354,7 @@ const LeadDetailPage = () => {
             />
             <ProductsSection 
               products={leadData.lead.products || []}
-              onAddProducts={() => {}}
+              onAddProducts={() => setAddProductsModalOpen(true)}
             />
           </div>
           
@@ -404,6 +414,15 @@ const LeadDetailPage = () => {
           users={leadData.users || []}
           currentAssignedUserId={leadData.lead.assigned_user?.id}
           onUserAssigned={handleUserAssigned}
+        />
+
+        {/* Add Products Modal */}
+        <AddProductsModal
+          isOpen={addProductsModalOpen}
+          onClose={() => setAddProductsModalOpen(false)}
+          leadId={leadData.lead.id}
+          products={leadData.products || []}
+          onProductsAdded={fetchLeadData}
         />
       </div>
     </div>
