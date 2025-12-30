@@ -34,9 +34,11 @@ interface KanbanColumnProps {
   activeId?: string | null;
   stageValueEstimated?: number;
   stageCurrency?: string;
+  showEstimatedValues?: boolean;
+  showAssignedUser?: boolean;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, stageValueEstimated, stageCurrency }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const { isOver, setNodeRef } = useDroppable({
@@ -99,7 +101,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
         </div>
         
         {/* Stage Estimated Value */}
-        {stageValueEstimated !== undefined && stageValueEstimated > 0 && (
+        {showEstimatedValues && stageValueEstimated !== undefined && stageValueEstimated > 0 && (
           <Badge className="text-xs font-medium w-fit">
             {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || 'USD' }).format(stageValueEstimated)}
           </Badge>
@@ -144,6 +146,8 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
                   isMoving={false}
                   onTagClick={onTagClick}
                   onLeadClick={onLeadClick}
+                  showEstimatedValue={showEstimatedValues}
+                  showAssignedUser={showAssignedUser}
                 />
               </motion.div>
             ))}

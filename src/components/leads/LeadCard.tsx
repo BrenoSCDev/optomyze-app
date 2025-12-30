@@ -30,9 +30,11 @@ interface LeadCardProps {
   isMoving?: boolean;
   onTagClick?: (lead: Lead) => void;
   onLeadClick?: (leadId: string) => void;
+  showEstimatedValue?: boolean;
+  showAssignedUser?: boolean;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
   const {
     attributes,
     listeners,
@@ -179,7 +181,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
       )}
 
       {/* Lead Estimated Value */}
-      {lead.value > 0 && (
+      {showEstimatedValue && lead.value > 0 && (
         <div className="mt-2">
           <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium">
             Estimated: {formatCurrency(lead.value, leadCurrency)}
@@ -205,7 +207,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
       </div>
 
       {/* Assigned User */}
-      {(lead as any).assigned_user && (
+      {showAssignedUser && (lead as any).assigned_user && (
         <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10">
           <User className="h-3 w-3 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">

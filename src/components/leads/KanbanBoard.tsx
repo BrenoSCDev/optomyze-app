@@ -14,7 +14,6 @@ import {
   Filter, 
   Tag,
   UserPlus,
-  Settings,
   Download
 } from 'lucide-react';
 import {
@@ -54,9 +53,11 @@ import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
 import { LeadFilterDialog } from './LeadFilterDialog';
 import TagManagementModal from './TagManagementModal';
+import FunnelSettingsDropdown from './FunnelSettingsDropdown';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 
 interface KanbanBoardProps {
   funnel: any; // API funnel object
@@ -79,6 +80,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  
+  // Funnel display settings
+  const { settings: displaySettings, setShowEstimatedValues, setShowAssignedUser } = useFunnelDisplaySettings();
   
   // Filter state
   const [activeFilters, setActiveFilters] = useState<any>({});
@@ -508,7 +512,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           </div>
           
           {/* Funnel Estimated Value */}
-          {funnel.value_estimated > 0 && (
+          {displaySettings.showEstimatedValues && funnel.value_estimated > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-muted-foreground">Estimated Funnel Value</span>
               <Badge className="px-3 text-sm font-semibold">
@@ -520,15 +524,13 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2">
-          {/* Settings Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="glass-card border-white/20 hover:bg-white/10"
-          >
-            <Settings className="h-4 w-4 mr-1" />
-            Settings
-          </Button>
+          {/* Settings Dropdown */}
+          <FunnelSettingsDropdown
+            showEstimatedValues={displaySettings.showEstimatedValues}
+            showAssignedUser={displaySettings.showAssignedUser}
+            onShowEstimatedValuesChange={setShowEstimatedValues}
+            onShowAssignedUserChange={setShowAssignedUser}
+          />
           
           {/* Export Button */}
           <Button
@@ -639,6 +641,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               activeId={activeId}
               stageValueEstimated={(column as any).valueEstimated}
               stageCurrency={(column as any).currency}
+              showEstimatedValues={displaySettings.showEstimatedValues}
+              showAssignedUser={displaySettings.showAssignedUser}
             />
           ))}
         </div>
