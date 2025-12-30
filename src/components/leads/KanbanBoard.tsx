@@ -14,9 +14,6 @@ import {
   Filter, 
   Tag,
   UserPlus,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown,
   Settings,
   Download
 } from 'lucide-react';
@@ -472,10 +469,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     }
   };
 
-  // Calculate trend (mock data)
-  const trendPercentage = Math.floor(Math.random() * 20) + 5;
-  const isPositiveTrend = Math.random() > 0.3;
-
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -502,44 +495,34 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           {/* Title and Stats */}
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-foreground">{funnel.name}</h1>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="secondary"
-                className="bg-primary/20 text-primary px-3 py-1"
-              >
-                {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
-              </Badge>
-              <div className={`flex items-center gap-1 text-sm ${
-                isPositiveTrend ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {isPositiveTrend ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-                <span>{trendPercentage}%</span>
-              </div>
-            </div>
+            <Badge
+              variant="secondary"
+              className="bg-primary/20 text-primary px-3 py-1"
+            >
+              {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
+            </Badge>
           </div>
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Settings Button */}
           <Button
             variant="outline"
+            size="sm"
             className="glass-card border-white/20 hover:bg-white/10"
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings className="h-4 w-4 mr-1" />
             Settings
           </Button>
           
           {/* Export Button */}
           <Button
             variant="outline"
+            size="sm"
             className="glass-card border-white/20 hover:bg-white/10"
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4 mr-1" />
             Export
           </Button>
           
@@ -547,22 +530,24 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           {user?.role?.toLowerCase() !== 'agent' && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setTagDialogOpen(true)}
               className="glass-card border-accent/30 hover:bg-accent/10"
             >
-              <Tag className="h-4 w-4 mr-2" />
+              <Tag className="h-4 w-4 mr-1" />
               Create Tag
             </Button>
           )}
           
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setFilterDialogOpen(true)}
             className={`glass-card border-white/20 hover:bg-white/10 ${
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-1" />
             Filters
             {Object.keys(activeFilters).length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
@@ -572,13 +557,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           </Button>
           
           <Button
+            size="sm"
             onClick={() => {
               setSelectedStageId('');
               setLeadDialogOpen(true);
             }}
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
-            <UserPlus className="h-4 w-4 mr-2" />
+            <UserPlus className="h-4 w-4 mr-1" />
             Create Lead
           </Button>
         </div>
