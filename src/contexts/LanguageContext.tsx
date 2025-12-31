@@ -1319,6 +1319,19 @@ const translations = {
     'lead-details.first-name': 'First Name',
     'lead-details.last-name': 'Last Name',
     'lead-details.cancel': 'Cancel',
+    'lead-details.general-information': 'General Information',
+    
+    // Lead Details Tabs
+    'lead-details.tabs.info': 'Lead Information',
+    'lead-details.tabs.info-short': 'Info',
+    'lead-details.tabs.contact': 'Contact Information',
+    'lead-details.tabs.contact-short': 'Contact',
+    'lead-details.tabs.tasks': 'Tasks',
+    'lead-details.tabs.tasks-short': 'Tasks',
+    'lead-details.tabs.documents': 'Documents',
+    'lead-details.tabs.documents-short': 'Docs',
+    'lead-details.tabs.products': 'Products of Interest',
+    'lead-details.tabs.products-short': 'Products',
     
     // Purchase History
     'lead-details.purchase-history': 'Purchase History',
@@ -2862,6 +2875,19 @@ const translations = {
     'lead-details.first-name': 'Nome',
     'lead-details.last-name': 'Sobrenome',
     'lead-details.cancel': 'Cancelar',
+    'lead-details.general-information': 'Informações Gerais',
+    
+    // Lead Details Tabs
+    'lead-details.tabs.info': 'Informações do Lead',
+    'lead-details.tabs.info-short': 'Info',
+    'lead-details.tabs.contact': 'Informações de Contato',
+    'lead-details.tabs.contact-short': 'Contato',
+    'lead-details.tabs.tasks': 'Tarefas',
+    'lead-details.tabs.tasks-short': 'Tarefas',
+    'lead-details.tabs.documents': 'Documentos',
+    'lead-details.tabs.documents-short': 'Docs',
+    'lead-details.tabs.products': 'Produtos de Interesse',
+    'lead-details.tabs.products-short': 'Produtos',
     
     // Purchase History
     'lead-details.purchase-history': 'Histórico de Compras',
@@ -4138,6 +4164,19 @@ const translations = {
     'lead-details.first-name': 'Vorname',
     'lead-details.last-name': 'Nachname',
     'lead-details.cancel': 'Abbrechen',
+    'lead-details.general-information': 'Allgemeine Informationen',
+    
+    // Lead Details Tabs
+    'lead-details.tabs.info': 'Lead-Informationen',
+    'lead-details.tabs.info-short': 'Info',
+    'lead-details.tabs.contact': 'Kontaktinformationen',
+    'lead-details.tabs.contact-short': 'Kontakt',
+    'lead-details.tabs.tasks': 'Aufgaben',
+    'lead-details.tabs.tasks-short': 'Aufgaben',
+    'lead-details.tabs.documents': 'Dokumente',
+    'lead-details.tabs.documents-short': 'Docs',
+    'lead-details.tabs.products': 'Interessierte Produkte',
+    'lead-details.tabs.products-short': 'Produkte',
     
     // Purchase History
     'lead-details.purchase-history': 'Kaufhistorie',
@@ -5514,6 +5553,19 @@ const translations = {
     'lead-details.first-name': 'Nombre',
     'lead-details.last-name': 'Apellido',
     'lead-details.cancel': 'Cancelar',
+    'lead-details.general-information': 'Información General',
+    
+    // Lead Details Tabs
+    'lead-details.tabs.info': 'Información del Lead',
+    'lead-details.tabs.info-short': 'Info',
+    'lead-details.tabs.contact': 'Información de Contacto',
+    'lead-details.tabs.contact-short': 'Contacto',
+    'lead-details.tabs.tasks': 'Tareas',
+    'lead-details.tabs.tasks-short': 'Tareas',
+    'lead-details.tabs.documents': 'Documentos',
+    'lead-details.tabs.documents-short': 'Docs',
+    'lead-details.tabs.products': 'Productos de Interés',
+    'lead-details.tabs.products-short': 'Productos',
     
     // Purchase History
     'lead-details.purchase-history': 'Historial de Compras',

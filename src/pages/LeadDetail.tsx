@@ -51,16 +51,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
-import TasksSection from '@/components/leads/TasksSection';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
-import DocumentsSection from '@/components/leads/DocumentsSection';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
-import ProductsSection, { LeadProduct } from '@/components/leads/ProductsSection';
+import { LeadProduct } from '@/components/leads/ProductsSection';
 import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
+import LeadDetailTabs from '@/components/leads/LeadDetailTabs';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 
@@ -362,24 +361,17 @@ const LeadDetailPage = () => {
         
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Lead Information */}
-          <div className="lg:col-span-2 space-y-6">
-            <LeadInfoSection lead={leadData.lead} />
-            <LeadMetricsSection lead={leadData.lead} />
-            <LeadContactSection lead={leadData.lead} />
-            <TasksSection 
-              tasks={leadData.tasks || []} 
+          {/* Left Column - Tabbed Lead Information */}
+          <div className="lg:col-span-2">
+            <LeadDetailTabs
+              lead={leadData.lead}
+              tasks={leadData.tasks || []}
+              documents={leadData.docs || []}
               onCreateTask={() => setTaskModalOpen(true)}
               onEditTask={handleEditTask}
               onDeleteTask={(task) => setDeletingTask(task)}
-            />
-            <DocumentsSection 
-              documents={leadData.docs || []}
-              onUploadClick={() => setDocumentModalOpen(true)}
+              onUploadDocument={() => setDocumentModalOpen(true)}
               onDocumentDeleted={handleDocumentDeleted}
-            />
-            <ProductsSection 
-              products={leadData.lead.products || []}
               onAddProducts={() => setAddProductsModalOpen(true)}
               onStartPurchase={handleStartPurchase}
             />
@@ -647,198 +639,6 @@ const LeadDetailHeader = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// Lead Info Section Component
-const LeadInfoSection = ({ lead }: { lead: Lead }) => {
-  const { t } = useLanguage();
-  
-  return (
-    <motion.div 
-      className="glass-card p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-    >
-      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.lead-information')}</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label={t('lead-details.source-platform')} value={lead.source_platform} icon={<Globe className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem label={t('lead-details.language')} value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-        <InfoItem 
-          label={t('lead-details.assigned-user')} 
-          value={lead.assigned_user ? lead.assigned_user.name : undefined} 
-          icon={<User className="w-4 h-4" />} 
-          notSet={t('lead-details.unassigned')} 
-        />
-      </div>
-      
-      {lead.notes && (
-        <div className="mt-6 pt-6 border-t border-white/10">
-          <h4 className="text-white font-medium mb-2">{t('lead-details.notes')}</h4>
-          <p className="text-gray-400 text-sm leading-relaxed">{lead.notes}</p>
-        </div>
-      )}
-    </motion.div>
-  );
-};
-
-// Info Item Component
-const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string | undefined; icon: React.ReactNode; notSet: string }) => (
-  <div className="flex items-center gap-3">
-    <div className="p-2 rounded-lg bg-primary/20 text-primary">
-      {icon}
-    </div>
-    <div>
-      <p className="text-gray-400 text-xs uppercase tracking-wide">{label}</p>
-      <p className="text-white font-medium">{value || notSet}</p>
-    </div>
-  </div>
-);
-
-// Lead Metrics Section Component
-const LeadMetricsSection = ({ lead }: { lead: Lead }) => {
-  const { t } = useLanguage();
-  
-  const getDaysActive = () => {
-    const created = new Date(lead.created_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
-  };
-
-  return (
-    <motion.div 
-      className="glass-card p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.performance-metrics')}</h3>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <MetricCard
-          label={t('lead-details.ai-score')}
-          value={lead.ai_score ? `${lead.ai_score}%` : t('lead-details.not-scored')}
-          icon={<Brain className="w-5 h-5" />}
-          color="purple"
-        />
-        <MetricCard
-          label={t('lead-details.estimated-value')}
-          value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: lead.currency || 'USD' }).format(lead.value_estimated) : t('lead-details.not-set')}
-          icon={<TrendingUp className="w-5 h-5" />}
-          color="green"
-        />
-        <MetricCard
-          label={t('lead-details.days-active')}
-          value={getDaysActive().toString()}
-          icon={<Calendar className="w-5 h-5" />}
-          color="blue"
-        />
-      </div>
-    </motion.div>
-  );
-};
-
-// Metric Card Component
-const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) => {
-  const colorClasses = {
-    purple: 'bg-purple-600/20 text-purple-400 border-purple-600/30',
-    green: 'bg-green-600/20 text-green-400 border-green-600/30',
-    blue: 'bg-blue-600/20 text-blue-400 border-blue-600/30'
-  };
-
-  return (
-    <div className={`rounded-lg border p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <div className="flex items-center gap-3 mb-2">
-        {icon}
-        <span className="text-sm font-medium">{label}</span>
-      </div>
-      <p className="text-lg font-bold text-white">{value}</p>
-    </div>
-  );
-};
-
-// Lead Contact Section Component
-const LeadContactSection = ({ lead }: { lead: Lead }) => {
-  const { t } = useLanguage();
-  
-  const copyToClipboard = (text: string, label: string) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} ${t('lead-details.copied')}`);
-  };
-
-  return (
-    <motion.div 
-      className="glass-card p-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-    >
-      <h3 className="text-xl font-semibold text-white mb-4">{t('lead-details.contact-information')}</h3>
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
-          <div className="flex items-center gap-3">
-            <Mail className="w-5 h-5 text-blue-400" />
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
-              <p className="text-white font-medium">{lead.email || t('lead-details.not-provided')}</p>
-            </div>
-          </div>
-          {lead.email && (
-            <button
-              onClick={() => copyToClipboard(lead.email, t('lead-details.email'))}
-              className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-              title={`Copy ${t('lead-details.email').toLowerCase()}`}
-            >
-              <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
-          <div className="flex items-center gap-3">
-            <Phone className="w-5 h-5 text-green-400" />
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
-              <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
-            </div>
-          </div>
-          {lead.phone && (
-            <button
-              onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, t('lead-details.phone'))}
-              className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-              title={`Copy ${t('lead-details.phone').toLowerCase()}`}
-            >
-              <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
-          <div className="flex items-center gap-3">
-            <User className="w-5 h-5 text-purple-400" />
-            <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>
-              <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
-            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
-            title={`Copy ${t('lead-details.full-name').toLowerCase()}`}
-          >
-            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
-          </button>
         </div>
       </div>
     </motion.div>

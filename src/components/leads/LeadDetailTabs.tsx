@@ -1,0 +1,448 @@
+/**
+ * LEAD DETAIL TABS
+ * 
+ * Unified tabbed component for Lead Details page
+ * Groups Lead Info, Contact, Tasks, Documents, and Products sections
+ */
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Info, 
+  Phone, 
+  ListTodo, 
+  FileText, 
+  Package,
+  Globe,
+  MessageSquare,
+  DollarSign,
+  Hash,
+  RefreshCw,
+  User,
+  Mail,
+  Copy,
+  Brain,
+  TrendingUp,
+  Calendar
+} from 'lucide-react';
+import { VscSourceControl } from "react-icons/vsc";
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Task } from '@/services/taskApi';
+import { LeadDocument } from '@/services/documentApi';
+import TasksSection from './TasksSection';
+import DocumentsSection from './DocumentsSection';
+import ProductsSection, { LeadProduct } from './ProductsSection';
+
+interface AssignedUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Lead {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  ddi: string;
+  source_platform: string;
+  source_type: string;
+  status: string;
+  priority: string;
+  value_estimated: number;
+  currency: string;
+  ai_score: number;
+  language: string;
+  external_id: string;
+  sync_enabled: boolean;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  assigned_user?: AssignedUser | null;
+  products?: LeadProduct[];
+}
+
+interface LeadDetailTabsProps {
+  lead: Lead;
+  tasks: Task[];
+  documents: LeadDocument[];
+  onCreateTask: () => void;
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+  onUploadDocument: () => void;
+  onDocumentDeleted: (documentId: number) => void;
+  onAddProducts: () => void;
+  onStartPurchase: (selectedProducts: LeadProduct[]) => void;
+}
+
+const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
+  lead,
+  tasks,
+  documents,
+  onCreateTask,
+  onEditTask,
+  onDeleteTask,
+  onUploadDocument,
+  onDocumentDeleted,
+  onAddProducts,
+  onStartPurchase
+}) => {
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState('info');
+
+  return (
+    <motion.div 
+      className="glass-card p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+    >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-white/5 p-1 mb-6">
+          <TabsTrigger 
+            value="info" 
+            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <Info className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.info')}</span>
+            <span className="sm:hidden">{t('lead-details.tabs.info-short')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="contact" 
+            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <Phone className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.contact')}</span>
+            <span className="sm:hidden">{t('lead-details.tabs.contact-short')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tasks" 
+            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <ListTodo className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
+            <span className="sm:hidden">{t('lead-details.tabs.tasks-short')}</span>
+            {tasks.length > 0 && (
+              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+                {tasks.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="documents" 
+            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.documents')}</span>
+            <span className="sm:hidden">{t('lead-details.tabs.documents-short')}</span>
+            {documents.length > 0 && (
+              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+                {documents.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="products" 
+            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <Package className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.products')}</span>
+            <span className="sm:hidden">{t('lead-details.tabs.products-short')}</span>
+            {(lead.products?.length || 0) > 0 && (
+              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+                {lead.products?.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Lead Information Tab */}
+        <TabsContent value="info" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <LeadInfoContent lead={lead} />
+        </TabsContent>
+
+        {/* Contact Information Tab */}
+        <TabsContent value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <LeadContactContent lead={lead} />
+        </TabsContent>
+
+        {/* Tasks Tab */}
+        <TabsContent value="tasks" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <TasksSectionContent
+            tasks={tasks}
+            onCreateTask={onCreateTask}
+            onEditTask={onEditTask}
+            onDeleteTask={onDeleteTask}
+          />
+        </TabsContent>
+
+        {/* Documents Tab */}
+        <TabsContent value="documents" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <DocumentsSectionContent
+            documents={documents}
+            onUploadClick={onUploadDocument}
+            onDocumentDeleted={onDocumentDeleted}
+          />
+        </TabsContent>
+
+        {/* Products Tab */}
+        <TabsContent value="products" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <ProductsSectionContent
+            products={lead.products || []}
+            onAddProducts={onAddProducts}
+            onStartPurchase={onStartPurchase}
+          />
+        </TabsContent>
+      </Tabs>
+    </motion.div>
+  );
+};
+
+// Info Item Component
+const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string | undefined; icon: React.ReactNode; notSet: string }) => (
+  <div className="flex items-center gap-3">
+    <div className="p-2 rounded-lg bg-primary/20 text-primary">
+      {icon}
+    </div>
+    <div>
+      <p className="text-gray-400 text-xs uppercase tracking-wide">{label}</p>
+      <p className="text-white font-medium">{value || notSet}</p>
+    </div>
+  </div>
+);
+
+// Metric Card Component
+const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) => {
+  const colorClasses = {
+    purple: 'bg-purple-600/20 text-purple-400 border-purple-600/30',
+    green: 'bg-green-600/20 text-green-400 border-green-600/30',
+    blue: 'bg-blue-600/20 text-blue-400 border-blue-600/30'
+  };
+
+  return (
+    <div className={`rounded-lg border p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
+      <div className="flex items-center gap-3 mb-2">
+        {icon}
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      <p className="text-lg font-bold text-white">{value}</p>
+    </div>
+  );
+};
+
+// Lead Info Content
+const LeadInfoContent = ({ lead }: { lead: Lead }) => {
+  const { t } = useLanguage();
+  
+  const getDaysActive = () => {
+    const created = new Date(lead.created_at);
+    const now = new Date();
+    return Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* General Information */}
+      <div>
+        <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.general-information')}</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InfoItem label={t('lead-details.source-platform')} value={lead.source_platform} icon={<Globe className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.language')} value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem 
+            label={t('lead-details.assigned-user')} 
+            value={lead.assigned_user ? lead.assigned_user.name : undefined} 
+            icon={<User className="w-4 h-4" />} 
+            notSet={t('lead-details.unassigned')} 
+          />
+        </div>
+      </div>
+
+      {/* Notes */}
+      {lead.notes && (
+        <div className="pt-6 border-t border-white/10">
+          <h4 className="text-white font-medium mb-2">{t('lead-details.notes')}</h4>
+          <p className="text-gray-400 text-sm leading-relaxed">{lead.notes}</p>
+        </div>
+      )}
+
+      {/* Metrics */}
+      <div className="pt-6 border-t border-white/10">
+        <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.performance-metrics')}</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <MetricCard
+            label={t('lead-details.ai-score')}
+            value={lead.ai_score ? `${lead.ai_score}%` : t('lead-details.not-scored')}
+            icon={<Brain className="w-5 h-5" />}
+            color="purple"
+          />
+          <MetricCard
+            label={t('lead-details.estimated-value')}
+            value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: lead.currency || 'USD' }).format(lead.value_estimated) : t('lead-details.not-set')}
+            icon={<TrendingUp className="w-5 h-5" />}
+            color="green"
+          />
+          <MetricCard
+            label={t('lead-details.days-active')}
+            value={getDaysActive().toString()}
+            icon={<Calendar className="w-5 h-5" />}
+            color="blue"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Lead Contact Content
+const LeadContactContent = ({ lead }: { lead: Lead }) => {
+  const { t } = useLanguage();
+  
+  const copyToClipboard = (text: string, label: string) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} ${t('lead-details.copied')}`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-blue-500/20">
+            <Mail className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
+            <p className="text-white font-medium">{lead.email || t('lead-details.not-provided')}</p>
+          </div>
+        </div>
+        {lead.email && (
+          <button
+            onClick={() => copyToClipboard(lead.email, t('lead-details.email'))}
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+            title={`${t('common.copy')} ${t('lead-details.email').toLowerCase()}`}
+          >
+            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-green-500/20">
+            <Phone className="w-5 h-5 text-green-400" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
+            <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
+          </div>
+        </div>
+        {lead.phone && (
+          <button
+            onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, t('lead-details.phone'))}
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+            title={`${t('common.copy')} ${t('lead-details.phone').toLowerCase()}`}
+          >
+            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-purple-500/20">
+            <User className="w-5 h-5 text-purple-400" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>
+            <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
+          </div>
+        </div>
+        <button
+          onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
+          className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+          title={`${t('common.copy')} ${t('lead-details.full-name').toLowerCase()}`}
+        >
+          <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Tasks Section Content (wrapper without card styling)
+interface TasksSectionContentProps {
+  tasks: Task[];
+  onCreateTask: () => void;
+  onEditTask: (task: Task) => void;
+  onDeleteTask: (task: Task) => void;
+}
+
+const TasksSectionContent: React.FC<TasksSectionContentProps> = ({
+  tasks,
+  onCreateTask,
+  onEditTask,
+  onDeleteTask
+}) => {
+  const { t } = useLanguage();
+
+  return (
+    <TasksSection
+      tasks={tasks}
+      onCreateTask={onCreateTask}
+      onEditTask={onEditTask}
+      onDeleteTask={onDeleteTask}
+    />
+  );
+};
+
+// Documents Section Content (wrapper without card styling)
+interface DocumentsSectionContentProps {
+  documents: LeadDocument[];
+  onUploadClick: () => void;
+  onDocumentDeleted: (documentId: number) => void;
+}
+
+const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
+  documents,
+  onUploadClick,
+  onDocumentDeleted
+}) => {
+  return (
+    <DocumentsSection
+      documents={documents}
+      onUploadClick={onUploadClick}
+      onDocumentDeleted={onDocumentDeleted}
+    />
+  );
+};
+
+// Products Section Content (wrapper without card styling)
+interface ProductsSectionContentProps {
+  products: LeadProduct[];
+  onAddProducts: () => void;
+  onStartPurchase: (selectedProducts: LeadProduct[]) => void;
+}
+
+const ProductsSectionContent: React.FC<ProductsSectionContentProps> = ({
+  products,
+  onAddProducts,
+  onStartPurchase
+}) => {
+  return (
+    <ProductsSection
+      products={products}
+      onAddProducts={onAddProducts}
+      onStartPurchase={onStartPurchase}
+    />
+  );
+};
+
+export default LeadDetailTabs;
