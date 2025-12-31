@@ -109,13 +109,6 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <span>{t('lead-details.tabs.info')}</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="contact" 
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
-          >
-            <Phone className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.contact')}</span>
-          </TabsTrigger>
-          <TabsTrigger 
             value="tasks" 
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
@@ -165,11 +158,9 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         {/* Lead Information Tab */}
         <TabsContent value="info" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <LeadInfoContent lead={lead} />
-        </TabsContent>
-
-        {/* Contact Information Tab */}
-        <TabsContent value="contact" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <LeadContactContent lead={lead} />
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <LeadContactContent lead={lead} />
+          </div>
         </TabsContent>
 
         {/* Tasks Tab */}
