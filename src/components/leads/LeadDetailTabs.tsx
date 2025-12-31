@@ -124,7 +124,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             value="documents" 
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            <FileText className="w-4 h-4 mr-1.5" />
             <span>{t('lead-details.tabs.documents')}</span>
             {documents.length > 0 && (
               <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
