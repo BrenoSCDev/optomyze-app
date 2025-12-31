@@ -130,6 +130,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const apiItems = [
     { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
     { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
+    { id: 'api-playground', label: t('api.playground.title'), icon: () => <Key size={18}/> },
   ];
 
   // Users submenu items

@@ -27,6 +27,7 @@ import IntegrationsApps from '@/components/integrations/IntegrationsApps';
 import N8nAgents from '@/components/agents/N8nAgents';
 import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
+import { ApiPlayground } from '@/components/api/playground';
 import ManageUsers from '@/components/users/ManageUsers';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
@@ -118,6 +119,8 @@ const Index = () => {
         return <ApiTokens />;
       case 'api-setup':
         return <ApiSetup />;
+      case 'api-playground':
+        return <ApiPlayground />;
       
       // Users sections
       case 'manage-users':
