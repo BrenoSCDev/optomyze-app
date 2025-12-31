@@ -35,6 +35,11 @@ const translations = {
     'nav.apiKeys': 'API Keys',
     'nav.crm-panel': 'CRM Panel',
     
+    // API Playground
+    'api.playground.title': 'API Playground',
+    'api.playground.description': 'Test CRM automations, webhooks, and integrations',
+    'api.playground.response': 'Response',
+    
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metrics',
     'dashboard.plan-usage': 'Plan Usage',
