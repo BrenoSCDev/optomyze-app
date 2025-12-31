@@ -8,6 +8,7 @@ import { AlertCircle, Check, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { KeyValueEditor } from './KeyValueEditor';
 import { BodyType, KeyValuePair, generateId } from './types';
 
@@ -24,6 +25,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
   onBodyTypeChange,
   onBodyChange,
 }) => {
+  const { t } = useLanguage();
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [formData, setFormData] = useState<KeyValuePair[]>([
@@ -41,16 +43,15 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
         setErrorMessage((e as Error).message);
       }
     } else if (bodyType === 'raw-xml' && body.trim()) {
-      // Basic XML validation
       const hasOpenTag = /<[^>]+>/.test(body);
       const hasCloseTag = /<\/[^>]+>/.test(body);
       setIsValid(hasOpenTag && hasCloseTag);
-      setErrorMessage(hasOpenTag && hasCloseTag ? '' : 'Invalid XML format');
+      setErrorMessage(hasOpenTag && hasCloseTag ? '' : t('api.playground.body.invalid-xml'));
     } else {
       setIsValid(null);
       setErrorMessage('');
     }
-  }, [body, bodyType]);
+  }, [body, bodyType, t]);
 
   const handleFormat = () => {
     if (bodyType === 'raw-json') {
@@ -58,14 +59,13 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
         const parsed = JSON.parse(body);
         onBodyChange(JSON.stringify(parsed, null, 2));
       } catch {
-        // Can't format invalid JSON
+        // Cannot format invalid JSON
       }
     }
   };
 
   const handleFormDataChange = (items: KeyValuePair[]) => {
     setFormData(items);
-    // Convert form data to URL encoded string for the body
     const encoded = items
       .filter(item => item.enabled && item.key)
       .map(item => `${encodeURIComponent(item.key)}=${encodeURIComponent(item.value)}`)
@@ -74,11 +74,11 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
   };
 
   const bodyTypes = [
-    { value: 'none', label: 'None' },
+    { value: 'none', label: t('api.playground.body.none') },
     { value: 'raw-json', label: 'JSON' },
     { value: 'raw-xml', label: 'XML' },
-    { value: 'raw-text', label: 'Text' },
-    { value: 'form-data', label: 'Form Data' },
+    { value: 'raw-text', label: t('api.playground.body.text') },
+    { value: 'form-data', label: t('api.playground.body.form-data') },
     { value: 'x-www-form-urlencoded', label: 'x-www-form-urlencoded' },
   ];
 
@@ -103,7 +103,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
             {isValid !== null && (
               <span className={`flex items-center gap-1 text-xs ${isValid ? 'text-emerald-400' : 'text-red-400'}`}>
                 {isValid ? <Check className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                {isValid ? 'Valid JSON' : 'Invalid JSON'}
+                {isValid ? t('api.playground.body.valid-json') : t('api.playground.body.invalid-json')}
               </span>
             )}
             <Button
@@ -114,7 +114,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
               disabled={!isValid}
             >
               <Wand2 className="h-3 w-3 mr-1" />
-              Format
+              {t('api.playground.body.format')}
             </Button>
           </div>
         )}
@@ -122,7 +122,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
 
       {bodyType === 'none' && (
         <div className="p-8 text-center text-muted-foreground text-sm bg-muted/20 rounded-lg border border-dashed border-border/50">
-          This request does not have a body
+          {t('api.playground.body.no-body')}
         </div>
       )}
 
@@ -136,7 +136,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
                 ? '{\n  "key": "value"\n}'
                 : bodyType === 'raw-xml'
                 ? '<root>\n  <element>value</element>\n</root>'
-                : 'Enter text...'
+                : t('api.playground.body.enter-text')
             }
             className={`min-h-[200px] font-mono text-sm resize-y ${
               isValid === false ? 'border-red-500/50 focus-visible:ring-red-500' : ''
@@ -152,8 +152,8 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
         <KeyValueEditor
           items={formData}
           onChange={handleFormDataChange}
-          keyPlaceholder="Field name"
-          valuePlaceholder="Value"
+          keyPlaceholder={t('api.playground.field-name')}
+          valuePlaceholder={t('api.playground.value')}
         />
       )}
     </div>

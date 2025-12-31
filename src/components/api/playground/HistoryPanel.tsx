@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ApiRequest, Collection, METHOD_COLORS, REQUEST_TEMPLATES, generateId } from './types';
 
 interface HistoryPanelProps {
@@ -32,9 +33,9 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
   onAddToCollection,
   onDeleteCollection,
 }) => {
+  const { t, language } = useLanguage();
   const [newCollectionName, setNewCollectionName] = useState('');
   const [expandedCollections, setExpandedCollections] = useState<string[]>([]);
-  const [showTemplates, setShowTemplates] = useState(true);
 
   const handleCreateCollection = () => {
     if (newCollectionName.trim()) {
@@ -52,16 +53,19 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
   const formatTimestamp = (timestamp?: string) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(language === 'pt-BR' ? 'pt-BR' : language === 'de' ? 'de-DE' : language === 'es' ? 'es-ES' : 'en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   return (
     <div className="h-full flex flex-col bg-card/50 border-l border-border/50">
       <Tabs defaultValue="history" className="flex-1 flex flex-col">
         <TabsList className="w-full rounded-none bg-muted/30 border-b border-border/50">
-          <TabsTrigger value="history" className="flex-1 text-xs">History</TabsTrigger>
-          <TabsTrigger value="collections" className="flex-1 text-xs">Collections</TabsTrigger>
-          <TabsTrigger value="templates" className="flex-1 text-xs">Templates</TabsTrigger>
+          <TabsTrigger value="history" className="flex-1 text-xs">{t('api.playground.panel.history')}</TabsTrigger>
+          <TabsTrigger value="collections" className="flex-1 text-xs">{t('api.playground.panel.collections')}</TabsTrigger>
+          <TabsTrigger value="templates" className="flex-1 text-xs">{t('api.playground.panel.templates')}</TabsTrigger>
         </TabsList>
 
         {/* History Tab */}
@@ -75,7 +79,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
               disabled={history.length === 0}
             >
               <Trash2 className="h-3 w-3 mr-1" />
-              Clear History
+              {t('api.playground.history.clear')}
             </Button>
           </div>
           <ScrollArea className="flex-1">
@@ -83,7 +87,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
               {history.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-xs">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  No requests yet
+                  {t('api.playground.history.empty')}
                 </div>
               ) : (
                 history.map((request) => (
@@ -97,7 +101,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                         {request.method}
                       </span>
                       <span className="text-xs text-muted-foreground truncate flex-1">
-                        {request.url || 'No URL'}
+                        {request.url || t('api.playground.no-url')}
                       </span>
                       <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100">
                         {formatTimestamp(request.timestamp)}
@@ -114,7 +118,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                         }}
                       >
                         <Play className="h-2.5 w-2.5 mr-0.5" />
-                        Run
+                        {t('api.playground.actions.run')}
                       </Button>
                       <Button
                         variant="ghost"
@@ -126,7 +130,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                         }}
                       >
                         <Copy className="h-2.5 w-2.5 mr-0.5" />
-                        Duplicate
+                        {t('api.playground.actions.duplicate')}
                       </Button>
                     </div>
                   </div>
@@ -143,7 +147,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
               <Input
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection name..."
+                placeholder={t('api.playground.collections.name-placeholder')}
                 className="h-7 text-xs"
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateCollection()}
               />
@@ -163,7 +167,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
               {collections.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-xs">
                   <Folder className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  No collections yet
+                  {t('api.playground.collections.empty')}
                 </div>
               ) : (
                 collections.map((collection) => (
@@ -196,18 +200,24 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
                     </div>
                     {expandedCollections.includes(collection.id) && (
                       <div className="ml-6 space-y-1">
-                        {collection.requests.map((request) => (
-                          <div
-                            key={request.id}
-                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-                            onClick={() => onSelectRequest(request)}
-                          >
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${METHOD_COLORS[request.method]}`}>
-                              {request.method}
-                            </span>
-                            <span className="text-xs truncate">{request.name}</span>
-                          </div>
-                        ))}
+                        {collection.requests.length === 0 ? (
+                          <p className="text-[10px] text-muted-foreground px-2 py-1">
+                            {t('api.playground.collections.no-requests')}
+                          </p>
+                        ) : (
+                          collection.requests.map((request) => (
+                            <div
+                              key={request.id}
+                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
+                              onClick={() => onSelectRequest(request)}
+                            >
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${METHOD_COLORS[request.method]}`}>
+                                {request.method}
+                              </span>
+                              <span className="text-xs truncate">{request.name}</span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
@@ -222,7 +232,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-1">
               <p className="text-[10px] text-muted-foreground px-2 mb-2">
-                Pre-built templates for common CRM operations
+                {t('api.playground.templates.description')}
               </p>
               {REQUEST_TEMPLATES.map((template) => (
                 <div
