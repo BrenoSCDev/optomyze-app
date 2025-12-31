@@ -395,16 +395,16 @@ const LeadDetailPage = () => {
                 <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-4">
                   <TabsTrigger 
                     value="activity" 
-                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                    className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                   >
-                    <Activity className="w-4 h-4 mr-2" />
+                    <Activity className="w-3.5 h-3.5 mr-1.5" />
                     {t('lead-details.activity-timeline')}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="purchases" 
-                    className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                    className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                   >
-                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
                     {t('lead-details.purchase-history')}
                     {(leadData.lead.sales?.length || 0) > 0 && (
                       <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
