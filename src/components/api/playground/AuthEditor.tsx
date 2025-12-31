@@ -7,8 +7,8 @@ import React from 'react';
 import { Key, Lock, User, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { AuthType, ApiRequest } from './types';
 
 interface AuthEditorProps {
@@ -24,11 +24,13 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
   onAuthTypeChange,
   onAuthConfigChange,
 }) => {
+  const { t } = useLanguage();
+
   const authTypes = [
-    { value: 'none', label: 'No Auth', icon: Shield },
-    { value: 'bearer', label: 'Bearer Token', icon: Key },
-    { value: 'api-key', label: 'API Key', icon: Lock },
-    { value: 'basic', label: 'Basic Auth', icon: User },
+    { value: 'none', label: t('api.playground.auth.none'), icon: Shield },
+    { value: 'bearer', label: t('api.playground.auth.bearer'), icon: Key },
+    { value: 'api-key', label: t('api.playground.auth.api-key'), icon: Lock },
+    { value: 'basic', label: t('api.playground.auth.basic'), icon: User },
     { value: 'oauth2', label: 'OAuth 2.0', icon: Shield },
   ];
 
@@ -57,22 +59,22 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
       <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
         {authType === 'none' && (
           <p className="text-sm text-muted-foreground text-center py-4">
-            This request does not use any authentication
+            {t('api.playground.auth.no-auth-desc')}
           </p>
         )}
 
         {authType === 'bearer' && (
           <div className="space-y-2">
-            <Label htmlFor="bearer-token" className="text-sm">Token</Label>
+            <Label htmlFor="bearer-token" className="text-sm">{t('api.playground.auth.token')}</Label>
             <Input
               id="bearer-token"
               value={authConfig.bearerToken || ''}
               onChange={(e) => onAuthConfigChange({ ...authConfig, bearerToken: e.target.value })}
-              placeholder="Enter bearer token"
+              placeholder={t('api.playground.auth.enter-token')}
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              The token will be sent as: Authorization: Bearer &lt;token&gt;
+              {t('api.playground.auth.bearer-hint')}
             </p>
           </div>
         )}
@@ -80,7 +82,7 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
         {authType === 'api-key' && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm">Add to</Label>
+              <Label className="text-sm">{t('api.playground.auth.add-to')}</Label>
               <RadioGroup
                 value={authConfig.apiKeyLocation || 'header'}
                 onValueChange={(v) => onAuthConfigChange({ ...authConfig, apiKeyLocation: v as 'header' | 'query' })}
@@ -88,17 +90,17 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="header" id="loc-header" />
-                  <Label htmlFor="loc-header" className="text-sm font-normal">Header</Label>
+                  <Label htmlFor="loc-header" className="text-sm font-normal">{t('api.playground.auth.header')}</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="query" id="loc-query" />
-                  <Label htmlFor="loc-query" className="text-sm font-normal">Query Params</Label>
+                  <Label htmlFor="loc-query" className="text-sm font-normal">{t('api.playground.auth.query-params')}</Label>
                 </div>
               </RadioGroup>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="api-key-header" className="text-sm">Key</Label>
+                <Label htmlFor="api-key-header" className="text-sm">{t('api.playground.auth.key')}</Label>
                 <Input
                   id="api-key-header"
                   value={authConfig.apiKeyHeader || ''}
@@ -108,12 +110,12 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="api-key-value" className="text-sm">Value</Label>
+                <Label htmlFor="api-key-value" className="text-sm">{t('api.playground.value')}</Label>
                 <Input
                   id="api-key-value"
                   value={authConfig.apiKeyValue || ''}
                   onChange={(e) => onAuthConfigChange({ ...authConfig, apiKeyValue: e.target.value })}
-                  placeholder="Enter API key"
+                  placeholder={t('api.playground.auth.enter-api-key')}
                   className="font-mono text-sm"
                 />
               </div>
@@ -124,23 +126,23 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
         {authType === 'basic' && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="basic-username" className="text-sm">Username</Label>
+              <Label htmlFor="basic-username" className="text-sm">{t('api.playground.auth.username')}</Label>
               <Input
                 id="basic-username"
                 value={authConfig.basicUsername || ''}
                 onChange={(e) => onAuthConfigChange({ ...authConfig, basicUsername: e.target.value })}
-                placeholder="Username"
+                placeholder={t('api.playground.auth.username')}
                 className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="basic-password" className="text-sm">Password</Label>
+              <Label htmlFor="basic-password" className="text-sm">{t('api.playground.auth.password')}</Label>
               <Input
                 id="basic-password"
                 type="password"
                 value={authConfig.basicPassword || ''}
                 onChange={(e) => onAuthConfigChange({ ...authConfig, basicPassword: e.target.value })}
-                placeholder="Password"
+                placeholder={t('api.playground.auth.password')}
                 className="text-sm"
               />
             </div>
@@ -151,10 +153,10 @@ export const AuthEditor: React.FC<AuthEditorProps> = ({
           <div className="text-center py-4">
             <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              OAuth 2.0 configuration coming soon
+              {t('api.playground.auth.oauth-coming-soon')}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Support for authorization code, client credentials, and other flows
+              {t('api.playground.auth.oauth-desc')}
             </p>
           </div>
         )}

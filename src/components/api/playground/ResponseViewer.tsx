@@ -8,6 +8,7 @@ import { Clock, Database, Copy, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ApiResponse, STATUS_COLORS } from './types';
 
 interface ResponseViewerProps {
@@ -21,6 +22,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
   isLoading,
   error,
 }) => {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('body');
 
@@ -60,7 +62,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
             <div className="absolute inset-0 border-2 border-primary/30 rounded-full animate-ping" />
             <div className="absolute inset-2 border-2 border-primary rounded-full animate-spin border-t-transparent" />
           </div>
-          <p className="text-sm text-muted-foreground">Sending request...</p>
+          <p className="text-sm text-muted-foreground">{t('api.playground.response.sending')}</p>
         </div>
       </div>
     );
@@ -71,7 +73,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
       <div className="flex items-center justify-center h-64 bg-red-500/10 rounded-lg border border-red-500/30">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <p className="text-sm text-red-400 font-medium">Request Failed</p>
+          <p className="text-sm text-red-400 font-medium">{t('api.playground.response.failed')}</p>
           <p className="text-xs text-red-400/70 mt-1 max-w-md">{error}</p>
         </div>
       </div>
@@ -85,7 +87,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-4">
             <Database className="h-6 w-6 text-muted-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground">Send a request to see the response</p>
+          <p className="text-sm text-muted-foreground">{t('api.playground.response.empty')}</p>
         </div>
       </div>
     );
@@ -116,12 +118,12 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           {copied ? (
             <>
               <Check className="h-3 w-3 mr-1" />
-              Copied
+              {t('api.playground.response.copied')}
             </>
           ) : (
             <>
               <Copy className="h-3 w-3 mr-1" />
-              Copy
+              {t('api.playground.response.copy')}
             </>
           )}
         </Button>
@@ -130,11 +132,11 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
       {/* Response Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-muted/30">
-          <TabsTrigger value="body">Body</TabsTrigger>
+          <TabsTrigger value="body">{t('api.playground.response.body')}</TabsTrigger>
           <TabsTrigger value="headers">
-            Headers ({Object.keys(response.headers).length})
+            {t('api.playground.response.headers')} ({Object.keys(response.headers).length})
           </TabsTrigger>
-          <TabsTrigger value="raw">Raw</TabsTrigger>
+          <TabsTrigger value="raw">{t('api.playground.response.raw')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="body" className="mt-4">

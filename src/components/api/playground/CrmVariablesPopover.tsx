@@ -7,6 +7,7 @@ import React from 'react';
 import { Variable } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { CRM_VARIABLES, CrmVariable } from './types';
 
 interface CrmVariablesPopoverProps {
@@ -14,19 +15,21 @@ interface CrmVariablesPopoverProps {
 }
 
 export const CrmVariablesPopover: React.FC<CrmVariablesPopoverProps> = ({ onInsert }) => {
+  const { t } = useLanguage();
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">
           <Variable className="h-3.5 w-3.5 mr-1" />
-          Variables
+          {t('api.playground.variables')}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align="start">
         <div className="p-3 border-b border-border/50">
-          <h4 className="text-sm font-medium">CRM Variables</h4>
+          <h4 className="text-sm font-medium">{t('api.playground.variables.title')}</h4>
           <p className="text-xs text-muted-foreground mt-1">
-            Click to insert into your request
+            {t('api.playground.variables.description')}
           </p>
         </div>
         <div className="p-2 max-h-64 overflow-y-auto">

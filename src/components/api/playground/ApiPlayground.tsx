@@ -3,17 +3,16 @@
  * A Postman-like API testing tool for CRM automations and integrations
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Send, 
   Save, 
-  Settings2, 
   History, 
   Trash2,
-  ChevronLeft,
   ChevronRight,
-  Globe
+  Globe,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,16 +21,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useApiPlaygroundStorage } from '@/hooks/useApiPlaygroundStorage';
 import { KeyValueEditor } from './KeyValueEditor';
 import { RequestBodyEditor } from './RequestBodyEditor';
 import { AuthEditor } from './AuthEditor';
 import { ResponseViewer } from './ResponseViewer';
 import { HistoryPanel } from './HistoryPanel';
 import { CrmVariablesPopover } from './CrmVariablesPopover';
+import { LocalStorageTooltip } from './LocalStorageTooltip';
 import {
   ApiRequest,
   ApiResponse,
-  Collection,
   HttpMethod,
   Environment,
   HTTP_METHODS,
@@ -45,21 +45,50 @@ import {
 const ApiPlayground: React.FC = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  
+  // Local Storage
+  const {
+    history,
+    collections,
+    variables,
+    environment,
+    lastRequest,
+    settings,
+    setHistory,
+    setCollections,
+    setVariables,
+    setEnvironment,
+    setLastRequest,
+    setSettings,
+    clearAllData,
+    clearHistory,
+    addToHistory,
+    replaceVariables: replaceStoredVariables,
+  } = useApiPlaygroundStorage();
 
-  // Request State
-  const [currentRequest, setCurrentRequest] = useState<ApiRequest>(createEmptyRequest());
-  const [environment, setEnvironment] = useState<Environment>('dev');
+  // Request State - initialize from lastRequest if available
+  const [currentRequest, setCurrentRequest] = useState<ApiRequest>(() => 
+    lastRequest || createEmptyRequest()
+  );
   const [response, setResponse] = useState<ApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // History & Collections
-  const [history, setHistory] = useState<ApiRequest[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [showHistoryPanel, setShowHistoryPanel] = useState(true);
+  // UI State
+  const [showHistoryPanel, setShowHistoryPanel] = useState(settings.showHistoryPanel);
+  const [activeTab, setActiveTab] = useState(settings.activeTab);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState('headers');
+  // Persist UI settings
+  useEffect(() => {
+    setSettings({ showHistoryPanel, activeTab });
+  }, [showHistoryPanel, activeTab, setSettings]);
+
+  // Persist current request
+  useEffect(() => {
+    if (currentRequest.url) {
+      setLastRequest(currentRequest);
+    }
+  }, [currentRequest, setLastRequest]);
 
   // Update request field
   const updateRequest = useCallback(<K extends keyof ApiRequest>(
@@ -71,9 +100,8 @@ const ApiPlayground: React.FC = () => {
 
   // Replace variables in URL and body
   const replaceVariables = (text: string): string => {
-    let result = text;
+    let result = replaceStoredVariables(text);
     result = result.replace(/\{\{base_url\}\}/g, ENVIRONMENT_URLS[environment]);
-    // Additional variable replacement would happen here with real data
     return result;
   };
 
@@ -144,7 +172,6 @@ const ApiPlayground: React.FC = () => {
       },
     ];
 
-    // Weight towards successful responses
     const weights = [0.6, 0.25, 0.15];
     const random = Math.random();
     let cumulative = 0;
@@ -159,8 +186,8 @@ const ApiPlayground: React.FC = () => {
   const sendRequest = async () => {
     if (!currentRequest.url.trim()) {
       toast({
-        title: 'URL Required',
-        description: 'Please enter a request URL',
+        title: t('api.playground.error.url-required'),
+        description: t('api.playground.error.url-required-desc'),
         variant: 'destructive',
       });
       return;
@@ -176,17 +203,16 @@ const ApiPlayground: React.FC = () => {
       id: generateId(),
       timestamp: new Date().toISOString(),
     };
-    setHistory(prev => [requestWithTimestamp, ...prev.slice(0, 49)]);
+    addToHistory(requestWithTimestamp);
 
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
 
     try {
-      // Generate mock response
       const mockResponse = generateMockResponse();
       setResponse(mockResponse);
     } catch (err) {
-      setError('Failed to send request. Please try again.');
+      setError(t('api.playground.error.request-failed'));
     } finally {
       setIsLoading(false);
     }
@@ -203,28 +229,28 @@ const ApiPlayground: React.FC = () => {
     setCurrentRequest({
       ...request,
       id: generateId(),
-      name: `${request.name} (Copy)`,
+      name: `${request.name} (${t('common.copy')})`,
     });
   };
 
   const handleClearHistory = () => {
-    setHistory([]);
+    clearHistory();
     toast({
-      title: 'History Cleared',
-      description: 'Request history has been cleared',
+      title: t('api.playground.history.cleared'),
+      description: t('api.playground.history.cleared-desc'),
     });
   };
 
   const handleCreateCollection = (name: string) => {
-    const newCollection: Collection = {
+    const newCollection = {
       id: generateId(),
       name,
       requests: [],
     };
     setCollections(prev => [...prev, newCollection]);
     toast({
-      title: 'Collection Created',
-      description: `Created collection "${name}"`,
+      title: t('api.playground.collections.created'),
+      description: t('api.playground.collections.created-desc').replace('{name}', name),
     });
   };
 
@@ -236,14 +262,21 @@ const ApiPlayground: React.FC = () => {
           : col
       )
     );
+    toast({
+      title: t('api.playground.collections.request-added'),
+      description: t('api.playground.collections.request-added-desc'),
+    });
   };
 
   const handleDeleteCollection = (collectionId: string) => {
     setCollections(prev => prev.filter(col => col.id !== collectionId));
+    toast({
+      title: t('api.playground.collections.deleted'),
+      description: t('api.playground.collections.deleted-desc'),
+    });
   };
 
   const handleInsertVariable = (variable: string) => {
-    // Insert at cursor position in URL field
     const urlInput = document.querySelector('input[data-url-input]') as HTMLInputElement;
     if (urlInput) {
       const start = urlInput.selectionStart || 0;
@@ -261,15 +294,29 @@ const ApiPlayground: React.FC = () => {
     setError(null);
   };
 
+  const handleResetAll = () => {
+    clearAllData();
+    setCurrentRequest(createEmptyRequest());
+    setResponse(null);
+    setError(null);
+    toast({
+      title: t('api.playground.reset.success'),
+      description: t('api.playground.reset.success-desc'),
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('api.playground.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t('api.playground.description')}
-          </p>
+        <div className="flex items-center gap-2">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('api.playground.title')}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('api.playground.description')}
+            </p>
+          </div>
+          <LocalStorageTooltip />
         </div>
         <div className="flex items-center gap-2">
           <Select value={environment} onValueChange={(v) => setEnvironment(v as Environment)}>
@@ -278,16 +325,26 @@ const ApiPlayground: React.FC = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="dev">Development</SelectItem>
-              <SelectItem value="staging">Staging</SelectItem>
-              <SelectItem value="production">Production</SelectItem>
+              <SelectItem value="dev">{t('api.playground.env.development')}</SelectItem>
+              <SelectItem value="staging">{t('api.playground.env.staging')}</SelectItem>
+              <SelectItem value="production">{t('api.playground.env.production')}</SelectItem>
             </SelectContent>
           </Select>
           <Button
             variant="ghost"
             size="icon"
             className="h-9 w-9"
+            onClick={handleResetAll}
+            title={t('api.playground.reset.all')}
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
             onClick={() => setShowHistoryPanel(!showHistoryPanel)}
+            title={showHistoryPanel ? t('api.playground.hide-panel') : t('api.playground.show-panel')}
           >
             {showHistoryPanel ? <ChevronRight className="h-4 w-4" /> : <History className="h-4 w-4" />}
           </Button>
@@ -325,7 +382,7 @@ const ApiPlayground: React.FC = () => {
                     data-url-input
                     value={currentRequest.url}
                     onChange={(e) => updateRequest('url', e.target.value)}
-                    placeholder="Enter request URL or paste text"
+                    placeholder={t('api.playground.url-placeholder')}
                     className="h-10 font-mono text-sm pr-24"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -340,15 +397,16 @@ const ApiPlayground: React.FC = () => {
                   className="h-10 px-6 bg-primary hover:bg-primary/90"
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  Send
+                  {t('api.playground.send')}
                 </Button>
 
-                {/* Actions */}
+                {/* Clear Button */}
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-10 w-10"
                   onClick={handleClearRequest}
+                  title={t('api.playground.clear')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -369,7 +427,7 @@ const ApiPlayground: React.FC = () => {
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="bg-muted/30 mb-4">
                   <TabsTrigger value="headers">
-                    Headers
+                    {t('api.playground.tabs.headers')}
                     {currentRequest.headers.filter(h => h.enabled).length > 0 && (
                       <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px]">
                         {currentRequest.headers.filter(h => h.enabled).length}
@@ -377,23 +435,23 @@ const ApiPlayground: React.FC = () => {
                     )}
                   </TabsTrigger>
                   <TabsTrigger value="params">
-                    Params
+                    {t('api.playground.tabs.params')}
                     {currentRequest.queryParams.filter(p => p.enabled).length > 0 && (
                       <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-primary/20 text-primary text-[10px]">
                         {currentRequest.queryParams.filter(p => p.enabled).length}
                       </span>
                     )}
                   </TabsTrigger>
-                  <TabsTrigger value="body">Body</TabsTrigger>
-                  <TabsTrigger value="auth">Auth</TabsTrigger>
+                  <TabsTrigger value="body">{t('api.playground.tabs.body')}</TabsTrigger>
+                  <TabsTrigger value="auth">{t('api.playground.tabs.auth')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="headers" className="mt-0">
                   <KeyValueEditor
                     items={currentRequest.headers}
                     onChange={(items) => updateRequest('headers', items)}
-                    keyPlaceholder="Header name"
-                    valuePlaceholder="Value"
+                    keyPlaceholder={t('api.playground.header-name')}
+                    valuePlaceholder={t('api.playground.value')}
                     showPresets
                     presets={HEADER_PRESETS}
                   />
@@ -403,8 +461,8 @@ const ApiPlayground: React.FC = () => {
                   <KeyValueEditor
                     items={currentRequest.queryParams}
                     onChange={(items) => updateRequest('queryParams', items)}
-                    keyPlaceholder="Parameter name"
-                    valuePlaceholder="Value"
+                    keyPlaceholder={t('api.playground.param-name')}
+                    valuePlaceholder={t('api.playground.value')}
                   />
                 </TabsContent>
 
