@@ -1322,9 +1322,9 @@ const translations = {
     'lead-details.general-information': 'General Information',
     
     // Lead Details Tabs
-    'lead-details.tabs.info': 'Lead Information',
-    'lead-details.tabs.info-short': 'Info',
-    'lead-details.tabs.contact': 'Contact Information',
+    'lead-details.tabs.info': 'Lead',
+    'lead-details.tabs.info-short': 'Lead',
+    'lead-details.tabs.contact': 'Contact',
     'lead-details.tabs.contact-short': 'Contact',
     'lead-details.tabs.tasks': 'Tasks',
     'lead-details.tabs.tasks-short': 'Tasks',
@@ -2878,9 +2878,9 @@ const translations = {
     'lead-details.general-information': 'Informações Gerais',
     
     // Lead Details Tabs
-    'lead-details.tabs.info': 'Informações do Lead',
-    'lead-details.tabs.info-short': 'Info',
-    'lead-details.tabs.contact': 'Informações de Contato',
+    'lead-details.tabs.info': 'Lead',
+    'lead-details.tabs.info-short': 'Lead',
+    'lead-details.tabs.contact': 'Contato',
     'lead-details.tabs.contact-short': 'Contato',
     'lead-details.tabs.tasks': 'Tarefas',
     'lead-details.tabs.tasks-short': 'Tarefas',
@@ -4167,9 +4167,9 @@ const translations = {
     'lead-details.general-information': 'Allgemeine Informationen',
     
     // Lead Details Tabs
-    'lead-details.tabs.info': 'Lead-Informationen',
-    'lead-details.tabs.info-short': 'Info',
-    'lead-details.tabs.contact': 'Kontaktinformationen',
+    'lead-details.tabs.info': 'Lead',
+    'lead-details.tabs.info-short': 'Lead',
+    'lead-details.tabs.contact': 'Kontakt',
     'lead-details.tabs.contact-short': 'Kontakt',
     'lead-details.tabs.tasks': 'Aufgaben',
     'lead-details.tabs.tasks-short': 'Aufgaben',
@@ -5556,9 +5556,9 @@ const translations = {
     'lead-details.general-information': 'Información General',
     
     // Lead Details Tabs
-    'lead-details.tabs.info': 'Información del Lead',
-    'lead-details.tabs.info-short': 'Info',
-    'lead-details.tabs.contact': 'Información de Contacto',
+    'lead-details.tabs.info': 'Lead',
+    'lead-details.tabs.info-short': 'Lead',
+    'lead-details.tabs.contact': 'Contacto',
     'lead-details.tabs.contact-short': 'Contacto',
     'lead-details.tabs.tasks': 'Tareas',
     'lead-details.tabs.tasks-short': 'Tareas',
