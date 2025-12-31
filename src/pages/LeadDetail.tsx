@@ -404,10 +404,10 @@ const LeadDetailPage = () => {
                     value="purchases" 
                     className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                   >
-                    <ShoppingBag className="w-3.5 h-3.5 mr-1.5" />
+                    <ShoppingBag className="w-3.5 h-3.5 mr-1" />
                     {t('lead-details.purchase-history')}
                     {(leadData.lead.sales?.length || 0) > 0 && (
-                      <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+                      <Badge className="ml-1 bg-primary/20 text-primary border-primary/30 text-xs">
                         {leadData.lead.sales?.length}
                       </Badge>
                     )}
