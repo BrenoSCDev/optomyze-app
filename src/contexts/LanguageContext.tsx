@@ -592,6 +592,9 @@ const translations = {
     'metrics.deals-status': 'Deals Status Distribution',
     'metrics.total': 'Total',
     'metrics.deals': 'deals',
+    'metrics.total-annual-revenue': 'Total Annual Revenue',
+    'metrics.total-monthly-revenue': 'Total Monthly Revenue',
+    'metrics.avg-deal-value': 'Average Deal Value',
     
     // Lead Creation
     'lead.create-new': 'Create New Lead',
@@ -2017,6 +2020,9 @@ const translations = {
     'metrics.deals-status': 'Distribuição de Status dos Negócios',
     'metrics.total': 'Total',
     'metrics.deals': 'negócios',
+    'metrics.total-annual-revenue': 'Receita Anual Total',
+    'metrics.total-monthly-revenue': 'Receita Mensal Total',
+    'metrics.avg-deal-value': 'Valor Médio do Negócio',
     
     // Lead Creation
     'lead.create-new': 'Criar Novo Lead',
@@ -3435,6 +3441,9 @@ const translations = {
     'metrics.deals-status': 'Deals-Statusverteilung',
     'metrics.total': 'Gesamt',
     'metrics.deals': 'Deals',
+    'metrics.total-annual-revenue': 'Gesamtjahresumsatz',
+    'metrics.total-monthly-revenue': 'Monatlicher Gesamtumsatz',
+    'metrics.avg-deal-value': 'Durchschnittlicher Dealwert',
     'metrics.lead-pipeline-breakdown': 'Lead-Pipeline-Aufschlüsselung',
     'metrics.overall-conversion-rate': 'Gesamtkonversionsrate',
     'metrics.peak-month': 'Spitzenmonat',
@@ -4699,6 +4708,9 @@ const translations = {
     'metrics.deals-status': 'Distribución de Estado de Negocios',
     'metrics.total': 'Total',
     'metrics.deals': 'negocios',
+    'metrics.total-annual-revenue': 'Ingresos Anuales Totales',
+    'metrics.total-monthly-revenue': 'Ingresos Mensuales Totales',
+    'metrics.avg-deal-value': 'Valor Promedio del Negocio',
     'metrics.lead-pipeline-breakdown': 'Desglose del Pipeline de Leads',
     'metrics.overall-conversion-rate': 'Tasa de Conversión General',
     'metrics.peak-month': 'Mes Pico',

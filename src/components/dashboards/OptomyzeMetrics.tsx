@@ -624,11 +624,25 @@ const OptomyzeMetrics = () => {
     };
   };
 
+  // Mock revenue data for KPI cards (replace with API data later)
+  const getRevenueKPIs = () => {
+    const monthlyRevenue = getMockMonthlyRevenue();
+    const totalAnnualRevenue = monthlyRevenue.reduce((sum, d) => sum + d.currentYear, 0);
+    const currentMonth = new Date().getMonth();
+    const totalMonthlyRevenue = monthlyRevenue[currentMonth]?.currentYear || 0;
+    
+    // Mock average deal value
+    const avgDealValue = 8500;
+    
+    return { totalAnnualRevenue, totalMonthlyRevenue, avgDealValue };
+  };
+
   // Prepare KPI data from API response
   const getKPIData = () => {
     if (!metricsData?.data) return [];
 
-    const { lead_statistics, conversion_rate, average_conversion_time, performance_comparison } = metricsData.data;
+    const { lead_statistics, conversion_rate, performance_comparison } = metricsData.data;
+    const { totalAnnualRevenue, totalMonthlyRevenue, avgDealValue } = getRevenueKPIs();
 
     return [
       {
@@ -662,10 +676,22 @@ const OptomyzeMetrics = () => {
         icon: <Percent className="h-5 w-5 text-primary" />
       },
       {
-        title: t('metrics.avg-conversion-time-hours'),
-        value: average_conversion_time?.total_hours || 'N/A',
-        trend: getTrendData(performance_comparison?.average_conversion_time),
-        icon: <Clock className="h-5 w-5 text-primary" />
+        title: t('metrics.total-annual-revenue'),
+        value: `$${(totalAnnualRevenue / 1000).toFixed(0)}k`,
+        trend: { value: '+18.2%', isPositive: true },
+        icon: <DollarSign className="h-5 w-5 text-primary" />
+      },
+      {
+        title: t('metrics.total-monthly-revenue'),
+        value: `$${(totalMonthlyRevenue / 1000).toFixed(0)}k`,
+        trend: { value: '+12.5%', isPositive: true },
+        icon: <TrendingUp className="h-5 w-5 text-primary" />
+      },
+      {
+        title: t('metrics.avg-deal-value'),
+        value: `$${avgDealValue.toLocaleString()}`,
+        trend: { value: '+5.3%', isPositive: true },
+        icon: <Target className="h-5 w-5 text-primary" />
       }
     ];
   };
@@ -723,9 +749,9 @@ const OptomyzeMetrics = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading ? (
-          Array.from({ length: 6 }).map((_, index) => (
+          Array.from({ length: 8 }).map((_, index) => (
             <SkeletonKPICard key={index} />
           ))
         ) : (
