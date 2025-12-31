@@ -56,6 +56,7 @@ import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import { LeadProduct } from '@/components/leads/ProductsSection';
+import ProductsSection from '@/components/leads/ProductsSection';
 import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
@@ -362,7 +363,7 @@ const LeadDetailPage = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Tabbed Lead Information */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <LeadDetailTabs
               lead={leadData.lead}
               tasks={leadData.tasks || []}
@@ -372,6 +373,11 @@ const LeadDetailPage = () => {
               onDeleteTask={(task) => setDeletingTask(task)}
               onUploadDocument={() => setDocumentModalOpen(true)}
               onDocumentDeleted={handleDocumentDeleted}
+            />
+            
+            {/* Products Section - Separate from tabs */}
+            <ProductsSection 
+              products={leadData.lead.products || []}
               onAddProducts={() => setAddProductsModalOpen(true)}
               onStartPurchase={handleStartPurchase}
             />

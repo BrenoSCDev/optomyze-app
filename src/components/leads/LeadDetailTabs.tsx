@@ -13,8 +13,7 @@ import {
   Info, 
   Phone, 
   ListTodo, 
-  FileText, 
-  Package,
+  FileText,
   Globe,
   MessageSquare,
   DollarSign,
@@ -34,7 +33,7 @@ import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 import TasksSection from './TasksSection';
 import DocumentsSection from './DocumentsSection';
-import ProductsSection, { LeadProduct } from './ProductsSection';
+import { LeadProduct } from './ProductsSection';
 
 interface AssignedUser {
   id: number;
@@ -75,8 +74,6 @@ interface LeadDetailTabsProps {
   onDeleteTask: (task: Task) => void;
   onUploadDocument: () => void;
   onDocumentDeleted: (documentId: number) => void;
-  onAddProducts: () => void;
-  onStartPurchase: (selectedProducts: LeadProduct[]) => void;
 }
 
 const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
@@ -87,9 +84,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   onEditTask,
   onDeleteTask,
   onUploadDocument,
-  onDocumentDeleted,
-  onAddProducts,
-  onStartPurchase
+  onDocumentDeleted
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('info');
@@ -105,56 +100,39 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-white/5 p-1 mb-6">
           <TabsTrigger 
             value="info" 
-            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <Info className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.info')}</span>
-            <span className="sm:hidden">{t('lead-details.tabs.info-short')}</span>
+            <Info className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.info')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="contact" 
-            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <Phone className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.contact')}</span>
-            <span className="sm:hidden">{t('lead-details.tabs.contact-short')}</span>
+            <Phone className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.contact')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="tasks" 
-            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <ListTodo className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
-            <span className="sm:hidden">{t('lead-details.tabs.tasks-short')}</span>
+            <ListTodo className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.tasks')}</span>
             {tasks.length > 0 && (
-              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {tasks.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger 
             value="documents" 
-            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <FileText className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.documents')}</span>
-            <span className="sm:hidden">{t('lead-details.tabs.documents-short')}</span>
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.documents')}</span>
             {documents.length > 0 && (
-              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
+              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {documents.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="products" 
-            className="flex-1 min-w-[120px] data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
-          >
-            <Package className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.products')}</span>
-            <span className="sm:hidden">{t('lead-details.tabs.products-short')}</span>
-            {(lead.products?.length || 0) > 0 && (
-              <Badge className="ml-2 bg-primary/20 text-primary border-primary/30 text-xs">
-                {lead.products?.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -186,15 +164,6 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             documents={documents}
             onUploadClick={onUploadDocument}
             onDocumentDeleted={onDocumentDeleted}
-          />
-        </TabsContent>
-
-        {/* Products Tab */}
-        <TabsContent value="products" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <ProductsSectionContent
-            products={lead.products || []}
-            onAddProducts={onAddProducts}
-            onStartPurchase={onStartPurchase}
           />
         </TabsContent>
       </Tabs>
@@ -420,27 +389,6 @@ const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
       documents={documents}
       onUploadClick={onUploadClick}
       onDocumentDeleted={onDocumentDeleted}
-    />
-  );
-};
-
-// Products Section Content (wrapper without card styling)
-interface ProductsSectionContentProps {
-  products: LeadProduct[];
-  onAddProducts: () => void;
-  onStartPurchase: (selectedProducts: LeadProduct[]) => void;
-}
-
-const ProductsSectionContent: React.FC<ProductsSectionContentProps> = ({
-  products,
-  onAddProducts,
-  onStartPurchase
-}) => {
-  return (
-    <ProductsSection
-      products={products}
-      onAddProducts={onAddProducts}
-      onStartPurchase={onStartPurchase}
     />
   );
 };
