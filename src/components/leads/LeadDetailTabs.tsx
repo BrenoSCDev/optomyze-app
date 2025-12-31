@@ -14,6 +14,9 @@ import {
   Phone, 
   ListTodo, 
   FileText,
+  StickyNote,
+  FileSignature,
+  MessageCircle,
   Globe,
   MessageSquare,
   DollarSign,
@@ -136,6 +139,27 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger 
+            value="observations" 
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <StickyNote className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.observations')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="contracts" 
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <FileSignature className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.contracts')}</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="chat" 
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.chat')}</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Lead Information Tab */}
@@ -165,6 +189,21 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             onUploadClick={onUploadDocument}
             onDocumentDeleted={onDocumentDeleted}
           />
+        </TabsContent>
+
+        {/* Observations Tab */}
+        <TabsContent value="observations" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <ObservationsContent />
+        </TabsContent>
+
+        {/* Contracts Tab */}
+        <TabsContent value="contracts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <ContractsContent />
+        </TabsContent>
+
+        {/* Chat Tab */}
+        <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <ChatContent />
         </TabsContent>
       </Tabs>
     </motion.div>
@@ -390,6 +429,51 @@ const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
       onUploadClick={onUploadClick}
       onDocumentDeleted={onDocumentDeleted}
     />
+  );
+};
+
+// Observations Content (placeholder)
+const ObservationsContent: React.FC = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="text-center py-12">
+      <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+        <StickyNote className="w-8 h-8 text-amber-500/60" />
+      </div>
+      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.observations-empty')}</h4>
+      <p className="text-gray-400 text-sm">{t('lead-details.tabs.observations-empty-desc')}</p>
+    </div>
+  );
+};
+
+// Contracts Content (placeholder)
+const ContractsContent: React.FC = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="text-center py-12">
+      <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+        <FileSignature className="w-8 h-8 text-blue-500/60" />
+      </div>
+      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.contracts-empty')}</h4>
+      <p className="text-gray-400 text-sm">{t('lead-details.tabs.contracts-empty-desc')}</p>
+    </div>
+  );
+};
+
+// Chat Content (placeholder)
+const ChatContent: React.FC = () => {
+  const { t } = useLanguage();
+  
+  return (
+    <div className="text-center py-12">
+      <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
+        <MessageCircle className="w-8 h-8 text-green-500/60" />
+      </div>
+      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.chat-empty')}</h4>
+      <p className="text-gray-400 text-sm">{t('lead-details.tabs.chat-empty-desc')}</p>
+    </div>
   );
 };
 
