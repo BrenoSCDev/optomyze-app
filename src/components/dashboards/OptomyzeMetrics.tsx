@@ -98,6 +98,83 @@ const getMockDealsStatus = () => [
   { name: 'Lost', value: 18, color: '#EF4444' },
 ];
 
+// Product colors for consistent styling across charts
+const PRODUCT_COLORS = [
+  '#8B5CF6', '#10B981', '#3B82F6', '#F59E0B', '#EF4444', 
+  '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+];
+
+// Mock Product Interest vs Sales Data
+const getMockProductInterestVsSales = () => [
+  { 
+    id: 1, 
+    name: 'Enterprise CRM Suite', 
+    interestedLeads: 145, 
+    soldDeals: 28, 
+    revenue: 392000,
+    avgDealValue: 14000,
+    color: PRODUCT_COLORS[0] 
+  },
+  { 
+    id: 2, 
+    name: 'Marketing Automation', 
+    interestedLeads: 120, 
+    soldDeals: 35, 
+    revenue: 245000,
+    avgDealValue: 7000,
+    color: PRODUCT_COLORS[1] 
+  },
+  { 
+    id: 3, 
+    name: 'Analytics Dashboard', 
+    interestedLeads: 98, 
+    soldDeals: 42, 
+    revenue: 168000,
+    avgDealValue: 4000,
+    color: PRODUCT_COLORS[2] 
+  },
+  { 
+    id: 4, 
+    name: 'Support Helpdesk', 
+    interestedLeads: 85, 
+    soldDeals: 38, 
+    revenue: 114000,
+    avgDealValue: 3000,
+    color: PRODUCT_COLORS[3] 
+  },
+  { 
+    id: 5, 
+    name: 'E-commerce Plugin', 
+    interestedLeads: 72, 
+    soldDeals: 15, 
+    revenue: 90000,
+    avgDealValue: 6000,
+    color: PRODUCT_COLORS[4] 
+  },
+  { 
+    id: 6, 
+    name: 'API Integration Kit', 
+    interestedLeads: 65, 
+    soldDeals: 22, 
+    revenue: 66000,
+    avgDealValue: 3000,
+    color: PRODUCT_COLORS[5] 
+  },
+];
+
+// Get revenue by product (sorted descending)
+const getMockRevenueByProduct = () => {
+  return getMockProductInterestVsSales()
+    .map(p => ({
+      name: p.name,
+      revenue: p.revenue,
+      totalSales: p.soldDeals,
+      avgDealValue: p.avgDealValue,
+      color: p.color
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+};
+
 // ============= SKELETON COMPONENTS =============
 
 const SkeletonKPICard = () => (
@@ -404,6 +481,207 @@ const PipelineValueChart = () => {
                 -{((item.gap / item.estimatedValue) * 100).toFixed(0)}% {t('metrics.gap')}
               </span>
             </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= PRODUCT INTEREST VS SALES CHART =============
+
+const ProductInterestVsSalesChart = () => {
+  const { t } = useLanguage();
+  const data = getMockProductInterestVsSales();
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const product = data.find(p => p.name === label);
+      const conversionRate = product ? ((product.soldDeals / product.interestedLeads) * 100).toFixed(1) : '0';
+      
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-semibold text-foreground mb-2">{label}</p>
+          <div className="space-y-1 text-sm">
+            <p className="flex justify-between gap-4">
+              <span className="text-muted-foreground">{t('metrics.interested-leads')}:</span>
+              <span className="font-medium text-purple-400">{payload[0]?.value}</span>
+            </p>
+            <p className="flex justify-between gap-4">
+              <span className="text-muted-foreground">{t('metrics.sold-deals')}:</span>
+              <span className="font-medium text-green-400">{payload[1]?.value}</span>
+            </p>
+            <p className="flex justify-between gap-4 pt-1 border-t border-border">
+              <span className="text-muted-foreground">{t('metrics.conversion-rate')}:</span>
+              <span className="font-medium text-primary">{conversionRate}%</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.8 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <Target className="w-5 h-5 text-primary" />
+          {t('metrics.product-interest-vs-sales')}
+        </h3>
+      </div>
+
+      <ResponsiveContainer width="100%" height={320}>
+        <BarChart data={data} layout="vertical">
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+          <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+          <YAxis 
+            type="category" 
+            dataKey="name" 
+            stroke="#9CA3AF" 
+            fontSize={11} 
+            width={140}
+            tickFormatter={(value) => value.length > 18 ? `${value.substring(0, 18)}...` : value}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <Bar 
+            dataKey="interestedLeads" 
+            name={t('metrics.interested-leads')}
+            fill="#8B5CF6" 
+            radius={[0, 4, 4, 0]}
+          />
+          <Bar 
+            dataKey="soldDeals" 
+            name={t('metrics.sold-deals')}
+            fill="#10B981" 
+            radius={[0, 4, 4, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Conversion Insights */}
+      <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+        {data.slice(0, 3).map((product) => {
+          const conversionRate = ((product.soldDeals / product.interestedLeads) * 100).toFixed(1);
+          return (
+            <div key={product.id} className="p-3 bg-white/5 rounded-lg border border-white/10">
+              <p className="text-xs text-muted-foreground truncate mb-1">{product.name}</p>
+              <p className="text-lg font-bold text-primary">{conversionRate}%</p>
+              <p className="text-xs text-muted-foreground">{t('metrics.conversion')}</p>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+};
+
+// ============= REVENUE BY PRODUCT CHART =============
+
+const RevenueByProductChart = () => {
+  const { t } = useLanguage();
+  const data = getMockRevenueByProduct();
+  const totalRevenue = data.reduce((sum, d) => sum + d.revenue, 0);
+
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const product = data.find(p => p.name === label);
+      
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-semibold text-foreground mb-2">{label}</p>
+          <div className="space-y-1 text-sm">
+            <p className="flex justify-between gap-4">
+              <span className="text-muted-foreground">{t('metrics.total-revenue')}:</span>
+              <span className="font-medium text-green-400">${product?.revenue.toLocaleString()}</span>
+            </p>
+            <p className="flex justify-between gap-4">
+              <span className="text-muted-foreground">{t('metrics.total-sales')}:</span>
+              <span className="font-medium">{product?.totalSales}</span>
+            </p>
+            <p className="flex justify-between gap-4">
+              <span className="text-muted-foreground">{t('metrics.avg-deal-value')}:</span>
+              <span className="font-medium text-primary">${product?.avgDealValue.toLocaleString()}</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.9 }}
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-primary" />
+          {t('metrics.revenue-by-product')}
+        </h3>
+        <span className="text-sm text-muted-foreground">
+          {t('metrics.total')}: <span className="font-semibold text-green-400">${(totalRevenue / 1000).toFixed(0)}k</span>
+        </span>
+      </div>
+
+      <ResponsiveContainer width="100%" height={320}>
+        <BarChart data={data} layout="vertical">
+          <defs>
+            <linearGradient id="revenueBarGradient" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#10B981" stopOpacity={0.8}/>
+              <stop offset="100%" stopColor="#10B981" stopOpacity={1}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+          <XAxis 
+            type="number" 
+            stroke="#9CA3AF" 
+            fontSize={12}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+          />
+          <YAxis 
+            type="category" 
+            dataKey="name" 
+            stroke="#9CA3AF" 
+            fontSize={11} 
+            width={140}
+            tickFormatter={(value) => value.length > 18 ? `${value.substring(0, 18)}...` : value}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar 
+            dataKey="revenue" 
+            name={t('metrics.revenue')}
+            fill="url(#revenueBarGradient)" 
+            radius={[0, 4, 4, 0]}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Top Products Summary */}
+      <div className="mt-4 flex flex-wrap gap-3 justify-center">
+        {data.slice(0, 3).map((product, index) => (
+          <div 
+            key={product.name} 
+            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-sm"
+          >
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: product.color }} />
+            <span className="text-muted-foreground">#{index + 1}</span>
+            <span className="font-semibold">${(product.revenue / 1000).toFixed(0)}k</span>
           </div>
         ))}
       </div>
@@ -838,6 +1116,12 @@ const OptomyzeMetrics = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <LeadsByStageChart />
         <PipelineValueChart />
+      </div>
+
+      {/* Product Performance Charts Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <ProductInterestVsSalesChart />
+        <RevenueByProductChart />
       </div>
     </motion.div>
   );
