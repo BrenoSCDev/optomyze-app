@@ -119,6 +119,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Integrations submenu items
   const integrationsItems = [
     { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
+    { id: 'integration-panel', label: t('integrations.panel.menu-title'), icon: () => <Plug size={16} /> },
   ];
 
   // AI Agents submenu items
