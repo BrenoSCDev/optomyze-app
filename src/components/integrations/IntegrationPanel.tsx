@@ -1,18 +1,49 @@
 /**
- * INTEGRATION PANEL - WhatsApp Instance Management
+ * INTEGRATION PANEL - Integration Instance Management
  * 
- * Placeholder page for managing WhatsApp Evolution API instances.
- * This page will allow users to create and manage WhatsApp instances.
+ * Page for managing integration instances like WhatsApp Evolution API.
  */
 
-import React from 'react';
-import { ChevronRight, Settings2, Smartphone, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Plus, AlertCircle, Store } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { Alert, AlertDescription } from '../ui/alert';
+import api from '../../services/api';
+
+interface AvailableIntegrations {
+  n8n_available: boolean;
+  meta_ads_available: boolean;
+  google_ads_available: boolean;
+  wpp_evo_available: boolean;
+}
 
 const IntegrationPanel: React.FC = () => {
   const { t } = useLanguage();
+  const [integrations, setIntegrations] = useState<AvailableIntegrations | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAvailableIntegrations();
+  }, []);
+
+  const fetchAvailableIntegrations = async () => {
+    try {
+      const response = await api.get('/api/integrations/available');
+      setIntegrations(response.data);
+    } catch (error) {
+      console.error('Error fetching available integrations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateInstance = () => {
+    // Will be implemented - placeholder for now
+    console.log('Create WhatsApp instance');
+  };
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -33,65 +64,66 @@ const IntegrationPanel: React.FC = () => {
           </p>
         </div>
 
-        {/* Placeholder Content */}
-        <div className="glass-card p-12 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-2xl bg-green-500/10 flex items-center justify-center">
-                <SiWhatsapp className="w-12 h-12 text-green-500" />
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Settings2 className="w-5 h-5 text-primary" />
-              </div>
+        {/* Integrations Accordions */}
+        {loading ? (
+          <div className="glass-card p-8 text-center">
+            <div className="animate-pulse text-muted-foreground">
+              {t('common.loading')}...
             </div>
           </div>
-          
-          <h2 className="text-xl font-semibold text-foreground mb-3">
-            {t('integrations.panel.coming-soon-title')}
-          </h2>
-          
-          <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            {t('integrations.panel.coming-soon-description')}
-          </p>
-
-          {/* Features Preview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
-            <div className="glass-card p-4 opacity-60">
-              <Smartphone className="w-6 h-6 text-primary mx-auto mb-2" />
-              <h3 className="text-sm font-medium text-foreground mb-1">
-                {t('integrations.panel.feature-instances')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('integrations.panel.feature-instances-desc')}
-              </p>
-            </div>
-            
-            <div className="glass-card p-4 opacity-60">
-              <Settings2 className="w-6 h-6 text-primary mx-auto mb-2" />
-              <h3 className="text-sm font-medium text-foreground mb-1">
-                {t('integrations.panel.feature-config')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('integrations.panel.feature-config-desc')}
-              </p>
-            </div>
-            
-            <div className="glass-card p-4 opacity-60">
-              <Plus className="w-6 h-6 text-primary mx-auto mb-2" />
-              <h3 className="text-sm font-medium text-foreground mb-1">
-                {t('integrations.panel.feature-connect')}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {t('integrations.panel.feature-connect-desc')}
-              </p>
-            </div>
-          </div>
-
-          <Button disabled variant="outline" className="opacity-60">
-            <Plus className="w-4 h-4 mr-2" />
-            {t('integrations.panel.create-instance')}
-          </Button>
-        </div>
+        ) : (
+          <Accordion type="single" collapsible className="space-y-4">
+            {/* WhatsApp Accordion */}
+            <AccordionItem value="whatsapp" className="glass-card border-none">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <SiWhatsapp className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-foreground">WhatsApp (Evolution API)</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {integrations?.wpp_evo_available 
+                        ? t('integrations.panel.whatsapp.available')
+                        : t('integrations.panel.whatsapp.not-available')}
+                    </p>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-6">
+                {integrations?.wpp_evo_available ? (
+                  <div className="space-y-4">
+                    {/* Instances List Placeholder */}
+                    <div className="border border-border rounded-lg p-4 text-center text-muted-foreground">
+                      {t('integrations.panel.whatsapp.no-instances')}
+                    </div>
+                    
+                    {/* Create Instance Button */}
+                    <Button onClick={handleCreateInstance} className="w-full sm:w-auto">
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('integrations.panel.create-instance')}
+                    </Button>
+                  </div>
+                ) : (
+                  <Alert>
+                    <Store className="h-4 w-4" />
+                    <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <span>{t('integrations.panel.whatsapp.install-message')}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/integrations'}
+                      >
+                        <Store className="w-4 h-4 mr-2" />
+                        {t('integrations.panel.go-to-app-store')}
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
       </div>
     </div>
   );

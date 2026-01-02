@@ -974,6 +974,11 @@ const translations = {
     'integrations.panel.feature-connect': 'Connect Devices',
     'integrations.panel.feature-connect-desc': 'Link your WhatsApp devices via QR code',
     'integrations.panel.create-instance': 'Create Instance',
+    'integrations.panel.go-to-app-store': 'Go to App Store',
+    'integrations.panel.whatsapp.available': 'Integration configured - Manage your instances',
+    'integrations.panel.whatsapp.not-available': 'Integration not installed',
+    'integrations.panel.whatsapp.no-instances': 'No instances created yet. Click the button below to create your first WhatsApp instance.',
+    'integrations.panel.whatsapp.install-message': 'WhatsApp integration is not installed. Please go to the CRM App Store to install it first.',
 
     // API Documentation
     'api.api': 'API',
@@ -2591,6 +2596,11 @@ const translations = {
     'integrations.panel.feature-connect': 'Conectar Dispositivos',
     'integrations.panel.feature-connect-desc': 'Vincule seus dispositivos WhatsApp via QR code',
     'integrations.panel.create-instance': 'Criar Instância',
+    'integrations.panel.go-to-app-store': 'Ir para App Store',
+    'integrations.panel.whatsapp.available': 'Integração configurada - Gerencie suas instâncias',
+    'integrations.panel.whatsapp.not-available': 'Integração não instalada',
+    'integrations.panel.whatsapp.no-instances': 'Nenhuma instância criada ainda. Clique no botão abaixo para criar sua primeira instância do WhatsApp.',
+    'integrations.panel.whatsapp.install-message': 'A integração do WhatsApp não está instalada. Por favor, vá para a App Store do CRM para instalá-la primeiro.',
 
     // API Documentation
     'api.api': 'API',
@@ -4038,6 +4048,11 @@ const translations = {
     'integrations.panel.feature-connect': 'Geräte Verbinden',
     'integrations.panel.feature-connect-desc': 'Verknüpfen Sie Ihre WhatsApp-Geräte per QR-Code',
     'integrations.panel.create-instance': 'Instanz Erstellen',
+    'integrations.panel.go-to-app-store': 'Zum App Store',
+    'integrations.panel.whatsapp.available': 'Integration konfiguriert - Verwalten Sie Ihre Instanzen',
+    'integrations.panel.whatsapp.not-available': 'Integration nicht installiert',
+    'integrations.panel.whatsapp.no-instances': 'Noch keine Instanzen erstellt. Klicken Sie auf die Schaltfläche unten, um Ihre erste WhatsApp-Instanz zu erstellen.',
+    'integrations.panel.whatsapp.install-message': 'Die WhatsApp-Integration ist nicht installiert. Bitte gehen Sie zum CRM App Store, um sie zuerst zu installieren.',
 
     // API Documentation
     'api.api': 'API',
@@ -5494,6 +5509,11 @@ const translations = {
     'integrations.panel.feature-connect': 'Conectar Dispositivos',
     'integrations.panel.feature-connect-desc': 'Vincula tus dispositivos WhatsApp vía código QR',
     'integrations.panel.create-instance': 'Crear Instancia',
+    'integrations.panel.go-to-app-store': 'Ir a App Store',
+    'integrations.panel.whatsapp.available': 'Integración configurada - Gestiona tus instancias',
+    'integrations.panel.whatsapp.not-available': 'Integración no instalada',
+    'integrations.panel.whatsapp.no-instances': 'Aún no hay instancias creadas. Haz clic en el botón de abajo para crear tu primera instancia de WhatsApp.',
+    'integrations.panel.whatsapp.install-message': 'La integración de WhatsApp no está instalada. Por favor, ve a la App Store del CRM para instalarla primero.',
 
     // API Documentation
     'api.api': 'API',
