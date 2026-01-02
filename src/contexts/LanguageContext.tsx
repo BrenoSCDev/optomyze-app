@@ -893,6 +893,30 @@ const translations = {
     'integrations.configuration-failed': 'Configuration Failed',
     'integrations.configuration-failed-description': 'Failed to save configuration. Please try again.',
     'integrations.configuration-saved': '{name} configuration has been saved successfully!',
+    
+    // Integration Categories
+    'integrations.categories.ads-analytics': 'Ads & Analytics',
+    'integrations.categories.social-messaging': 'Social Messaging Platforms',
+    'integrations.categories.ai': 'Artificial Intelligence',
+    'integrations.categories.automation': 'Automation Platforms',
+    'integrations.categories.google-apps': 'Google Apps',
+    
+    // Social Messaging Integrations
+    'integrations.whatsapp.description': 'Connect WhatsApp Business to manage customer conversations directly from your CRM.',
+    'integrations.instagram.description': 'Integrate Instagram DMs to engage with your audience and manage inquiries.',
+    'integrations.facebook.description': 'Connect Facebook Messenger to handle customer messages from your Facebook page.',
+    'integrations.telegram.description': 'Integrate Telegram to communicate with customers through bots or direct messages.',
+    
+    // AI Integrations
+    'integrations.openai.description': 'Leverage OpenAI GPT models for intelligent automation and customer interactions.',
+    'integrations.gemini.description': 'Integrate Google Gemini for advanced AI capabilities and multimodal processing.',
+    'integrations.claude.description': 'Use Anthropic Claude for safe and helpful AI assistance in your workflows.',
+    'integrations.deepseek.description': 'Integrate DeepSeek AI for powerful reasoning and code generation capabilities.',
+    
+    // Google Apps Integrations
+    'integrations.google-calendar.description': 'Sync appointments and meetings with Google Calendar for seamless scheduling.',
+    'integrations.google-sheets.description': 'Export and sync data with Google Sheets for reporting and analysis.',
+    'integrations.gmail.description': 'Integrate Gmail to send and track emails directly from your CRM.',
 
     // n8n Integration
     'integrations.n8n.name': 'n8n',
@@ -2452,6 +2476,30 @@ const translations = {
     'integrations.configuration-failed': 'Falha na Configuração',
     'integrations.configuration-failed-description': 'Falha ao salvar configuração. Tente novamente.',
     'integrations.configuration-saved': 'Configuração do {name} foi salva com sucesso!',
+    
+    // Integration Categories
+    'integrations.categories.ads-analytics': 'Anúncios e Análises',
+    'integrations.categories.social-messaging': 'Plataformas de Mensagens Sociais',
+    'integrations.categories.ai': 'Inteligência Artificial',
+    'integrations.categories.automation': 'Plataformas de Automação',
+    'integrations.categories.google-apps': 'Apps do Google',
+    
+    // Social Messaging Integrations
+    'integrations.whatsapp.description': 'Conecte o WhatsApp Business para gerenciar conversas com clientes diretamente do seu CRM.',
+    'integrations.instagram.description': 'Integre DMs do Instagram para interagir com seu público e gerenciar consultas.',
+    'integrations.facebook.description': 'Conecte o Facebook Messenger para lidar com mensagens de clientes da sua página do Facebook.',
+    'integrations.telegram.description': 'Integre o Telegram para se comunicar com clientes através de bots ou mensagens diretas.',
+    
+    // AI Integrations
+    'integrations.openai.description': 'Aproveite os modelos GPT da OpenAI para automação inteligente e interações com clientes.',
+    'integrations.gemini.description': 'Integre o Google Gemini para capacidades avançadas de IA e processamento multimodal.',
+    'integrations.claude.description': 'Use o Anthropic Claude para assistência de IA segura e útil em seus fluxos de trabalho.',
+    'integrations.deepseek.description': 'Integre o DeepSeek AI para poderosas capacidades de raciocínio e geração de código.',
+    
+    // Google Apps Integrations
+    'integrations.google-calendar.description': 'Sincronize compromissos e reuniões com o Google Calendar para agendamento perfeito.',
+    'integrations.google-sheets.description': 'Exporte e sincronize dados com o Google Sheets para relatórios e análises.',
+    'integrations.gmail.description': 'Integre o Gmail para enviar e rastrear e-mails diretamente do seu CRM.',
 
     // n8n Integration
     'integrations.n8n.name': 'n8n',
@@ -3841,6 +3889,30 @@ const translations = {
     'integrations.configuration-failed': 'Konfiguration Fehlgeschlagen',
     'integrations.configuration-failed-description': 'Konfiguration konnte nicht gespeichert werden. Bitte erneut versuchen.',
     'integrations.configuration-saved': '{name} Konfiguration wurde erfolgreich gespeichert!',
+    
+    // Integration Categories
+    'integrations.categories.ads-analytics': 'Werbung & Analytics',
+    'integrations.categories.social-messaging': 'Social Messaging Plattformen',
+    'integrations.categories.ai': 'Künstliche Intelligenz',
+    'integrations.categories.automation': 'Automatisierungsplattformen',
+    'integrations.categories.google-apps': 'Google Apps',
+    
+    // Social Messaging Integrations
+    'integrations.whatsapp.description': 'Verbinden Sie WhatsApp Business, um Kundenkonversationen direkt aus Ihrem CRM zu verwalten.',
+    'integrations.instagram.description': 'Integrieren Sie Instagram DMs, um mit Ihrem Publikum zu interagieren und Anfragen zu verwalten.',
+    'integrations.facebook.description': 'Verbinden Sie Facebook Messenger, um Kundennachrichten von Ihrer Facebook-Seite zu bearbeiten.',
+    'integrations.telegram.description': 'Integrieren Sie Telegram, um mit Kunden über Bots oder Direktnachrichten zu kommunizieren.',
+    
+    // AI Integrations
+    'integrations.openai.description': 'Nutzen Sie OpenAI GPT-Modelle für intelligente Automatisierung und Kundeninteraktionen.',
+    'integrations.gemini.description': 'Integrieren Sie Google Gemini für fortgeschrittene KI-Fähigkeiten und multimodale Verarbeitung.',
+    'integrations.claude.description': 'Verwenden Sie Anthropic Claude für sichere und hilfreiche KI-Unterstützung in Ihren Workflows.',
+    'integrations.deepseek.description': 'Integrieren Sie DeepSeek AI für leistungsstarke Reasoning- und Codegenerierungsfähigkeiten.',
+    
+    // Google Apps Integrations
+    'integrations.google-calendar.description': 'Synchronisieren Sie Termine und Meetings mit Google Calendar für nahtlose Planung.',
+    'integrations.google-sheets.description': 'Exportieren und synchronisieren Sie Daten mit Google Sheets für Berichte und Analysen.',
+    'integrations.gmail.description': 'Integrieren Sie Gmail, um E-Mails direkt aus Ihrem CRM zu senden und zu verfolgen.',
 
     // n8n Integration
     'integrations.n8n.name': 'n8n',
@@ -5239,6 +5311,30 @@ const translations = {
     'integrations.configuration-failed': 'Configuración Fallida',
     'integrations.configuration-failed-description': 'Error al guardar configuración. Inténtalo de nuevo.',
     'integrations.configuration-saved': '¡La configuración de {name} se ha guardado exitosamente!',
+    
+    // Integration Categories
+    'integrations.categories.ads-analytics': 'Anuncios y Análisis',
+    'integrations.categories.social-messaging': 'Plataformas de Mensajería Social',
+    'integrations.categories.ai': 'Inteligencia Artificial',
+    'integrations.categories.automation': 'Plataformas de Automatización',
+    'integrations.categories.google-apps': 'Apps de Google',
+    
+    // Social Messaging Integrations
+    'integrations.whatsapp.description': 'Conecta WhatsApp Business para gestionar conversaciones con clientes directamente desde tu CRM.',
+    'integrations.instagram.description': 'Integra DMs de Instagram para interactuar con tu audiencia y gestionar consultas.',
+    'integrations.facebook.description': 'Conecta Facebook Messenger para manejar mensajes de clientes desde tu página de Facebook.',
+    'integrations.telegram.description': 'Integra Telegram para comunicarte con clientes a través de bots o mensajes directos.',
+    
+    // AI Integrations
+    'integrations.openai.description': 'Aprovecha los modelos GPT de OpenAI para automatización inteligente e interacciones con clientes.',
+    'integrations.gemini.description': 'Integra Google Gemini para capacidades avanzadas de IA y procesamiento multimodal.',
+    'integrations.claude.description': 'Usa Anthropic Claude para asistencia de IA segura y útil en tus flujos de trabajo.',
+    'integrations.deepseek.description': 'Integra DeepSeek AI para poderosas capacidades de razonamiento y generación de código.',
+    
+    // Google Apps Integrations
+    'integrations.google-calendar.description': 'Sincroniza citas y reuniones con Google Calendar para una programación perfecta.',
+    'integrations.google-sheets.description': 'Exporta y sincroniza datos con Google Sheets para informes y análisis.',
+    'integrations.gmail.description': 'Integra Gmail para enviar y rastrear correos electrónicos directamente desde tu CRM.',
 
     // n8n Integration
     'integrations.n8n.name': 'n8n',
