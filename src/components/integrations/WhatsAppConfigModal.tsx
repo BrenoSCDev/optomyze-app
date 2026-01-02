@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
-import { Loader2, Key, Globe, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, Key, Globe, Info } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 
 interface WhatsAppConfigModalProps {
@@ -132,11 +132,11 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Warning Alert - Evolution API Notice */}
-        <Alert variant="destructive" className="border-amber-500/50 bg-amber-500/10">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <AlertTitle className="text-amber-500">{t('integrations.whatsapp-evo.warning-title')}</AlertTitle>
-          <AlertDescription className="text-amber-400/80">
+        {/* Info Alert - Evolution API Notice */}
+        <Alert className="border-blue-500/50 bg-blue-500/10">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertTitle className="text-blue-500">{t('integrations.whatsapp-evo.warning-title')}</AlertTitle>
+          <AlertDescription className="text-blue-400/80">
             {t('integrations.whatsapp-evo.warning-description')}
           </AlertDescription>
         </Alert>
