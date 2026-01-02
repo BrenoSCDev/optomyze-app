@@ -24,6 +24,7 @@ import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
 import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
 import IntegrationsApps from '@/components/integrations/IntegrationsApps';
+import IntegrationPanel from '@/components/integrations/IntegrationPanel';
 import N8nAgents from '@/components/agents/N8nAgents';
 import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
@@ -105,6 +106,8 @@ const Index = () => {
         );
       case 'integrations':
         return <IntegrationsApps />;
+      case 'integration-panel':
+        return <IntegrationPanel />;
       
       // AI Agents sections
       case 'n8n-agents':

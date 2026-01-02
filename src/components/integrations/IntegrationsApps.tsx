@@ -45,6 +45,7 @@ import { useToast } from '../../hooks/use-toast';
 import N8nConfigModal from './N8nConfigModal';
 import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
+import WhatsAppConfigModal from './WhatsAppConfigModal';
 import { Badge } from '@/components/ui/badge';
 
 interface Integration {
@@ -276,6 +277,7 @@ const IntegrationsApps: React.FC = () => {
   const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
+  const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
   const { token } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -316,9 +318,9 @@ const IntegrationsApps: React.FC = () => {
       icon: <MessageCircle className="w-5 h-5" />,
       integrations: [
         {
-          key: 'whatsapp',
+          key: 'wpp_evo',
           name: 'WhatsApp',
-          description: t('integrations.whatsapp.description') || 'Connect WhatsApp Business to manage customer conversations directly from your CRM.',
+          description: t('integrations.whatsapp-evo.description') || 'Connect WhatsApp via Evolution API to manage customer conversations directly from your CRM.',
           available: false,
           icon: <SiWhatsapp className="w-6 h-6" />
         },
@@ -477,6 +479,8 @@ const IntegrationsApps: React.FC = () => {
         setShowMetaAdsConfigModal(true);
       } else if (integrationKey === 'google-ads') {
         setShowGoogleAdsConfigModal(true);
+      } else if (integrationKey === 'wpp_evo') {
+        setShowWhatsAppConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -493,9 +497,14 @@ const IntegrationsApps: React.FC = () => {
     try {
       setInstallingIntegrations(prev => new Set(prev).add(integrationKey));
 
-      const endpoint = integrationKey === 'n8n' 
-        ? '/api/integrations/n8n-integrations' 
-        : `/api/integrations/${integrationKey}`;
+      let endpoint: string;
+      if (integrationKey === 'n8n') {
+        endpoint = '/api/integrations/n8n-integrations';
+      } else if (integrationKey === 'wpp_evo') {
+        endpoint = '/api/integrations/whatsapp-evo-integrations';
+      } else {
+        endpoint = `/api/integrations/${integrationKey}`;
+      }
 
       await api.post(endpoint);
 
@@ -616,6 +625,11 @@ const IntegrationsApps: React.FC = () => {
         <GoogleAdsConfigModal
           open={showGoogleAdsConfigModal}
           onOpenChange={setShowGoogleAdsConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <WhatsAppConfigModal
+          open={showWhatsAppConfigModal}
+          onOpenChange={setShowWhatsAppConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>
