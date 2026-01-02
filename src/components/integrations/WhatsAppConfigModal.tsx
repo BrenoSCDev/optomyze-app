@@ -78,7 +78,7 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
     setLoading(true);
     
     try {
-      await api.put('/api/whatsapp-evo-integrations/configure', {
+      await api.put('/api/integrations/whatsapp-evo-integrations/configure', {
         base_url: formData.base_url,
         api_key: formData.api_key,
       });

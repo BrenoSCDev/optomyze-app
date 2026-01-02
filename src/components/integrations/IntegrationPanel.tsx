@@ -31,7 +31,7 @@ const IntegrationPanel: React.FC = () => {
 
   const fetchAvailableIntegrations = async () => {
     try {
-      const response = await api.get('/api/integrations/available');
+      const response = await api.get('/api/integrations/available/settings');
       setIntegrations(response.data);
     } catch (error) {
       console.error('Error fetching available integrations:', error);
