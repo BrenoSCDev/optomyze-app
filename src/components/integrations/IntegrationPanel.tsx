@@ -5,19 +5,27 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, AlertCircle, Store } from 'lucide-react';
+import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2 } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Button } from '../ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Alert, AlertDescription } from '../ui/alert';
+import { format } from 'date-fns';
 import api from '../../services/api';
+
+interface WhatsAppInstance {
+  instance_name: string;
+  id: number;
+  created_at: string;
+}
 
 interface AvailableIntegrations {
   n8n_available: boolean;
   meta_ads_available: boolean;
   google_ads_available: boolean;
   wpp_evo_available: boolean;
+  wpp_evo_instances?: WhatsAppInstance[];
 }
 
 const IntegrationPanel: React.FC = () => {
@@ -41,8 +49,19 @@ const IntegrationPanel: React.FC = () => {
   };
 
   const handleCreateInstance = () => {
-    // Will be implemented - placeholder for now
     console.log('Create WhatsApp instance');
+  };
+
+  const handleDeleteInstance = (id: number) => {
+    console.log('Delete instance:', id);
+  };
+
+  const handleGenerateQrCode = (id: number) => {
+    console.log('Generate QR Code for instance:', id);
+  };
+
+  const handleTestInstance = (id: number) => {
+    console.log('Test instance:', id);
   };
 
   return (
@@ -93,10 +112,63 @@ const IntegrationPanel: React.FC = () => {
               <AccordionContent className="px-6 pb-6">
                 {integrations?.wpp_evo_available ? (
                   <div className="space-y-4">
-                    {/* Instances List Placeholder */}
-                    <div className="border border-border rounded-lg p-4 text-center text-muted-foreground">
-                      {t('integrations.panel.whatsapp.no-instances')}
-                    </div>
+                    {/* Instances Grid */}
+                    {integrations.wpp_evo_instances && integrations.wpp_evo_instances.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {integrations.wpp_evo_instances.map((instance) => (
+                          <div 
+                            key={instance.id} 
+                            className="border border-border rounded-lg p-4 bg-card hover:bg-accent/5 transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                                <SiWhatsapp className="w-5 h-5 text-green-500" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-foreground truncate">
+                                  {instance.instance_name}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handleGenerateQrCode(instance.id)}
+                              >
+                                <QrCode className="w-4 h-4 mr-1" />
+                                QR
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handleTestInstance(instance.id)}
+                              >
+                                <TestTube2 className="w-4 h-4 mr-1" />
+                                {t('common.test')}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeleteInstance(instance.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="border border-border rounded-lg p-4 text-center text-muted-foreground">
+                        {t('integrations.panel.whatsapp.no-instances')}
+                      </div>
+                    )}
                     
                     {/* Create Instance Button */}
                     <Button onClick={handleCreateInstance} className="w-full sm:w-auto">
