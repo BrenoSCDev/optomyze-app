@@ -105,19 +105,22 @@ const IntegrationPanel: React.FC = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Alert>
-                    <Store className="h-4 w-4" />
-                    <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3">
-                      <span>{t('integrations.panel.whatsapp.install-message')}</span>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.location.href = '/integrations'}
-                      >
-                        <Store className="w-4 h-4 mr-2" />
-                        {t('integrations.panel.go-to-app-store')}
-                      </Button>
-                    </AlertDescription>
+                  <Alert className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <Store className="h-5 w-5 mt-0.5 shrink-0" />
+                      <AlertDescription>
+                        {t('integrations.panel.whatsapp.install-message')}
+                      </AlertDescription>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="shrink-0 w-full sm:w-auto"
+                      onClick={() => window.location.href = '/?section=integrations'}
+                    >
+                      <Store className="w-4 h-4 mr-2" />
+                      {t('integrations.panel.go-to-app-store')}
+                    </Button>
                   </Alert>
                 )}
               </AccordionContent>
