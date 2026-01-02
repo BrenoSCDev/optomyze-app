@@ -327,6 +327,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'Instagram',
           description: t('integrations.instagram.description') || 'Integrate Instagram DMs to engage with your audience and manage inquiries.',
           available: false,
+          comingSoon: true,
           icon: <SiInstagram className="w-6 h-6" />
         },
         {
@@ -334,6 +335,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'Facebook',
           description: t('integrations.facebook.description') || 'Connect Facebook Messenger to handle customer messages from your Facebook page.',
           available: false,
+          comingSoon: true,
           icon: <SiFacebook className="w-6 h-6" />
         },
         {
@@ -341,6 +343,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'Telegram',
           description: t('integrations.telegram.description') || 'Integrate Telegram to communicate with customers through bots or direct messages.',
           available: false,
+          comingSoon: true,
           icon: <SiTelegram className="w-6 h-6" />
         }
       ]
