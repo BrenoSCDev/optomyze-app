@@ -980,6 +980,39 @@ const translations = {
     'integrations.panel.whatsapp.not-available': 'Integration not installed',
     'integrations.panel.whatsapp.no-instances': 'No instances created yet. Click the button below to create your first WhatsApp instance.',
     'integrations.panel.whatsapp.install-message': 'WhatsApp integration is not installed. Please go to the CRM App Store to install it first.',
+    
+    // Create Instance Modal
+    'integrations.panel.create.title': 'Create WhatsApp Instance',
+    'integrations.panel.create.description': 'Create a new WhatsApp instance to connect your device.',
+    'integrations.panel.create.name-label': 'Instance Name',
+    'integrations.panel.create.name-placeholder': 'e.g., sales-team',
+    'integrations.panel.create.name-hint': 'A random 8-character key will be automatically appended to the end of the name for identification purposes.',
+    'integrations.panel.create.error-empty': 'Please enter an instance name.',
+    'integrations.panel.create.error-failed': 'Failed to create instance. Please try again.',
+    'integrations.panel.create.success-title': 'Instance Created',
+    'integrations.panel.create.success-description': 'Your WhatsApp instance has been created successfully.',
+    
+    // Test Instance Modal
+    'integrations.panel.test.title': 'Test WhatsApp Instance',
+    'integrations.panel.test.description': 'Send a test message to verify the instance connection.',
+    'integrations.panel.test.instance-name': 'Instance Name',
+    'integrations.panel.test.phone-label': 'Recipient Phone Number',
+    'integrations.panel.test.message-label': 'Message',
+    'integrations.panel.test.message-placeholder': 'Enter your test message...',
+    'integrations.panel.test.info-message': 'This test is used to verify whether this WhatsApp instance is properly connected and able to deliver messages. Backend delivery logic will be implemented soon.',
+    'integrations.panel.test.send-test': 'Send Test Message',
+    
+    // Delete Instance Modal
+    'integrations.panel.delete.title': 'Delete WhatsApp Instance',
+    'integrations.panel.delete.description': 'Are you sure you want to delete this instance? This action cannot be undone.',
+    'integrations.panel.delete.warning': 'If this instance is deleted, all leads that message this WhatsApp number will no longer be synced into the CRM funnel.',
+    'integrations.panel.delete.confirm': 'Delete Instance',
+    'integrations.panel.delete.success-title': 'Instance Deleted',
+    'integrations.panel.delete.success-description': 'The WhatsApp instance has been deleted successfully.',
+    
+    // Common additions
+    'common.characters': 'characters',
+    'common.close': 'Close',
 
     // API Documentation
     'api.api': 'API',
@@ -2603,6 +2636,39 @@ const translations = {
     'integrations.panel.whatsapp.not-available': 'Integração não instalada',
     'integrations.panel.whatsapp.no-instances': 'Nenhuma instância criada ainda. Clique no botão abaixo para criar sua primeira instância do WhatsApp.',
     'integrations.panel.whatsapp.install-message': 'A integração do WhatsApp não está instalada. Por favor, vá para a App Store do CRM para instalá-la primeiro.',
+    
+    // Create Instance Modal
+    'integrations.panel.create.title': 'Criar Instância do WhatsApp',
+    'integrations.panel.create.description': 'Crie uma nova instância do WhatsApp para conectar seu dispositivo.',
+    'integrations.panel.create.name-label': 'Nome da Instância',
+    'integrations.panel.create.name-placeholder': 'ex: equipe-vendas',
+    'integrations.panel.create.name-hint': 'Uma chave aleatória de 8 caracteres será automaticamente adicionada ao final do nome para fins de identificação.',
+    'integrations.panel.create.error-empty': 'Por favor, insira um nome para a instância.',
+    'integrations.panel.create.error-failed': 'Falha ao criar instância. Por favor, tente novamente.',
+    'integrations.panel.create.success-title': 'Instância Criada',
+    'integrations.panel.create.success-description': 'Sua instância do WhatsApp foi criada com sucesso.',
+    
+    // Test Instance Modal
+    'integrations.panel.test.title': 'Testar Instância do WhatsApp',
+    'integrations.panel.test.description': 'Envie uma mensagem de teste para verificar a conexão da instância.',
+    'integrations.panel.test.instance-name': 'Nome da Instância',
+    'integrations.panel.test.phone-label': 'Número de Telefone do Destinatário',
+    'integrations.panel.test.message-label': 'Mensagem',
+    'integrations.panel.test.message-placeholder': 'Digite sua mensagem de teste...',
+    'integrations.panel.test.info-message': 'Este teste é usado para verificar se esta instância do WhatsApp está devidamente conectada e capaz de entregar mensagens. A lógica de entrega no backend será implementada em breve.',
+    'integrations.panel.test.send-test': 'Enviar Mensagem de Teste',
+    
+    // Delete Instance Modal
+    'integrations.panel.delete.title': 'Excluir Instância do WhatsApp',
+    'integrations.panel.delete.description': 'Tem certeza de que deseja excluir esta instância? Esta ação não pode ser desfeita.',
+    'integrations.panel.delete.warning': 'Se esta instância for excluída, todos os leads que enviarem mensagens para este número do WhatsApp não serão mais sincronizados no funil do CRM.',
+    'integrations.panel.delete.confirm': 'Excluir Instância',
+    'integrations.panel.delete.success-title': 'Instância Excluída',
+    'integrations.panel.delete.success-description': 'A instância do WhatsApp foi excluída com sucesso.',
+    
+    // Common additions
+    'common.characters': 'caracteres',
+    'common.close': 'Fechar',
 
     // API Documentation
     'api.api': 'API',
@@ -4056,6 +4122,39 @@ const translations = {
     'integrations.panel.whatsapp.not-available': 'Integration nicht installiert',
     'integrations.panel.whatsapp.no-instances': 'Noch keine Instanzen erstellt. Klicken Sie auf die Schaltfläche unten, um Ihre erste WhatsApp-Instanz zu erstellen.',
     'integrations.panel.whatsapp.install-message': 'Die WhatsApp-Integration ist nicht installiert. Bitte gehen Sie zum CRM App Store, um sie zuerst zu installieren.',
+    
+    // Create Instance Modal
+    'integrations.panel.create.title': 'WhatsApp-Instanz Erstellen',
+    'integrations.panel.create.description': 'Erstellen Sie eine neue WhatsApp-Instanz, um Ihr Gerät zu verbinden.',
+    'integrations.panel.create.name-label': 'Instanzname',
+    'integrations.panel.create.name-placeholder': 'z.B. verkaufs-team',
+    'integrations.panel.create.name-hint': 'Ein zufälliger 8-Zeichen-Schlüssel wird automatisch am Ende des Namens zur Identifizierung hinzugefügt.',
+    'integrations.panel.create.error-empty': 'Bitte geben Sie einen Instanznamen ein.',
+    'integrations.panel.create.error-failed': 'Instanz konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    'integrations.panel.create.success-title': 'Instanz Erstellt',
+    'integrations.panel.create.success-description': 'Ihre WhatsApp-Instanz wurde erfolgreich erstellt.',
+    
+    // Test Instance Modal
+    'integrations.panel.test.title': 'WhatsApp-Instanz Testen',
+    'integrations.panel.test.description': 'Senden Sie eine Testnachricht, um die Instanzverbindung zu überprüfen.',
+    'integrations.panel.test.instance-name': 'Instanzname',
+    'integrations.panel.test.phone-label': 'Empfänger-Telefonnummer',
+    'integrations.panel.test.message-label': 'Nachricht',
+    'integrations.panel.test.message-placeholder': 'Geben Sie Ihre Testnachricht ein...',
+    'integrations.panel.test.info-message': 'Dieser Test wird verwendet, um zu überprüfen, ob diese WhatsApp-Instanz ordnungsgemäß verbunden ist und Nachrichten zustellen kann. Die Backend-Zustellungslogik wird bald implementiert.',
+    'integrations.panel.test.send-test': 'Testnachricht Senden',
+    
+    // Delete Instance Modal
+    'integrations.panel.delete.title': 'WhatsApp-Instanz Löschen',
+    'integrations.panel.delete.description': 'Sind Sie sicher, dass Sie diese Instanz löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'integrations.panel.delete.warning': 'Wenn diese Instanz gelöscht wird, werden alle Leads, die dieser WhatsApp-Nummer Nachrichten senden, nicht mehr in den CRM-Trichter synchronisiert.',
+    'integrations.panel.delete.confirm': 'Instanz Löschen',
+    'integrations.panel.delete.success-title': 'Instanz Gelöscht',
+    'integrations.panel.delete.success-description': 'Die WhatsApp-Instanz wurde erfolgreich gelöscht.',
+    
+    // Common additions
+    'common.characters': 'Zeichen',
+    'common.close': 'Schließen',
 
     // API Documentation
     'api.api': 'API',
@@ -5518,6 +5617,39 @@ const translations = {
     'integrations.panel.whatsapp.not-available': 'Integración no instalada',
     'integrations.panel.whatsapp.no-instances': 'Aún no hay instancias creadas. Haz clic en el botón de abajo para crear tu primera instancia de WhatsApp.',
     'integrations.panel.whatsapp.install-message': 'La integración de WhatsApp no está instalada. Por favor, ve a la App Store del CRM para instalarla primero.',
+    
+    // Create Instance Modal
+    'integrations.panel.create.title': 'Crear Instancia de WhatsApp',
+    'integrations.panel.create.description': 'Crea una nueva instancia de WhatsApp para conectar tu dispositivo.',
+    'integrations.panel.create.name-label': 'Nombre de la Instancia',
+    'integrations.panel.create.name-placeholder': 'ej: equipo-ventas',
+    'integrations.panel.create.name-hint': 'Se agregará automáticamente una clave aleatoria de 8 caracteres al final del nombre para fines de identificación.',
+    'integrations.panel.create.error-empty': 'Por favor, ingresa un nombre para la instancia.',
+    'integrations.panel.create.error-failed': 'Error al crear la instancia. Por favor, inténtalo de nuevo.',
+    'integrations.panel.create.success-title': 'Instancia Creada',
+    'integrations.panel.create.success-description': 'Tu instancia de WhatsApp ha sido creada con éxito.',
+    
+    // Test Instance Modal
+    'integrations.panel.test.title': 'Probar Instancia de WhatsApp',
+    'integrations.panel.test.description': 'Envía un mensaje de prueba para verificar la conexión de la instancia.',
+    'integrations.panel.test.instance-name': 'Nombre de la Instancia',
+    'integrations.panel.test.phone-label': 'Número de Teléfono del Destinatario',
+    'integrations.panel.test.message-label': 'Mensaje',
+    'integrations.panel.test.message-placeholder': 'Escribe tu mensaje de prueba...',
+    'integrations.panel.test.info-message': 'Esta prueba se utiliza para verificar si esta instancia de WhatsApp está correctamente conectada y puede entregar mensajes. La lógica de entrega del backend se implementará pronto.',
+    'integrations.panel.test.send-test': 'Enviar Mensaje de Prueba',
+    
+    // Delete Instance Modal
+    'integrations.panel.delete.title': 'Eliminar Instancia de WhatsApp',
+    'integrations.panel.delete.description': '¿Estás seguro de que deseas eliminar esta instancia? Esta acción no se puede deshacer.',
+    'integrations.panel.delete.warning': 'Si se elimina esta instancia, todos los leads que envíen mensajes a este número de WhatsApp ya no se sincronizarán en el embudo del CRM.',
+    'integrations.panel.delete.confirm': 'Eliminar Instancia',
+    'integrations.panel.delete.success-title': 'Instancia Eliminada',
+    'integrations.panel.delete.success-description': 'La instancia de WhatsApp ha sido eliminada con éxito.',
+    
+    // Common additions
+    'common.characters': 'caracteres',
+    'common.close': 'Cerrar',
 
     // API Documentation
     'api.api': 'API',
