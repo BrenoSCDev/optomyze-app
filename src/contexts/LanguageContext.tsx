@@ -999,7 +999,7 @@ const translations = {
     'integrations.panel.test.phone-label': 'Recipient Phone Number',
     'integrations.panel.test.message-label': 'Message',
     'integrations.panel.test.message-placeholder': 'Enter your test message...',
-    'integrations.panel.test.info-message': 'This test is used to verify whether this WhatsApp instance is properly connected and able to deliver messages. Backend delivery logic will be implemented soon.',
+    'integrations.panel.test.info-message': 'This test is used to verify whether this WhatsApp instance is properly connected and able to deliver messages.',
     'integrations.panel.test.send-test': 'Send Test Message',
     
     // Delete Instance Modal
@@ -2655,7 +2655,7 @@ const translations = {
     'integrations.panel.test.phone-label': 'Número de Telefone do Destinatário',
     'integrations.panel.test.message-label': 'Mensagem',
     'integrations.panel.test.message-placeholder': 'Digite sua mensagem de teste...',
-    'integrations.panel.test.info-message': 'Este teste é usado para verificar se esta instância do WhatsApp está devidamente conectada e capaz de entregar mensagens. A lógica de entrega no backend será implementada em breve.',
+    'integrations.panel.test.info-message': 'Este teste é usado para verificar se esta instância do WhatsApp está devidamente conectada e capaz de entregar mensagens.',
     'integrations.panel.test.send-test': 'Enviar Mensagem de Teste',
     
     // Delete Instance Modal
@@ -4141,7 +4141,7 @@ const translations = {
     'integrations.panel.test.phone-label': 'Empfänger-Telefonnummer',
     'integrations.panel.test.message-label': 'Nachricht',
     'integrations.panel.test.message-placeholder': 'Geben Sie Ihre Testnachricht ein...',
-    'integrations.panel.test.info-message': 'Dieser Test wird verwendet, um zu überprüfen, ob diese WhatsApp-Instanz ordnungsgemäß verbunden ist und Nachrichten zustellen kann. Die Backend-Zustellungslogik wird bald implementiert.',
+    'integrations.panel.test.info-message': 'Dieser Test wird verwendet, um zu überprüfen, ob diese WhatsApp-Instanz ordnungsgemäß verbunden ist und Nachrichten zustellen kann.',
     'integrations.panel.test.send-test': 'Testnachricht Senden',
     
     // Delete Instance Modal
@@ -5636,7 +5636,7 @@ const translations = {
     'integrations.panel.test.phone-label': 'Número de Teléfono del Destinatario',
     'integrations.panel.test.message-label': 'Mensaje',
     'integrations.panel.test.message-placeholder': 'Escribe tu mensaje de prueba...',
-    'integrations.panel.test.info-message': 'Esta prueba se utiliza para verificar si esta instancia de WhatsApp está correctamente conectada y puede entregar mensajes. La lógica de entrega del backend se implementará pronto.',
+    'integrations.panel.test.info-message': 'Esta prueba se utiliza para verificar si esta instancia de WhatsApp está correctamente conectada y puede entregar mensajes.',
     'integrations.panel.test.send-test': 'Enviar Mensaje de Prueba',
     
     // Delete Instance Modal

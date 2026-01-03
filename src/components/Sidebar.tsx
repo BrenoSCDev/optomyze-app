@@ -28,8 +28,6 @@ import {
   ChevronRight,
   Menu,
   X,
-  TrendingUp,
-  BarChart,
   Plug,
   LogOut,
   Tag,
@@ -52,6 +50,7 @@ import { FaMeta } from "react-icons/fa6";
 import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
+import { VscSettings } from "react-icons/vsc";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -119,7 +118,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Integrations submenu items
   const integrationsItems = [
     { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
-    { id: 'integration-panel', label: t('integrations.panel.menu-title'), icon: () => <Plug size={16} /> },
+    { id: 'integration-panel', label: t('integrations.panel.menu-title'), icon: () => <VscSettings size={16} /> },
   ];
 
   // AI Agents submenu items
