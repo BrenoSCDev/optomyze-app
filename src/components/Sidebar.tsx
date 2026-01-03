@@ -834,47 +834,119 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Contracts Section */}
         <div>
           <button
-            onClick={() => handleSectionNavigation('contracts')}
-            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
-              activeSection === 'contracts' ? 'active' : ''
-            }`}
+            onClick={() => toggleSection('contracts')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
-            <FileText className="h-5 w-5" />
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.contracts')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
             <AnimatePresence>
               {!effectivelyCollapsed && (
-                <motion.span
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {t('nav.contracts')}
-                </motion.span>
+                  {expandedSection === 'contracts' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
               )}
             </AnimatePresence>
           </button>
+
+          <AnimatePresence>
+            {expandedSection === 'contracts' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {contractsItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item-sub w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Support Section */}
         <div>
           <button
-            onClick={() => handleSectionNavigation('support')}
-            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
-              activeSection === 'support' ? 'active' : ''
-            }`}
+            onClick={() => toggleSection('support')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
-            <Headphones className="h-5 w-5" />
+            <div className="flex items-center gap-3">
+              <Headphones className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.support')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
             <AnimatePresence>
               {!effectivelyCollapsed && (
-                <motion.span
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {t('nav.support')}
-                </motion.span>
+                  {expandedSection === 'support' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
               )}
             </AnimatePresence>
           </button>
+
+          <AnimatePresence>
+            {expandedSection === 'support' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {supportItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSectionNavigation(item.id)}
+                    className={`nav-item-sub w-full ${
+                      activeSection === item.id ? 'active' : ''
+                    }`}
+                  >
+                    {React.createElement(item.icon, { className: "h-3.5 w-3.5" })}
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
     </motion.div>
