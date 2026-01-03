@@ -1032,6 +1032,10 @@ const translations = {
     'integrations.panel.funnel.select-placeholder': 'Choose a funnel...',
     'integrations.panel.funnel.validation-error': 'Please select a funnel before saving.',
     'integrations.panel.funnel.info-message': 'Every lead that sends a message to this WhatsApp number will be automatically created as a lead in the selected funnel, starting at the Entry Type stage.',
+    'integrations.panel.funnel.success-title': 'Funnel Associated',
+    'integrations.panel.funnel.success-description': 'The funnel has been successfully linked to this WhatsApp instance.',
+    'integrations.panel.funnel.error-title': 'Association Failed',
+    'integrations.panel.funnel.error-description': 'Failed to associate the funnel. Please try again.',
     
     // Common additions
     'common.characters': 'characters',
@@ -2711,6 +2715,10 @@ const translations = {
     'integrations.panel.funnel.select-placeholder': 'Escolha um funil...',
     'integrations.panel.funnel.validation-error': 'Por favor, selecione um funil antes de salvar.',
     'integrations.panel.funnel.info-message': 'Cada lead que enviar uma mensagem para este número do WhatsApp será automaticamente criado como lead no funil selecionado, começando na etapa de Tipo de Entrada.',
+    'integrations.panel.funnel.success-title': 'Funil Associado',
+    'integrations.panel.funnel.success-description': 'O funil foi vinculado com sucesso a esta instância do WhatsApp.',
+    'integrations.panel.funnel.error-title': 'Falha na Associação',
+    'integrations.panel.funnel.error-description': 'Falha ao associar o funil. Por favor, tente novamente.',
     
     // Common additions
     'common.characters': 'caracteres',
@@ -4220,6 +4228,10 @@ const translations = {
     'integrations.panel.funnel.select-placeholder': 'Wählen Sie einen Funnel...',
     'integrations.panel.funnel.validation-error': 'Bitte wählen Sie einen Funnel vor dem Speichern.',
     'integrations.panel.funnel.info-message': 'Jeder Lead, der eine Nachricht an diese WhatsApp-Nummer sendet, wird automatisch als Lead im ausgewählten Funnel erstellt, beginnend in der Eingangsphase.',
+    'integrations.panel.funnel.success-title': 'Funnel Zugeordnet',
+    'integrations.panel.funnel.success-description': 'Der Funnel wurde erfolgreich mit dieser WhatsApp-Instanz verknüpft.',
+    'integrations.panel.funnel.error-title': 'Zuordnung Fehlgeschlagen',
+    'integrations.panel.funnel.error-description': 'Der Funnel konnte nicht zugeordnet werden. Bitte versuchen Sie es erneut.',
     
     // Common additions
     'common.characters': 'Zeichen',
@@ -5738,6 +5750,10 @@ const translations = {
     'integrations.panel.funnel.select-placeholder': 'Elija un embudo...',
     'integrations.panel.funnel.validation-error': 'Por favor, seleccione un embudo antes de guardar.',
     'integrations.panel.funnel.info-message': 'Cada lead que envíe un mensaje a este número de WhatsApp se creará automáticamente como lead en el embudo seleccionado, comenzando en la etapa de Tipo de Entrada.',
+    'integrations.panel.funnel.success-title': 'Embudo Asociado',
+    'integrations.panel.funnel.success-description': 'El embudo ha sido vinculado exitosamente a esta instancia de WhatsApp.',
+    'integrations.panel.funnel.error-title': 'Asociación Fallida',
+    'integrations.panel.funnel.error-description': 'No se pudo asociar el embudo. Por favor, inténtelo de nuevo.',
     
     // Common additions
     'common.characters': 'caracteres',
