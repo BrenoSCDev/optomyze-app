@@ -145,11 +145,13 @@ const Index = () => {
         return <ManageProducts />;
       
       // Contracts section
-      case 'contracts':
+      case 'model-contracts':
+      case 'list-contracts':
         return <ContractsPlaceholder />;
       
       // Support section
-      case 'support':
+      case 'open-ticket':
+      case 'speak-with-ai':
         return <SupportPlaceholder />;
       
       default:

@@ -44,10 +44,14 @@ const translations = {
     // Contracts
     'contracts.title': 'Contracts',
     'contracts.coming-soon': 'Contract management is coming soon. You will be able to create, track, and manage all your business contracts here.',
+    'contracts.model': 'Model Contracts',
+    'contracts.list': 'List Contracts',
     
     // Support
     'support.title': 'Support',
     'support.coming-soon': 'Support center is coming soon. You will be able to get help, submit tickets, and access documentation here.',
+    'support.open-ticket': 'Open a Ticket',
+    'support.speak-with-ai': 'Speak with AI',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -1828,10 +1832,14 @@ const translations = {
     // Contracts
     'contracts.title': 'Contratos',
     'contracts.coming-soon': 'A gestão de contratos está chegando em breve. Você poderá criar, acompanhar e gerenciar todos os seus contratos comerciais aqui.',
+    'contracts.model': 'Modelos de Contrato',
+    'contracts.list': 'Lista de Contratos',
     
     // Support
     'support.title': 'Suporte',
     'support.coming-soon': 'A central de suporte está chegando em breve. Você poderá obter ajuda, enviar tickets e acessar a documentação aqui.',
+    'support.open-ticket': 'Abrir um Ticket',
+    'support.speak-with-ai': 'Falar com IA',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -3582,10 +3590,14 @@ const translations = {
     // Contracts
     'contracts.title': 'Verträge',
     'contracts.coming-soon': 'Vertragsverwaltung kommt bald. Sie werden hier alle Ihre Geschäftsverträge erstellen, verfolgen und verwalten können.',
+    'contracts.model': 'Vertragsvorlagen',
+    'contracts.list': 'Vertragsliste',
     
     // Support
     'support.title': 'Support',
     'support.coming-soon': 'Das Supportcenter kommt bald. Sie werden hier Hilfe erhalten, Tickets einreichen und auf die Dokumentation zugreifen können.',
+    'support.open-ticket': 'Ticket erstellen',
+    'support.speak-with-ai': 'Mit KI sprechen',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
@@ -5169,10 +5181,14 @@ const translations = {
     // Contracts
     'contracts.title': 'Contratos',
     'contracts.coming-soon': 'La gestión de contratos llegará pronto. Podrás crear, dar seguimiento y gestionar todos tus contratos comerciales aquí.',
+    'contracts.model': 'Modelos de Contrato',
+    'contracts.list': 'Lista de Contratos',
     
     // Support
     'support.title': 'Soporte',
     'support.coming-soon': 'El centro de soporte llegará pronto. Podrás obtener ayuda, enviar tickets y acceder a la documentación aquí.',
+    'support.open-ticket': 'Abrir un Ticket',
+    'support.speak-with-ai': 'Hablar con IA',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
