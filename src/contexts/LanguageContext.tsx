@@ -1024,6 +1024,15 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instance Deleted',
     'integrations.panel.delete.success-description': 'The WhatsApp instance has been deleted successfully.',
     
+    // Funnel Selection Modal
+    'integrations.panel.funnel.title': 'Associate Funnel',
+    'integrations.panel.funnel.description': 'Link this WhatsApp instance to a CRM funnel for automatic lead creation.',
+    'integrations.panel.funnel.button': 'Funnel',
+    'integrations.panel.funnel.select-label': 'Select Funnel',
+    'integrations.panel.funnel.select-placeholder': 'Choose a funnel...',
+    'integrations.panel.funnel.validation-error': 'Please select a funnel before saving.',
+    'integrations.panel.funnel.info-message': 'Every lead that sends a message to this WhatsApp number will be automatically created as a lead in the selected funnel, starting at the Entry Type stage.',
+    
     // Common additions
     'common.characters': 'characters',
     'common.close': 'Close',
@@ -2694,6 +2703,15 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instância Excluída',
     'integrations.panel.delete.success-description': 'A instância do WhatsApp foi excluída com sucesso.',
     
+    // Funnel Selection Modal
+    'integrations.panel.funnel.title': 'Associar Funil',
+    'integrations.panel.funnel.description': 'Vincule esta instância do WhatsApp a um funil do CRM para criação automática de leads.',
+    'integrations.panel.funnel.button': 'Funil',
+    'integrations.panel.funnel.select-label': 'Selecionar Funil',
+    'integrations.panel.funnel.select-placeholder': 'Escolha um funil...',
+    'integrations.panel.funnel.validation-error': 'Por favor, selecione um funil antes de salvar.',
+    'integrations.panel.funnel.info-message': 'Cada lead que enviar uma mensagem para este número do WhatsApp será automaticamente criado como lead no funil selecionado, começando na etapa de Tipo de Entrada.',
+    
     // Common additions
     'common.characters': 'caracteres',
     'common.close': 'Fechar',
@@ -4193,6 +4211,15 @@ const translations = {
     'integrations.panel.delete.confirm': 'Instanz Löschen',
     'integrations.panel.delete.success-title': 'Instanz Gelöscht',
     'integrations.panel.delete.success-description': 'Die WhatsApp-Instanz wurde erfolgreich gelöscht.',
+    
+    // Funnel Selection Modal
+    'integrations.panel.funnel.title': 'Funnel Zuordnen',
+    'integrations.panel.funnel.description': 'Verknüpfen Sie diese WhatsApp-Instanz mit einem CRM-Funnel für automatische Lead-Erstellung.',
+    'integrations.panel.funnel.button': 'Funnel',
+    'integrations.panel.funnel.select-label': 'Funnel Auswählen',
+    'integrations.panel.funnel.select-placeholder': 'Wählen Sie einen Funnel...',
+    'integrations.panel.funnel.validation-error': 'Bitte wählen Sie einen Funnel vor dem Speichern.',
+    'integrations.panel.funnel.info-message': 'Jeder Lead, der eine Nachricht an diese WhatsApp-Nummer sendet, wird automatisch als Lead im ausgewählten Funnel erstellt, beginnend in der Eingangsphase.',
     
     // Common additions
     'common.characters': 'Zeichen',
@@ -5702,6 +5729,15 @@ const translations = {
     'integrations.panel.delete.confirm': 'Eliminar Instancia',
     'integrations.panel.delete.success-title': 'Instancia Eliminada',
     'integrations.panel.delete.success-description': 'La instancia de WhatsApp ha sido eliminada con éxito.',
+    
+    // Funnel Selection Modal
+    'integrations.panel.funnel.title': 'Asociar Embudo',
+    'integrations.panel.funnel.description': 'Vincule esta instancia de WhatsApp a un embudo del CRM para la creación automática de leads.',
+    'integrations.panel.funnel.button': 'Embudo',
+    'integrations.panel.funnel.select-label': 'Seleccionar Embudo',
+    'integrations.panel.funnel.select-placeholder': 'Elija un embudo...',
+    'integrations.panel.funnel.validation-error': 'Por favor, seleccione un embudo antes de guardar.',
+    'integrations.panel.funnel.info-message': 'Cada lead que envíe un mensaje a este número de WhatsApp se creará automáticamente como lead en el embudo seleccionado, comenzando en la etapa de Tipo de Entrada.',
     
     // Common additions
     'common.characters': 'caracteres',

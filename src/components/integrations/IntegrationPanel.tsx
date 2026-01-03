@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2 } from 'lucide-react';
+import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2, GitBranch } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -19,6 +19,7 @@ import CreateInstanceModal from './CreateInstanceModal';
 import TestInstanceModal from './TestInstanceModal';
 import DeleteInstanceModal from './DeleteInstanceModal';
 import QRCodeModal from './QRCodeModal';
+import FunnelSelectionModal from './FunnelSelectionModal';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -27,18 +28,25 @@ interface WhatsAppInstance {
   status?: string;
 }
 
+interface Funnel {
+  id: number;
+  name: string;
+}
+
 interface AvailableIntegrations {
   n8n_available: boolean;
   meta_ads_available: boolean;
   google_ads_available: boolean;
   wpp_evo_available: boolean;
   wpp_evo_instances?: WhatsAppInstance[];
+  funnels?: Funnel[];
 }
 
 const IntegrationPanel: React.FC = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [integrations, setIntegrations] = useState<AvailableIntegrations | null>(null);
+  const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Modal states
@@ -46,6 +54,7 @@ const IntegrationPanel: React.FC = () => {
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
+  const [funnelModalOpen, setFunnelModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
   useEffect(() => {
@@ -56,6 +65,10 @@ const IntegrationPanel: React.FC = () => {
     try {
       const response = await api.get('/api/integrations/available/settings');
       setIntegrations(response.data);
+      // Store funnels in separate state for reuse
+      if (response.data.funnels) {
+        setFunnels(response.data.funnels);
+      }
     } catch (error) {
       console.error('Error fetching available integrations:', error);
     } finally {
@@ -104,6 +117,11 @@ const IntegrationPanel: React.FC = () => {
   const openQrCodeModal = (instance: WhatsAppInstance) => {
     setSelectedInstance(instance);
     setQrCodeModalOpen(true);
+  };
+
+  const openFunnelModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setFunnelModalOpen(true);
   };
 
   return (
@@ -162,9 +180,9 @@ const IntegrationPanel: React.FC = () => {
                       </Button>
                     </div>
 
-                    {/* Instances Grid */}
+                    {/* Instances Grid - 2 columns */}
                     {integrations.wpp_evo_instances && integrations.wpp_evo_instances.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {integrations.wpp_evo_instances.map((instance) => (
                           <div 
                             key={instance.id} 
@@ -186,7 +204,7 @@ const IntegrationPanel: React.FC = () => {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
+                            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border">
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -204,6 +222,15 @@ const IntegrationPanel: React.FC = () => {
                               >
                                 <TestTube2 className="w-4 h-4 mr-1" />
                                 {t('common.test')}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => openFunnelModal(instance)}
+                              >
+                                <GitBranch className="w-4 h-4 mr-1" />
+                                {t('integrations.panel.funnel.button')}
                               </Button>
                               <Button 
                                 variant="outline" 
@@ -273,6 +300,13 @@ const IntegrationPanel: React.FC = () => {
         open={qrCodeModalOpen}
         onOpenChange={setQrCodeModalOpen}
         instance={selectedInstance}
+      />
+
+      <FunnelSelectionModal
+        open={funnelModalOpen}
+        onOpenChange={setFunnelModalOpen}
+        instance={selectedInstance}
+        funnels={funnels}
       />
     </div>
   );
