@@ -22,14 +22,14 @@ export const observationService = {
       lead_id: leadId,
       note
     });
-    return response.data;
+    return response.data.data;
   },
 
   async updateObservation(observationId: number, note: string): Promise<Observation> {
     const response = await api.put(`/api/observations/${observationId}`, {
       note
     });
-    return response.data;
+    return response.data.data;
   },
 
   async deleteObservation(observationId: number): Promise<void> {
