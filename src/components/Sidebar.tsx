@@ -16,7 +16,6 @@
  */
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -29,21 +28,19 @@ import {
   Menu,
   X,
   Plug,
-  LogOut,
   Tag,
   Bot,
   Key,
   MessageCircle,
-  UserCircle,
   CalendarDays,
-  Package
+  Package,
+  FileText,
+  Headphones
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import optomyzeLogo from '@/assets/optomyze.png';
-import { getStorageUrl } from '@/lib/constants';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta, FaWhatsapp } from "react-icons/fa6";
@@ -64,15 +61,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   const [expandedSection, setExpandedSection] = useState<string>('dashboard');
   // Controls hover state for collapsed sidebar
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  // Controls user dropdown
-  const [userDropdownOpen, setUserDropdownOpen] = useState<boolean>(false);
   
   // Helper function to toggle section and close others
   const toggleSection = (sectionName: string) => {
     setExpandedSection(expandedSection === sectionName ? '' : sectionName);
   };
   
-  const { funnels, logout, user } = useAuth();
+  const { funnels, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -153,6 +148,16 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} /> },
   ];
 
+  // Contracts submenu items
+  const contractsItems = [
+    { id: 'contracts', label: t('nav.contracts'), icon: () => <FileText size={16} /> },
+  ];
+
+  // Support submenu items
+  const supportItems = [
+    { id: 'support', label: t('nav.support'), icon: () => <Headphones size={16} /> },
+  ];
+
   // Main navigation items - currently placeholder items for future CRM features
   const mainItems = [
     { id: 'integrations', label: t('nav.integrations'), icon: Plug }, // Future: Third-party integrations
@@ -163,7 +168,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   return (
     <motion.div
-      className={`fixed left-0 top-0 h-full glass-card z-50 transition-all duration-300 ${
+      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] glass-card z-50 transition-all duration-300 ${
         effectivelyCollapsed ? 'w-16' : 'w-64'
       }`}
       initial={false}
@@ -820,73 +825,50 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
         ))}
 
-        {/* User Info with Dropdown */}
-        <div className="mt-8 pt-4 border-t border-white/10">
-          <AnimatePresence>
-            {!effectivelyCollapsed && user && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button className="w-full p-3 glass-card backdrop-blur-md bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-xl shadow-lg overflow-hidden hover:from-white/15 hover:to-white/10 transition-all duration-300">
-                      <div className="flex items-center gap-3">
-                        {/* Profile Picture or Initial */}
-                        <div className="flex-shrink-0">
-                          {user.profile_pic ? (
-                            <img 
-                              src={getStorageUrl(user.profile_pic)} 
-                              alt={user.name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-white/20">
-                              <span className="text-white font-semibold text-lg">
-                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* User Info */}
-                        <div className="flex-1 min-w-0 text-left">
-                          <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
-                          <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                          {user.company_name && (
-                            <div className="text-xs text-muted-foreground/80 truncate mt-0.5">{user.company_name}</div>
-                          )}
-                        </div>
+        {/* Contracts Section */}
+        <div>
+          <button
+            onClick={() => handleSectionNavigation('contracts')}
+            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
+              activeSection === 'contracts' ? 'active' : ''
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {t('nav.contracts')}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+        </div>
 
-                        {/* Dropdown indicator */}
-                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
-                    className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20"
-                    sideOffset={8}
-                  >
-                    <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
-                      <Link to="/profile" className="flex items-center w-full">
-                        <UserCircle className="h-4 w-4 mr-2" />
-                        My Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="cursor-pointer hover:bg-white hover:text-black"
-                      onClick={logout}
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      {t('nav.logout')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Support Section */}
+        <div>
+          <button
+            onClick={() => handleSectionNavigation('support')}
+            className={`nav-item w-full ${effectivelyCollapsed ? 'justify-center' : ''} ${
+              activeSection === 'support' ? 'active' : ''
+            }`}
+          >
+            <Headphones className="h-5 w-5" />
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {t('nav.support')}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
         </div>
       </nav>
     </motion.div>

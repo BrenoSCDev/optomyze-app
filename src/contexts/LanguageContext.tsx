@@ -34,6 +34,20 @@ const translations = {
     'nav.tags': 'Tags',
     'nav.apiKeys': 'API Keys',
     'nav.crm-panel': 'CRM Panel',
+    'nav.contracts': 'Contracts',
+    'nav.support': 'Support',
+    
+    // Header
+    'header.search-placeholder': 'Search leads...',
+    'header.my-profile': 'My Profile',
+    
+    // Contracts
+    'contracts.title': 'Contracts',
+    'contracts.coming-soon': 'Contract management is coming soon. You will be able to create, track, and manage all your business contracts here.',
+    
+    // Support
+    'support.title': 'Support',
+    'support.coming-soon': 'Support center is coming soon. You will be able to get help, submit tickets, and access documentation here.',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -1804,6 +1818,20 @@ const translations = {
     'nav.tags': 'Tags',
     'nav.apiKeys': 'Chaves API',
     'nav.crm-panel': 'Painel CRM',
+    'nav.contracts': 'Contratos',
+    'nav.support': 'Suporte',
+    
+    // Header
+    'header.search-placeholder': 'Buscar leads...',
+    'header.my-profile': 'Meu Perfil',
+    
+    // Contracts
+    'contracts.title': 'Contratos',
+    'contracts.coming-soon': 'A gestão de contratos está chegando em breve. Você poderá criar, acompanhar e gerenciar todos os seus contratos comerciais aqui.',
+    
+    // Support
+    'support.title': 'Suporte',
+    'support.coming-soon': 'A central de suporte está chegando em breve. Você poderá obter ajuda, enviar tickets e acessar a documentação aqui.',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -3544,6 +3572,20 @@ const translations = {
     'nav.apiKeys': 'API-Schlüssel',
     'nav.crm-panel': 'CRM-Panel',
     'nav.tags': 'Tags',
+    'nav.contracts': 'Verträge',
+    'nav.support': 'Support',
+    
+    // Header
+    'header.search-placeholder': 'Leads suchen...',
+    'header.my-profile': 'Mein Profil',
+    
+    // Contracts
+    'contracts.title': 'Verträge',
+    'contracts.coming-soon': 'Vertragsverwaltung kommt bald. Sie werden hier alle Ihre Geschäftsverträge erstellen, verfolgen und verwalten können.',
+    
+    // Support
+    'support.title': 'Support',
+    'support.coming-soon': 'Das Supportcenter kommt bald. Sie werden hier Hilfe erhalten, Tickets einreichen und auf die Dokumentation zugreifen können.',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
@@ -5117,6 +5159,20 @@ const translations = {
     'nav.tags': 'Etiquetas',
     'nav.apiKeys': 'Claves API',
     'nav.crm-panel': 'Panel CRM',
+    'nav.contracts': 'Contratos',
+    'nav.support': 'Soporte',
+    
+    // Header
+    'header.search-placeholder': 'Buscar leads...',
+    'header.my-profile': 'Mi Perfil',
+    
+    // Contracts
+    'contracts.title': 'Contratos',
+    'contracts.coming-soon': 'La gestión de contratos llegará pronto. Podrás crear, dar seguimiento y gestionar todos tus contratos comerciales aquí.',
+    
+    // Support
+    'support.title': 'Soporte',
+    'support.coming-soon': 'El centro de soporte llegará pronto. Podrás obtener ayuda, enviar tickets y acceder a la documentación aquí.',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',
