@@ -51,7 +51,18 @@ const translations = {
     'support.title': 'Support',
     'support.coming-soon': 'Support center is coming soon. You will be able to get help, submit tickets, and access documentation here.',
     'support.open-ticket': 'Open a Ticket',
-    'support.speak-with-ai': 'Speak with AI',
+    'support.talk-to-optus': 'Talk to Optus',
+    
+    // Optus Chat
+    'optus.title': 'Talk to Optus',
+    'optus.subtitle': 'Your AI CRM Assistant',
+    'optus.welcome': 'Hi! I\'m Optus',
+    'optus.welcome-desc': 'I\'m here to help you navigate the CRM. Ask me anything about funnels, leads, integrations, or how to use any feature!',
+    'optus.placeholder': 'Type your message...',
+    'optus.thinking': 'Optus is thinking...',
+    'optus.error': 'Sorry, I couldn\'t process your request. Please try again.',
+    'optus.storage-info': 'Your conversation is stored locally in this browser. If you change devices or browsers, your previous messages won\'t be available.',
+    'optus.clear-chat': 'Clear conversation',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -1839,7 +1850,18 @@ const translations = {
     'support.title': 'Suporte',
     'support.coming-soon': 'A central de suporte está chegando em breve. Você poderá obter ajuda, enviar tickets e acessar a documentação aqui.',
     'support.open-ticket': 'Abrir um Ticket',
-    'support.speak-with-ai': 'Falar com IA',
+    'support.talk-to-optus': 'Falar com Optus',
+    
+    // Optus Chat
+    'optus.title': 'Falar com Optus',
+    'optus.subtitle': 'Seu Assistente de IA do CRM',
+    'optus.welcome': 'Olá! Eu sou o Optus',
+    'optus.welcome-desc': 'Estou aqui para ajudá-lo a navegar pelo CRM. Pergunte-me qualquer coisa sobre funis, leads, integrações ou como usar qualquer recurso!',
+    'optus.placeholder': 'Digite sua mensagem...',
+    'optus.thinking': 'Optus está pensando...',
+    'optus.error': 'Desculpe, não consegui processar sua solicitação. Por favor, tente novamente.',
+    'optus.storage-info': 'Sua conversa é armazenada localmente neste navegador. Se você trocar de dispositivo ou navegador, suas mensagens anteriores não estarão disponíveis.',
+    'optus.clear-chat': 'Limpar conversa',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -3597,7 +3619,18 @@ const translations = {
     'support.title': 'Support',
     'support.coming-soon': 'Das Supportcenter kommt bald. Sie werden hier Hilfe erhalten, Tickets einreichen und auf die Dokumentation zugreifen können.',
     'support.open-ticket': 'Ticket erstellen',
-    'support.speak-with-ai': 'Mit KI sprechen',
+    'support.talk-to-optus': 'Mit Optus sprechen',
+    
+    // Optus Chat
+    'optus.title': 'Mit Optus sprechen',
+    'optus.subtitle': 'Ihr KI-CRM-Assistent',
+    'optus.welcome': 'Hallo! Ich bin Optus',
+    'optus.welcome-desc': 'Ich bin hier, um Ihnen bei der Navigation im CRM zu helfen. Fragen Sie mich alles über Trichter, Leads, Integrationen oder wie Sie eine Funktion nutzen können!',
+    'optus.placeholder': 'Geben Sie Ihre Nachricht ein...',
+    'optus.thinking': 'Optus denkt nach...',
+    'optus.error': 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten. Bitte versuchen Sie es erneut.',
+    'optus.storage-info': 'Ihre Konversation wird lokal in diesem Browser gespeichert. Wenn Sie das Gerät oder den Browser wechseln, sind Ihre vorherigen Nachrichten nicht verfügbar.',
+    'optus.clear-chat': 'Konversation löschen',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Optomyze Metriken',
@@ -5188,7 +5221,18 @@ const translations = {
     'support.title': 'Soporte',
     'support.coming-soon': 'El centro de soporte llegará pronto. Podrás obtener ayuda, enviar tickets y acceder a la documentación aquí.',
     'support.open-ticket': 'Abrir un Ticket',
-    'support.speak-with-ai': 'Hablar con IA',
+    'support.talk-to-optus': 'Hablar con Optus',
+    
+    // Optus Chat
+    'optus.title': 'Hablar con Optus',
+    'optus.subtitle': 'Tu Asistente de IA del CRM',
+    'optus.welcome': '¡Hola! Soy Optus',
+    'optus.welcome-desc': 'Estoy aquí para ayudarte a navegar por el CRM. ¡Pregúntame cualquier cosa sobre embudos, leads, integraciones o cómo usar cualquier función!',
+    'optus.placeholder': 'Escribe tu mensaje...',
+    'optus.thinking': 'Optus está pensando...',
+    'optus.error': 'Lo siento, no pude procesar tu solicitud. Por favor, inténtalo de nuevo.',
+    'optus.storage-info': 'Tu conversación se almacena localmente en este navegador. Si cambias de dispositivo o navegador, tus mensajes anteriores no estarán disponibles.',
+    'optus.clear-chat': 'Limpiar conversación',
     
     // Dashboard Items
     'dashboard.optomyze-metrics': 'Métricas Optomyze',

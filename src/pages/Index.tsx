@@ -37,6 +37,7 @@ import ManageProducts from '@/components/products/ManageProducts';
 import CrmPanel from '@/components/settings/CrmPanel';
 import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
 import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
+import OptusChat from '@/components/support/OptusChat';
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -151,8 +152,9 @@ const Index = () => {
       
       // Support section
       case 'open-ticket':
-      case 'speak-with-ai':
         return <SupportPlaceholder />;
+      case 'talk-to-optus':
+        return <OptusChat />;
       
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
