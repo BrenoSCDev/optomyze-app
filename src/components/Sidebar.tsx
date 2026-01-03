@@ -35,7 +35,11 @@ import {
   CalendarDays,
   Package,
   FileText,
-  Headphones
+  Headphones,
+  FileStack,
+  ClipboardList,
+  TicketPlus,
+  MessageSquareText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -150,12 +154,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Contracts submenu items
   const contractsItems = [
-    { id: 'contracts', label: t('nav.contracts'), icon: () => <FileText size={16} /> },
+    { id: 'model-contracts', label: t('contracts.model'), icon: () => <FileStack size={16} /> },
+    { id: 'list-contracts', label: t('contracts.list'), icon: () => <ClipboardList size={16} /> },
   ];
 
   // Support submenu items
   const supportItems = [
-    { id: 'support', label: t('nav.support'), icon: () => <Headphones size={16} /> },
+    { id: 'open-ticket', label: t('support.open-ticket'), icon: () => <TicketPlus size={16} /> },
+    { id: 'speak-with-ai', label: t('support.speak-with-ai'), icon: () => <MessageSquareText size={16} /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
