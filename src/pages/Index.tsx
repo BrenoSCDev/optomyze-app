@@ -38,6 +38,8 @@ import CrmPanel from '@/components/settings/CrmPanel';
 import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
 import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
 import OptusChat from '@/components/support/OptusChat';
+import OpenTicket from '@/components/support/OpenTicket';
+
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -152,7 +154,7 @@ const Index = () => {
       
       // Support section
       case 'open-ticket':
-        return <SupportPlaceholder />;
+        return <OpenTicket />;
       case 'talk-to-optus':
         return <OptusChat />;
       
