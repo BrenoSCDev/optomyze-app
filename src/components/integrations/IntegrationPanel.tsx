@@ -18,6 +18,7 @@ import api from '../../services/api';
 import CreateInstanceModal from './CreateInstanceModal';
 import TestInstanceModal from './TestInstanceModal';
 import DeleteInstanceModal from './DeleteInstanceModal';
+import QRCodeModal from './QRCodeModal';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -44,6 +45,7 @@ const IntegrationPanel: React.FC = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
   useEffect(() => {
@@ -99,9 +101,9 @@ const IntegrationPanel: React.FC = () => {
     setDeleteModalOpen(true);
   };
 
-  const handleGenerateQrCode = (id: number) => {
-    console.log('Generate QR Code for instance:', id);
-    // Future feature
+  const openQrCodeModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setQrCodeModalOpen(true);
   };
 
   return (
@@ -189,7 +191,7 @@ const IntegrationPanel: React.FC = () => {
                                 variant="outline" 
                                 size="sm" 
                                 className="flex-1"
-                                onClick={() => handleGenerateQrCode(instance.id)}
+                                onClick={() => openQrCodeModal(instance)}
                               >
                                 <QrCode className="w-4 h-4 mr-1" />
                                 QR
@@ -265,6 +267,12 @@ const IntegrationPanel: React.FC = () => {
         onOpenChange={setDeleteModalOpen}
         instance={selectedInstance}
         onInstanceDeleted={handleInstanceDeleted}
+      />
+      
+      <QRCodeModal
+        open={qrCodeModalOpen}
+        onOpenChange={setQrCodeModalOpen}
+        instance={selectedInstance}
       />
     </div>
   );

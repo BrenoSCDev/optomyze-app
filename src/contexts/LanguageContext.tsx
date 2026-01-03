@@ -1002,6 +1002,15 @@ const translations = {
     'integrations.panel.test.info-message': 'This test is used to verify whether this WhatsApp instance is properly connected and able to deliver messages.',
     'integrations.panel.test.send-test': 'Send Test Message',
     
+    // QR Code Modal
+    'integrations.panel.qrcode.title': 'Connect WhatsApp',
+    'integrations.panel.qrcode.description': 'Scan the QR Code to link your WhatsApp device.',
+    'integrations.panel.qrcode.instructions': 'Open WhatsApp on your phone → Linked Devices → Link a Device, then scan the QR Code below.',
+    'integrations.panel.qrcode.loading': 'Generating QR Code, please wait…',
+    'integrations.panel.qrcode.error': 'Failed to generate QR Code. Please try again.',
+    'integrations.panel.qrcode.retry': 'Retry',
+    'integrations.panel.qrcode.post-connection-info': 'Once WhatsApp confirms that the device is connected, return to this panel and use the Test option on this instance to verify message delivery.',
+    
     // Delete Instance Modal
     'integrations.panel.delete.title': 'Delete WhatsApp Instance',
     'integrations.panel.delete.description': 'Are you sure you want to delete this instance? This action cannot be undone.',
@@ -2658,6 +2667,15 @@ const translations = {
     'integrations.panel.test.info-message': 'Este teste é usado para verificar se esta instância do WhatsApp está devidamente conectada e capaz de entregar mensagens.',
     'integrations.panel.test.send-test': 'Enviar Mensagem de Teste',
     
+    // QR Code Modal
+    'integrations.panel.qrcode.title': 'Conectar WhatsApp',
+    'integrations.panel.qrcode.description': 'Escaneie o QR Code para vincular seu dispositivo WhatsApp.',
+    'integrations.panel.qrcode.instructions': 'Abra o WhatsApp no seu telefone → Aparelhos Conectados → Conectar um Aparelho, então escaneie o QR Code abaixo.',
+    'integrations.panel.qrcode.loading': 'Gerando QR Code, por favor aguarde…',
+    'integrations.panel.qrcode.error': 'Falha ao gerar QR Code. Por favor, tente novamente.',
+    'integrations.panel.qrcode.retry': 'Tentar Novamente',
+    'integrations.panel.qrcode.post-connection-info': 'Depois que o WhatsApp confirmar que o dispositivo está conectado, volte a este painel e use a opção Testar nesta instância para verificar a entrega de mensagens.',
+    
     // Delete Instance Modal
     'integrations.panel.delete.title': 'Excluir Instância do WhatsApp',
     'integrations.panel.delete.description': 'Tem certeza de que deseja excluir esta instância? Esta ação não pode ser desfeita.',
@@ -4143,6 +4161,15 @@ const translations = {
     'integrations.panel.test.message-placeholder': 'Geben Sie Ihre Testnachricht ein...',
     'integrations.panel.test.info-message': 'Dieser Test wird verwendet, um zu überprüfen, ob diese WhatsApp-Instanz ordnungsgemäß verbunden ist und Nachrichten zustellen kann.',
     'integrations.panel.test.send-test': 'Testnachricht Senden',
+    
+    // QR Code Modal
+    'integrations.panel.qrcode.title': 'WhatsApp Verbinden',
+    'integrations.panel.qrcode.description': 'Scannen Sie den QR-Code, um Ihr WhatsApp-Gerät zu verknüpfen.',
+    'integrations.panel.qrcode.instructions': 'Öffnen Sie WhatsApp auf Ihrem Telefon → Verknüpfte Geräte → Gerät verknüpfen, dann scannen Sie den QR-Code unten.',
+    'integrations.panel.qrcode.loading': 'QR-Code wird generiert, bitte warten…',
+    'integrations.panel.qrcode.error': 'QR-Code konnte nicht generiert werden. Bitte versuchen Sie es erneut.',
+    'integrations.panel.qrcode.retry': 'Wiederholen',
+    'integrations.panel.qrcode.post-connection-info': 'Sobald WhatsApp bestätigt, dass das Gerät verbunden ist, kehren Sie zu diesem Panel zurück und verwenden Sie die Test-Option dieser Instanz, um die Nachrichtenzustellung zu überprüfen.',
     
     // Delete Instance Modal
     'integrations.panel.delete.title': 'WhatsApp-Instanz Löschen',
@@ -5638,6 +5665,15 @@ const translations = {
     'integrations.panel.test.message-placeholder': 'Escribe tu mensaje de prueba...',
     'integrations.panel.test.info-message': 'Esta prueba se utiliza para verificar si esta instancia de WhatsApp está correctamente conectada y puede entregar mensajes.',
     'integrations.panel.test.send-test': 'Enviar Mensaje de Prueba',
+    
+    // QR Code Modal
+    'integrations.panel.qrcode.title': 'Conectar WhatsApp',
+    'integrations.panel.qrcode.description': 'Escanea el código QR para vincular tu dispositivo WhatsApp.',
+    'integrations.panel.qrcode.instructions': 'Abre WhatsApp en tu teléfono → Dispositivos Vinculados → Vincular un Dispositivo, luego escanea el código QR a continuación.',
+    'integrations.panel.qrcode.loading': 'Generando código QR, por favor espera…',
+    'integrations.panel.qrcode.error': 'Error al generar el código QR. Por favor, inténtalo de nuevo.',
+    'integrations.panel.qrcode.retry': 'Reintentar',
+    'integrations.panel.qrcode.post-connection-info': 'Una vez que WhatsApp confirme que el dispositivo está conectado, regresa a este panel y usa la opción Probar en esta instancia para verificar la entrega de mensajes.',
     
     // Delete Instance Modal
     'integrations.panel.delete.title': 'Eliminar Instancia de WhatsApp',
