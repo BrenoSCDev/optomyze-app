@@ -5,8 +5,9 @@
  */
 
 import React, { useState } from 'react';
-import { Info, GitBranch } from 'lucide-react';
+import { Info, GitBranch, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useToast } from '../../hooks/use-toast';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
 } from '../ui/select';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Label } from '../ui/label';
+import api from '../../services/api';
 
 interface Funnel {
   id: number;
@@ -52,8 +54,10 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   funnels,
 }) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
   const [showValidation, setShowValidation] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleClose = () => {
     setSelectedFunnelId('');
@@ -61,20 +65,36 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
     onOpenChange(false);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedFunnelId) {
       setShowValidation(true);
       return;
     }
-    
-    // UI-ready only - no API call yet
-    // In the future, this will send the association to the backend
-    console.log('Funnel association:', {
-      instanceId: instance?.id,
-      funnelId: selectedFunnelId,
-    });
-    
-    handleClose();
+
+    if (!instance) return;
+
+    setIsSaving(true);
+    try {
+      await api.put(`/api/integrations/whatsapp-evo-integrations/${instance.id}/funnel`, {
+        funnel_id: parseInt(selectedFunnelId, 10),
+      });
+
+      toast({
+        title: t('integrations.panel.funnel.success-title'),
+        description: t('integrations.panel.funnel.success-description'),
+      });
+
+      handleClose();
+    } catch (error) {
+      console.error('Error associating funnel:', error);
+      toast({
+        title: t('integrations.panel.funnel.error-title'),
+        description: t('integrations.panel.funnel.error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFunnelChange = (value: string) => {
@@ -141,14 +161,15 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={handleClose} disabled={isSaving}>
             {t('common.cancel')}
           </Button>
           <Button 
             onClick={handleConfirm}
-            disabled={!selectedFunnelId}
+            disabled={!selectedFunnelId || isSaving}
           >
-            {t('common.save')}
+            {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isSaving ? t('common.saving') : t('common.save')}
           </Button>
         </DialogFooter>
       </DialogContent>
