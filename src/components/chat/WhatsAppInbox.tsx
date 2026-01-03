@@ -2,150 +2,236 @@
  * WHATSAPP INBOX COMPONENT
  * 
  * Provides WhatsApp inbox management with:
- * - Chat conversation interface
- * - Message management
- * - Coming soon content for future WhatsApp features
- * - Glassmorphism design with modern UI
+ * - 3-panel layout: Chat list, Conversation, Details
+ * - Message display and chat management
+ * - Responsive design for desktop, tablet, and mobile
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { MessageCircle, Users, MessageSquare, FileText, Phone, Video } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { FaWhatsapp } from "react-icons/fa";
+import { useToast } from '@/hooks/use-toast';
+import { fetchWhatsAppChats } from '@/services/whatsappChatApi';
+import { WhatsAppChat } from '@/types/whatsappChat';
+import ChatList from './inbox/ChatList';
+import ChatConversation from './inbox/ChatConversation';
+import ChatDetails from './inbox/ChatDetails';
+import { cn } from '@/lib/utils';
 
-const WhatsAppInbox = () => {
+type ViewMode = 'list' | 'conversation' | 'details';
+
+const WhatsAppInbox: React.FC = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  
+  const [chats, setChats] = useState<WhatsAppChat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<WhatsAppChat | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<ViewMode>('list');
+
+  // Fetch chats on mount
+  useEffect(() => {
+    loadChats();
+  }, []);
+
+  const loadChats = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetchWhatsAppChats();
+      // Sort by last_message_at descending
+      const sortedChats = (response.data || []).sort((a, b) => 
+        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      );
+      setChats(sortedChats);
+    } catch (err) {
+      console.error('Failed to fetch WhatsApp chats:', err);
+      setError(t('chat.inbox.error-loading'));
+      toast({
+        title: t('chat.inbox.error-title'),
+        description: t('chat.inbox.error-loading'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectChat = (chat: WhatsAppChat) => {
+    setSelectedChat(chat);
+    setMobileView('conversation');
+  };
+
+  const handleBackToList = () => {
+    setMobileView('list');
+  };
+
+  const handleShowDetails = () => {
+    setMobileView('details');
+  };
+
+  const handleCloseDetails = () => {
+    setMobileView('conversation');
+  };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-2"
+        className="p-4 border-b border-border/50 bg-background flex items-center justify-between shrink-0"
       >
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
-          {t('chat.whatsapp.title')}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('chat.whatsapp.description')}
-        </p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <FaWhatsapp className="h-5 w-5 text-green-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
+              {t('chat.inbox.title')}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t('chat.inbox.description')}
+            </p>
+          </div>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={loadChats}
+          disabled={isLoading}
+          className="gap-2"
+        >
+          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          {t('common.refresh')}
+        </Button>
       </motion.div>
 
-      {/* Main Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FaWhatsapp  className="h-5 w-5 text-green-600" />
-              {t('chat.whatsapp.title')}
-            </CardTitle>
-            <CardDescription>
-              {t('chat.whatsapp.description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Coming Soon Content */}
-            <div className="text-center py-12 space-y-4">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <FaWhatsapp  className="h-8 w-8 text-green-600" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{t('chat.whatsapp.coming-soon')}</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  {t('chat.whatsapp.coming-soon-description')}
-                </p>
-              </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Feature in Development
-              </Badge>
+      {/* Error State */}
+      {error && !isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="p-4"
+        >
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t('chat.inbox.error-title')}</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button variant="outline" size="sm" onClick={loadChats}>
+                {t('common.retry')}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Main Content - 3 Panel Layout */}
+      {!error && (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Desktop Layout - 3 columns */}
+          <div className="hidden lg:flex flex-1">
+            {/* Chat List - Left Panel */}
+            <div className="w-80 border-r border-border/50 shrink-0">
+              <ChatList
+                chats={chats}
+                selectedChat={selectedChat}
+                onSelectChat={handleSelectChat}
+                isLoading={isLoading}
+              />
             </div>
 
-            {/* Preview Features */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 opacity-50">
-              <div className="p-4 border border-dashed border-muted-foreground/30 rounded-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <MessageSquare className="h-4 w-4 text-green-600" />
-                  <span className="font-medium">{t('chat.whatsapp.conversations')}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  View and manage all conversations
-                </p>
-              </div>
-              <div className="p-4 border border-dashed border-muted-foreground/30 rounded-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <MessageCircle className="h-4 w-4 text-green-600" />
-                  <span className="font-medium">{t('chat.whatsapp.messages')}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Send and receive messages
-                </p>
-              </div>
-              <div className="p-4 border border-dashed border-muted-foreground/30 rounded-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <Users className="h-4 w-4 text-green-600" />
-                  <span className="font-medium">{t('chat.whatsapp.contacts')}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Manage contact database
-                </p>
-              </div>
-              <div className="p-4 border border-dashed border-muted-foreground/30 rounded-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <FileText className="h-4 w-4 text-green-600" />
-                  <span className="font-medium">{t('chat.whatsapp.templates')}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Create message templates
-                </p>
-              </div>
+            {/* Conversation - Center Panel */}
+            <div className="flex-1 min-w-0">
+              <ChatConversation chat={selectedChat} />
             </div>
 
-            {/* Mock Chat Interface Preview */}
-            <div className="opacity-50 border border-dashed border-muted-foreground/30 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-medium">Chat Interface Preview</h4>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" disabled>
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" disabled>
-                    <Video className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-start">
-                  <div className="bg-muted/50 rounded-lg p-3 max-w-xs">
-                    <p className="text-sm">Hello! How can I help you today?</p>
-                    <span className="text-xs text-muted-foreground">10:30 AM</span>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="bg-green-100 rounded-lg p-3 max-w-xs">
-                    <p className="text-sm text-green-800">I'm interested in your services</p>
-                    <span className="text-xs text-muted-foreground">10:32 AM</span>
-                  </div>
-                </div>
-                <div className="flex justify-start">
-                  <div className="bg-muted/50 rounded-lg p-3 max-w-xs">
-                    <p className="text-sm">Great! Let me share some information with you.</p>
-                    <span className="text-xs text-muted-foreground">10:33 AM</span>
-                  </div>
-                </div>
-              </div>
+            {/* Details - Right Panel */}
+            <div className="w-80 border-l border-border/50 shrink-0">
+              <ChatDetails chat={selectedChat} />
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </div>
+
+          {/* Tablet Layout - 2 columns */}
+          <div className="hidden md:flex lg:hidden flex-1">
+            {/* Chat List - Left Panel */}
+            <div className="w-72 border-r border-border/50 shrink-0">
+              <ChatList
+                chats={chats}
+                selectedChat={selectedChat}
+                onSelectChat={handleSelectChat}
+                isLoading={isLoading}
+              />
+            </div>
+
+            {/* Conversation - Center Panel */}
+            <div className="flex-1 min-w-0">
+              <ChatConversation chat={selectedChat} />
+            </div>
+          </div>
+
+          {/* Mobile Layout - Single column with view switching */}
+          <div className="flex md:hidden flex-1">
+            <AnimatePresence mode="wait">
+              {mobileView === 'list' && (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="w-full"
+                >
+                  <ChatList
+                    chats={chats}
+                    selectedChat={selectedChat}
+                    onSelectChat={handleSelectChat}
+                    isLoading={isLoading}
+                  />
+                </motion.div>
+              )}
+
+              {mobileView === 'conversation' && (
+                <motion.div
+                  key="conversation"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="w-full"
+                >
+                  <ChatConversation
+                    chat={selectedChat}
+                    onBack={handleBackToList}
+                    showBackButton
+                  />
+                </motion.div>
+              )}
+
+              {mobileView === 'details' && (
+                <motion.div
+                  key="details"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="w-full"
+                >
+                  <ChatDetails
+                    chat={selectedChat}
+                    onClose={handleCloseDetails}
+                    showCloseButton
+                    defaultCollapsed={false}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
