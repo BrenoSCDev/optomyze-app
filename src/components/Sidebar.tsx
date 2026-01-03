@@ -168,7 +168,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   return (
     <motion.div
-      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] glass-card z-50 transition-all duration-300 ${
+      className={`fixed left-0 top-0 h-screen glass-card z-40 transition-all duration-300 ${
         effectivelyCollapsed ? 'w-16' : 'w-64'
       }`}
       initial={false}
