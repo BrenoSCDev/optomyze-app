@@ -632,6 +632,7 @@ const translations = {
     'common.update': 'Update',
     'common.updating': 'Updating...',
     'common.delete': 'Delete',
+    'common.test': 'Test',
     'common.retry': 'Retry',
     
     // Dashboard Common
@@ -2254,6 +2255,7 @@ const translations = {
     'common.update': 'Atualizar',
     'common.updating': 'Atualizando...',
     'common.delete': 'Excluir',
+    'common.test': 'Testar',
     'common.retry': 'Tentar Novamente',
     
     // Dashboard Common
@@ -3781,6 +3783,7 @@ const translations = {
     'common.update': 'Aktualisieren',
     'common.updating': 'Aktualisiere...',
     'common.delete': 'Löschen',
+    'common.test': 'Testen',
     'common.retry': 'Wiederholen',
     
     // Dashboard Common
@@ -5242,6 +5245,7 @@ const translations = {
     'common.update': 'Actualizar',
     'common.updating': 'Actualizando...',
     'common.delete': 'Eliminar',
+    'common.test': 'Probar',
     'common.retry': 'Reintentar',
     
     // Dashboard Common
