@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2, GitBranch, Key } from 'lucide-react';
+import { ChevronRight, Plus, Store, Trash2, QrCode, Key } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -21,6 +21,8 @@ import DeleteInstanceModal from './DeleteInstanceModal';
 import QRCodeModal from './QRCodeModal';
 import FunnelSelectionModal from './FunnelSelectionModal';
 import CredentialsModal from './CredentialsModal';
+import { CiPlay1 } from "react-icons/ci";
+import { IoFunnelOutline } from 'react-icons/io5';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -232,7 +234,7 @@ const IntegrationPanel: React.FC = () => {
                                   </Badge>
                                   {instance.funnel && (
                                     <Badge variant="outline" className="text-xs">
-                                      <GitBranch className="w-3 h-3 mr-1" />
+                                      <IoFunnelOutline className="w-3 h-3 mr-1" />
                                       {instance.funnel.name}
                                     </Badge>
                                   )}
@@ -255,7 +257,7 @@ const IntegrationPanel: React.FC = () => {
                                 className="flex-1"
                                 onClick={() => openTestModal(instance)}
                               >
-                                <TestTube2 className="w-4 h-4 mr-1" />
+                                <CiPlay1 className="w-4 h-4 mr-1" />
                                 {t('common.test')}
                               </Button>
                               <Button 
@@ -264,7 +266,7 @@ const IntegrationPanel: React.FC = () => {
                                 className="flex-1"
                                 onClick={() => openFunnelModal(instance)}
                               >
-                                <GitBranch className="w-4 h-4 mr-1" />
+                                <IoFunnelOutline className="w-4 h-4 mr-1" />
                                 {t('integrations.panel.funnel.button')}
                               </Button>
                               <Button 
