@@ -1000,6 +1000,11 @@ const translations = {
     'integrations.panel.test.message-label': 'Message',
     'integrations.panel.test.message-placeholder': 'Enter your test message...',
     'integrations.panel.test.info-message': 'This test is used to verify whether this WhatsApp instance is properly connected and able to deliver messages.',
+    'integrations.panel.test.success-title': 'Message Sent',
+    'integrations.panel.test.success-description': 'Test message was sent successfully.',
+    'integrations.panel.test.success-message': 'Your test message was delivered successfully! The WhatsApp instance is working correctly.',
+    'integrations.panel.test.error-title': 'Failed to Send',
+    'integrations.panel.test.error-description': 'Could not send the test message. Please try again.',
     'integrations.panel.test.send-test': 'Send Test Message',
     
     // QR Code Modal
@@ -2665,6 +2670,11 @@ const translations = {
     'integrations.panel.test.message-label': 'Mensagem',
     'integrations.panel.test.message-placeholder': 'Digite sua mensagem de teste...',
     'integrations.panel.test.info-message': 'Este teste é usado para verificar se esta instância do WhatsApp está devidamente conectada e capaz de entregar mensagens.',
+    'integrations.panel.test.success-title': 'Mensagem Enviada',
+    'integrations.panel.test.success-description': 'Mensagem de teste enviada com sucesso.',
+    'integrations.panel.test.success-message': 'Sua mensagem de teste foi entregue com sucesso! A instância do WhatsApp está funcionando corretamente.',
+    'integrations.panel.test.error-title': 'Falha ao Enviar',
+    'integrations.panel.test.error-description': 'Não foi possível enviar a mensagem de teste. Por favor, tente novamente.',
     'integrations.panel.test.send-test': 'Enviar Mensagem de Teste',
     
     // QR Code Modal
@@ -4160,6 +4170,11 @@ const translations = {
     'integrations.panel.test.message-label': 'Nachricht',
     'integrations.panel.test.message-placeholder': 'Geben Sie Ihre Testnachricht ein...',
     'integrations.panel.test.info-message': 'Dieser Test wird verwendet, um zu überprüfen, ob diese WhatsApp-Instanz ordnungsgemäß verbunden ist und Nachrichten zustellen kann.',
+    'integrations.panel.test.success-title': 'Nachricht Gesendet',
+    'integrations.panel.test.success-description': 'Testnachricht wurde erfolgreich gesendet.',
+    'integrations.panel.test.success-message': 'Ihre Testnachricht wurde erfolgreich zugestellt! Die WhatsApp-Instanz funktioniert korrekt.',
+    'integrations.panel.test.error-title': 'Senden Fehlgeschlagen',
+    'integrations.panel.test.error-description': 'Die Testnachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     'integrations.panel.test.send-test': 'Testnachricht Senden',
     
     // QR Code Modal
@@ -5664,6 +5679,11 @@ const translations = {
     'integrations.panel.test.message-label': 'Mensaje',
     'integrations.panel.test.message-placeholder': 'Escribe tu mensaje de prueba...',
     'integrations.panel.test.info-message': 'Esta prueba se utiliza para verificar si esta instancia de WhatsApp está correctamente conectada y puede entregar mensajes.',
+    'integrations.panel.test.success-title': 'Mensaje Enviado',
+    'integrations.panel.test.success-description': 'El mensaje de prueba se envió correctamente.',
+    'integrations.panel.test.success-message': '¡Tu mensaje de prueba fue entregado exitosamente! La instancia de WhatsApp está funcionando correctamente.',
+    'integrations.panel.test.error-title': 'Error al Enviar',
+    'integrations.panel.test.error-description': 'No se pudo enviar el mensaje de prueba. Por favor, inténtalo de nuevo.',
     'integrations.panel.test.send-test': 'Enviar Mensaje de Prueba',
     
     // QR Code Modal
