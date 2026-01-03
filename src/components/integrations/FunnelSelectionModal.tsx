@@ -38,6 +38,11 @@ interface WhatsAppInstance {
   id: number;
   created_at: string;
   status?: string;
+  funnel_id?: number;
+  funnel?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface FunnelSelectionModalProps {
@@ -45,6 +50,7 @@ interface FunnelSelectionModalProps {
   onOpenChange: (open: boolean) => void;
   instance: WhatsAppInstance | null;
   funnels: Funnel[];
+  onFunnelUpdated?: (instanceId: number, funnelId: number) => void;
 }
 
 const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
@@ -52,6 +58,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   onOpenChange,
   instance,
   funnels,
+  onFunnelUpdated,
 }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -59,9 +66,17 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   const [showValidation, setShowValidation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Pre-select the current funnel when modal opens
+  React.useEffect(() => {
+    if (open && instance?.funnel_id) {
+      setSelectedFunnelId(String(instance.funnel_id));
+    } else if (!open) {
+      setSelectedFunnelId('');
+      setShowValidation(false);
+    }
+  }, [open, instance?.funnel_id]);
+
   const handleClose = () => {
-    setSelectedFunnelId('');
-    setShowValidation(false);
     onOpenChange(false);
   };
 
@@ -84,6 +99,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
         description: t('integrations.panel.funnel.success-description'),
       });
 
+      onFunnelUpdated?.(instance.id, parseInt(selectedFunnelId, 10));
       handleClose();
     } catch (error) {
       console.error('Error associating funnel:', error);

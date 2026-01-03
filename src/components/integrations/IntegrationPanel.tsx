@@ -26,6 +26,11 @@ interface WhatsAppInstance {
   id: number;
   created_at: string;
   status?: string;
+  funnel_id?: number;
+  funnel?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface Funnel {
@@ -124,6 +129,21 @@ const IntegrationPanel: React.FC = () => {
     setFunnelModalOpen(true);
   };
 
+  const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
+    const selectedFunnel = funnels.find(f => f.id === funnelId);
+    setIntegrations(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        wpp_evo_instances: (prev.wpp_evo_instances || []).map(inst =>
+          inst.id === instanceId
+            ? { ...inst, funnel_id: funnelId, funnel: selectedFunnel ? { id: funnelId, name: selectedFunnel.name } : undefined }
+            : inst
+        )
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -199,9 +219,17 @@ const IntegrationPanel: React.FC = () => {
                                 <p className="text-sm text-muted-foreground">
                                   {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
                                 </p>
-                                <Badge variant="secondary" className="mt-2 text-xs">
-                                  {instance.status || 'created'}
-                                </Badge>
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {instance.status || 'created'}
+                                  </Badge>
+                                  {instance.funnel && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <GitBranch className="w-3 h-3 mr-1" />
+                                      {instance.funnel.name}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border">
@@ -307,6 +335,7 @@ const IntegrationPanel: React.FC = () => {
         onOpenChange={setFunnelModalOpen}
         instance={selectedInstance}
         funnels={funnels}
+        onFunnelUpdated={handleFunnelUpdated}
       />
     </div>
   );
