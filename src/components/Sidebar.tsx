@@ -161,7 +161,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Support submenu items
   const supportItems = [
     { id: 'open-ticket', label: t('support.open-ticket'), icon: () => <TicketPlus size={16} /> },
-    { id: 'speak-with-ai', label: t('support.speak-with-ai'), icon: () => <MessageSquareText size={16} /> },
+    { id: 'talk-to-optus', label: t('support.talk-to-optus'), icon: () => <Bot size={16} /> },
   ];
 
   // Main navigation items - currently placeholder items for future CRM features
