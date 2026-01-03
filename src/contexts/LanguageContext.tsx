@@ -1037,6 +1037,19 @@ const translations = {
     'integrations.panel.funnel.error-title': 'Association Failed',
     'integrations.panel.funnel.error-description': 'Failed to associate the funnel. Please try again.',
     
+    // Credentials Modal
+    'integrations.panel.credentials.title': 'Instance Credentials',
+    'integrations.panel.credentials.description': 'Configure API credentials for',
+    'integrations.panel.credentials.button': 'Credentials',
+    'integrations.panel.credentials.purpose-title': 'Why is this needed?',
+    'integrations.panel.credentials.purpose-description': 'These credentials allow the Evolution API instance to authenticate and send data to your company CRM. Without proper credentials, the instance cannot create leads or sync messages.',
+    'integrations.panel.credentials.token-notice-title': 'Generate your API Token',
+    'integrations.panel.credentials.token-notice-description': 'You need to generate an API token first. Go to "API" menu → "API Tokens" submenu to create a new token, then paste it here.',
+    'integrations.panel.credentials.api-token-label': 'API Token',
+    'integrations.panel.credentials.api-token-placeholder': 'Paste your API token here...',
+    'integrations.panel.credentials.cancel': 'Cancel',
+    'integrations.panel.credentials.save': 'Save Credentials',
+    
     // Common additions
     'common.characters': 'characters',
     'common.close': 'Close',
@@ -2720,6 +2733,19 @@ const translations = {
     'integrations.panel.funnel.error-title': 'Falha na Associação',
     'integrations.panel.funnel.error-description': 'Falha ao associar o funil. Por favor, tente novamente.',
     
+    // Credentials Modal
+    'integrations.panel.credentials.title': 'Credenciais da Instância',
+    'integrations.panel.credentials.description': 'Configure as credenciais da API para',
+    'integrations.panel.credentials.button': 'Credenciais',
+    'integrations.panel.credentials.purpose-title': 'Por que isso é necessário?',
+    'integrations.panel.credentials.purpose-description': 'Essas credenciais permitem que a instância da Evolution API se autentique e envie dados para o CRM da sua empresa. Sem credenciais adequadas, a instância não pode criar leads ou sincronizar mensagens.',
+    'integrations.panel.credentials.token-notice-title': 'Gere seu Token de API',
+    'integrations.panel.credentials.token-notice-description': 'Você precisa gerar um token de API primeiro. Vá para o menu "API" → submenu "Tokens de API" para criar um novo token e cole-o aqui.',
+    'integrations.panel.credentials.api-token-label': 'Token de API',
+    'integrations.panel.credentials.api-token-placeholder': 'Cole seu token de API aqui...',
+    'integrations.panel.credentials.cancel': 'Cancelar',
+    'integrations.panel.credentials.save': 'Salvar Credenciais',
+    
     // Common additions
     'common.characters': 'caracteres',
     'common.close': 'Fechar',
@@ -4232,6 +4258,19 @@ const translations = {
     'integrations.panel.funnel.success-description': 'Der Funnel wurde erfolgreich mit dieser WhatsApp-Instanz verknüpft.',
     'integrations.panel.funnel.error-title': 'Zuordnung Fehlgeschlagen',
     'integrations.panel.funnel.error-description': 'Der Funnel konnte nicht zugeordnet werden. Bitte versuchen Sie es erneut.',
+    
+    // Credentials Modal
+    'integrations.panel.credentials.title': 'Instanz-Anmeldedaten',
+    'integrations.panel.credentials.description': 'API-Anmeldedaten konfigurieren für',
+    'integrations.panel.credentials.button': 'Anmeldedaten',
+    'integrations.panel.credentials.purpose-title': 'Warum ist das nötig?',
+    'integrations.panel.credentials.purpose-description': 'Diese Anmeldedaten ermöglichen es der Evolution API-Instanz, sich zu authentifizieren und Daten an Ihr Unternehmens-CRM zu senden. Ohne gültige Anmeldedaten kann die Instanz keine Leads erstellen oder Nachrichten synchronisieren.',
+    'integrations.panel.credentials.token-notice-title': 'API-Token generieren',
+    'integrations.panel.credentials.token-notice-description': 'Sie müssen zuerst einen API-Token generieren. Gehen Sie zum Menü "API" → Untermenü "API-Tokens", um einen neuen Token zu erstellen, und fügen Sie ihn hier ein.',
+    'integrations.panel.credentials.api-token-label': 'API-Token',
+    'integrations.panel.credentials.api-token-placeholder': 'API-Token hier einfügen...',
+    'integrations.panel.credentials.cancel': 'Abbrechen',
+    'integrations.panel.credentials.save': 'Anmeldedaten Speichern',
     
     // Common additions
     'common.characters': 'Zeichen',
@@ -5754,6 +5793,19 @@ const translations = {
     'integrations.panel.funnel.success-description': 'El embudo ha sido vinculado exitosamente a esta instancia de WhatsApp.',
     'integrations.panel.funnel.error-title': 'Asociación Fallida',
     'integrations.panel.funnel.error-description': 'No se pudo asociar el embudo. Por favor, inténtelo de nuevo.',
+    
+    // Credentials Modal
+    'integrations.panel.credentials.title': 'Credenciales de Instancia',
+    'integrations.panel.credentials.description': 'Configurar credenciales de API para',
+    'integrations.panel.credentials.button': 'Credenciales',
+    'integrations.panel.credentials.purpose-title': '¿Por qué es necesario?',
+    'integrations.panel.credentials.purpose-description': 'Estas credenciales permiten que la instancia de Evolution API se autentique y envíe datos a su CRM empresarial. Sin credenciales adecuadas, la instancia no puede crear leads ni sincronizar mensajes.',
+    'integrations.panel.credentials.token-notice-title': 'Genere su Token de API',
+    'integrations.panel.credentials.token-notice-description': 'Primero debe generar un token de API. Vaya al menú "API" → submenú "Tokens de API" para crear un nuevo token y péguelo aquí.',
+    'integrations.panel.credentials.api-token-label': 'Token de API',
+    'integrations.panel.credentials.api-token-placeholder': 'Pegue su token de API aquí...',
+    'integrations.panel.credentials.cancel': 'Cancelar',
+    'integrations.panel.credentials.save': 'Guardar Credenciales',
     
     // Common additions
     'common.characters': 'caracteres',
