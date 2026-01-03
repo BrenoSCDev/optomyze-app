@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
+import TopHeader from '@/components/layout/TopHeader';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import PlanUsage from '@/components/dashboards/PlanUsage';
 import MetaAds from '@/components/dashboards/MetaAds';
@@ -34,6 +35,8 @@ import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 import ManageProducts from '@/components/products/ManageProducts';
 import CrmPanel from '@/components/settings/CrmPanel';
+import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
+import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -141,6 +144,14 @@ const Index = () => {
       case 'manage-products':
         return <ManageProducts />;
       
+      // Contracts section
+      case 'contracts':
+        return <ContractsPlaceholder />;
+      
+      // Support section
+      case 'support':
+        return <SupportPlaceholder />;
+      
       default:
         // Fallback placeholder for future CRM sections (Settings, API, Users, Integrations)
         return (
@@ -166,8 +177,11 @@ const Index = () => {
         </div>
       </div>
 
+      {/* FIXED TOP HEADER */}
+      <TopHeader sidebarCollapsed={sidebarCollapsed} />
+
       {/* MAIN LAYOUT CONTAINER */}
-      <div className="relative z-10 flex">
+      <div className="relative z-10 flex pt-16">
         {/* COLLAPSIBLE SIDEBAR NAVIGATION
             Features glassmorphism design with smooth collapse/expand animations
             Handles routing between different dashboard sections */}
