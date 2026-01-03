@@ -8,16 +8,22 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2 } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useToast } from '../../hooks/use-toast';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Alert, AlertDescription } from '../ui/alert';
 import { format } from 'date-fns';
 import api from '../../services/api';
+import CreateInstanceModal from './CreateInstanceModal';
+import TestInstanceModal from './TestInstanceModal';
+import DeleteInstanceModal from './DeleteInstanceModal';
 
 interface WhatsAppInstance {
   instance_name: string;
   id: number;
   created_at: string;
+  status?: string;
 }
 
 interface AvailableIntegrations {
@@ -30,8 +36,15 @@ interface AvailableIntegrations {
 
 const IntegrationPanel: React.FC = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [integrations, setIntegrations] = useState<AvailableIntegrations | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
   useEffect(() => {
     fetchAvailableIntegrations();
@@ -48,20 +61,47 @@ const IntegrationPanel: React.FC = () => {
     }
   };
 
-  const handleCreateInstance = () => {
-    console.log('Create WhatsApp instance');
+  const handleInstanceCreated = (newInstance: WhatsAppInstance) => {
+    setIntegrations(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        wpp_evo_instances: [...(prev.wpp_evo_instances || []), newInstance]
+      };
+    });
+    toast({
+      title: t('integrations.panel.create.success-title'),
+      description: t('integrations.panel.create.success-description'),
+    });
   };
 
-  const handleDeleteInstance = (id: number) => {
-    console.log('Delete instance:', id);
+  const handleInstanceDeleted = (instanceId: number) => {
+    setIntegrations(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        wpp_evo_instances: (prev.wpp_evo_instances || []).filter(i => i.id !== instanceId)
+      };
+    });
+    toast({
+      title: t('integrations.panel.delete.success-title'),
+      description: t('integrations.panel.delete.success-description'),
+    });
+  };
+
+  const openTestModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setTestModalOpen(true);
+  };
+
+  const openDeleteModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setDeleteModalOpen(true);
   };
 
   const handleGenerateQrCode = (id: number) => {
     console.log('Generate QR Code for instance:', id);
-  };
-
-  const handleTestInstance = (id: number) => {
-    console.log('Test instance:', id);
+    // Future feature
   };
 
   return (
@@ -112,6 +152,14 @@ const IntegrationPanel: React.FC = () => {
               <AccordionContent className="px-6 pb-6">
                 {integrations?.wpp_evo_available ? (
                   <div className="space-y-4">
+                    {/* Create Instance Button - Top */}
+                    <div className="flex justify-end">
+                      <Button onClick={() => setCreateModalOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t('integrations.panel.create-instance')}
+                      </Button>
+                    </div>
+
                     {/* Instances Grid */}
                     {integrations.wpp_evo_instances && integrations.wpp_evo_instances.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -131,6 +179,9 @@ const IntegrationPanel: React.FC = () => {
                                 <p className="text-sm text-muted-foreground">
                                   {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
                                 </p>
+                                <Badge variant="secondary" className="mt-2 text-xs">
+                                  {instance.status || 'created'}
+                                </Badge>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
@@ -147,7 +198,7 @@ const IntegrationPanel: React.FC = () => {
                                 variant="outline" 
                                 size="sm" 
                                 className="flex-1"
-                                onClick={() => handleTestInstance(instance.id)}
+                                onClick={() => openTestModal(instance)}
                               >
                                 <TestTube2 className="w-4 h-4 mr-1" />
                                 {t('common.test')}
@@ -156,7 +207,7 @@ const IntegrationPanel: React.FC = () => {
                                 variant="outline" 
                                 size="sm" 
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => handleDeleteInstance(instance.id)}
+                                onClick={() => openDeleteModal(instance)}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -165,16 +216,11 @@ const IntegrationPanel: React.FC = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="border border-border rounded-lg p-4 text-center text-muted-foreground">
-                        {t('integrations.panel.whatsapp.no-instances')}
+                      <div className="border border-border rounded-lg p-8 text-center text-muted-foreground">
+                        <SiWhatsapp className="w-12 h-12 mx-auto mb-4 text-green-500/30" />
+                        <p>{t('integrations.panel.whatsapp.no-instances')}</p>
                       </div>
                     )}
-                    
-                    {/* Create Instance Button */}
-                    <Button onClick={handleCreateInstance} className="w-full sm:w-auto">
-                      <Plus className="w-4 h-4 mr-2" />
-                      {t('integrations.panel.create-instance')}
-                    </Button>
                   </div>
                 ) : (
                   <Alert className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -200,6 +246,26 @@ const IntegrationPanel: React.FC = () => {
           </Accordion>
         )}
       </div>
+
+      {/* Modals */}
+      <CreateInstanceModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+        onInstanceCreated={handleInstanceCreated}
+      />
+      
+      <TestInstanceModal
+        open={testModalOpen}
+        onOpenChange={setTestModalOpen}
+        instance={selectedInstance}
+      />
+      
+      <DeleteInstanceModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        instance={selectedInstance}
+        onInstanceDeleted={handleInstanceDeleted}
+      />
     </div>
   );
 };
