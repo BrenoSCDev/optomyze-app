@@ -120,8 +120,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             <User className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1 min-w-0">
-            {chat.lead?.id ? (
-              <Link to={`/lead/${chat.lead.id}`} className="font-semibold truncate hover:underline hover:text-primary transition-colors block">
+            {chat.lead?.id && chat.lead?.funnel_id ? (
+              <Link to={`/leads/${chat.lead.funnel_id}/lead/${chat.lead.id}`} className="font-semibold truncate hover:underline hover:text-primary transition-colors block">
                 {getLeadName()}
               </Link>
             ) : (
