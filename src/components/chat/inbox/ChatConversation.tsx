@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MessageSquare, Phone, User, ArrowLeft } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -119,7 +120,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             <User className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold truncate">{getLeadName()}</h3>
+            {chat.lead?.id ? (
+              <Link to={`/lead/${chat.lead.id}`} className="font-semibold truncate hover:underline hover:text-primary transition-colors block">
+                {getLeadName()}
+              </Link>
+            ) : (
+              <h3 className="font-semibold truncate">{getLeadName()}</h3>
+            )}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Phone className="h-3 w-3" />
               <span>{chat.phone_number}</span>
