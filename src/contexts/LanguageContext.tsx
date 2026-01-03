@@ -688,6 +688,24 @@ const translations = {
     'common.test': 'Test',
     'common.retry': 'Retry',
     
+    // Observations
+    'observations.add-new': 'Add New Observation',
+    'observations.placeholder': 'Write your observation here...',
+    'observations.add': 'Add Observation',
+    'observations.saving': 'Saving...',
+    'observations.created': 'Observation created successfully',
+    'observations.updated': 'Observation updated successfully',
+    'observations.deleted': 'Observation deleted successfully',
+    'observations.error-empty': 'Observation cannot be empty',
+    'observations.error-create': 'Failed to create observation',
+    'observations.error-update': 'Failed to update observation',
+    'observations.error-delete': 'Failed to delete observation',
+    'observations.empty': 'No observations yet. Add your first observation above.',
+    'observations.list': 'Observations',
+    'observations.unknown-user': 'Unknown User',
+    'observations.delete-title': 'Delete Observation',
+    'observations.delete-description': 'Are you sure you want to delete this observation? This action cannot be undone.',
+    
     // Dashboard Common
     'dashboard.title.optomyze': 'Optomyze Metrics Dashboard',
     'dashboard.title.meta': 'Meta Ads Dashboard',
@@ -2474,6 +2492,24 @@ const translations = {
     'common.retry': 'Tentar Novamente',
     'common.refresh': 'Atualizar',
     
+    // Observations
+    'observations.add-new': 'Adicionar Nova Observação',
+    'observations.placeholder': 'Escreva sua observação aqui...',
+    'observations.add': 'Adicionar Observação',
+    'observations.saving': 'Salvando...',
+    'observations.created': 'Observação criada com sucesso',
+    'observations.updated': 'Observação atualizada com sucesso',
+    'observations.deleted': 'Observação excluída com sucesso',
+    'observations.error-empty': 'A observação não pode estar vazia',
+    'observations.error-create': 'Falha ao criar observação',
+    'observations.error-update': 'Falha ao atualizar observação',
+    'observations.error-delete': 'Falha ao excluir observação',
+    'observations.empty': 'Nenhuma observação ainda. Adicione sua primeira observação acima.',
+    'observations.list': 'Observações',
+    'observations.unknown-user': 'Usuário Desconhecido',
+    'observations.delete-title': 'Excluir Observação',
+    'observations.delete-description': 'Tem certeza que deseja excluir esta observação? Esta ação não pode ser desfeita.',
+    
     // Dashboard Common
     'dashboard.title.optomyze': 'Painel de Métricas Optomyze',
     'dashboard.title.meta': 'Painel Meta Ads',
@@ -4165,6 +4201,24 @@ const translations = {
     'common.retry': 'Wiederholen',
     'common.refresh': 'Aktualisieren',
     
+    // Observations
+    'observations.add-new': 'Neue Beobachtung hinzufügen',
+    'observations.placeholder': 'Schreiben Sie Ihre Beobachtung hier...',
+    'observations.add': 'Beobachtung hinzufügen',
+    'observations.saving': 'Speichern...',
+    'observations.created': 'Beobachtung erfolgreich erstellt',
+    'observations.updated': 'Beobachtung erfolgreich aktualisiert',
+    'observations.deleted': 'Beobachtung erfolgreich gelöscht',
+    'observations.error-empty': 'Beobachtung darf nicht leer sein',
+    'observations.error-create': 'Fehler beim Erstellen der Beobachtung',
+    'observations.error-update': 'Fehler beim Aktualisieren der Beobachtung',
+    'observations.error-delete': 'Fehler beim Löschen der Beobachtung',
+    'observations.empty': 'Noch keine Beobachtungen. Fügen Sie Ihre erste Beobachtung oben hinzu.',
+    'observations.list': 'Beobachtungen',
+    'observations.unknown-user': 'Unbekannter Benutzer',
+    'observations.delete-title': 'Beobachtung löschen',
+    'observations.delete-description': 'Sind Sie sicher, dass Sie diese Beobachtung löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+    
     // Dashboard Common
     'dashboard.title.optomyze': 'Optomyze Metriken Dashboard',
     'dashboard.title.meta': 'Meta Ads Dashboard',
@@ -5789,6 +5843,24 @@ const translations = {
     'common.test': 'Probar',
     'common.retry': 'Reintentar',
     'common.refresh': 'Actualizar',
+    
+    // Observations
+    'observations.add-new': 'Agregar Nueva Observación',
+    'observations.placeholder': 'Escribe tu observación aquí...',
+    'observations.add': 'Agregar Observación',
+    'observations.saving': 'Guardando...',
+    'observations.created': 'Observación creada exitosamente',
+    'observations.updated': 'Observación actualizada exitosamente',
+    'observations.deleted': 'Observación eliminada exitosamente',
+    'observations.error-empty': 'La observación no puede estar vacía',
+    'observations.error-create': 'Error al crear la observación',
+    'observations.error-update': 'Error al actualizar la observación',
+    'observations.error-delete': 'Error al eliminar la observación',
+    'observations.empty': 'Sin observaciones aún. Agrega tu primera observación arriba.',
+    'observations.list': 'Observaciones',
+    'observations.unknown-user': 'Usuario Desconocido',
+    'observations.delete-title': 'Eliminar Observación',
+    'observations.delete-description': '¿Estás seguro de que deseas eliminar esta observación? Esta acción no se puede deshacer.',
     
     // Dashboard Common
     'dashboard.title.optomyze': 'Panel de Métricas Optomyze',

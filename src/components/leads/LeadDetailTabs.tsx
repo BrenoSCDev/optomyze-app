@@ -36,6 +36,8 @@ import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 import TasksSection from './TasksSection';
 import DocumentsSection from './DocumentsSection';
+import ObservationsSection from './ObservationsSection';
+import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
 
 interface AssignedUser {
@@ -66,28 +68,37 @@ interface Lead {
   updated_at: string;
   assigned_user?: AssignedUser | null;
   products?: LeadProduct[];
+  observations?: Observation[];
 }
 
 interface LeadDetailTabsProps {
   lead: Lead;
   tasks: Task[];
   documents: LeadDocument[];
+  observations: Observation[];
   onCreateTask: () => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
   onUploadDocument: () => void;
   onDocumentDeleted: (documentId: number) => void;
+  onObservationCreated: (observation: Observation) => void;
+  onObservationUpdated: (observation: Observation) => void;
+  onObservationDeleted: (observationId: number) => void;
 }
 
 const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   lead,
   tasks,
   documents,
+  observations,
   onCreateTask,
   onEditTask,
   onDeleteTask,
   onUploadDocument,
-  onDocumentDeleted
+  onDocumentDeleted,
+  onObservationCreated,
+  onObservationUpdated,
+  onObservationDeleted
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('info');
@@ -138,6 +149,11 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           >
             <StickyNote className="w-3.5 h-3.5 mr-1.5" />
             <span>{t('lead-details.tabs.observations')}</span>
+            {observations.length > 0 && (
+              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+                {observations.length}
+              </Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger 
             value="contracts" 
@@ -184,7 +200,13 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
         {/* Observations Tab */}
         <TabsContent value="observations" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <ObservationsContent />
+          <ObservationsSection
+            observations={observations}
+            leadId={lead.id}
+            onObservationCreated={onObservationCreated}
+            onObservationUpdated={onObservationUpdated}
+            onObservationDeleted={onObservationDeleted}
+          />
         </TabsContent>
 
         {/* Contracts Tab */}
@@ -423,20 +445,6 @@ const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
   );
 };
 
-// Observations Content (placeholder)
-const ObservationsContent: React.FC = () => {
-  const { t } = useLanguage();
-  
-  return (
-    <div className="text-center py-12">
-      <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-        <StickyNote className="w-8 h-8 text-amber-500/60" />
-      </div>
-      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.observations-empty')}</h4>
-      <p className="text-gray-400 text-sm">{t('lead-details.tabs.observations-empty-desc')}</p>
-    </div>
-  );
-};
 
 // Contracts Content (placeholder)
 const ContractsContent: React.FC = () => {

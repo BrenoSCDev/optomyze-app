@@ -63,6 +63,7 @@ import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
 import LeadDetailTabs from '@/components/leads/LeadDetailTabs';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
+import { Observation } from '@/services/observationApi';
 
 interface Transaction {
   id: number;
@@ -140,6 +141,7 @@ interface Lead {
   docs?: LeadDocument[];
   products?: LeadProduct[];
   sales?: Sale[];
+  observations?: Observation[];
 }
 
 interface CompanyProduct {
@@ -302,6 +304,47 @@ const LeadDetailPage = () => {
     });
   };
 
+  const handleObservationCreated = (observation: Observation) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lead: {
+          ...prev.lead,
+          observations: [observation, ...(prev.lead.observations || [])]
+        }
+      };
+    });
+  };
+
+  const handleObservationUpdated = (updatedObservation: Observation) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lead: {
+          ...prev.lead,
+          observations: prev.lead.observations?.map(o => 
+            o.id === updatedObservation.id ? updatedObservation : o
+          ) || []
+        }
+      };
+    });
+  };
+
+  const handleObservationDeleted = (observationId: number) => {
+    setLeadData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lead: {
+          ...prev.lead,
+          observations: prev.lead.observations?.filter(o => o.id !== observationId) || []
+        }
+      };
+    });
+  };
+
   const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
     setLeadData(prev => {
       if (!prev) return prev;
@@ -368,11 +411,15 @@ const LeadDetailPage = () => {
               lead={leadData.lead}
               tasks={leadData.tasks || []}
               documents={leadData.docs || []}
+              observations={leadData.lead.observations || []}
               onCreateTask={() => setTaskModalOpen(true)}
               onEditTask={handleEditTask}
               onDeleteTask={(task) => setDeletingTask(task)}
               onUploadDocument={() => setDocumentModalOpen(true)}
               onDocumentDeleted={handleDocumentDeleted}
+              onObservationCreated={handleObservationCreated}
+              onObservationUpdated={handleObservationUpdated}
+              onObservationDeleted={handleObservationDeleted}
             />
             
             {/* Products Section - Separate from tabs */}
