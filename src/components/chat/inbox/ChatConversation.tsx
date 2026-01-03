@@ -4,41 +4,125 @@
  * Center panel displaying the message thread
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
   onBack?: () => void;
   showBackButton?: boolean;
+  onMessageSent?: () => void;
+}
+
+interface PendingMessage {
+  id: string;
+  text: string;
+  status: 'sending' | 'error';
 }
 
 const ChatConversation: React.FC<ChatConversationProps> = ({
   chat,
   onBack,
-  showBackButton = false
+  showBackButton = false,
+  onMessageSent
 }) => {
   const { t } = useLanguage();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [messageText, setMessageText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
 
-  useEffect(() => {
-    if (chat && scrollAreaRef.current) {
-      // Find the scrollable viewport inside ScrollArea and scroll to bottom
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
         viewport.scrollTop = viewport.scrollHeight;
       }
     }
+  };
+
+  useEffect(() => {
+    if (chat) {
+      scrollToBottom();
+    }
   }, [chat]);
+
+  useEffect(() => {
+    // Scroll when pending messages change
+    scrollToBottom();
+  }, [pendingMessages]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !chat?.lead?.id || !chat?.whatsapp_instance_id) {
+      return;
+    }
+
+    const text = messageText.trim();
+    const tempId = `pending-${Date.now()}`;
+    
+    // Clear input immediately
+    setMessageText('');
+    setIsSending(true);
+
+    // Add pending message
+    setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending' }]);
+
+    try {
+      await sendWhatsAppMessage(chat.whatsapp_instance_id, {
+        lead_id: chat.lead.id,
+        text
+      });
+
+      // Remove pending message on success
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
+      
+      toast({
+        title: t('chat.inbox.message-sent'),
+        description: t('chat.inbox.message-sent-description'),
+      });
+
+      // Trigger refresh of chat data
+      onMessageSent?.();
+    } catch (error: any) {
+      // Mark message as error
+      setPendingMessages(prev => 
+        prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
+      );
+
+      toast({
+        title: t('chat.inbox.message-error'),
+        description: error?.response?.data?.message || t('chat.inbox.message-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleRetry = (pendingMessage: PendingMessage) => {
+    // Remove failed message and set text back to input
+    setPendingMessages(prev => prev.filter(m => m.id !== pendingMessage.id));
+    setMessageText(pendingMessage.text);
+  };
 
   const getLeadName = (): string => {
     if (chat?.lead?.first_name || chat?.lead?.last_name) {
@@ -206,7 +290,44 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                 ))}
               </div>
             ))}
-            <div />
+
+            {/* Pending Messages */}
+            {pendingMessages.map((pending) => (
+              <motion.div
+                key={pending.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-end"
+              >
+                <div
+                  className={cn(
+                    "max-w-[75%] rounded-lg p-3 shadow-sm rounded-br-none",
+                    pending.status === 'error'
+                      ? "bg-destructive/80 text-destructive-foreground"
+                      : "bg-green-500/70 text-white"
+                  )}
+                >
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {pending.text}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1 justify-end">
+                    {pending.status === 'sending' ? (
+                      <span className="text-xs text-green-100 flex items-center gap-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {t('chat.inbox.sending')}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleRetry(pending)}
+                        className="text-xs underline hover:no-underline"
+                      >
+                        {t('chat.inbox.retry')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-12">
@@ -218,11 +339,29 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         )}
       </ScrollArea>
 
-      {/* Message input placeholder (out of scope for now) */}
-      <div className="p-4 border-t border-border/50 bg-muted/30">
-        <div className="flex items-center gap-2 text-muted-foreground text-sm justify-center">
-          <MessageSquare className="h-4 w-4" />
-          <span>{t('chat.inbox.sending-coming-soon')}</span>
+      {/* Message Input */}
+      <div className="p-4 border-t border-border/50 bg-card">
+        <div className="flex items-center gap-2">
+          <Input
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t('chat.inbox.type-message')}
+            disabled={isSending || !chat.lead?.id}
+            className="flex-1"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!messageText.trim() || isSending || !chat.lead?.id}
+            size="icon"
+            className="shrink-0 bg-green-500 hover:bg-green-600"
+          >
+            {isSending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
     </div>

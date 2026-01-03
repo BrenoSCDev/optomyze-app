@@ -149,7 +149,7 @@ const WhatsAppInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0">
-              <ChatConversation chat={selectedChat} />
+              <ChatConversation chat={selectedChat} onMessageSent={loadChats} />
             </div>
 
             {/* Details - Right Panel */}
@@ -172,7 +172,7 @@ const WhatsAppInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0">
-              <ChatConversation chat={selectedChat} />
+              <ChatConversation chat={selectedChat} onMessageSent={loadChats} />
             </div>
           </div>
 
@@ -208,6 +208,7 @@ const WhatsAppInbox: React.FC = () => {
                     chat={selectedChat}
                     onBack={handleBackToList}
                     showBackButton
+                    onMessageSent={loadChats}
                   />
                 </motion.div>
               )}
