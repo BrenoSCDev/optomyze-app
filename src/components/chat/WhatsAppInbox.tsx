@@ -7,21 +7,20 @@
  * - Responsive design for desktop, tablet, and mobile
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchWhatsAppChats } from '@/services/whatsappChatApi';
-import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
+import { WhatsAppChat } from '@/types/whatsappChat';
 import ChatList from './inbox/ChatList';
 import ChatConversation from './inbox/ChatConversation';
 import ChatDetails from './inbox/ChatDetails';
 import { cn } from '@/lib/utils';
-import { useWhatsAppWebSocket, WebSocketMessage } from '@/hooks/useWhatsAppWebSocket';
 
 type ViewMode = 'list' | 'conversation' | 'details';
 
@@ -34,93 +33,6 @@ const WhatsAppInbox: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<ViewMode>('list');
-
-  // Handle real-time message received via WebSocket
-  const handleWebSocketMessage = useCallback((event: WebSocketMessage) => {
-    const { message, conversation, lead } = event;
-
-    // Create new message object matching WhatsAppMessage type
-    const newMessage: WhatsAppMessage = {
-      id: message.id,
-      whatsapp_evo_chat_id: conversation.id,
-      direction: message.direction,
-      type: message.type,
-      text: message.text,
-      status: message.status,
-      sent_at: message.sent_at,
-    };
-
-    // Update chats with the new message
-    setChats(prevChats => {
-      const chatExists = prevChats.some(chat => chat.id === conversation.id);
-      
-      if (chatExists) {
-        // Update existing chat
-        const updatedChats = prevChats.map(chat => {
-          if (chat.id === conversation.id) {
-            // Check if message already exists
-            const messageExists = chat.messages?.some(m => m.id === message.id);
-            if (messageExists) return chat;
-
-            return {
-              ...chat,
-              messages: [...(chat.messages || []), newMessage],
-              last_message_at: message.sent_at,
-            };
-          }
-          return chat;
-        });
-
-        // Sort by last_message_at descending
-        return updatedChats.sort((a, b) => 
-          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-        );
-      } else {
-        // New conversation - trigger a full refresh
-        loadChats();
-        return prevChats;
-      }
-    });
-
-    // Update selected chat if it matches
-    setSelectedChat(prev => {
-      if (prev?.id === conversation.id) {
-        const messageExists = prev.messages?.some(m => m.id === message.id);
-        if (messageExists) return prev;
-
-        return {
-          ...prev,
-          messages: [...(prev.messages || []), newMessage],
-          last_message_at: message.sent_at,
-        };
-      }
-      return prev;
-    });
-
-    // Show notification for incoming messages
-    if (message.direction === 'incoming') {
-      const leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || conversation.phone_number;
-      toast({
-        title: t('chat.inbox.new-message'),
-        description: `${leadName}: ${message.text.substring(0, 50)}${message.text.length > 50 ? '...' : ''}`,
-      });
-    }
-  }, [toast, t]);
-
-  // WebSocket connection
-  const { isConnected } = useWhatsAppWebSocket({
-    onMessageReceived: handleWebSocketMessage,
-    onConnectionChange: (connected) => {
-      if (connected) {
-        console.log('✅ WebSocket connected - real-time messages enabled');
-      } else {
-        console.log('❌ WebSocket disconnected');
-      }
-    },
-    onError: (error) => {
-      console.error('WebSocket error:', error);
-    },
-  });
 
   // Fetch chats on mount
   useEffect(() => {
@@ -188,33 +100,16 @@ const WhatsAppInbox: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Connection Status Indicator */}
-          <div className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium transition-colors",
-            isConnected 
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-          )}>
-            {isConnected ? (
-              <Wifi className="h-3 w-3" />
-            ) : (
-              <WifiOff className="h-3 w-3" />
-            )}
-            <span>{isConnected ? t('chat.inbox.connected') : t('chat.inbox.offline')}</span>
-          </div>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={loadChats}
-            disabled={isLoading}
-            className="gap-2"
-          >
-            <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-            {t('common.refresh')}
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={loadChats}
+          disabled={isLoading}
+          className="gap-2"
+        >
+          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          {t('common.refresh')}
+        </Button>
       </motion.div>
 
       {/* Error State */}
