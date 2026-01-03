@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2, GitBranch } from 'lucide-react';
+import { ChevronRight, Plus, Store, Trash2, QrCode, TestTube2, GitBranch, Key } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -20,6 +20,7 @@ import TestInstanceModal from './TestInstanceModal';
 import DeleteInstanceModal from './DeleteInstanceModal';
 import QRCodeModal from './QRCodeModal';
 import FunnelSelectionModal from './FunnelSelectionModal';
+import CredentialsModal from './CredentialsModal';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -60,6 +61,7 @@ const IntegrationPanel: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const [funnelModalOpen, setFunnelModalOpen] = useState(false);
+  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
   useEffect(() => {
@@ -127,6 +129,11 @@ const IntegrationPanel: React.FC = () => {
   const openFunnelModal = (instance: WhatsAppInstance) => {
     setSelectedInstance(instance);
     setFunnelModalOpen(true);
+  };
+
+  const openCredentialsModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setCredentialsModalOpen(true);
   };
 
   const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
@@ -263,6 +270,15 @@ const IntegrationPanel: React.FC = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
+                                className="flex-1"
+                                onClick={() => openCredentialsModal(instance)}
+                              >
+                                <Key className="w-4 h-4 mr-1" />
+                                {t('integrations.panel.credentials.button')}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                 onClick={() => openDeleteModal(instance)}
                               >
@@ -336,6 +352,12 @@ const IntegrationPanel: React.FC = () => {
         instance={selectedInstance}
         funnels={funnels}
         onFunnelUpdated={handleFunnelUpdated}
+      />
+
+      <CredentialsModal
+        open={credentialsModalOpen}
+        onOpenChange={setCredentialsModalOpen}
+        instance={selectedInstance}
       />
     </div>
   );
