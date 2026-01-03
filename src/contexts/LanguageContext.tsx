@@ -1415,6 +1415,13 @@ const translations = {
     'chat.inbox.error-title': 'Error',
     'chat.inbox.error-loading': 'Unable to load WhatsApp inbox. Please try again later.',
     'chat.inbox.sending-coming-soon': 'Message sending coming soon',
+    'chat.inbox.type-message': 'Type a message...',
+    'chat.inbox.sending': 'Sending...',
+    'chat.inbox.retry': 'Retry',
+    'chat.inbox.message-sent': 'Message Sent',
+    'chat.inbox.message-sent-description': 'Your message has been sent successfully.',
+    'chat.inbox.message-error': 'Failed to Send',
+    'chat.inbox.message-error-description': 'Unable to send your message. Please try again.',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -3148,6 +3155,13 @@ const translations = {
     'chat.inbox.error-title': 'Erro',
     'chat.inbox.error-loading': 'Não foi possível carregar a caixa de entrada do WhatsApp. Tente novamente mais tarde.',
     'chat.inbox.sending-coming-soon': 'Envio de mensagens em breve',
+    'chat.inbox.type-message': 'Digite uma mensagem...',
+    'chat.inbox.sending': 'Enviando...',
+    'chat.inbox.retry': 'Tentar novamente',
+    'chat.inbox.message-sent': 'Mensagem Enviada',
+    'chat.inbox.message-sent-description': 'Sua mensagem foi enviada com sucesso.',
+    'chat.inbox.message-error': 'Falha ao Enviar',
+    'chat.inbox.message-error-description': 'Não foi possível enviar sua mensagem. Tente novamente.',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -4614,6 +4628,13 @@ const translations = {
     'chat.inbox.error-title': 'Fehler',
     'chat.inbox.error-loading': 'WhatsApp-Posteingang konnte nicht geladen werden. Bitte versuchen Sie es später erneut.',
     'chat.inbox.sending-coming-soon': 'Nachrichtenversand kommt bald',
+    'chat.inbox.type-message': 'Nachricht eingeben...',
+    'chat.inbox.sending': 'Wird gesendet...',
+    'chat.inbox.retry': 'Erneut versuchen',
+    'chat.inbox.message-sent': 'Nachricht Gesendet',
+    'chat.inbox.message-sent-description': 'Ihre Nachricht wurde erfolgreich gesendet.',
+    'chat.inbox.message-error': 'Senden Fehlgeschlagen',
+    'chat.inbox.message-error-description': 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -6180,6 +6201,13 @@ const translations = {
     'chat.inbox.error-title': 'Error',
     'chat.inbox.error-loading': 'No se pudo cargar la bandeja de entrada de WhatsApp. Inténtalo más tarde.',
     'chat.inbox.sending-coming-soon': 'Envío de mensajes próximamente',
+    'chat.inbox.type-message': 'Escribe un mensaje...',
+    'chat.inbox.sending': 'Enviando...',
+    'chat.inbox.retry': 'Reintentar',
+    'chat.inbox.message-sent': 'Mensaje Enviado',
+    'chat.inbox.message-sent-description': 'Tu mensaje ha sido enviado correctamente.',
+    'chat.inbox.message-error': 'Error al Enviar',
+    'chat.inbox.message-error-description': 'No se pudo enviar tu mensaje. Inténtalo de nuevo.',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
