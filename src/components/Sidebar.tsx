@@ -168,14 +168,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   return (
     <motion.div
-      className={`fixed left-0 top-0 h-screen glass-card z-40 transition-all duration-300 ${
+      className={`fixed left-0 top-0 h-screen bg-background/80 backdrop-blur-md border-r border-white/10 z-40 transition-all duration-300 rounded-none ${
         effectivelyCollapsed ? 'w-16' : 'w-64'
       }`}
       initial={false}
       animate={{ width: effectivelyCollapsed ? 64 : 256 }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+      {/* Header - matches TopHeader height (h-16 = 64px) */}
+      <div className="flex items-center justify-between px-4 h-16 border-b border-white/10">
         <AnimatePresence>
           {!effectivelyCollapsed && (
             <motion.div

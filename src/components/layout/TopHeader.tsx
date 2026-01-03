@@ -40,7 +40,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
 
   return (
     <motion.header
-      className="fixed top-0 z-50 h-16 glass-card border-b border-white/10 flex items-center justify-between px-6"
+      className="fixed top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-none"
       initial={false}
       animate={{ 
         left: sidebarCollapsed ? 64 : 256,
