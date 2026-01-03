@@ -46,7 +46,7 @@ import optomyzeLogo from '@/assets/optomyze.png';
 import { getStorageUrl } from '@/lib/constants';
 import OptoIcon from '@/assets/opto-icon.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
-import { FaMeta } from "react-icons/fa6";
+import { FaMeta, FaWhatsapp } from "react-icons/fa6";
 import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
@@ -140,7 +140,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Chat submenu items
   const chatItems = [
-    { id: 'whatsapp-inbox', label: 'WhatsApp Inbox', icon: () => <MessageCircle size={18}/> },
+    { id: 'whatsapp-inbox', label: 'WhatsApp Inbox', icon: () => <FaWhatsapp size={18}/> },
   ];
 
   // Calendars submenu items
