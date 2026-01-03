@@ -27,15 +27,15 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   showBackButton = false
 }) => {
   const { t } = useLanguage();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (chat) {
-      scrollToBottom();
+    if (chat && scrollAreaRef.current) {
+      // Find the scrollable viewport inside ScrollArea and scroll to bottom
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
   }, [chat]);
 
@@ -141,7 +141,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         {chat.messages && chat.messages.length > 0 ? (
           <div className="space-y-4">
             {messageGroups.map((group, groupIndex) => (
@@ -199,7 +199,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                 ))}
               </div>
             ))}
-            <div ref={messagesEndRef} />
+            <div />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-12">
