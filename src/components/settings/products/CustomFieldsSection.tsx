@@ -7,9 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
-import { useCustomProductFields } from '@/hooks/useCustomProductFields';
 import { CustomProductField, CustomProductFieldFormData } from '@/services/customProductFieldsApi';
 import { getProducts, Product } from '@/services/productApi';
+
+interface Props {
+  fields: CustomProductField[];
+  saving: boolean;
+  onAdd: (data: CustomProductFieldFormData) => Promise<CustomProductField>;
+  onEdit: (id: number, data: CustomProductFieldFormData) => Promise<CustomProductField>;
+  onDelete: (id: number) => Promise<void>;
+}
 
 interface FormData {
   field_key: string;
@@ -27,9 +34,8 @@ const emptyFormData: FormData = {
   product_id: null,
 };
 
-const CustomFieldsSection = () => {
+const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props) => {
   const { t } = useLanguage();
-  const { fields, loading, saving, addField, editField, removeField } = useCustomProductFields();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -81,7 +87,7 @@ const CustomFieldsSection = () => {
   const handleDeleteConfirm = async () => {
     if (!deletingField) return;
     try {
-      await removeField(deletingField.id);
+      await onDelete(deletingField.id);
       setDeleteDialogOpen(false);
       setDeletingField(null);
     } catch (error) {
@@ -102,9 +108,9 @@ const CustomFieldsSection = () => {
 
     try {
       if (editingField) {
-        await editField(editingField.id, payload);
+        await onEdit(editingField.id, payload);
       } else {
-        await addField(payload);
+        await onAdd(payload);
       }
       setIsDialogOpen(false);
     } catch (error) {
@@ -134,14 +140,6 @@ const CustomFieldsSection = () => {
     const product = products.find(p => p.id === productId);
     return product?.name || `Product #${productId}`;
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">

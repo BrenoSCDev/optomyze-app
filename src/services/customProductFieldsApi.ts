@@ -32,7 +32,7 @@ export interface SettingsPanelResponse {
 
 // Get settings panel (including custom product fields)
 export const getSettingsPanel = async (): Promise<SettingsPanelResponse> => {
-  const response = await api.get('/api/settings/panel');
+  const response = await api.get('/api/settings-panel');
   return response.data;
 };
 
