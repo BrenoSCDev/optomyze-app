@@ -183,11 +183,11 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                       <span className="text-primary font-semibold text-sm">
-                        {lead.name.charAt(0).toUpperCase()}
+                        {lead.first_name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <span className="text-sm font-medium text-foreground truncate">
-                      {lead.name}
+                      {lead.first_name}
                     </span>
                   </button>
                 ))}
@@ -248,7 +248,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
                         className="w-full px-3 py-2 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0"
                       >
                         <span className="text-sm font-medium text-foreground truncate block">
-                          {lead.name}
+                          {lead.first_name}
                         </span>
                       </button>
                     ))}

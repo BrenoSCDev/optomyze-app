@@ -21,6 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import api from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Stage {
   id: number;
@@ -63,6 +64,7 @@ interface StageEditModalProps {
   onUpdate: (updatedStage: Stage) => void;
 }
 
+
 const StageEditModal: React.FC<StageEditModalProps> = ({
   isOpen,
   onClose,
@@ -70,6 +72,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
   funnelId,
   onUpdate
 }) => {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -240,7 +243,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
 
           {/* Stage Description */}
           <div className="space-y-2">
-            <Label htmlFor="editStageDescription">Description</Label>
+            <Label htmlFor="editStageDescription">{t('settings.funnels.stage-description')}</Label>
             <Textarea
               id="editStageDescription"
               value={formData.description}
@@ -250,7 +253,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
                   setFormErrors(prev => ({ ...prev, description: '' }));
                 }
               }}
-              placeholder="Enter stage description (optional)"
+              placeholder={t('settings.funnels.stage-description-placeholder')}
               className={formErrors.description ? 'border-destructive' : ''}
               rows={3}
               maxLength={1000}
