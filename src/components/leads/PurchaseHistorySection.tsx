@@ -95,6 +95,7 @@ export interface Sale {
   currency: string;
   created_at: string;
   updated_at?: string;
+  notes?: string;
   user?: SaleUser;
   items?: SaleProduct[];
   charges?: SaleCharge[];
@@ -393,6 +394,14 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           </div>
         </div>
       </div>
+
+      {/* Notes */}
+      {sale.notes && (
+        <div className="mb-4 p-3 bg-white/5 rounded-lg">
+          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('lead-details.notes')}</p>
+          <p className="text-gray-300 text-sm">{sale.notes}</p>
+        </div>
+      )}
 
       {/* Financial Summary */}
       <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-white/5 rounded-lg">
