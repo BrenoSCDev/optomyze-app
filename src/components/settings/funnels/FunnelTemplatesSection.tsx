@@ -257,9 +257,6 @@ const FunnelTemplatesSection = ({
             <div className="flex items-center gap-3">
               <FileStack className="w-5 h-5 text-primary" />
               <span className="font-medium text-lg">{selectedTemplate.name}</span>
-              <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded">
-                {t('settings.funnels.template')}
-              </span>
             </div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" onClick={handleOpenCreateFromTemplate}>
