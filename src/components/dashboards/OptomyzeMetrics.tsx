@@ -1244,11 +1244,11 @@ const OptomyzeMetrics = () => {
         <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />
       </div>
 
-      {/* Product Performance Charts Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Product Performance Charts Row - Commented for now */}
+      {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ProductInterestVsSalesChart />
         <RevenueByProductChart />
-      </div>
+      </div> */}
     </motion.div>
   );
 };
