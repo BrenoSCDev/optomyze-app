@@ -61,6 +61,7 @@ import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
 import LeadDetailTabs from '@/components/leads/LeadDetailTabs';
+import { LeadWhatsAppChat } from '@/components/leads/LeadChatSection';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 import { Observation } from '@/services/observationApi';
@@ -142,6 +143,7 @@ interface Lead {
   products?: LeadProduct[];
   sales?: Sale[];
   observations?: Observation[];
+  whats_app_evo_chat?: LeadWhatsAppChat | null;
 }
 
 interface CompanyProduct {
@@ -420,6 +422,7 @@ const LeadDetailPage = () => {
               onObservationCreated={handleObservationCreated}
               onObservationUpdated={handleObservationUpdated}
               onObservationDeleted={handleObservationDeleted}
+              onChatMessageSent={fetchLeadData}
             />
             
             {/* Products Section - Separate from tabs */}
