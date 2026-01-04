@@ -21,6 +21,7 @@ interface ProductCustomFieldsTabProps {
   productId: number;
   fields: ProductCustomField[];
   onFieldsChange: (fields: ProductCustomField[]) => void;
+  onFieldModified?: () => void;
 }
 
 interface FormData {
@@ -35,7 +36,7 @@ const initialFormData: FormData = {
   field_value: '',
 };
 
-const ProductCustomFieldsTab = ({ productId, fields, onFieldsChange }: ProductCustomFieldsTabProps) => {
+const ProductCustomFieldsTab = ({ productId, fields, onFieldsChange, onFieldModified }: ProductCustomFieldsTabProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   
@@ -74,6 +75,7 @@ const ProductCustomFieldsTab = ({ productId, fields, onFieldsChange }: ProductCu
       await deleteCustomProductField(deletingField.id);
       const updatedFields = fields.filter(f => f.id !== deletingField.id);
       onFieldsChange(updatedFields);
+      onFieldModified?.();
       toast({
         title: t('common.success'),
         description: t('settings.products.field-deleted'),
@@ -127,6 +129,7 @@ const ProductCustomFieldsTab = ({ productId, fields, onFieldsChange }: ProductCu
       } else {
         const newField = await createCustomProductField(payload);
         onFieldsChange([...fields, { ...newField, product_id: productId, type: 'product' as const }]);
+        onFieldModified?.();
         toast({
           title: t('common.success'),
           description: t('settings.products.field-created'),
