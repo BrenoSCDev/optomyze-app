@@ -39,6 +39,7 @@ import DocumentsSection from './DocumentsSection';
 import ObservationsSection from './ObservationsSection';
 import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
+import LeadChatSection, { LeadWhatsAppChat } from './LeadChatSection';
 
 interface AssignedUser {
   id: number;
@@ -69,6 +70,7 @@ interface Lead {
   assigned_user?: AssignedUser | null;
   products?: LeadProduct[];
   observations?: Observation[];
+  whats_app_evo_chat?: LeadWhatsAppChat | null;
 }
 
 interface LeadDetailTabsProps {
@@ -84,6 +86,7 @@ interface LeadDetailTabsProps {
   onObservationCreated: (observation: Observation) => void;
   onObservationUpdated: (observation: Observation) => void;
   onObservationDeleted: (observationId: number) => void;
+  onChatMessageSent?: () => void;
 }
 
 const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
@@ -98,7 +101,8 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   onDocumentDeleted,
   onObservationCreated,
   onObservationUpdated,
-  onObservationDeleted
+  onObservationDeleted,
+  onChatMessageSent
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('info');
@@ -169,6 +173,11 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           >
             <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
             <span>{t('lead-details.tabs.chat')}</span>
+            {lead.whats_app_evo_chat?.messages && lead.whats_app_evo_chat.messages.length > 0 && (
+              <Badge className="ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
+                {lead.whats_app_evo_chat.messages.length}
+              </Badge>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -217,7 +226,11 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <ChatContent />
+          <LeadChatSection 
+            chat={lead.whats_app_evo_chat || null} 
+            leadId={lead.id}
+            onMessageSent={onChatMessageSent}
+          />
         </TabsContent>
       </Tabs>
     </motion.div>
@@ -461,20 +474,5 @@ const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
 //     </div>
 //   );
 // };
-
-// Chat Content (placeholder)
-const ChatContent: React.FC = () => {
-  const { t } = useLanguage();
-  
-  return (
-    <div className="text-center py-12">
-      <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-        <MessageCircle className="w-8 h-8 text-green-500/60" />
-      </div>
-      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.chat-empty')}</h4>
-      <p className="text-gray-400 text-sm">{t('lead-details.tabs.chat-empty-desc')}</p>
-    </div>
-  );
-};
 
 export default LeadDetailTabs;
