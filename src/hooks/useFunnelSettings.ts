@@ -261,29 +261,35 @@ export const useFunnelSettings = () => {
     try {
       const response = await api.post(`/api/funnels/${templateId}/stages`, {
         name: stage.name,
-        description: stage.name,
-        type: stage.type,
+        description: stage.description || stage.name,
+        type: stage.templateType || 'normal', // Use templateType as the type value
         color: stage.color,
-        order: stage.order,
-        probability: stage.probability,
         is_final_stage: stage.isFinalStage,
-        final_type: stage.finalType,
-        allow_backward: stage.allowBackward,
-        entry_requirement: stage.entryRules,
         template_type: 'model', // Always send template_type as 'model' for template stages
       });
       
       const createdStage: FunnelStage = {
         id: String(response.data.id),
         name: response.data.name,
-        type: response.data.type || 'lead',
-        order: response.data.order,
+        description: response.data.description,
+        type: response.data.type || 'normal',
+        templateType: response.data.type || 'normal',
+        order: response.data.order || 0,
         probability: response.data.probability || 50,
         color: response.data.color || '#3b82f6',
         isFinalStage: response.data.is_final_stage || false,
         finalType: response.data.final_type,
-        allowBackward: response.data.allow_backward !== false,
-        entryRules: response.data.entry_requirement || stage.entryRules,
+        allowBackward: true,
+        entryRules: {
+          requireAssignedOwner: false,
+          requireCompanyLinked: false,
+          requireContactEmail: false,
+          requirePhoneNumber: false,
+          requireAtLeastOneProduct: false,
+          requireDealValue: false,
+          requireExpectedCloseDate: false,
+          requireLastActivityDays: null,
+        },
         actions: [],
       };
       
@@ -318,15 +324,10 @@ export const useFunnelSettings = () => {
     try {
       await api.put(`/api/funnels/${templateId}/stages/${stageId}`, {
         name: updates.name,
-        description: updates.name,
-        type: updates.type,
+        description: updates.description || updates.name,
+        type: updates.templateType || 'normal', // Use templateType as the type value
         color: updates.color,
-        order: updates.order,
-        probability: updates.probability,
         is_final_stage: updates.isFinalStage,
-        final_type: updates.finalType,
-        allow_backward: updates.allowBackward,
-        entry_requirement: updates.entryRules,
         template_type: 'model', // Always send template_type as 'model' for template stages
       });
       
