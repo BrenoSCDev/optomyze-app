@@ -1010,7 +1010,6 @@ const OptomyzeMetrics = () => {
   // Get revenue metrics from API response
   const getRevenueMetrics = () => {
     const revenueMetrics = metricsData?.data?.revenue_metrics?.metrics;
-    console.log(revenueMetrics)
     if (!revenueMetrics) {
       return { totalAnnualRevenue: 0, totalMonthlyRevenue: 0, avgDealValue: 0 };
     }
