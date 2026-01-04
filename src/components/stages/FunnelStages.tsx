@@ -59,6 +59,7 @@ interface Stage {
   description: string;
   order: number;
   type: string;
+  color: string;
   is_active: boolean;
   settings: {
     sla_hours: number;
@@ -71,6 +72,19 @@ interface Stage {
   updated_at: string;
   deleted_at?: string;
 }
+
+const STAGE_COLORS = [
+  { value: '#FFFFFF', label: 'White' },
+  { value: '#EF4444', label: 'Red' },
+  { value: '#F97316', label: 'Orange' },
+  { value: '#EAB308', label: 'Yellow' },
+  { value: '#22C55E', label: 'Green' },
+  { value: '#06B6D4', label: 'Cyan' },
+  { value: '#3B82F6', label: 'Blue' },
+  { value: '#8B5CF6', label: 'Purple' },
+  { value: '#EC4899', label: 'Pink' },
+  { value: '#6B7280', label: 'Gray' },
+];
 
 interface Funnel {
   id: number;
@@ -100,7 +114,8 @@ const FunnelStages = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: ''
+    type: '',
+    color: '#FFFFFF'
   });
   const [formErrors, setFormErrors] = useState({
     name: '',
@@ -201,14 +216,15 @@ const FunnelStages = () => {
       const response = await api.post(`/api/funnels/${funnelId}/stages`, {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        type: formData.type
+        type: formData.type,
+        color: formData.color
       });
 
       // Add new stage to the list
       setStages(prev => [...prev, response.data]);
       
       // Reset form and close modal
-      setFormData({ name: '', description: '', type: '' });
+      setFormData({ name: '', description: '', type: '', color: '#FFFFFF' });
       setFormErrors({ name: '', description: '', type: '' });
       setShowNewStageModal(false);
       
@@ -422,6 +438,10 @@ const FunnelStages = () => {
                   className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
                   {...attributes}
                   {...listeners}
+                />
+                <div 
+                  className="w-4 h-4 rounded-full border border-border shrink-0"
+                  style={{ backgroundColor: stage.color || '#FFFFFF' }}
                 />
                 <ListTree className="h-5 w-5 text-primary" />
               </div>
@@ -748,13 +768,34 @@ const FunnelStages = () => {
                 <p className="text-sm text-destructive">{formErrors.type}</p>
               )}
             </div>
+
+            {/* Stage Color */}
+            <div className="space-y-2">
+              <Label>{t('stages.color_label')}</Label>
+              <div className="flex flex-wrap gap-2">
+                {STAGE_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      formData.color === color.value 
+                        ? 'border-primary ring-2 ring-primary/30 scale-110' 
+                        : 'border-border hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.label}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setShowNewStageModal(false);
-                setFormData({ name: '', description: '', type: '' });
+                setFormData({ name: '', description: '', type: '', color: '#FFFFFF' });
                 setFormErrors({ name: '', description: '', type: '' });
               }}
               disabled={creating}
