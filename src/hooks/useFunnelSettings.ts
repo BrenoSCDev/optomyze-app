@@ -19,9 +19,9 @@ export const useFunnelSettings = () => {
     try {
       setLoading(true);
       
-      // Fetch all funnels from API
-      const response = await api.get('/api/funnels');
-      const funnelsFromApi = response.data || [];
+      // Fetch funnels from settings-panel API
+      const response = await api.get('/api/settings-panel');
+      const funnelsFromApi = response.data?.funnels || [];
       
       // Map API response to our Funnel type
       const mappedFunnels: Funnel[] = funnelsFromApi.map((f: any) => ({
@@ -56,19 +56,13 @@ export const useFunnelSettings = () => {
 
       const loadedSettings = {
         ...defaultFunnelSettings,
-        funnels: mappedFunnels.length > 0 ? mappedFunnels : defaultFunnelSettings.funnels,
+        funnels: mappedFunnels,
       };
 
       setSettings(loadedSettings);
       setOriginalSettings(loadedSettings);
       
-      // Set default selected funnel (regular funnels only)
-      const regularFunnels = loadedSettings.funnels.filter(f => f.type !== 'model');
-      if (regularFunnels.length > 0) {
-        setSelectedFunnelId(regularFunnels[0].id);
-      }
-      
-      // Set default selected template
+      // Set default selected template (only model funnels from this endpoint)
       const templateFunnels = loadedSettings.funnels.filter(f => f.type === 'model');
       if (templateFunnels.length > 0) {
         setSelectedTemplateId(templateFunnels[0].id);
