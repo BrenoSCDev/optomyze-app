@@ -422,34 +422,6 @@ const CrmPanel = () => {
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
-              {/* Funnel Structure */}
-              <AccordionItem value="funnel-structure" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <IoFunnelOutline className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.funnels.structure')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <FunnelStructureSection
-                      funnels={regularFunnels}
-                      selectedFunnelId={selectedFunnelId}
-                      onSelectFunnel={setSelectedFunnelId}
-                      onAddFunnel={addFunnel}
-                      onUpdateFunnel={updateFunnel}
-                      onDeleteFunnel={deleteFunnel}
-                      onSetDefault={setDefaultFunnel}
-                      onEditStage={handleEditStage}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
               {/* Funnel Templates */}
               <AccordionItem value="funnel-templates" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
