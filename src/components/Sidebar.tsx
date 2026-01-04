@@ -152,11 +152,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} /> },
   ];
 
-  // Contracts submenu items
-  const contractsItems = [
-    { id: 'model-contracts', label: t('contracts.model'), icon: () => <FileStack size={16} /> },
-    { id: 'list-contracts', label: t('contracts.list'), icon: () => <ClipboardList size={16} /> },
-  ];
+  // Contracts submenu items - COMMENTED OUT: Feature to be implemented later
+  // const contractsItems = [
+  //   { id: 'model-contracts', label: t('contracts.model'), icon: () => <FileStack size={16} /> },
+  //   { id: 'list-contracts', label: t('contracts.list'), icon: () => <ClipboardList size={16} /> },
+  // ];
 
   // Support submenu items
   const supportItems = [
@@ -831,8 +831,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </button>
         ))}
 
-        {/* Contracts Section */}
-        <div>
+        {/* Contracts Section - COMMENTED OUT: Feature to be implemented later */}
+        {/* <div>
           <button
             onClick={() => toggleSection('contracts')}
             className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
@@ -888,7 +888,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </div> */}
 
         {/* Support Section */}
         <div>

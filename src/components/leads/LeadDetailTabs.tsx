@@ -155,13 +155,14 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger 
+          {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
+          {/* <TabsTrigger 
             value="contracts" 
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
             <FileSignature className="w-3.5 h-3.5 mr-1.5" />
             <span>{t('lead-details.tabs.contracts')}</span>
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger 
             value="chat" 
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
@@ -209,10 +210,10 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           />
         </TabsContent>
 
-        {/* Contracts Tab */}
-        <TabsContent value="contracts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+        {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
+        {/* <TabsContent value="contracts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <ContractsContent />
-        </TabsContent>
+        </TabsContent> */}
 
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
@@ -446,20 +447,20 @@ const DocumentsSectionContent: React.FC<DocumentsSectionContentProps> = ({
 };
 
 
-// Contracts Content (placeholder)
-const ContractsContent: React.FC = () => {
-  const { t } = useLanguage();
-  
-  return (
-    <div className="text-center py-12">
-      <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-        <FileSignature className="w-8 h-8 text-blue-500/60" />
-      </div>
-      <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.contracts-empty')}</h4>
-      <p className="text-gray-400 text-sm">{t('lead-details.tabs.contracts-empty-desc')}</p>
-    </div>
-  );
-};
+// Contracts Content (placeholder) - COMMENTED OUT: Feature to be implemented later
+// const ContractsContent: React.FC = () => {
+//   const { t } = useLanguage();
+//   
+//   return (
+//     <div className="text-center py-12">
+//       <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+//         <FileSignature className="w-8 h-8 text-blue-500/60" />
+//       </div>
+//       <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.contracts-empty')}</h4>
+//       <p className="text-gray-400 text-sm">{t('lead-details.tabs.contracts-empty-desc')}</p>
+//     </div>
+//   );
+// };
 
 // Chat Content (placeholder)
 const ChatContent: React.FC = () => {
