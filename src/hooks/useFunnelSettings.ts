@@ -9,6 +9,7 @@ export const useFunnelSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedFunnelId, setSelectedFunnelId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -19,8 +20,17 @@ export const useFunnelSettings = () => {
       await new Promise(resolve => setTimeout(resolve, 300));
       setSettings(defaultFunnelSettings);
       setOriginalSettings(defaultFunnelSettings);
-      if (defaultFunnelSettings.funnels.length > 0) {
-        setSelectedFunnelId(defaultFunnelSettings.funnels[0].id);
+      
+      // Set default selected funnel (regular funnels only)
+      const regularFunnels = defaultFunnelSettings.funnels.filter(f => f.type !== 'model');
+      if (regularFunnels.length > 0) {
+        setSelectedFunnelId(regularFunnels[0].id);
+      }
+      
+      // Set default selected template
+      const templateFunnels = defaultFunnelSettings.funnels.filter(f => f.type === 'model');
+      if (templateFunnels.length > 0) {
+        setSelectedTemplateId(templateFunnels[0].id);
       }
     } catch (error) {
       console.error('Failed to load funnel settings:', error);
@@ -38,8 +48,17 @@ export const useFunnelSettings = () => {
     loadSettings();
   }, [loadSettings]);
 
-  // Get currently selected funnel
-  const selectedFunnel = settings.funnels.find(f => f.id === selectedFunnelId) || null;
+  // Get regular funnels (exclude templates)
+  const regularFunnels = settings.funnels.filter(f => f.type !== 'model');
+  
+  // Get template funnels only
+  const templateFunnels = settings.funnels.filter(f => f.type === 'model');
+
+  // Get currently selected funnel (regular)
+  const selectedFunnel = regularFunnels.find(f => f.id === selectedFunnelId) || null;
+  
+  // Get currently selected template
+  const selectedTemplate = templateFunnels.find(f => f.id === selectedTemplateId) || null;
 
   // Check for unsaved changes
   const hasChanges = useCallback(() => {
@@ -51,7 +70,7 @@ export const useFunnelSettings = () => {
     setSettings(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Update a specific funnel
+  // Update a specific funnel (regular or template)
   const updateFunnel = useCallback((funnelId: string, updates: Partial<Funnel>) => {
     setSettings(prev => ({
       ...prev,
@@ -61,25 +80,51 @@ export const useFunnelSettings = () => {
     }));
   }, []);
 
-  // Add new funnel
+  // Add new funnel (regular)
   const addFunnel = useCallback((funnel: Funnel) => {
+    const regularFunnel = { ...funnel, type: 'regular' as const };
     setSettings(prev => ({
       ...prev,
-      funnels: [...prev.funnels, funnel],
+      funnels: [...prev.funnels, regularFunnel],
     }));
     setSelectedFunnelId(funnel.id);
+  }, []);
+
+  // Add new template funnel
+  const addTemplate = useCallback((funnel: Funnel) => {
+    const templateFunnel = { ...funnel, type: 'model' as const };
+    setSettings(prev => ({
+      ...prev,
+      funnels: [...prev.funnels, templateFunnel],
+    }));
+    setSelectedTemplateId(funnel.id);
   }, []);
 
   // Delete funnel
   const deleteFunnel = useCallback((funnelId: string) => {
     setSettings(prev => {
       const newFunnels = prev.funnels.filter(f => f.id !== funnelId);
-      if (selectedFunnelId === funnelId && newFunnels.length > 0) {
-        setSelectedFunnelId(newFunnels[0].id);
+      const regularFunnels = newFunnels.filter(f => f.type !== 'model');
+      if (selectedFunnelId === funnelId && regularFunnels.length > 0) {
+        setSelectedFunnelId(regularFunnels[0].id);
       }
       return { ...prev, funnels: newFunnels };
     });
   }, [selectedFunnelId]);
+
+  // Delete template
+  const deleteTemplate = useCallback((templateId: string) => {
+    setSettings(prev => {
+      const newFunnels = prev.funnels.filter(f => f.id !== templateId);
+      const templateFunnels = newFunnels.filter(f => f.type === 'model');
+      if (selectedTemplateId === templateId && templateFunnels.length > 0) {
+        setSelectedTemplateId(templateFunnels[0].id);
+      } else if (selectedTemplateId === templateId) {
+        setSelectedTemplateId(null);
+      }
+      return { ...prev, funnels: newFunnels };
+    });
+  }, [selectedTemplateId]);
 
   // Set default funnel
   const setDefaultFunnel = useCallback((funnelId: string) => {
@@ -87,10 +132,40 @@ export const useFunnelSettings = () => {
       ...prev,
       funnels: prev.funnels.map(f => ({
         ...f,
-        isDefault: f.id === funnelId,
+        isDefault: f.type !== 'model' && f.id === funnelId,
       })),
     }));
   }, []);
+
+  // Create funnel from template
+  const createFunnelFromTemplate = useCallback((templateId: string, newFunnelName?: string) => {
+    const template = settings.funnels.find(f => f.id === templateId && f.type === 'model');
+    if (!template) return;
+
+    const newFunnel: Funnel = {
+      id: crypto.randomUUID(),
+      name: newFunnelName || `${template.name} (Copy)`,
+      type: 'regular',
+      isDefault: false,
+      appliesTo: template.appliesTo,
+      stages: template.stages.map(stage => ({
+        ...stage,
+        id: crypto.randomUUID(),
+        // Preserve all settings: order, color, entryRules, etc.
+      })),
+    };
+
+    setSettings(prev => ({
+      ...prev,
+      funnels: [...prev.funnels, newFunnel],
+    }));
+    setSelectedFunnelId(newFunnel.id);
+
+    toast({
+      title: t('common.success'),
+      description: `Funnel "${newFunnel.name}" created from template`,
+    });
+  }, [settings.funnels, toast, t]);
 
   // Save settings (mock for now)
   const saveSettings = useCallback(async () => {
@@ -123,15 +198,26 @@ export const useFunnelSettings = () => {
     settings,
     loading,
     saving,
+    // Regular funnels
+    regularFunnels,
     selectedFunnelId,
     selectedFunnel,
     setSelectedFunnelId,
-    hasChanges,
-    updateSettings,
-    updateFunnel,
     addFunnel,
     deleteFunnel,
     setDefaultFunnel,
+    // Template funnels
+    templateFunnels,
+    selectedTemplateId,
+    selectedTemplate,
+    setSelectedTemplateId,
+    addTemplate,
+    deleteTemplate,
+    createFunnelFromTemplate,
+    // Shared
+    hasChanges,
+    updateSettings,
+    updateFunnel,
     saveSettings,
     resetChanges,
     reload: loadSettings,
