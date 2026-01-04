@@ -975,6 +975,7 @@ const translations = {
     'stages.configure_entry_requirements': 'Configure Entry Requirements',
     'stages.entry_requirement_updated': 'Entry requirement updated successfully',
     'stages.entry_requirement_error': 'Failed to update entry requirement',
+    'stages.color_label': 'Color',
 
     // Integrations
     'integrations.title': 'App Integrations',
@@ -2834,6 +2835,7 @@ const translations = {
     'stages.configure_entry_requirements': 'Configurar Requisitos de Entrada',
     'stages.entry_requirement_updated': 'Requisito de entrada atualizado com sucesso',
     'stages.entry_requirement_error': 'Falha ao atualizar requisito de entrada',
+    'stages.color_label': 'Cor',
 
     // Integrations
     'integrations.title': 'Integrações de Apps',
@@ -5479,6 +5481,7 @@ const translations = {
     'stages.configure_entry_requirements': 'Eingabeanforderungen konfigurieren',
     'stages.entry_requirement_updated': 'Eingabeanforderung erfolgreich aktualisiert',
     'stages.entry_requirement_error': 'Fehler beim Aktualisieren der Eingabeanforderung',
+    'stages.color_label': 'Farbe',
   },
   es: {
     // Navigation
@@ -7179,6 +7182,7 @@ const translations = {
     'stages.configure_entry_requirements': 'Configurar Requisitos de Entrada',
     'stages.entry_requirement_updated': 'Requisito de entrada actualizado correctamente',
     'stages.entry_requirement_error': 'Error al actualizar el requisito de entrada',
+    'stages.color_label': 'Color',
   }
 };
 

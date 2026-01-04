@@ -29,6 +29,7 @@ interface Stage {
   description: string;
   order: number;
   type: string;
+  color: string;
   is_active: boolean;
   settings: {
     sla_hours: number;
@@ -40,6 +41,19 @@ interface Stage {
   updated_at: string;
   deleted_at?: string;
 }
+
+const STAGE_COLORS = [
+  { value: '#FFFFFF', label: 'White' },
+  { value: '#EF4444', label: 'Red' },
+  { value: '#F97316', label: 'Orange' },
+  { value: '#EAB308', label: 'Yellow' },
+  { value: '#22C55E', label: 'Green' },
+  { value: '#06B6D4', label: 'Cyan' },
+  { value: '#3B82F6', label: 'Blue' },
+  { value: '#8B5CF6', label: 'Purple' },
+  { value: '#EC4899', label: 'Pink' },
+  { value: '#6B7280', label: 'Gray' },
+];
 
 interface StageEditModalProps {
   isOpen: boolean;
@@ -62,6 +76,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
     name: '',
     description: '',
     type: '',
+    color: '#FFFFFF',
     is_active: true
   });
   const [formErrors, setFormErrors] = useState({
@@ -88,6 +103,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: stage.name || '',
         description: stage.description || '',
         type: stage.type || '',
+        color: stage.color || '#FFFFFF',
         is_active: stage.is_active
       });
       setFormErrors({ name: '', description: '', type: '' });
@@ -101,6 +117,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: '',
         description: '',
         type: '',
+        color: '#FFFFFF',
         is_active: true
       });
       setFormErrors({ name: '', description: '', type: '' });
@@ -147,6 +164,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         type: formData.type,
+        color: formData.color,
         is_active: formData.is_active
       });
 
@@ -272,6 +290,28 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
             {formErrors.type && (
               <p className="text-sm text-destructive">{formErrors.type}</p>
             )}
+          </div>
+
+          {/* Stage Color */}
+          <div className="space-y-2">
+            <Label>Color</Label>
+            <div className="flex flex-wrap gap-2">
+              {STAGE_COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    formData.color === color.value 
+                      ? 'border-primary ring-2 ring-primary/30 scale-110' 
+                      : 'border-border hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.label}
+                  disabled={loading}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Is Active Toggle */}
