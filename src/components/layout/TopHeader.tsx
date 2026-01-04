@@ -3,14 +3,14 @@
  * 
  * A fixed top header with:
  * - Left: Logo/App name
- * - Center: Global search bar
+ * - Center: Global search bar with lead quick search
  * - Right: Notification bell + User menu
  */
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, LogOut, UserCircle, ChevronDown } from 'lucide-react';
+import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,6 +22,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getStorageUrl } from '@/lib/constants';
+import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
 
 interface TopHeaderProps {
@@ -29,14 +30,97 @@ interface TopHeaderProps {
 }
 
 const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<LeadSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, logout } = useAuth();
   const { t } = useLanguage();
 
   // Mock unread count - will be replaced with real data later
   const unreadNotifications = 3;
+
+  // Debounced search function
+  const performSearch = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await searchLeads(query);
+      setSearchResults(results);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Handle search input change with debounce
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    if (value.length < 3) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      performSearch(value);
+    }, 400);
+  };
+
+  // Handle lead selection
+  const handleLeadSelect = (lead: LeadSearchResult) => {
+    setShowResults(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    navigate(`/leads/${lead.funnel_id}/lead/${lead.id}`);
+  };
+
+  // Handle keyboard events
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowResults(false);
+      setSearchQuery('');
+    }
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   return (
     <motion.header
@@ -67,23 +151,73 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
       {/* Center Section - Search Bar */}
       <div className="flex-1 flex justify-center max-w-xl mx-4">
         {/* Desktop Search */}
-        <div className="hidden md:flex relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div ref={searchContainerRef} className="hidden md:flex relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+          {isSearching && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+          )}
           <Input
             type="text"
             placeholder={t('header.search-placeholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
+            className="w-full pl-10 pr-10 bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
           />
+          
+          {/* Search Results Dropdown */}
+          <AnimatePresence>
+            {showResults && searchResults.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
+              >
+                {searchResults.map((lead) => (
+                  <button
+                    key={lead.id}
+                    onClick={() => handleLeadSelect(lead)}
+                    className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-primary font-semibold text-sm">
+                        {lead.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium text-foreground truncate">
+                      {lead.name}
+                    </span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* No results message */}
+          <AnimatePresence>
+            {showResults && searchResults.length === 0 && searchQuery.length >= 3 && !isSearching && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 p-4"
+              >
+                <p className="text-sm text-muted-foreground text-center">
+                  {t('header.no-results')}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Mobile Search - Icon that expands */}
-        <div className="md:hidden">
+        <div className="md:hidden relative" ref={!searchContainerRef.current ? searchContainerRef : undefined}>
           <AnimatePresence>
             {searchExpanded ? (
               <motion.div
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 relative"
                 initial={{ width: 40 }}
                 animate={{ width: 200 }}
                 exit={{ width: 40 }}
@@ -92,11 +226,34 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
                   type="text"
                   placeholder={t('header.search-placeholder')}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="w-full bg-background/50 border-white/10"
                   autoFocus
-                  onBlur={() => !searchQuery && setSearchExpanded(false)}
+                  onBlur={() => {
+                    if (!searchQuery) setSearchExpanded(false);
+                  }}
                 />
+                {isSearching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                )}
+                
+                {/* Mobile Search Results */}
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                    {searchResults.map((lead) => (
+                      <button
+                        key={lead.id}
+                        onClick={() => handleLeadSelect(lead)}
+                        className="w-full px-3 py-2 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0"
+                      >
+                        <span className="text-sm font-medium text-foreground truncate block">
+                          {lead.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             ) : (
               <Button

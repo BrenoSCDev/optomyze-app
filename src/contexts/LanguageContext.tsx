@@ -40,6 +40,7 @@ const translations = {
     // Header
     'header.search-placeholder': 'Search leads...',
     'header.my-profile': 'My Profile',
+    'header.no-results': 'No leads found',
     
     // Contracts
     'contracts.title': 'Contracts',
@@ -1963,6 +1964,7 @@ const translations = {
     // Header
     'header.search-placeholder': 'Buscar leads...',
     'header.my-profile': 'Meu Perfil',
+    'header.no-results': 'Nenhum lead encontrado',
     
     // Contracts
     'contracts.title': 'Contratos',
@@ -3856,6 +3858,7 @@ const translations = {
     // Header
     'header.search-placeholder': 'Leads suchen...',
     'header.my-profile': 'Mein Profil',
+    'header.no-results': 'Keine Leads gefunden',
     
     // Contracts
     'contracts.title': 'Verträge',
@@ -5584,6 +5587,7 @@ const translations = {
     // Header
     'header.search-placeholder': 'Buscar leads...',
     'header.my-profile': 'Mi Perfil',
+    'header.no-results': 'No se encontraron leads',
     
     // Contracts
     'contracts.title': 'Contratos',

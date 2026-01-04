@@ -1,0 +1,14 @@
+import api from './api';
+
+export interface LeadSearchResult {
+  id: number;
+  name: string;
+  funnel_id: number;
+}
+
+export const searchLeads = async (query: string): Promise<LeadSearchResult[]> => {
+  const response = await api.get('/leads/search', {
+    params: { q: query }
+  });
+  return response.data;
+};
