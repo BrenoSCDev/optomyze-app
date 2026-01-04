@@ -2555,6 +2555,7 @@ const translations = {
     'common.default': 'Padrão',
     'common.to': 'até',
     'common.minutes': 'minutos',
+    'sale.start-purchase': 'Iniciar Compra',
 
     'tags.title': 'Gerenciamento de Tags',
     'tags.breadcrumb': 'Configurações / Tags',
@@ -4348,6 +4349,7 @@ const translations = {
     'common.default': 'Standard',
     'common.to': 'bis',
     'common.minutes': 'Minuten',
+    'sale.start-purchase': 'Kauf starten',
 
     'tags.title': 'Tag-Verwaltung',
     'tags.breadcrumb': 'Einstellungen / Tags',
@@ -6146,6 +6148,7 @@ const translations = {
     'common.test': 'Probar',
     'common.retry': 'Reintentar',
     'common.refresh': 'Actualizar',
+    'sale.start-purchase': 'Iniciar Compra',
     
     // Observations
     'observations.add-new': 'Agregar Nueva Observación',
