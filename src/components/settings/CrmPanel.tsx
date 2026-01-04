@@ -611,10 +611,7 @@ const CrmPanel = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <CustomFieldsSection 
-                      settings={settings.product_settings} 
-                      onUpdate={updateProductSettings} 
-                    />
+                    <CustomFieldsSection />
                   </div>
                 </AccordionContent>
               </AccordionItem>
