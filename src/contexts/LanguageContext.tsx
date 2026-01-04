@@ -972,6 +972,9 @@ const translations = {
     'stages.network_error': 'Network error. Please check your connection and try again.',
     'stages.server_error': 'Server error. Please contact support if the problem persists.',
     'stages.retry': 'Retry',
+    'stages.configure_entry_requirements': 'Configure Entry Requirements',
+    'stages.entry_requirement_updated': 'Entry requirement updated successfully',
+    'stages.entry_requirement_error': 'Failed to update entry requirement',
 
     // Integrations
     'integrations.title': 'App Integrations',
@@ -2828,6 +2831,9 @@ const translations = {
     'stages.network_error': 'Erro de rede. Verifique sua conexão e tente novamente.',
     'stages.server_error': 'Erro do servidor. Entre em contato com o suporte se o problema persistir.',
     'stages.retry': 'Tentar Novamente',
+    'stages.configure_entry_requirements': 'Configurar Requisitos de Entrada',
+    'stages.entry_requirement_updated': 'Requisito de entrada atualizado com sucesso',
+    'stages.entry_requirement_error': 'Falha ao atualizar requisito de entrada',
 
     // Integrations
     'integrations.title': 'Integrações de Apps',
@@ -5468,6 +5474,11 @@ const translations = {
     'api.playground.storage.local-only': 'Sind nur in diesem Browser und Gerät verfügbar',
     'api.playground.storage.clear-warning': 'Das Löschen des Browser-Speichers oder die Verwendung eines anderen Browsers/Geräts setzt diese Daten zurück.',
     'common.copy': 'Kopie',
+    
+    // Stages
+    'stages.configure_entry_requirements': 'Eingabeanforderungen konfigurieren',
+    'stages.entry_requirement_updated': 'Eingabeanforderung erfolgreich aktualisiert',
+    'stages.entry_requirement_error': 'Fehler beim Aktualisieren der Eingabeanforderung',
   },
   es: {
     // Navigation
@@ -7163,6 +7174,11 @@ const translations = {
     'api.playground.storage.local-only': 'Solo están disponibles en este navegador y dispositivo',
     'api.playground.storage.clear-warning': 'Limpiar el almacenamiento del navegador o usar otro navegador/dispositivo restablecerá estos datos.',
     'common.copy': 'Copia',
+    
+    // Stages
+    'stages.configure_entry_requirements': 'Configurar Requisitos de Entrada',
+    'stages.entry_requirement_updated': 'Requisito de entrada actualizado correctamente',
+    'stages.entry_requirement_error': 'Error al actualizar el requisito de entrada',
   }
 };
 
