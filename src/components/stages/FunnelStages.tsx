@@ -416,69 +416,69 @@ const FunnelStages = () => {
           transition-all duration-200
         `}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <GripVertical 
-                    className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
-                    {...attributes}
-                    {...listeners}
-                  />
-                  <ListTree className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-lg font-semibold text-foreground truncate">
-                  {stage.name}
-                </span>
+            <CardTitle className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <GripVertical 
+                  className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
+                  {...attributes}
+                  {...listeners}
+                />
+                <ListTree className="h-5 w-5 text-primary" />
               </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-accent/10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEntryRequirementsModal(stage);
-                    }}
-                    title={t('stages.configure_entry_requirements')}
-                  >
-                    <Cog className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-primary/10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditModal(stage);
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-destructive/10 text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedStage(stage);
-                      setShowDeleteModal(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+              <span className="text-lg font-semibold text-foreground truncate">
+                {stage.name}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm line-clamp-3">
               {stage.description}
             </p>
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span>{t('stages.order')}: {stage.order}</span>
-              <span>•</span>
-              <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
-                {stage.is_active ? t('stages.active') : t('stages.inactive')}
-              </span>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>{t('stages.order')}: {stage.order}</span>
+                <span>•</span>
+                <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
+                  {stage.is_active ? t('stages.active') : t('stages.inactive')}
+                </span>
+              </div>
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-accent/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEntryRequirementsModal(stage);
+                  }}
+                  title={t('stages.configure_entry_requirements')}
+                >
+                  <Cog className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(stage);
+                  }}
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-destructive/10 text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStage(stage);
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
