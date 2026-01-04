@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, Clock, XCircle, ArrowRightLeft, CheckSquare, Mail, Users, BarChart3, Moon, FileText, Send } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, Clock, XCircle, ArrowRightLeft, CheckSquare, Mail, Users, BarChart3, Moon, FileText, Send, FileStack } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -29,6 +29,7 @@ import PermissionsSection from './sales/PermissionsSection';
 
 // Funnel Settings
 import FunnelStructureSection from './funnels/FunnelStructureSection';
+import FunnelTemplatesSection from './funnels/FunnelTemplatesSection';
 import StageEntryRulesSection from './funnels/StageEntryRulesSection';
 import AutomatedTransitionsSection from './funnels/AutomatedTransitionsSection';
 import StageActionsSection from './funnels/StageActionsSection';
@@ -71,9 +72,17 @@ const CrmPanel = () => {
     settings: funnelSettings,
     loading: funnelLoading,
     saving: funnelSaving,
+    regularFunnels,
     selectedFunnelId,
     selectedFunnel,
     setSelectedFunnelId,
+    templateFunnels,
+    selectedTemplateId,
+    selectedTemplate,
+    setSelectedTemplateId,
+    addTemplate: addFunnelTemplate,
+    deleteTemplate: deleteFunnelTemplate,
+    createFunnelFromTemplate,
     hasChanges: hasFunnelChanges,
     updateSettings: updateFunnelSettings,
     updateFunnel,
@@ -116,20 +125,36 @@ const CrmPanel = () => {
   };
 
   const handleUpdateStageRules = (rules: FunnelStage['entryRules']) => {
-    if (!editingStage || !selectedFunnel) return;
-    const updatedStages = selectedFunnel.stages.map(s =>
+    if (!editingStage) return;
+    
+    // Find which funnel contains this stage (could be regular or template)
+    const targetFunnel = [...regularFunnels, ...templateFunnels].find(f =>
+      f.stages.some(s => s.id === editingStage.id)
+    );
+    
+    if (!targetFunnel) return;
+    
+    const updatedStages = targetFunnel.stages.map(s =>
       s.id === editingStage.id ? { ...s, entryRules: rules } : s
     );
-    updateFunnel(selectedFunnel.id, { stages: updatedStages });
+    updateFunnel(targetFunnel.id, { stages: updatedStages });
     setEditingStage({ ...editingStage, entryRules: rules });
   };
 
   const handleUpdateStageActions = (actions: FunnelStage['actions']) => {
-    if (!editingStage || !selectedFunnel) return;
-    const updatedStages = selectedFunnel.stages.map(s =>
+    if (!editingStage) return;
+    
+    // Find which funnel contains this stage (could be regular or template)
+    const targetFunnel = [...regularFunnels, ...templateFunnels].find(f =>
+      f.stages.some(s => s.id === editingStage.id)
+    );
+    
+    if (!targetFunnel) return;
+    
+    const updatedStages = targetFunnel.stages.map(s =>
       s.id === editingStage.id ? { ...s, actions } : s
     );
-    updateFunnel(selectedFunnel.id, { stages: updatedStages });
+    updateFunnel(targetFunnel.id, { stages: updatedStages });
     setEditingStage({ ...editingStage, actions });
   };
 
@@ -409,7 +434,7 @@ const CrmPanel = () => {
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
                     <FunnelStructureSection
-                      funnels={funnelSettings.funnels}
+                      funnels={regularFunnels}
                       selectedFunnelId={selectedFunnelId}
                       onSelectFunnel={setSelectedFunnelId}
                       onAddFunnel={addFunnel}
@@ -417,6 +442,35 @@ const CrmPanel = () => {
                       onDeleteFunnel={deleteFunnel}
                       onSetDefault={setDefaultFunnel}
                       onEditStage={handleEditStage}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Funnel Templates */}
+              <AccordionItem value="funnel-templates" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <FileStack className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.funnels.templates')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <FunnelTemplatesSection
+                      funnels={regularFunnels}
+                      templateFunnels={templateFunnels}
+                      selectedTemplateId={selectedTemplateId}
+                      onSelectTemplate={setSelectedTemplateId}
+                      onAddTemplate={addFunnelTemplate}
+                      onUpdateTemplate={updateFunnel}
+                      onDeleteTemplate={deleteFunnelTemplate}
+                      onEditStage={handleEditStage}
+                      onCreateFunnelFromTemplate={createFunnelFromTemplate}
                     />
                   </div>
                 </AccordionContent>
@@ -438,7 +492,7 @@ const CrmPanel = () => {
                   <div className="py-4 px-2 border-t">
                     <AutomatedTransitionsSection
                       transitions={funnelSettings.automatedTransitions}
-                      funnels={funnelSettings.funnels}
+                      funnels={regularFunnels}
                       onUpdate={(transitions) => updateFunnelSettings({ automatedTransitions: transitions })}
                     />
                   </div>

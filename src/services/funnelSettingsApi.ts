@@ -38,9 +38,15 @@ export interface StageAction {
 export interface Funnel {
   id: string;
   name: string;
+  type?: 'regular' | 'model'; // 'model' = template funnel
   isDefault: boolean;
   appliesTo: 'leads' | 'deals' | 'both';
   stages: FunnelStage[];
+}
+
+// Funnel Stage with template support
+export interface FunnelStageCreate extends Omit<FunnelStage, 'id'> {
+  template_type?: 'model'; // Used when creating stages in model funnels
 }
 
 // Automated Transition Types
@@ -140,6 +146,7 @@ export const defaultFunnelSettings: FunnelSettings = {
     {
       id: 'default-funnel',
       name: 'Default Sales Funnel',
+      type: 'regular',
       isDefault: true,
       appliesTo: 'both',
       stages: [
