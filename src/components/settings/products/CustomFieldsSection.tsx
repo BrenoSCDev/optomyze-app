@@ -1,82 +1,114 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { CustomField, ProductSettings } from '@/services/settingsApi';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { useCustomProductFields } from '@/hooks/useCustomProductFields';
+import { CustomProductField, CustomProductFieldFormData } from '@/services/customProductFieldsApi';
+import { getProducts, Product } from '@/services/productApi';
 
-interface Props {
-  settings: ProductSettings;
-  onUpdate: (updates: Partial<ProductSettings>) => void;
+interface FormData {
+  field_key: string;
+  field_type: 'text' | 'number' | 'select' | 'boolean' | 'date';
+  field_value: string;
+  type: 'model' | 'product';
+  product_id: number | null;
 }
 
-const emptyField: Omit<CustomField, 'id'> = {
-  label: '',
-  key: '',
-  type: 'text',
-  required: false,
-  defaultValue: '',
-  applyTo: 'all',
+const emptyFormData: FormData = {
+  field_key: '',
+  field_type: 'text',
+  field_value: '',
+  type: 'model',
+  product_id: null,
 };
 
-const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
+const CustomFieldsSection = () => {
   const { t } = useLanguage();
+  const { fields, loading, saving, addField, editField, removeField } = useCustomProductFields();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingField, setEditingField] = useState<CustomField | null>(null);
-  const [formData, setFormData] = useState<Omit<CustomField, 'id'>>(emptyField);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingField, setEditingField] = useState<CustomProductField | null>(null);
+  const [deletingField, setDeletingField] = useState<CustomProductField | null>(null);
+  const [formData, setFormData] = useState<FormData>(emptyFormData);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  // Load products for the product selector
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoadingProducts(true);
+        const response = await getProducts({ is_active: true, per_page: 100 });
+        setProducts(response.data || []);
+      } catch (error) {
+        console.error('Failed to load products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const handleAdd = () => {
     setEditingField(null);
-    setFormData(emptyField);
+    setFormData(emptyFormData);
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (field: CustomField) => {
+  const handleEdit = (field: CustomProductField) => {
     setEditingField(field);
     setFormData({
-      label: field.label,
-      key: field.key,
+      field_key: field.field_key,
+      field_type: field.field_type,
+      field_value: field.field_value,
       type: field.type,
-      required: field.required,
-      defaultValue: field.defaultValue,
-      applyTo: field.applyTo,
+      product_id: field.product_id,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (fieldId: string) => {
-    const updatedFields = settings.default_custom_fields.filter(f => f.id !== fieldId);
-    onUpdate({ default_custom_fields: updatedFields });
+  const handleDeleteClick = (field: CustomProductField) => {
+    setDeletingField(field);
+    setDeleteDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.label || !formData.key) return;
-
-    if (editingField) {
-      const updatedFields = settings.default_custom_fields.map(f =>
-        f.id === editingField.id ? { ...formData, id: editingField.id } : f
-      );
-      onUpdate({ default_custom_fields: updatedFields });
-    } else {
-      const newField: CustomField = {
-        ...formData,
-        id: crypto.randomUUID(),
-      };
-      onUpdate({ default_custom_fields: [...settings.default_custom_fields, newField] });
+  const handleDeleteConfirm = async () => {
+    if (!deletingField) return;
+    try {
+      await removeField(deletingField.id);
+      setDeleteDialogOpen(false);
+      setDeletingField(null);
+    } catch (error) {
+      // Error already handled in hook
     }
-    setIsDialogOpen(false);
   };
 
-  const getApplyToLabel = (applyTo: string) => {
-    switch (applyTo) {
-      case 'all': return t('settings.products.apply-all');
-      case 'services': return t('settings.products.apply-services');
-      case 'physical': return t('settings.products.apply-physical');
-      default: return applyTo;
+  const handleSave = async () => {
+    if (!formData.field_key) return;
+
+    const payload: CustomProductFieldFormData = {
+      field_key: formData.field_key,
+      field_type: formData.field_type,
+      field_value: formData.field_value,
+      type: formData.type,
+      product_id: formData.type === 'product' ? formData.product_id : null,
+    };
+
+    try {
+      if (editingField) {
+        await editField(editingField.id, payload);
+      } else {
+        await addField(payload);
+      }
+      setIsDialogOpen(false);
+    } catch (error) {
+      // Error already handled in hook
     }
   };
 
@@ -91,6 +123,26 @@ const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
     }
   };
 
+  const getScopeLabel = (type: 'model' | 'product') => {
+    return type === 'model' 
+      ? t('settings.products.scope-model') 
+      : t('settings.products.scope-product');
+  };
+
+  const getProductName = (productId: number | null) => {
+    if (!productId) return null;
+    const product = products.find(p => p.id === productId);
+    return product?.name || `Product #${productId}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -101,47 +153,61 @@ const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
         </Button>
       </div>
 
-      {settings.default_custom_fields.length === 0 ? (
+      {fields.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
           <p>{t('settings.products.no-custom-fields')}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {settings.default_custom_fields.map((field) => (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {fields.map((field) => (
             <div 
               key={field.id}
-              className="flex items-center justify-between p-3 border rounded-lg bg-background/50"
+              className="p-4 border rounded-lg bg-background/50 space-y-3"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{field.label}</span>
-                  {field.required && (
-                    <span className="text-xs px-1.5 py-0.5 bg-destructive/20 text-destructive rounded">
-                      {t('settings.products.required')}
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground flex gap-3">
-                  <span>{field.key}</span>
-                  <span>•</span>
-                  <span>{getTypeLabel(field.type)}</span>
-                  <span>•</span>
-                  <span>{getApplyToLabel(field.applyTo)}</span>
+              <div className="flex items-start justify-between">
+                <div className="font-medium text-foreground">{field.field_key}</div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(field)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteClick(field)}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" onClick={() => handleEdit(field)}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(field.id)}>
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+              
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('settings.products.field-type')}:</span>
+                  <span className="text-foreground">{getTypeLabel(field.field_type)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('settings.products.field-value')}:</span>
+                  <span className="text-foreground truncate max-w-[120px]">{field.field_value || '-'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t('settings.products.field-scope')}:</span>
+                  <span className={`px-2 py-0.5 rounded text-xs ${
+                    field.type === 'model' 
+                      ? 'bg-primary/20 text-primary' 
+                      : 'bg-secondary/20 text-secondary-foreground'
+                  }`}>
+                    {getScopeLabel(field.type)}
+                  </span>
+                </div>
+                {field.type === 'product' && field.product_id && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('settings.products.product')}:</span>
+                    <span className="text-foreground truncate max-w-[120px]">{getProductName(field.product_id)}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -152,19 +218,10 @@ const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
 
           <div className="space-y-4 py-4">
             <div className="grid gap-2">
-              <Label>{t('settings.products.field-label')}</Label>
-              <Input
-                value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                placeholder={t('settings.products.field-label-placeholder')}
-              />
-            </div>
-
-            <div className="grid gap-2">
               <Label>{t('settings.products.field-key')}</Label>
               <Input
-                value={formData.key}
-                onChange={(e) => setFormData({ ...formData, key: e.target.value.toLowerCase().replace(/\s/g, '_') })}
+                value={formData.field_key}
+                onChange={(e) => setFormData({ ...formData, field_key: e.target.value.toLowerCase().replace(/\s/g, '_') })}
                 placeholder={t('settings.products.field-key-placeholder')}
               />
             </div>
@@ -172,8 +229,8 @@ const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
             <div className="grid gap-2">
               <Label>{t('settings.products.field-type')}</Label>
               <Select 
-                value={formData.type} 
-                onValueChange={(value: CustomField['type']) => setFormData({ ...formData, type: value })}
+                value={formData.field_type} 
+                onValueChange={(value: FormData['field_type']) => setFormData({ ...formData, field_type: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -189,50 +246,86 @@ const CustomFieldsSection = ({ settings, onUpdate }: Props) => {
             </div>
 
             <div className="grid gap-2">
-              <Label>{t('settings.products.default-value')}</Label>
+              <Label>{t('settings.products.field-value')}</Label>
               <Input
-                value={formData.defaultValue}
-                onChange={(e) => setFormData({ ...formData, defaultValue: e.target.value })}
-                placeholder={t('settings.products.default-value-placeholder')}
+                value={formData.field_value}
+                onChange={(e) => setFormData({ ...formData, field_value: e.target.value })}
+                placeholder={t('settings.products.field-value-placeholder')}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label>{t('settings.products.apply-to')}</Label>
+              <Label>{t('settings.products.field-scope')}</Label>
               <Select 
-                value={formData.applyTo} 
-                onValueChange={(value: CustomField['applyTo']) => setFormData({ ...formData, applyTo: value })}
+                value={formData.type} 
+                onValueChange={(value: 'model' | 'product') => setFormData({ 
+                  ...formData, 
+                  type: value,
+                  product_id: value === 'model' ? null : formData.product_id
+                })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('settings.products.apply-all')}</SelectItem>
-                  <SelectItem value="services">{t('settings.products.apply-services')}</SelectItem>
-                  <SelectItem value="physical">{t('settings.products.apply-physical')}</SelectItem>
+                  <SelectItem value="model">{t('settings.products.scope-model')}</SelectItem>
+                  <SelectItem value="product">{t('settings.products.scope-product')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label>{t('settings.products.required')}</Label>
-              <Switch
-                checked={formData.required}
-                onCheckedChange={(checked) => setFormData({ ...formData, required: checked })}
-              />
-            </div>
+            {formData.type === 'product' && (
+              <div className="grid gap-2">
+                <Label>{t('settings.products.select-product')}</Label>
+                <Select 
+                  value={formData.product_id?.toString() || ''} 
+                  onValueChange={(value) => setFormData({ ...formData, product_id: value ? parseInt(value) : null })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingProducts ? t('common.loading') : t('settings.products.select-product-placeholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={saving}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSave} disabled={!formData.label || !formData.key}>
+            <Button onClick={handleSave} disabled={!formData.field_key || saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               {t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('settings.products.delete-field-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('settings.products.delete-field-description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={saving} className="bg-destructive hover:bg-destructive/90">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
