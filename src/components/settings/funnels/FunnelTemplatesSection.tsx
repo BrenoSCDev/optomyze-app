@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack, Loader2 } from 'lucide-react';
 import { Funnel, FunnelStage, STAGE_COLORS, defaultStageEntryRules } from '@/services/funnelSettingsApi';
 
 interface Props {
@@ -15,11 +15,14 @@ interface Props {
   templateFunnels: Funnel[];
   selectedTemplateId: string | null;
   onSelectTemplate: (id: string) => void;
-  onAddTemplate: (funnel: Funnel) => void;
+  onAddTemplate: (funnel: Funnel) => Promise<void>;
   onUpdateTemplate: (id: string, updates: Partial<Funnel>) => void;
-  onDeleteTemplate: (id: string) => void;
+  onDeleteTemplate: (id: string) => Promise<void>;
   onEditStage: (stage: FunnelStage) => void;
-  onCreateFunnelFromTemplate: (templateId: string) => void;
+  onCreateFunnelFromTemplate: (templateId: string, newFunnelName?: string) => Promise<void>;
+  onAddTemplateStage: (templateId: string, stage: Omit<FunnelStage, 'id'>) => Promise<FunnelStage>;
+  onUpdateTemplateStage: (templateId: string, stageId: string, updates: Partial<FunnelStage>) => Promise<void>;
+  onDeleteTemplateStage: (templateId: string, stageId: string) => Promise<void>;
 }
 
 const emptyFunnel: Omit<Funnel, 'id'> = {
@@ -52,6 +55,9 @@ const FunnelTemplatesSection = ({
   onDeleteTemplate,
   onEditStage,
   onCreateFunnelFromTemplate,
+  onAddTemplateStage,
+  onUpdateTemplateStage,
+  onDeleteTemplateStage,
 }: Props) => {
   const { t } = useLanguage();
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
@@ -64,6 +70,8 @@ const FunnelTemplatesSection = ({
   const [templateForm, setTemplateForm] = useState<Omit<Funnel, 'id'>>(emptyFunnel);
   const [stageForm, setStageForm] = useState<Omit<FunnelStage, 'id'>>(emptyStage);
   const [newFunnelName, setNewFunnelName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const selectedTemplate = templateFunnels.find(f => f.id === selectedTemplateId);
 
@@ -85,21 +93,26 @@ const FunnelTemplatesSection = ({
     setIsTemplateDialogOpen(true);
   };
 
-  const handleSaveTemplate = () => {
+  const handleSaveTemplate = async () => {
     if (!templateForm.name) return;
 
-    if (editingTemplate) {
-      onUpdateTemplate(editingTemplate.id, { ...templateForm, type: 'model' });
-    } else {
-      const newTemplate: Funnel = {
-        ...templateForm,
-        id: crypto.randomUUID(),
-        type: 'model',
-        stages: [],
-      };
-      onAddTemplate(newTemplate);
+    setIsSaving(true);
+    try {
+      if (editingTemplate) {
+        onUpdateTemplate(editingTemplate.id, { ...templateForm, type: 'model' });
+      } else {
+        const newTemplate: Funnel = {
+          ...templateForm,
+          id: crypto.randomUUID(),
+          type: 'model',
+          stages: [],
+        };
+        await onAddTemplate(newTemplate);
+      }
+      setIsTemplateDialogOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-    setIsTemplateDialogOpen(false);
   };
 
   const handleDeleteClick = (templateId: string) => {
@@ -107,9 +120,14 @@ const FunnelTemplatesSection = ({
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingTemplateId) {
-      onDeleteTemplate(deletingTemplateId);
+      setIsDeleting(true);
+      try {
+        await onDeleteTemplate(deletingTemplateId);
+      } finally {
+        setIsDeleting(false);
+      }
     }
     setIsDeleteDialogOpen(false);
     setDeletingTemplateId(null);
@@ -142,33 +160,29 @@ const FunnelTemplatesSection = ({
     setIsStageDialogOpen(true);
   };
 
-  const handleSaveStage = () => {
+  const handleSaveStage = async () => {
     if (!stageForm.name || !selectedTemplate) return;
 
-    let updatedStages: FunnelStage[];
-    if (editingStage) {
-      updatedStages = selectedTemplate.stages.map(s =>
-        s.id === editingStage.id ? { ...stageForm, id: editingStage.id } : s
-      );
-    } else {
-      const newStage: FunnelStage = {
-        ...stageForm,
-        id: crypto.randomUUID(),
-      };
-      updatedStages = [...selectedTemplate.stages, newStage];
+    setIsSaving(true);
+    try {
+      if (editingStage) {
+        await onUpdateTemplateStage(selectedTemplate.id, editingStage.id, stageForm);
+      } else {
+        await onAddTemplateStage(selectedTemplate.id, stageForm);
+      }
+      setIsStageDialogOpen(false);
+    } finally {
+      setIsSaving(false);
     }
-
-    onUpdateTemplate(selectedTemplate.id, {
-      stages: updatedStages.sort((a, b) => a.order - b.order),
-    });
-    setIsStageDialogOpen(false);
   };
 
-  const handleDeleteStage = (stageId: string) => {
+  const handleDeleteStage = async (stageId: string) => {
     if (!selectedTemplate) return;
-    onUpdateTemplate(selectedTemplate.id, {
-      stages: selectedTemplate.stages.filter(s => s.id !== stageId),
-    });
+    try {
+      await onDeleteTemplateStage(selectedTemplate.id, stageId);
+    } catch (error) {
+      console.error('Failed to delete stage:', error);
+    }
   };
 
   const handleOpenCreateFromTemplate = () => {
@@ -177,11 +191,16 @@ const FunnelTemplatesSection = ({
     setIsCreateFromTemplateDialogOpen(true);
   };
 
-  const handleCreateFromTemplate = () => {
+  const handleCreateFromTemplate = async () => {
     if (!selectedTemplate || !newFunnelName) return;
-    onCreateFunnelFromTemplate(selectedTemplate.id);
-    setIsCreateFromTemplateDialogOpen(false);
-    setNewFunnelName('');
+    setIsSaving(true);
+    try {
+      await onCreateFunnelFromTemplate(selectedTemplate.id, newFunnelName);
+      setIsCreateFromTemplateDialogOpen(false);
+      setNewFunnelName('');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -364,10 +383,11 @@ const FunnelTemplatesSection = ({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsTemplateDialogOpen(false)} disabled={isSaving}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSaveTemplate} disabled={!templateForm.name}>
+            <Button onClick={handleSaveTemplate} disabled={!templateForm.name || isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {t('common.save')}
             </Button>
           </DialogFooter>
@@ -498,10 +518,11 @@ const FunnelTemplatesSection = ({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsStageDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsStageDialogOpen(false)} disabled={isSaving}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSaveStage} disabled={!stageForm.name}>
+            <Button onClick={handleSaveStage} disabled={!stageForm.name || isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {t('common.save')}
             </Button>
           </DialogFooter>
@@ -530,10 +551,11 @@ const FunnelTemplatesSection = ({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateFromTemplateDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCreateFromTemplateDialogOpen(false)} disabled={isSaving}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleCreateFromTemplate} disabled={!newFunnelName}>
+            <Button onClick={handleCreateFromTemplate} disabled={!newFunnelName || isSaving}>
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {t('settings.funnels.create-funnel')}
             </Button>
           </DialogFooter>
@@ -550,8 +572,9 @@ const FunnelTemplatesSection = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel disabled={isDeleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
