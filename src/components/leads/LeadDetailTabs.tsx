@@ -39,7 +39,7 @@ import DocumentsSection from './DocumentsSection';
 import ObservationsSection from './ObservationsSection';
 import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
-import LeadChatSection, { LeadWhatsAppChat } from './LeadChatSection';
+import LeadChatSection, { LeadWhatsAppChat, LeadWhatsAppMessage } from './LeadChatSection';
 
 interface AssignedUser {
   id: number;
@@ -86,7 +86,6 @@ interface LeadDetailTabsProps {
   onObservationCreated: (observation: Observation) => void;
   onObservationUpdated: (observation: Observation) => void;
   onObservationDeleted: (observationId: number) => void;
-  onChatMessageSent?: () => void;
 }
 
 const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
@@ -101,11 +100,24 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   onDocumentDeleted,
   onObservationCreated,
   onObservationUpdated,
-  onObservationDeleted,
-  onChatMessageSent
+  onObservationDeleted
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('info');
+  
+  // Local state for chat messages to avoid page refresh
+  const [chatMessages, setChatMessages] = useState<LeadWhatsAppMessage[]>(
+    lead.whats_app_evo_chat?.messages || []
+  );
+
+  // Build chat object with local messages state
+  const chatWithLocalMessages: LeadWhatsAppChat | null = lead.whats_app_evo_chat 
+    ? { ...lead.whats_app_evo_chat, messages: chatMessages }
+    : null;
+
+  const handleChatMessageSent = (message: LeadWhatsAppMessage) => {
+    setChatMessages(prev => [...prev, message]);
+  };
 
   return (
     <motion.div 
@@ -173,9 +185,9 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           >
             <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
             <span>{t('lead-details.tabs.chat')}</span>
-            {lead.whats_app_evo_chat?.messages && lead.whats_app_evo_chat.messages.length > 0 && (
+            {chatMessages.length > 0 && (
               <Badge className="ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
-                {lead.whats_app_evo_chat.messages.length}
+                {chatMessages.length}
               </Badge>
             )}
           </TabsTrigger>
@@ -227,9 +239,9 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <LeadChatSection 
-            chat={lead.whats_app_evo_chat || null} 
+            chat={chatWithLocalMessages} 
             leadId={lead.id}
-            onMessageSent={onChatMessageSent}
+            onMessageSent={handleChatMessageSent}
           />
         </TabsContent>
       </Tabs>
