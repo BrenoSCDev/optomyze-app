@@ -74,5 +74,18 @@ export const saleService = {
       console.error('Error deleting sale:', error);
       throw error;
     }
+  },
+
+  /**
+   * Update a sale's status (close or mark as lost)
+   */
+  async updateSaleStatus(saleId: number, status: 'closed' | 'lost'): Promise<SaleResponse> {
+    try {
+      const response = await api.put(`/api/sales/${saleId}/status`, { status });
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error updating sale status:', error);
+      throw error;
+    }
   }
 };

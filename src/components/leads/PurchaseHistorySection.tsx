@@ -23,7 +23,9 @@ import {
   Download,
   Eye,
   X,
-  File
+  File,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -159,6 +161,10 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [localDocs, setLocalDocs] = useState<SaleDocument[]>(sale.docs || sale.documents || []);
   const [previewDoc, setPreviewDoc] = useState<SaleDocument | null>(null);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [lostDialogOpen, setLostDialogOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [localStatus, setLocalStatus] = useState(sale.status);
   
   const getStatusColor = (status: string) => {
     const colors = {
@@ -283,6 +289,54 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
     setPreviewDoc(doc);
   };
 
+  const handleCloseDeal = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      await api.put(`/api/sales/${sale.id}/status`, { status: 'closed' });
+      setLocalStatus('closed');
+      onUpdated?.(sale.id, { status: 'closed' });
+      toast({
+        title: t('lead-details.close-deal-success'),
+        description: t('lead-details.close-deal-success-description'),
+      });
+      setCloseDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to close deal:', error);
+      toast({
+        title: t('lead-details.close-deal-error'),
+        description: t('lead-details.close-deal-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleMarkAsLost = async () => {
+    setIsUpdatingStatus(true);
+    try {
+      await api.put(`/api/sales/${sale.id}/status`, { status: 'lost' });
+      setLocalStatus('lost');
+      onUpdated?.(sale.id, { status: 'lost' });
+      toast({
+        title: t('lead-details.mark-lost-success'),
+        description: t('lead-details.mark-lost-success-description'),
+      });
+      setLostDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to mark deal as lost:', error);
+      toast({
+        title: t('lead-details.mark-lost-error'),
+        description: t('lead-details.mark-lost-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const canUpdateStatus = localStatus === 'pending' || localStatus === 'sent';
+
   const handleDownloadDocument = (doc: SaleDocument) => {
     const path = getDocPath(doc);
     if (path) {
@@ -320,8 +374,8 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               <span className="text-white font-medium">
                 {t('lead-details.order')} #{sale.id}
               </span>
-              <Badge className={`text-xs font-medium border ${getStatusColor(sale.status)}`}>
-                {t(`lead-details.sale-status.${sale.status}`)}
+              <Badge className={`text-xs font-medium border ${getStatusColor(localStatus)}`}>
+                {t(`lead-details.sale-status.${localStatus}`)}
               </Badge>
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
@@ -492,7 +546,29 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/10">
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/10 flex-wrap">
+        {canUpdateStatus && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="glass-card text-xs text-green-400 border-green-600/30 hover:bg-green-600/20 hover:text-green-300"
+              onClick={() => setCloseDialogOpen(true)}
+            >
+              <CheckCircle className="w-3 h-3 mr-1" />
+              {t('lead-details.close-deal')}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="glass-card text-xs text-red-400 border-red-600/30 hover:bg-red-600/20 hover:text-red-300"
+              onClick={() => setLostDialogOpen(true)}
+            >
+              <XCircle className="w-3 h-3 mr-1" />
+              {t('lead-details.mark-as-lost')}
+            </Button>
+          </>
+        )}
         <Button 
           variant="outline" 
           size="sm" 
@@ -659,6 +735,74 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                 </>
               ) : (
                 t('common.delete')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Close Deal Confirmation Dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.close-deal-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('lead-details.close-deal-confirmation')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdatingStatus}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseDeal}
+              disabled={isUpdatingStatus}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {t('lead-details.close-deal')}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Mark as Lost Confirmation Dialog */}
+      <AlertDialog open={lostDialogOpen} onOpenChange={setLostDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.mark-lost-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('lead-details.mark-lost-confirmation')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdatingStatus}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleMarkAsLost}
+              disabled={isUpdatingStatus}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {t('lead-details.mark-as-lost')}
+                </>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
