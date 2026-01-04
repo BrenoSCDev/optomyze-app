@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useSettingsPanel } from '@/hooks/useSettingsPanel';
 import { useFunnelSettings } from '@/hooks/useFunnelSettings';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { useCustomProductFields } from '@/hooks/useCustomProductFields';
 import { FunnelStage } from '@/services/funnelSettingsApi';
 
 // Product Settings
@@ -100,6 +101,15 @@ const CrmPanel = () => {
     resetChanges: resetNotificationChanges,
   } = useNotificationSettings();
 
+  const {
+    fields: customProductFields,
+    loading: customFieldsLoading,
+    saving: customFieldsSaving,
+    addField: addCustomField,
+    editField: editCustomField,
+    removeField: removeCustomField,
+  } = useCustomProductFields();
+
   const handleEditStage = (stage: FunnelStage) => {
     setEditingStage(stage);
     setStageDialogOpen(true);
@@ -123,7 +133,7 @@ const CrmPanel = () => {
     setEditingStage({ ...editingStage, actions });
   };
 
-  if (loading || funnelLoading || notificationLoading) {
+  if (loading || funnelLoading || notificationLoading || customFieldsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -611,7 +621,13 @@ const CrmPanel = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <CustomFieldsSection />
+                    <CustomFieldsSection 
+                      fields={customProductFields}
+                      saving={customFieldsSaving}
+                      onAdd={addCustomField}
+                      onEdit={editCustomField}
+                      onDelete={removeCustomField}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>
