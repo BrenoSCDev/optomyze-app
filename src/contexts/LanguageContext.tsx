@@ -217,6 +217,10 @@ const translations = {
     'planUsage.metrics.tasks': 'Tasks',
     'planUsage.metrics.integrations': 'Integrations',
     'planUsage.metrics.products': 'Products',
+    'planUsage.planDescription': 'Full access to all CRM features with enhanced limits',
+    'planUsage.used': 'used',
+    'planUsage.remaining': 'remaining',
+    'planUsage.unlimited': 'Unlimited',
     
     // Settings
     'settings.title': 'Settings',
@@ -2104,6 +2108,10 @@ const translations = {
     'planUsage.metrics.tasks': 'Tarefas',
     'planUsage.metrics.integrations': 'Integrações',
     'planUsage.metrics.products': 'Produtos',
+    'planUsage.planDescription': 'Acesso completo a todos os recursos do CRM com limites aprimorados',
+    'planUsage.used': 'usado',
+    'planUsage.remaining': 'restante',
+    'planUsage.unlimited': 'Ilimitado',
     
     // Settings
     'settings.title': 'Configurações',
@@ -3861,6 +3869,10 @@ const translations = {
     'planUsage.metrics.tasks': 'Aufgaben',
     'planUsage.metrics.integrations': 'Integrationen',
     'planUsage.metrics.products': 'Produkte',
+    'planUsage.planDescription': 'Vollständiger Zugriff auf alle CRM-Funktionen mit erweiterten Limits',
+    'planUsage.used': 'verwendet',
+    'planUsage.remaining': 'verbleibend',
+    'planUsage.unlimited': 'Unbegrenzt',
     
     // Settings
     'settings.title': 'Einstellungen',
@@ -5552,6 +5564,10 @@ const translations = {
     'planUsage.metrics.tasks': 'Tareas',
     'planUsage.metrics.integrations': 'Integraciones',
     'planUsage.metrics.products': 'Productos',
+    'planUsage.planDescription': 'Acceso completo a todas las funciones del CRM con límites mejorados',
+    'planUsage.used': 'usado',
+    'planUsage.remaining': 'restante',
+    'planUsage.unlimited': 'Ilimitado',
     
     // Settings
     'settings.title': 'Configuración',
