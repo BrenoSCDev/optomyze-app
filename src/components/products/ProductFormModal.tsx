@@ -378,6 +378,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
                   productId={productIdForImages}
                   fields={customFields}
                   onFieldsChange={setCustomFields}
+                  onFieldModified={onSuccess}
                 />
               </TabsContent>
             </div>
@@ -422,6 +423,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
                   productId={createdProductId}
                   fields={customFields}
                   onFieldsChange={setCustomFields}
+                  onFieldModified={onSuccess}
                 />
 
                 <div className="flex justify-end pt-4 border-t border-border">
