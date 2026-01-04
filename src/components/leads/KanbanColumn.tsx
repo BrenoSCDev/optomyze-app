@@ -26,7 +26,7 @@ import {
 
 
 interface KanbanColumnProps {
-  column: ColumnType;
+  column: ColumnType & { stageColor?: string };
   index: number;
   onAddLead: (columnId: string) => void;
   onTagClick?: (lead: any) => void;
@@ -67,8 +67,14 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
       style={{ zIndex: isOver ? 10 : 1 }}
       data-column-id={column.id}
     >
+      {/* Stage Color Bar */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-1 rounded-t-lg"
+        style={{ backgroundColor: column.stageColor || '#FFFFFF' }}
+      />
+      
       {/* Column Header */}
-      <div className="flex flex-col gap-1 mb-4">
+      <div className="flex flex-col gap-1 mb-4 pt-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground">{column.title}</h3>
