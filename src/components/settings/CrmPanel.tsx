@@ -82,6 +82,9 @@ const CrmPanel = () => {
     setSelectedTemplateId,
     addTemplate: addFunnelTemplate,
     deleteTemplate: deleteFunnelTemplate,
+    addTemplateStage,
+    updateTemplateStage,
+    deleteTemplateStage,
     createFunnelFromTemplate,
     hasChanges: hasFunnelChanges,
     updateSettings: updateFunnelSettings,
@@ -471,6 +474,9 @@ const CrmPanel = () => {
                       onDeleteTemplate={deleteFunnelTemplate}
                       onEditStage={handleEditStage}
                       onCreateFunnelFromTemplate={createFunnelFromTemplate}
+                      onAddTemplateStage={addTemplateStage}
+                      onUpdateTemplateStage={updateTemplateStage}
+                      onDeleteTemplateStage={deleteTemplateStage}
                     />
                   </div>
                 </AccordionContent>
