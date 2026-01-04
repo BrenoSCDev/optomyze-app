@@ -65,7 +65,7 @@ interface PendingMessage {
 interface LeadChatSectionProps {
   chat: LeadWhatsAppChat | null;
   leadId: number;
-  onMessageSent?: () => void;
+  onMessageSent?: (message: LeadWhatsAppMessage) => void;
 }
 
 const LeadChatSection: React.FC<LeadChatSectionProps> = ({
@@ -116,9 +116,22 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
         text
       });
 
+      // Create the sent message object to add locally
+      const sentMessage: LeadWhatsAppMessage = {
+        id: Date.now(), // Temporary ID
+        whatsapp_evo_chat_id: chat.id,
+        direction: 'outgoing',
+        type: 'text',
+        text,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
       toast.success(t('chat.inbox.message-sent'));
-      onMessageSent?.();
+      onMessageSent?.(sentMessage);
     } catch (error: any) {
       setPendingMessages(prev => 
         prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)

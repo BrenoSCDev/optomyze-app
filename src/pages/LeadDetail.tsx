@@ -422,7 +422,6 @@ const LeadDetailPage = () => {
               onObservationCreated={handleObservationCreated}
               onObservationUpdated={handleObservationUpdated}
               onObservationDeleted={handleObservationDeleted}
-              onChatMessageSent={fetchLeadData}
             />
             
             {/* Products Section - Separate from tabs */}
