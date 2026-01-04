@@ -15,7 +15,8 @@ import {
   Trash2, 
   ListTree,
   ChevronRight,
-  GripVertical
+  GripVertical,
+  Cog
 } from 'lucide-react';
 import {
   DndContext,
@@ -49,6 +50,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import StageEditModal from './StageEditModal';
+import StageEntryRequirementsModal, { EntryRequirement } from './StageEntryRequirementsModal';
 
 interface Stage {
   id: number;
@@ -64,6 +66,7 @@ interface Stage {
     required_fields: string[];
     notifications_enabled: boolean;
   };
+  entry_requirement?: EntryRequirement;
   created_at: string;
   updated_at: string;
   deleted_at?: string;
@@ -88,6 +91,7 @@ const FunnelStages = () => {
   const [showNewStageModal, setShowNewStageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEntryRequirementsModal, setShowEntryRequirementsModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
   const [reordering, setReordering] = useState(false);
@@ -295,6 +299,21 @@ const FunnelStages = () => {
     ));
   };
 
+  // Handle entry requirement update
+  const handleEntryRequirementUpdate = (updatedRequirement: EntryRequirement) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === updatedRequirement.stage_id 
+        ? { ...stage, entry_requirement: updatedRequirement } 
+        : stage
+    ));
+  };
+
+  // Open entry requirements modal
+  const openEntryRequirementsModal = (stage: Stage) => {
+    setSelectedStage(stage);
+    setShowEntryRequirementsModal(true);
+  };
+
   // Handle drag start
   const handleDragStart = (event: any) => {
     setActiveId(event.active.id);
@@ -411,31 +430,43 @@ const FunnelStages = () => {
                   {stage.name}
                 </span>
               </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-primary/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditModal(stage);
-                  }}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-destructive/10 text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedStage(stage);
-                    setShowDeleteModal(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-accent/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEntryRequirementsModal(stage);
+                    }}
+                    title={t('stages.configure_entry_requirements')}
+                  >
+                    <Cog className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-primary/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(stage);
+                    }}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-destructive/10 text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStage(stage);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -792,6 +823,19 @@ const FunnelStages = () => {
         stage={selectedStage}
         funnelId={funnelId || ''}
         onUpdate={handleStageUpdate}
+      />
+
+      {/* Stage Entry Requirements Modal */}
+      <StageEntryRequirementsModal
+        isOpen={showEntryRequirementsModal}
+        onClose={() => {
+          setShowEntryRequirementsModal(false);
+          setSelectedStage(null);
+        }}
+        stageId={selectedStage?.id || 0}
+        stageName={selectedStage?.name || ''}
+        entryRequirement={selectedStage?.entry_requirement || null}
+        onUpdate={handleEntryRequirementUpdate}
       />
     </div>
   );
