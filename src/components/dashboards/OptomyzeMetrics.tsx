@@ -1010,6 +1010,7 @@ const OptomyzeMetrics = () => {
   // Get revenue metrics from API response
   const getRevenueMetrics = () => {
     const revenueMetrics = metricsData?.data?.revenue_metrics?.metrics;
+    console.log(revenueMetrics)
     if (!revenueMetrics) {
       return { totalAnnualRevenue: 0, totalMonthlyRevenue: 0, avgDealValue: 0 };
     }
@@ -1061,19 +1062,19 @@ const OptomyzeMetrics = () => {
       },
       {
         title: t('metrics.total-annual-revenue'),
-        value: totalAnnualRevenue >= 1000 ? `$${(totalAnnualRevenue / 1000).toFixed(1)}k` : `$${totalAnnualRevenue.toLocaleString()}`,
+        value: totalAnnualRevenue >= 1000 ? `$${(totalAnnualRevenue).toFixed(1)}k` : `$${totalAnnualRevenue.toLocaleString()}`,
         trend: { value: '+0%', isPositive: true },
         icon: <DollarSign className="h-5 w-5 text-primary" />
       },
       {
         title: t('metrics.total-monthly-revenue'),
-        value: totalMonthlyRevenue >= 1000 ? `$${(totalMonthlyRevenue / 1000).toFixed(1)}k` : `$${totalMonthlyRevenue.toLocaleString()}`,
+        value: totalMonthlyRevenue >= 1000 ? `$${(totalMonthlyRevenue).toFixed(1)}k` : `$${totalMonthlyRevenue.toLocaleString()}`,
         trend: { value: '+0%', isPositive: true },
         icon: <TrendingUp className="h-5 w-5 text-primary" />
       },
       {
         title: t('metrics.avg-deal-value'),
-        value: avgDealValue >= 1000 ? `$${(avgDealValue / 1000).toFixed(1)}k` : `$${avgDealValue.toLocaleString()}`,
+        value: avgDealValue >= 1000 ? `$${(avgDealValue).toFixed(1)}k` : `$${avgDealValue.toLocaleString()}`,
         trend: { value: '+0%', isPositive: true },
         icon: <Target className="h-5 w-5 text-primary" />
       }
