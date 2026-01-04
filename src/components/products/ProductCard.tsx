@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Package, Briefcase, Edit, Trash2, Tag } from 'lucide-react';
+import { Package, Briefcase, Edit, Trash2, Tag, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
@@ -99,7 +99,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
       </div>
 
       {/* Category & Status */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Tag className="w-4 h-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
@@ -112,6 +112,14 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
             : 'bg-red-600/20 text-red-400'
         }`}>
           {product.is_active ? t('products.active') : t('products.inactive')}
+        </span>
+      </div>
+
+      {/* Custom Fields Count */}
+      <div className="flex items-center gap-2 mb-4 py-2 px-3 bg-muted/20 rounded-lg">
+        <Settings2 className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">
+          {t('products.custom-fields.count')}: {product.fields?.length || 0}
         </span>
       </div>
 

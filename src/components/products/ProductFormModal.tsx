@@ -19,9 +19,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { createProduct, updateProduct, type Product, type ProductFormData } from '@/services/productApi';
+import { createProduct, updateProduct, type Product, type ProductFormData, type ProductCustomField } from '@/services/productApi';
 import { useToast } from '@/hooks/use-toast';
 import ProductImageGallery from './ProductImageGallery';
+import ProductCustomFieldsTab from './ProductCustomFieldsTab';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
   const [error, setError] = useState<string | null>(null);
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('data');
+  const [customFields, setCustomFields] = useState<ProductCustomField[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
@@ -63,6 +65,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         category: product.category || '',
         is_active: product.is_active,
       });
+      setCustomFields(product.fields || []);
       setCreatedProductId(null);
     } else {
       setFormData({
@@ -74,6 +77,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         category: '',
         is_active: true,
       });
+      setCustomFields([]);
       setCreatedProductId(null);
     }
     setError(null);
@@ -101,10 +105,13 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         onClose();
       } else {
         const response = await createProduct(submitData);
-        const newProductId = response.data?.id;
+        const newProduct = response.data;
+        const newProductId = newProduct?.id;
         
         if (newProductId) {
           setCreatedProductId(newProductId);
+          // Set custom fields from response (backend replicates model-level fields)
+          setCustomFields(newProduct.fields || []);
           setActiveTab('images');
           toast({
             title: t('common.success'),
@@ -367,22 +374,16 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
               </TabsContent>
 
               <TabsContent value="custom-fields" className="m-0" forceMount hidden={activeTab !== 'custom-fields'}>
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
-                    <Settings2 className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h4 className="text-lg font-medium text-foreground mb-2">
-                    {t('products.custom-fields.title')}
-                  </h4>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    {t('products.custom-fields.coming-soon')}
-                  </p>
-                </div>
+                <ProductCustomFieldsTab
+                  productId={productIdForImages}
+                  fields={customFields}
+                  onFieldsChange={setCustomFields}
+                />
               </TabsContent>
             </div>
           </Tabs>
         ) : createdProductId ? (
-          /* Product just created - show image upload with tabs */
+          /* Product just created - show image upload and custom fields with tabs */
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
               <TabsTrigger value="data" className="gap-2" disabled>
@@ -393,7 +394,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
                 <ImageIcon className="w-4 h-4" />
                 {t('products.tabs.images')}
               </TabsTrigger>
-              <TabsTrigger value="custom-fields" className="gap-2" disabled>
+              <TabsTrigger value="custom-fields" className="gap-2">
                 <Settings2 className="w-4 h-4" />
                 {t('products.tabs.custom-fields')}
               </TabsTrigger>
@@ -408,6 +409,20 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
                 </div>
 
                 <ProductImageGallery productId={createdProductId} onImageChange={onSuccess} />
+
+                <div className="flex justify-end pt-4 border-t border-border">
+                  <Button onClick={handleCloseComplete}>
+                    {t('products.finish')}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="custom-fields" className="m-0 space-y-6">
+                <ProductCustomFieldsTab
+                  productId={createdProductId}
+                  fields={customFields}
+                  onFieldsChange={setCustomFields}
+                />
 
                 <div className="flex justify-end pt-4 border-t border-border">
                   <Button onClick={handleCloseComplete}>
