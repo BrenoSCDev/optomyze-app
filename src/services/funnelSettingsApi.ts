@@ -1,10 +1,14 @@
 // Funnel Settings Types & API Service
 
 // Stage Types
+export type TemplateStageType = 'entry' | 'normal' | 'service' | 'proposition' | 'qualified' | 'conversion' | 'lost';
+
 export interface FunnelStage {
   id: string;
   name: string;
+  description?: string;
   type: 'lead' | 'deal';
+  templateType?: TemplateStageType;
   order: number;
   probability: number;
   color: string;

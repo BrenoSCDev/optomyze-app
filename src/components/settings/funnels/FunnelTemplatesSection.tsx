@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack, Loader2 } from 'lucide-react';
-import { Funnel, FunnelStage, STAGE_COLORS, defaultStageEntryRules } from '@/services/funnelSettingsApi';
+import { Funnel, FunnelStage, STAGE_COLORS, defaultStageEntryRules, TemplateStageType } from '@/services/funnelSettingsApi';
 
 interface Props {
   funnels: Funnel[];
@@ -33,12 +33,24 @@ const emptyFunnel: Omit<Funnel, 'id'> = {
   stages: [],
 };
 
+const TEMPLATE_STAGE_TYPES: { value: TemplateStageType; label: string }[] = [
+  { value: 'entry', label: 'Entry' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'service', label: 'Service' },
+  { value: 'proposition', label: 'Proposition' },
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'conversion', label: 'Conversion' },
+  { value: 'lost', label: 'Lost' },
+];
+
 const emptyStage: Omit<FunnelStage, 'id'> = {
   name: '',
+  description: '',
   type: 'lead',
+  templateType: 'normal',
   order: 1,
   probability: 50,
-  color: '#3b82f6',
+  color: '#ffffff',
   isFinalStage: false,
   allowBackward: true,
   entryRules: defaultStageEntryRules,
@@ -147,7 +159,9 @@ const FunnelTemplatesSection = ({
     setEditingStage(stage);
     setStageForm({
       name: stage.name,
+      description: stage.description || '',
       type: stage.type,
+      templateType: stage.templateType || 'normal',
       order: stage.order,
       probability: stage.probability,
       color: stage.color,
@@ -246,9 +260,6 @@ const FunnelTemplatesSection = ({
               <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded">
                 {t('settings.funnels.template')}
               </span>
-              <span className="text-xs px-2 py-0.5 bg-muted rounded">
-                {t(`settings.funnels.applies-${selectedTemplate.appliesTo}`)}
-              </span>
             </div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" onClick={handleOpenCreateFromTemplate}>
@@ -294,20 +305,15 @@ const FunnelTemplatesSection = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{stage.name}</span>
-                          <span className="text-xs px-1.5 py-0.5 bg-muted rounded">
-                            {stage.type}
+                          <span className="text-xs px-1.5 py-0.5 bg-muted rounded capitalize">
+                            {stage.templateType || 'normal'}
                           </span>
-                          {stage.isFinalStage && (
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${
-                              stage.finalType === 'won' ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-600'
-                            }`}>
-                              {stage.finalType}
-                            </span>
-                          )}
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {stage.probability}% • {stage.allowBackward ? t('settings.funnels.backward-allowed') : t('settings.funnels.backward-blocked')}
-                        </span>
+                        {stage.description && (
+                          <span className="text-xs text-muted-foreground line-clamp-1">
+                            {stage.description}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -363,23 +369,6 @@ const FunnelTemplatesSection = ({
                 placeholder={t('settings.funnels.template-name-placeholder')}
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label>{t('settings.funnels.applies-to')}</Label>
-              <Select
-                value={templateForm.appliesTo}
-                onValueChange={(value: Funnel['appliesTo']) => setTemplateForm({ ...templateForm, appliesTo: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="leads">{t('settings.funnels.applies-leads')}</SelectItem>
-                  <SelectItem value="deals">{t('settings.funnels.applies-deals')}</SelectItem>
-                  <SelectItem value="both">{t('settings.funnels.applies-both')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <DialogFooter>
@@ -414,55 +403,50 @@ const FunnelTemplatesSection = ({
             </div>
 
             <div className="grid gap-2">
-              <Label>{t('settings.funnels.stage-type')}</Label>
-              <Select
-                value={stageForm.type}
-                onValueChange={(value: 'lead' | 'deal') => setStageForm({ ...stageForm, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lead">{t('settings.funnels.type-lead')}</SelectItem>
-                  <SelectItem value="deal">{t('settings.funnels.type-deal')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>{t('settings.funnels.stage-description')}</Label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                value={stageForm.description || ''}
+                onChange={(e) => setStageForm({ ...stageForm, description: e.target.value })}
+                placeholder={t('settings.funnels.stage-description-placeholder')}
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>{t('settings.funnels.stage-order')}</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={stageForm.order}
-                  onChange={(e) => setStageForm({ ...stageForm, order: Number(e.target.value) })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label>{t('settings.funnels.stage-probability')}</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={stageForm.probability}
-                    onChange={(e) => setStageForm({ ...stageForm, probability: Number(e.target.value) })}
-                  />
-                  <span className="text-muted-foreground">%</span>
-                </div>
-              </div>
+            <div className="grid gap-2">
+              <Label>{t('settings.funnels.stage-type')}</Label>
+              <Select
+                value={stageForm.templateType || 'normal'}
+                onValueChange={(value: TemplateStageType) => setStageForm({ ...stageForm, templateType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('settings.funnels.select-stage-type')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEMPLATE_STAGE_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-2">
               <Label>{t('settings.funnels.stage-color')}</Label>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={`w-8 h-8 rounded-full border-2 ${
+                    stageForm.color === '#ffffff' ? 'border-foreground' : 'border-muted'
+                  }`}
+                  style={{ backgroundColor: '#ffffff' }}
+                  onClick={() => setStageForm({ ...stageForm, color: '#ffffff' })}
+                />
                 {STAGE_COLORS.map(color => (
                   <button
                     key={color}
                     type="button"
-                    className={`w-6 h-6 rounded-full border-2 ${
+                    className={`w-8 h-8 rounded-full border-2 ${
                       stageForm.color === color ? 'border-foreground' : 'border-transparent'
                     }`}
                     style={{ backgroundColor: color }}
@@ -470,50 +454,6 @@ const FunnelTemplatesSection = ({
                   />
                 ))}
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>{t('settings.funnels.is-final-stage')}</Label>
-                <p className="text-xs text-muted-foreground">{t('settings.funnels.is-final-stage-desc')}</p>
-              </div>
-              <Switch
-                checked={stageForm.isFinalStage}
-                onCheckedChange={(checked) => setStageForm({
-                  ...stageForm,
-                  isFinalStage: checked,
-                  finalType: checked ? 'won' : undefined,
-                })}
-              />
-            </div>
-
-            {stageForm.isFinalStage && (
-              <div className="grid gap-2 ml-4 border-l-2 border-primary/20 pl-4">
-                <Label>{t('settings.funnels.final-type')}</Label>
-                <Select
-                  value={stageForm.finalType || 'won'}
-                  onValueChange={(value: 'won' | 'lost') => setStageForm({ ...stageForm, finalType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="won">{t('settings.funnels.final-won')}</SelectItem>
-                    <SelectItem value="lost">{t('settings.funnels.final-lost')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>{t('settings.funnels.allow-backward')}</Label>
-                <p className="text-xs text-muted-foreground">{t('settings.funnels.allow-backward-desc')}</p>
-              </div>
-              <Switch
-                checked={stageForm.allowBackward}
-                onCheckedChange={(checked) => setStageForm({ ...stageForm, allowBackward: checked })}
-              />
             </div>
           </div>
 
