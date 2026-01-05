@@ -50,6 +50,16 @@ export const erpService = {
   },
 
   /**
+   * Fetch multiple budgets from ERP by IDs (batch)
+   */
+  async getBudgetsByIds(budgetIds: number[]): Promise<ERPBudgetResponse[]> {
+    const response = await erpApi.post<ERPBudgetResponse[]>('/api/v1/budgets/batch', {
+      budget_ids: budgetIds
+    });
+    return response.data;
+  },
+
+  /**
    * Link ERP budget to lead in CRM
    */
   async linkBudgetToLead(leadId: number, erpBudgetId: number): Promise<any> {

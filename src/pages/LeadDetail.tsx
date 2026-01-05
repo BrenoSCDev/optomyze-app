@@ -433,6 +433,7 @@ const LeadDetailPage = () => {
                 customerName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
                 leadEmail={leadData.lead.email}
                 leadPhone={leadData.lead.phone}
+                erpBudgetIds={(leadData.lead as any).erp_budgets_ids || []}
               />
             ) : (
               <ProductsSection 
