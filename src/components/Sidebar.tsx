@@ -147,10 +147,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
-  // Products submenu items
-  const productsItems = [
-    { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} /> },
-  ];
+  // Check if user's company uses ERP module
+  const isErpModule = user?.company?.product_module === 'ERP';
+  const erpUrl = import.meta.env.VITE_ERP_URL;
+
+  // Products submenu items - conditionally show ERP or Manage Products
+  const productsItems = isErpModule
+    ? [{ id: 'erp', label: 'ERP', icon: () => <Package size={16} />, isExternal: true, externalUrl: erpUrl }]
+    : [{ id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false }];
 
   // Contracts submenu items - COMMENTED OUT: Feature to be implemented later
   // const contractsItems = [
@@ -794,7 +798,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 {productsItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => handleSectionNavigation(item.id)}
+                    onClick={() => {
+                      if (item.isExternal && item.externalUrl) {
+                        window.open(item.externalUrl, '_blank');
+                      } else {
+                        handleSectionNavigation(item.id);
+                      }
+                    }}
                     className={`nav-item-sub w-full ${
                       activeSection === item.id ? 'active' : ''
                     }`}

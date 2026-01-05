@@ -1,3 +1,9 @@
+export interface Company {
+  id: number;
+  name: string;
+  product_module: 'ERP' | 'products' | string;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -12,6 +18,7 @@ export interface User {
   profile_photo_url: string | null;
   profile_pic: string | null;
   background_image_url: string | null;
+  company?: Company;
 }
 
 export interface UserFilters {
