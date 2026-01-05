@@ -22,6 +22,7 @@ interface BudgetSectionProps {
   customerName: string;
   leadEmail?: string;
   leadPhone?: string;
+  erpBudgetIds?: number[];
 }
 
 // Currency formatting helper
@@ -51,25 +52,32 @@ const getStatusBadge = (status: QuoteStatus, t: (key: string) => string) => {
   );
 };
 
-const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '' }: BudgetSectionProps) => {
+const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', erpBudgetIds = [] }: BudgetSectionProps) => {
   const { t } = useLanguage();
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [budgets, setBudgets] = useState<ERPBudgetResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedBudget, setExpandedBudget] = useState<number | null>(null);
 
-  // Fetch budgets on mount
+  // Fetch budgets from ERP on mount if lead has erp_budgets_ids
   useEffect(() => {
     fetchBudgets();
-  }, [leadId]);
+  }, [leadId, erpBudgetIds]);
 
   const fetchBudgets = async () => {
     try {
       setLoading(true);
-      const response = await erpService.getLeadBudgets(leadId);
-      // Extract ERP budget data from CRM response
-      const erpBudgets = response.map((item: any) => item.erp_budget_data || item);
-      setBudgets(erpBudgets);
+      
+      // If lead has ERP budget IDs, fetch directly from ERP
+      if (erpBudgetIds && erpBudgetIds.length > 0) {
+        const erpBudgets = await erpService.getBudgetsByIds(erpBudgetIds);
+        setBudgets(erpBudgets);
+      } else {
+        // Fallback to CRM endpoint
+        const response = await erpService.getLeadBudgets(leadId);
+        const erpBudgets = response.map((item: any) => item.erp_budget_data || item);
+        setBudgets(erpBudgets);
+      }
     } catch (error) {
       console.error('Error fetching budgets:', error);
       setBudgets([]);
