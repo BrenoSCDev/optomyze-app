@@ -428,7 +428,10 @@ const LeadDetailPage = () => {
             
             {/* Products Section or Budget Section based on company module */}
             {user?.company?.product_module === 'ERP' ? (
-              <BudgetSection />
+              <BudgetSection 
+                leadId={leadData.lead.id} 
+                customerName={`${leadData.lead.first_name} ${leadData.lead.last_name}`} 
+              />
             ) : (
               <ProductsSection 
                 products={leadData.lead.products || []}
