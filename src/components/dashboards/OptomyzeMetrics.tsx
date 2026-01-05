@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrendingUp, Users, UserX, DollarSign, Target, Clock, Percent, Trophy, UserCheck, AlertCircle, Minus, Filter, BarChart3, PieChartIcon } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useMemo } from 'react';
 import api from '@/services/api';
 
@@ -971,9 +972,13 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
 
 const OptomyzeMetrics = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [metricsData, setMetricsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
+  
+  // Check if user's company uses ERP module - hide revenue/deals data as it's shown in ERP
+  const isErpModule = user?.company?.product_module === 'ERP';
 
   const fetchMetricsData = async () => {
     try {
@@ -1028,7 +1033,7 @@ const OptomyzeMetrics = () => {
     const { lead_statistics, conversion_rate, performance_comparison } = metricsData.data;
     const { totalAnnualRevenue, totalMonthlyRevenue, avgDealValue } = getRevenueMetrics();
 
-    return [
+    const kpis = [
       {
         title: t('metrics.total-leads'),
         value: lead_statistics.total_leads,
@@ -1058,26 +1063,34 @@ const OptomyzeMetrics = () => {
         value: `${conversion_rate?.toFixed(2) || '0.00'}%`,
         trend: getTrendData(performance_comparison?.conversion_rate),
         icon: <Percent className="h-5 w-5 text-primary" />
-      },
-      {
-        title: t('metrics.total-annual-revenue'),
-        value: totalAnnualRevenue >= 1000 ? `$${(totalAnnualRevenue).toFixed(1)}k` : `$${totalAnnualRevenue.toLocaleString()}`,
-        trend: { value: '+0%', isPositive: true },
-        icon: <DollarSign className="h-5 w-5 text-primary" />
-      },
-      {
-        title: t('metrics.total-monthly-revenue'),
-        value: totalMonthlyRevenue >= 1000 ? `$${(totalMonthlyRevenue).toFixed(1)}k` : `$${totalMonthlyRevenue.toLocaleString()}`,
-        trend: { value: '+0%', isPositive: true },
-        icon: <TrendingUp className="h-5 w-5 text-primary" />
-      },
-      {
-        title: t('metrics.avg-deal-value'),
-        value: avgDealValue >= 1000 ? `$${(avgDealValue).toFixed(1)}k` : `$${avgDealValue.toLocaleString()}`,
-        trend: { value: '+0%', isPositive: true },
-        icon: <Target className="h-5 w-5 text-primary" />
       }
     ];
+    
+    // Only add revenue KPIs if user is NOT using ERP module (as those are shown in ERP)
+    if (!isErpModule) {
+      kpis.push(
+        {
+          title: t('metrics.total-annual-revenue'),
+          value: totalAnnualRevenue >= 1000 ? `$${(totalAnnualRevenue).toFixed(1)}k` : `$${totalAnnualRevenue.toLocaleString()}`,
+          trend: { value: '+0%', isPositive: true },
+          icon: <DollarSign className="h-5 w-5 text-primary" />
+        },
+        {
+          title: t('metrics.total-monthly-revenue'),
+          value: totalMonthlyRevenue >= 1000 ? `$${(totalMonthlyRevenue).toFixed(1)}k` : `$${totalMonthlyRevenue.toLocaleString()}`,
+          trend: { value: '+0%', isPositive: true },
+          icon: <TrendingUp className="h-5 w-5 text-primary" />
+        },
+        {
+          title: t('metrics.avg-deal-value'),
+          value: avgDealValue >= 1000 ? `$${(avgDealValue).toFixed(1)}k` : `$${avgDealValue.toLocaleString()}`,
+          trend: { value: '+0%', isPositive: true },
+          icon: <Target className="h-5 w-5 text-primary" />
+        }
+      );
+    }
+    
+    return kpis;
   };
 
   // Get monthly chart data
@@ -1166,8 +1179,11 @@ const OptomyzeMetrics = () => {
       </div>
 
       {/* Monthly Revenue & Lead Flow Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} />
+      <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
+        {/* Monthly Revenue Chart - Hidden for ERP users */}
+        {!isErpModule && (
+          <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} />
+        )}
         
         {/* Monthly Lead Flow */}
         {loading ? (
@@ -1232,16 +1248,20 @@ const OptomyzeMetrics = () => {
         )}
       </div>
 
-      {/* Deals Status & Lead Pipeline Breakdown Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <DealsStatusChart dealsData={getDealsStatusData()} isLoading={loading} />
+      {/* Deals Status & Lead Pipeline Breakdown Row - Deals Status hidden for ERP users */}
+      <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
+        {!isErpModule && (
+          <DealsStatusChart dealsData={getDealsStatusData()} isLoading={loading} />
+        )}
         <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
       </div>
 
-      {/* Leads by Stage & Pipeline Value Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Leads by Stage & Pipeline Value Row - Pipeline Value hidden for ERP users */}
+      <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
         <LeadsByStageChart funnelsData={getFunnelsData()} isLoading={loading} />
-        <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />
+        {!isErpModule && (
+          <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />
+        )}
       </div>
 
       {/* Product Performance Charts Row - Commented for now */}
