@@ -53,8 +53,13 @@ export const erpService = {
    * Fetch multiple budgets from ERP by IDs (batch)
    */
   async getBudgetsByIds(budgetIds: number[]): Promise<ERPBudgetResponse[]> {
+    // Ensure budgetIds is a proper array of numbers
+    const ids = Array.isArray(budgetIds) 
+      ? budgetIds.map(id => typeof id === 'string' ? parseInt(id, 10) : id)
+      : [];
+    
     const response = await erpApi.post<ERPBudgetResponse[]>('/api/v1/budgets/batch', {
-      budget_ids: budgetIds
+      budget_ids: ids
     });
     return response.data;
   },
