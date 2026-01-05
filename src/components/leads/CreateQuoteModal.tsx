@@ -249,9 +249,9 @@ const CreateQuoteModal = ({
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="flex-1 overflow-hidden flex">
+          <div className="flex-1 overflow-hidden flex min-h-0">
             {/* Left Column - Quote Details */}
-            <div className="w-[320px] border-r border-white/10 p-6 space-y-5">
+            <div className="w-[320px] border-r border-white/10 p-6 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
               <h3 className="text-sm font-medium text-gray-400">{t('quote.details')}</h3>
 
               {/* Customer */}
