@@ -149,11 +149,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Check if user's company uses ERP module
   const isErpModule = user?.company?.product_module === 'ERP';
-  const erpUrl = import.meta.env.VITE_ERP_URL;
+  const erpFrontendUrl = import.meta.env.VITE_ERP_FRONTEND_URL;
 
   // Products submenu items - conditionally show ERP or Manage Products
   const productsItems = isErpModule
-    ? [{ id: 'erp', label: 'ERP', icon: () => <Package size={16} />, isExternal: true, externalUrl: erpUrl }]
+    ? [{ id: 'erp', label: 'ERP', icon: () => <Package size={16} />, isExternal: true, externalUrl: erpFrontendUrl }]
     : [{ id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false }];
 
   // Contracts submenu items - COMMENTED OUT: Feature to be implemented later

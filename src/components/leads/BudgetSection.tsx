@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { ERPBudgetResponse, QuoteStatus } from '@/types/erp';
 import { erpService } from '@/services/erpApi';
 import CreateQuoteModal from './CreateQuoteModal';
-import { ERP_URL } from '@/lib/constants';
+import { ERP_URL, ERP_FRONTEND_URL } from '@/lib/constants';
 
 interface BudgetSectionProps {
   leadId: number;
@@ -92,7 +92,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
   };
 
   const handleViewInERP = (budgetId: number) => {
-    window.open(`${ERP_URL}/budgets/${budgetId}`, '_blank');
+    window.open(`${ERP_FRONTEND_URL}/quotes`, '_blank');
   };
 
   const handleDownloadPDF = (budgetId: number) => {
