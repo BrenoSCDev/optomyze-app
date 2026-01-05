@@ -394,6 +394,29 @@ const LeadDetailPage = () => {
     );
   }
 
+  const erpBudgetIds = React.useMemo<number[]>(() => {
+    const raw = (leadData.lead as any)?.erp_budgets_ids;
+
+    if (!raw) return [];
+
+    const normalizeArray = (arr: any): number[] =>
+      (Array.isArray(arr) ? arr : [])
+        .map((id: any) => (typeof id === 'string' ? Number(id) : id))
+        .filter((id: any): id is number => typeof id === 'number' && Number.isFinite(id));
+
+    if (Array.isArray(raw)) return normalizeArray(raw);
+
+    if (typeof raw === 'string') {
+      try {
+        return normalizeArray(JSON.parse(raw));
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  }, [(leadData.lead as any)?.erp_budgets_ids]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black p-6">
       <div className="max-w-7xl mx-auto">
@@ -433,7 +456,7 @@ const LeadDetailPage = () => {
                 customerName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
                 leadEmail={leadData.lead.email}
                 leadPhone={leadData.lead.phone}
-                erpBudgetIds={(leadData.lead as any).erp_budgets_ids || []}
+                erpBudgetIds={erpBudgetIds}
               />
             ) : (
               <ProductsSection 
