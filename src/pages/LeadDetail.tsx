@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { User as UserType } from '@/types/user';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -57,6 +58,7 @@ import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import { LeadProduct } from '@/components/leads/ProductsSection';
 import ProductsSection from '@/components/leads/ProductsSection';
+import BudgetSection from '@/components/leads/BudgetSection';
 import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
@@ -164,7 +166,7 @@ interface LeadData {
 const LeadDetailPage = () => {
   const { leadId, funnelId } = useParams<{ leadId: string; funnelId: string }>();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user } = useAuth() as { token: string; user: UserType | null };
   const { t } = useLanguage();
   
   const [leadData, setLeadData] = useState<LeadData | null>(null);
@@ -424,12 +426,16 @@ const LeadDetailPage = () => {
               onObservationDeleted={handleObservationDeleted}
             />
             
-            {/* Products Section - Separate from tabs */}
-            <ProductsSection 
-              products={leadData.lead.products || []}
-              onAddProducts={() => setAddProductsModalOpen(true)}
-              onStartPurchase={handleStartPurchase}
-            />
+            {/* Products Section or Budget Section based on company module */}
+            {user?.company?.product_module === 'ERP' ? (
+              <BudgetSection />
+            ) : (
+              <ProductsSection 
+                products={leadData.lead.products || []}
+                onAddProducts={() => setAddProductsModalOpen(true)}
+                onStartPurchase={handleStartPurchase}
+              />
+            )}
           </div>
           
           {/* Right Column - Activity & Purchase History */}
