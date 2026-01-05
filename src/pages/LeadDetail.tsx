@@ -430,7 +430,9 @@ const LeadDetailPage = () => {
             {user?.company?.product_module === 'ERP' ? (
               <BudgetSection 
                 leadId={leadData.lead.id} 
-                customerName={`${leadData.lead.first_name} ${leadData.lead.last_name}`} 
+                customerName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
+                leadEmail={leadData.lead.email}
+                leadPhone={leadData.lead.phone}
               />
             ) : (
               <ProductsSection 

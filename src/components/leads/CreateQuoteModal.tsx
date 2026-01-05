@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, FileText, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { ERPProduct, ERPUnit, QuoteItem, QuoteStatus } from '@/types/erp';
+import { ERPProduct, ERPUnit, QuoteItem, QuoteStatus, ERPBudgetResponse } from '@/types/erp';
 import { erpService } from '@/services/erpApi';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +27,9 @@ interface CreateQuoteModalProps {
   onClose: () => void;
   leadId: number;
   customerName: string;
-  onQuoteCreated?: (quote: any) => void;
+  leadEmail?: string;
+  leadPhone?: string;
+  onQuoteCreated?: (quote: ERPBudgetResponse) => void;
 }
 
 const QUOTE_STATUSES: QuoteStatus[] = ['draft', 'sent', 'approved', 'rejected'];
@@ -60,6 +62,8 @@ const CreateQuoteModal = ({
   onClose, 
   leadId, 
   customerName,
+  leadEmail = '',
+  leadPhone = '',
   onQuoteCreated 
 }: CreateQuoteModalProps) => {
   const { t } = useLanguage();
@@ -199,32 +203,41 @@ const CreateQuoteModal = ({
       return;
     }
 
+    if (!unitId) {
+      toast.error(t('quote.unit-required'));
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const quoteData = {
-        lead_id: leadId,
-        customer_name: customerName,
-        unit_id: unitId ? Number(unitId) : null,
+      // Step 1: Prepare the ERP budget request
+      const erpBudgetRequest = {
+        company_id: 1, // This could come from user context if needed
+        name: customerName,
+        email: leadEmail,
+        phone: leadPhone,
+        unit_id: Number(unitId),
         status,
         discount,
-        notes,
         valid_until: validUntil ? format(validUntil, 'yyyy-MM-dd') : null,
+        notes,
         items: quoteItems.map(item => ({
           product_id: item.product_id,
+          description: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
         })),
-        subtotal,
-        total,
       };
 
-      // For now, just log the data and show success
-      // Backend integration will be added later
-      console.log('Quote data:', quoteData);
+      // Step 2: Send quote to ERP
+      const erpResponse = await erpService.createBudget(erpBudgetRequest);
+      
+      // Step 3: Link ERP budget to lead in CRM
+      await erpService.linkBudgetToLead(leadId, erpResponse.id);
       
       toast.success(t('quote.created-success'));
-      onQuoteCreated?.(quoteData);
+      onQuoteCreated?.(erpResponse);
       handleClose();
     } catch (error: any) {
       console.error('Error creating quote:', error);
