@@ -143,9 +143,9 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('calendar.event-title') || 'Title'}</FormLabel>
+                  <FormLabel>{t('calendar.form.title') || t('calendar.event-title') || 'Title'}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter event title..." {...field} />
+                    <Input placeholder={t('calendar.form.title-placeholder') || 'Enter event title...'} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,10 +157,10 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('calendar.event-description') || 'Description'}</FormLabel>
+                  <FormLabel>{t('calendar.form.description') || t('calendar.event-description') || 'Description'}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Enter event description..." 
+                      placeholder={t('calendar.form.description-placeholder') || 'Enter event description...'} 
                       className="min-h-[80px]"
                       {...field} 
                     />
@@ -175,17 +175,17 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('calendar.event-type') || 'Type'}</FormLabel>
+                  <FormLabel>{t('calendar.form.type') || t('calendar.event-type') || 'Type'}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select event type" />
+                        <SelectValue placeholder={t('calendar.form.type-placeholder') || 'Select event type'} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {eventTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                          {t(`calendar.event-types.${type.value}`) || type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -203,7 +203,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {t('calendar.start-time') || 'Start'}
+                      {t('calendar.form.start') || t('calendar.start-time') || 'Start'}
                     </FormLabel>
                     <FormControl>
                       <Input type="datetime-local" {...field} />
@@ -220,7 +220,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {t('calendar.end-time') || 'End'}
+                      {t('calendar.form.end') || t('calendar.end-time') || 'End'}
                     </FormLabel>
                     <FormControl>
                       <Input type="datetime-local" {...field} />
@@ -244,7 +244,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                       />
                     </FormControl>
                     <FormLabel className="cursor-pointer">
-                      {t('calendar.all-day') || 'All day'}
+                      {t('calendar.form.all-day') || t('calendar.all-day') || 'All day'}
                     </FormLabel>
                   </FormItem>
                 )}
@@ -262,7 +262,7 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
                       />
                     </FormControl>
                     <FormLabel className="cursor-pointer">
-                      {t('calendar.reminder') || 'Reminder'}
+                      {t('calendar.form.reminder') || t('calendar.reminder') || 'Reminder'}
                     </FormLabel>
                   </FormItem>
                 )}
