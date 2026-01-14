@@ -24,6 +24,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
+import echo from '../../services/echo'
 
 interface TopHeaderProps {
   sidebarCollapsed: boolean;
@@ -34,6 +35,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [connected, setConnected] = useState(false);
   const [searchResults, setSearchResults] = useState<LeadSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -120,6 +122,18 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
         clearTimeout(debounceRef.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    echo.connector.pusher.connection.bind('connected', () => {
+        console.log('Connected to WebSocket');
+        setConnected(true);
+    });
+
+    echo.connector.pusher.connection.bind('disconnected', () => {
+        console.log('Disconnected from WebSocket');
+        setConnected(false);
+    });
   }, []);
 
   return (

@@ -78,11 +78,11 @@ export const createCalendarEvent = async (payload: CreateEventPayload): Promise<
 
 // Update an existing calendar event
 export const updateCalendarEvent = async (eventId: number, payload: UpdateEventPayload): Promise<CalendarEvent> => {
-  const response = await api.put(`/api/event/${eventId}`, payload);
+  const response = await api.put(`/api/events/${eventId}`, payload);
   return response.data;
 };
 
 // Delete a calendar event
 export const deleteCalendarEvent = async (eventId: number): Promise<void> => {
-  await api.delete(`/api/event/${eventId}`);
+  await api.delete(`/api/events/${eventId}`);
 };
