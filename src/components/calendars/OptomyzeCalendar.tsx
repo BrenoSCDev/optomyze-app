@@ -2,303 +2,102 @@
  * OPTOMYZE CALENDAR COMPONENT
  * 
  * Displays a full calendar view with events and appointments
- * Features mock data for now, to be connected to API later
+ * Connected to /api/events for real data
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { CalendarTask, CalendarEvent } from '@/services/calendarApi';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
 
-// Mock events data - spread across December 2025 and January 2026
-const mockEvents = [
-  // December 2025
-  {
-    id: 1,
-    title: 'Team Kickoff Meeting',
-    date: new Date(2025, 11, 1, 9, 0),
-    endDate: new Date(2025, 11, 1, 10, 0),
-    type: 'internal',
-    attendee: 'All Teams',
-    location: 'Main Conference Room'
-  },
-  {
-    id: 2,
-    title: 'Client Discovery Call',
-    date: new Date(2025, 11, 2, 14, 0),
-    endDate: new Date(2025, 11, 2, 15, 0),
-    type: 'call',
-    attendee: 'BlueTech Inc',
-    location: 'Zoom Meeting'
-  },
-  {
-    id: 3,
-    title: 'Product Demo - Enterprise',
-    date: new Date(2025, 11, 3, 11, 0),
-    endDate: new Date(2025, 11, 3, 12, 30),
-    type: 'meeting',
-    attendee: 'GlobalCorp',
-    location: 'Google Meet'
-  },
-  {
-    id: 4,
-    title: 'Sales Pipeline Review',
-    date: new Date(2025, 11, 4, 10, 0),
-    endDate: new Date(2025, 11, 4, 11, 0),
-    type: 'internal',
-    attendee: 'Sales Team',
-    location: 'Office'
-  },
-  {
-    id: 5,
-    title: 'Follow-up Call - Sarah',
-    date: new Date(2025, 11, 5, 9, 30),
-    endDate: new Date(2025, 11, 5, 10, 0),
-    type: 'call',
-    attendee: 'Sarah Wilson',
-    location: 'Phone'
-  },
-  {
-    id: 6,
-    title: 'Contract Negotiation',
-    date: new Date(2025, 11, 5, 15, 0),
-    endDate: new Date(2025, 11, 5, 16, 30),
-    type: 'meeting',
-    attendee: 'TechStart LLC',
-    location: 'Client Office'
-  },
-  {
-    id: 7,
-    title: 'Weekly Standup',
-    date: new Date(2025, 11, 8, 9, 0),
-    endDate: new Date(2025, 11, 8, 9, 30),
-    type: 'internal',
-    attendee: 'Dev Team',
-    location: 'Office'
-  },
-  {
-    id: 8,
-    title: 'Investor Presentation',
-    date: new Date(2025, 11, 9, 14, 0),
-    endDate: new Date(2025, 11, 9, 16, 0),
-    type: 'meeting',
-    attendee: 'VC Partners',
-    location: 'Board Room'
-  },
-  {
-    id: 9,
-    title: 'New Lead Intro Call',
-    date: new Date(2025, 11, 10, 10, 0),
-    endDate: new Date(2025, 11, 10, 10, 45),
-    type: 'call',
-    attendee: 'DataFlow Systems',
-    location: 'Zoom Meeting'
-  },
-  {
-    id: 10,
-    title: 'Training Session',
-    date: new Date(2025, 11, 10, 14, 0),
-    endDate: new Date(2025, 11, 10, 16, 0),
-    type: 'internal',
-    attendee: 'New Hires',
-    location: 'Training Room'
-  },
-  {
-    id: 11,
-    title: 'Partnership Discussion',
-    date: new Date(2025, 11, 11, 11, 0),
-    endDate: new Date(2025, 11, 11, 12, 0),
-    type: 'meeting',
-    attendee: 'PartnerCo',
-    location: 'Google Meet'
-  },
-  {
-    id: 12,
-    title: 'Client Onboarding',
-    date: new Date(2025, 11, 12, 9, 0),
-    endDate: new Date(2025, 11, 12, 11, 0),
-    type: 'meeting',
-    attendee: 'NewClient Inc',
-    location: 'On-site'
-  },
-  {
-    id: 13,
-    title: 'Sales Call - John',
-    date: new Date(2025, 11, 15, 10, 0),
-    endDate: new Date(2025, 11, 15, 11, 0),
-    type: 'call',
-    attendee: 'John Doe',
-    location: 'Zoom Meeting'
-  },
-  {
-    id: 14,
-    title: 'Team Lunch',
-    date: new Date(2025, 11, 15, 12, 0),
-    endDate: new Date(2025, 11, 15, 13, 30),
-    type: 'internal',
-    attendee: 'All Staff',
-    location: 'Restaurant'
-  },
-  {
-    id: 15,
-    title: 'Product Demo',
-    date: new Date(2025, 11, 16, 14, 0),
-    endDate: new Date(2025, 11, 16, 15, 30),
-    type: 'meeting',
-    attendee: 'Acme Corp',
-    location: 'Google Meet'
-  },
-  {
-    id: 16,
-    title: 'Support Call',
-    date: new Date(2025, 11, 16, 16, 0),
-    endDate: new Date(2025, 11, 16, 16, 30),
-    type: 'call',
-    attendee: 'Existing Client',
-    location: 'Phone'
-  },
-  {
-    id: 17,
-    title: 'Strategy Meeting',
-    date: new Date(2025, 11, 17, 9, 0),
-    endDate: new Date(2025, 11, 17, 11, 0),
-    type: 'internal',
-    attendee: 'Leadership',
-    location: 'Board Room'
-  },
-  {
-    id: 18,
-    title: 'Follow-up Call',
-    date: new Date(2025, 11, 18, 9, 0),
-    endDate: new Date(2025, 11, 18, 9, 30),
-    type: 'call',
-    attendee: 'Sarah Wilson',
-    location: 'Phone'
-  },
-  {
-    id: 19,
-    title: 'Client Presentation',
-    date: new Date(2025, 11, 18, 14, 0),
-    endDate: new Date(2025, 11, 18, 15, 30),
-    type: 'meeting',
-    attendee: 'BigCorp',
-    location: 'Client HQ'
-  },
-  {
-    id: 20,
-    title: 'Sprint Planning',
-    date: new Date(2025, 11, 19, 10, 0),
-    endDate: new Date(2025, 11, 19, 12, 0),
-    type: 'internal',
-    attendee: 'Dev Team',
-    location: 'Office'
-  },
-  {
-    id: 21,
-    title: 'Quarterly Review',
-    date: new Date(2025, 11, 20, 15, 0),
-    endDate: new Date(2025, 11, 20, 17, 0),
-    type: 'internal',
-    attendee: 'Management',
-    location: 'Conference Room A'
-  },
-  {
-    id: 22,
-    title: 'Discovery Call',
-    date: new Date(2025, 11, 22, 10, 0),
-    endDate: new Date(2025, 11, 22, 10, 45),
-    type: 'call',
-    attendee: 'TechStart LLC',
-    location: 'Zoom Meeting'
-  },
-  {
-    id: 23,
-    title: 'Contract Signing',
-    date: new Date(2025, 11, 22, 14, 0),
-    endDate: new Date(2025, 11, 22, 15, 0),
-    type: 'meeting',
-    attendee: 'MegaCorp',
-    location: 'Legal Office'
-  },
-  {
-    id: 24,
-    title: 'Year-End Review',
-    date: new Date(2025, 11, 23, 9, 0),
-    endDate: new Date(2025, 11, 23, 12, 0),
-    type: 'internal',
-    attendee: 'All Departments',
-    location: 'Main Hall'
-  },
-  {
-    id: 25,
-    title: 'Holiday Party',
-    date: new Date(2025, 11, 24, 18, 0),
-    endDate: new Date(2025, 11, 24, 22, 0),
-    type: 'internal',
-    attendee: 'Company Wide',
-    location: 'Event Center'
-  },
-  {
-    id: 26,
-    title: 'New Year Planning',
-    date: new Date(2025, 11, 29, 10, 0),
-    endDate: new Date(2025, 11, 29, 12, 0),
-    type: 'internal',
-    attendee: 'Leadership',
-    location: 'Board Room'
-  },
-  {
-    id: 27,
-    title: 'Client Check-in',
-    date: new Date(2025, 11, 30, 11, 0),
-    endDate: new Date(2025, 11, 30, 11, 30),
-    type: 'call',
-    attendee: 'Key Accounts',
-    location: 'Phone'
-  },
-  {
-    id: 28,
-    title: 'Q1 Kickoff Prep',
-    date: new Date(2025, 11, 31, 9, 0),
-    endDate: new Date(2025, 11, 31, 11, 0),
-    type: 'internal',
-    attendee: 'Sales Team',
-    location: 'Office'
-  },
-  // January 2026
-  {
-    id: 29,
-    title: 'New Year Kickoff',
-    date: new Date(2026, 0, 2, 9, 0),
-    endDate: new Date(2026, 0, 2, 11, 0),
-    type: 'internal',
-    attendee: 'All Staff',
-    location: 'Main Hall'
-  },
-  {
-    id: 30,
-    title: 'Q1 Goals Meeting',
-    date: new Date(2026, 0, 3, 14, 0),
-    endDate: new Date(2026, 0, 3, 16, 0),
-    type: 'internal',
-    attendee: 'Department Heads',
-    location: 'Board Room'
-  },
-];
-
+// Color mapping for event types
 const eventTypeColors: Record<string, string> = {
   call: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   meeting: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   internal: 'bg-green-500/20 text-green-400 border-green-500/30',
+  deadline: 'bg-red-500/20 text-red-400 border-red-500/30',
+  reminder: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  other: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
+
+// Color mapping for task priorities
+const taskPriorityColors: Record<string, string> = {
+  urgent: 'bg-red-500/20 text-red-400 border-red-500/30',
+  high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  low: 'bg-green-500/20 text-green-400 border-green-500/30',
+};
+
+// Unified calendar item type
+interface CalendarItem {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  endDate?: Date;
+  type: 'task' | 'event';
+  subType: string;
+  allDay?: boolean;
+  priority?: string;
+  status?: string;
+  attendee?: string;
+  location?: string;
+  hasReminder: boolean;
+  leadName?: string;
+}
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  const { data, isLoading, error } = useCalendarEvents();
+
+  // Transform API data to unified calendar items
+  const calendarItems = useMemo<CalendarItem[]>(() => {
+    if (!data) return [];
+
+    const items: CalendarItem[] = [];
+
+    // Transform tasks
+    data.tasks.forEach((task: CalendarTask) => {
+      items.push({
+        id: `task-${task.id}`,
+        title: task.title,
+        description: task.description || '',
+        date: parseISO(task.due_date),
+        type: 'task',
+        subType: task.priority,
+        priority: task.priority,
+        status: task.status,
+        hasReminder: task.reminder === 1,
+        attendee: task.assignee?.name,
+        leadName: task.lead ? `${task.lead.first_name} ${task.lead.last_name}` : undefined,
+      });
+    });
+
+    // Transform events
+    data.events.forEach((event: CalendarEvent) => {
+      items.push({
+        id: `event-${event.id}`,
+        title: event.title,
+        description: event.description || '',
+        date: parseISO(event.start_at),
+        endDate: event.end_at ? parseISO(event.end_at) : undefined,
+        type: 'event',
+        subType: event.type,
+        allDay: event.all_day,
+        hasReminder: event.reminder === 1,
+      });
+    });
+
+    return items;
+  }, [data]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -313,13 +112,53 @@ const OptomyzeCalendar: React.FC = () => {
     setSelectedDate(new Date());
   };
 
-  const getEventsForDate = (date: Date) => {
-    return mockEvents.filter(event => isSameDay(event.date, date));
+  const getItemsForDate = (date: Date): CalendarItem[] => {
+    return calendarItems.filter(item => isSameDay(item.date, date));
   };
 
-  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
+  // Get upcoming items (next 7 days)
+  const upcomingItems = useMemo(() => {
+    const now = new Date();
+    const nextWeek = addDays(now, 7);
+    
+    return calendarItems
+      .filter(item => {
+        const itemDate = item.date;
+        return (isAfter(itemDate, now) || isSameDay(itemDate, now));
+      })
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .slice(0, 4);
+  }, [calendarItems]);
+
+  const selectedDateItems = selectedDate ? getItemsForDate(selectedDate) : [];
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Get color for item based on type
+  const getItemColor = (item: CalendarItem) => {
+    if (item.type === 'task') {
+      return taskPriorityColors[item.priority || 'medium'] || taskPriorityColors.medium;
+    }
+    return eventTypeColors[item.subType] || eventTypeColors.other;
+  };
+
+  // Format time display
+  const formatTime = (date: Date, allDay?: boolean) => {
+    if (allDay) return 'All day';
+    return format(date, 'HH:mm');
+  };
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <p className="text-muted-foreground">Failed to load calendar events</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -380,49 +219,60 @@ const OptomyzeCalendar: React.FC = () => {
           </div>
 
           {/* Calendar Days */}
-          <div className="grid grid-cols-7 gap-1">
-            {calendarDays.map((day, index) => {
-              const dayEvents = getEventsForDate(day);
-              const isCurrentMonth = isSameMonth(day, currentDate);
-              const isSelected = selectedDate && isSameDay(day, selectedDate);
-              const isToday = isSameDay(day, new Date());
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((day, index) => {
+                const dayItems = getItemsForDate(day);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isSelected = selectedDate && isSameDay(day, selectedDate);
+                const isToday = isSameDay(day, new Date());
 
-              return (
-                <button
-                  key={index}
-                  onClick={() => setSelectedDate(day)}
-                  className={`
-                    min-h-[80px] p-2 rounded-lg text-left transition-all
-                    ${isCurrentMonth ? 'bg-white/5 hover:bg-white/10' : 'bg-transparent opacity-40'}
-                    ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
-                    ${isToday ? 'border border-primary/50' : ''}
-                  `}
-                >
-                  <span className={`
-                    text-sm font-medium
-                    ${isToday ? 'text-primary' : isCurrentMonth ? 'text-white' : 'text-gray-500'}
-                  `}>
-                    {format(day, 'd')}
-                  </span>
-                  <div className="mt-1 space-y-1">
-                    {dayEvents.slice(0, 2).map(event => (
-                      <div
-                        key={event.id}
-                        className={`text-xs px-1 py-0.5 rounded truncate ${eventTypeColors[event.type]}`}
-                      >
-                        {event.title}
-                      </div>
-                    ))}
-                    {dayEvents.length > 2 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{dayEvents.length - 2} {t('calendar.more')}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedDate(day)}
+                    className={`
+                      min-h-[80px] p-2 rounded-lg text-left transition-all
+                      ${isCurrentMonth ? 'bg-white/5 hover:bg-white/10' : 'bg-transparent opacity-40'}
+                      ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
+                      ${isToday ? 'border border-primary/50' : ''}
+                    `}
+                  >
+                    <span className={`
+                      text-sm font-medium
+                      ${isToday ? 'text-primary' : isCurrentMonth ? 'text-white' : 'text-gray-500'}
+                    `}>
+                      {format(day, 'd')}
+                    </span>
+                    <div className="mt-1 space-y-1">
+                      {dayItems.slice(0, 2).map(item => (
+                        <div
+                          key={item.id}
+                          className={`text-xs px-1 py-0.5 rounded truncate flex items-center gap-1 ${getItemColor(item)}`}
+                        >
+                          {item.type === 'task' ? (
+                            <CheckSquare className="h-3 w-3 flex-shrink-0" />
+                          ) : (
+                            <CalendarDays className="h-3 w-3 flex-shrink-0" />
+                          )}
+                          <span className="truncate">{item.title}</span>
+                        </div>
+                      ))}
+                      {dayItems.length > 2 && (
+                        <div className="text-xs text-muted-foreground">
+                          +{dayItems.length - 2} {t('calendar.more')}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
 
         {/* Selected Day Events */}
@@ -436,7 +286,11 @@ const OptomyzeCalendar: React.FC = () => {
             {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : t('calendar.select-date')}
           </h3>
 
-          {selectedDateEvents.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : selectedDateItems.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-gray-500 mx-auto mb-3" />
               <p className="text-gray-400 text-sm">{t('calendar.no-events')}</p>
@@ -444,32 +298,66 @@ const OptomyzeCalendar: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {selectedDateEvents.map(event => (
+              {selectedDateItems.map(item => (
                 <div
-                  key={event.id}
-                  className={`p-4 rounded-lg border ${eventTypeColors[event.type]} cursor-pointer hover:scale-[1.02] transition-transform`}
+                  key={item.id}
+                  className={`p-4 rounded-lg border ${getItemColor(item)} cursor-pointer hover:scale-[1.02] transition-transform`}
                 >
                   <div className="flex items-start justify-between">
-                    <h4 className="font-medium text-white">{event.title}</h4>
-                    <Badge variant="outline" className={eventTypeColors[event.type]}>
-                      {event.type}
+                    <div className="flex items-center gap-2">
+                      {item.type === 'task' ? (
+                        <CheckSquare className="h-4 w-4" />
+                      ) : (
+                        <CalendarDays className="h-4 w-4" />
+                      )}
+                      <h4 className="font-medium text-white">{item.title}</h4>
+                    </div>
+                    <Badge variant="outline" className={getItemColor(item)}>
+                      {item.type === 'task' ? 'Task' : item.subType}
                     </Badge>
                   </div>
                   <div className="mt-3 space-y-2 text-sm text-gray-400">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       <span>
-                        {format(event.date, 'HH:mm')} - {format(event.endDate, 'HH:mm')}
+                        {formatTime(item.date, item.allDay)}
+                        {item.endDate && !item.allDay && ` - ${format(item.endDate, 'HH:mm')}`}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span>{event.attendee}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{event.location}</span>
-                    </div>
+                    {item.attendee && (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>{item.attendee}</span>
+                      </div>
+                    )}
+                    {item.leadName && (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>Lead: {item.leadName}</span>
+                      </div>
+                    )}
+                    {item.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{item.location}</span>
+                      </div>
+                    )}
+                    {item.priority && (
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {item.priority} priority
+                      </Badge>
+                    )}
+                    {item.status && (
+                      <Badge variant="outline" className="text-xs capitalize ml-1">
+                        {item.status.replace('_', ' ')}
+                      </Badge>
+                    )}
+                    {item.hasReminder && (
+                      <Badge variant="outline" className="text-xs ml-1">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Reminder
+                      </Badge>
+                    )}
                   </div>
                 </div>
               ))}
@@ -486,20 +374,50 @@ const OptomyzeCalendar: React.FC = () => {
         transition={{ delay: 0.3 }}
       >
         <h3 className="text-lg font-semibold text-white mb-4">{t('calendar.upcoming-events')}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {mockEvents.slice(0, 4).map(event => (
-            <div
-              key={event.id}
-              className={`p-4 rounded-lg border ${eventTypeColors[event.type]} hover:scale-[1.02] transition-transform cursor-pointer`}
-            >
-              <p className="text-xs text-gray-400 mb-1">
-                {format(event.date, 'MMM d, HH:mm')}
-              </p>
-              <h4 className="font-medium text-white text-sm">{event.title}</h4>
-              <p className="text-xs text-gray-400 mt-1">{event.attendee}</p>
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : upcomingItems.length === 0 ? (
+          <div className="text-center py-8">
+            <Clock className="h-10 w-10 text-gray-500 mx-auto mb-2" />
+            <p className="text-gray-400 text-sm">No upcoming events or tasks</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {upcomingItems.map(item => (
+              <div
+                key={item.id}
+                onClick={() => {
+                  setCurrentDate(item.date);
+                  setSelectedDate(item.date);
+                }}
+                className={`p-4 rounded-lg border ${getItemColor(item)} hover:scale-[1.02] transition-transform cursor-pointer`}
+              >
+                <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
+                  {item.type === 'task' ? (
+                    <CheckSquare className="h-3 w-3" />
+                  ) : (
+                    <CalendarDays className="h-3 w-3" />
+                  )}
+                  <span>{format(item.date, 'MMM d, HH:mm')}</span>
+                </div>
+                <h4 className="font-medium text-white text-sm">{item.title}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  {item.attendee && (
+                    <p className="text-xs text-gray-400">{item.attendee}</p>
+                  )}
+                  {item.leadName && (
+                    <p className="text-xs text-gray-400">{item.leadName}</p>
+                  )}
+                </div>
+                <Badge variant="outline" className="text-xs mt-2">
+                  {item.type === 'task' ? 'Task' : 'Event'}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   );
