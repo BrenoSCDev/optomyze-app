@@ -52,7 +52,37 @@ export interface CalendarEventsResponse {
   events: CalendarEvent[];
 }
 
+export interface CreateEventPayload {
+  title: string;
+  description?: string;
+  type: 'meeting' | 'call' | 'deadline' | 'reminder' | 'other';
+  start_at: string;
+  end_at?: string;
+  all_day: boolean;
+  reminder: boolean;
+}
+
+export interface UpdateEventPayload extends CreateEventPayload {}
+
+// Fetch all calendar events and tasks
 export const fetchCalendarEvents = async (): Promise<CalendarEventsResponse> => {
   const response = await api.get('/api/events');
   return response.data;
+};
+
+// Create a new calendar event
+export const createCalendarEvent = async (payload: CreateEventPayload): Promise<CalendarEvent> => {
+  const response = await api.post('/api/events', payload);
+  return response.data;
+};
+
+// Update an existing calendar event
+export const updateCalendarEvent = async (eventId: number, payload: UpdateEventPayload): Promise<CalendarEvent> => {
+  const response = await api.put(`/api/event/${eventId}`, payload);
+  return response.data;
+};
+
+// Delete a calendar event
+export const deleteCalendarEvent = async (eventId: number): Promise<void> => {
+  await api.delete(`/api/event/${eventId}`);
 };

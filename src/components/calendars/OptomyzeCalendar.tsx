@@ -2,17 +2,24 @@
  * OPTOMYZE CALENDAR COMPONENT
  * 
  * Displays a full calendar view with events and appointments
- * Connected to /api/events for real data
+ * Connected to /api/events for real data with full CRUD support
  */
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { 
+  useCalendarEvents, 
+  useCreateCalendarEvent, 
+  useUpdateCalendarEvent, 
+  useDeleteCalendarEvent 
+} from '@/hooks/useCalendarEvents';
 import { CalendarTask, CalendarEvent } from '@/services/calendarApi';
+import { EventFormModal, EventFormData } from './EventFormModal';
+import { DeleteEventDialog } from './DeleteEventDialog';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
 
 // Color mapping for event types
@@ -36,6 +43,7 @@ const taskPriorityColors: Record<string, string> = {
 // Unified calendar item type
 interface CalendarItem {
   id: string;
+  originalId: number;
   title: string;
   description: string;
   date: Date;
@@ -49,14 +57,24 @@ interface CalendarItem {
   location?: string;
   hasReminder: boolean;
   leadName?: string;
+  originalEvent?: CalendarEvent;
 }
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  
+  // Modal states
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
+  const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
 
   const { data, isLoading, error } = useCalendarEvents();
+  const createEventMutation = useCreateCalendarEvent();
+  const updateEventMutation = useUpdateCalendarEvent();
+  const deleteEventMutation = useDeleteCalendarEvent();
 
   // Transform API data to unified calendar items
   const calendarItems = useMemo<CalendarItem[]>(() => {
@@ -68,6 +86,7 @@ const OptomyzeCalendar: React.FC = () => {
     data.tasks.forEach((task: CalendarTask) => {
       items.push({
         id: `task-${task.id}`,
+        originalId: task.id,
         title: task.title,
         description: task.description || '',
         date: parseISO(task.due_date),
@@ -85,6 +104,7 @@ const OptomyzeCalendar: React.FC = () => {
     data.events.forEach((event: CalendarEvent) => {
       items.push({
         id: `event-${event.id}`,
+        originalId: event.id,
         title: event.title,
         description: event.description || '',
         date: parseISO(event.start_at),
@@ -93,11 +113,61 @@ const OptomyzeCalendar: React.FC = () => {
         subType: event.type,
         allDay: event.all_day,
         hasReminder: event.reminder === 1,
+        originalEvent: event,
       });
     });
 
     return items;
   }, [data]);
+
+  // Event handlers for CRUD
+  const handleCreateEvent = () => {
+    setSelectedEventForEdit(null);
+    setIsEventModalOpen(true);
+  };
+
+  const handleEditEvent = (item: CalendarItem) => {
+    if (item.type === 'event' && item.originalEvent) {
+      setSelectedEventForEdit(item.originalEvent);
+      setIsEventModalOpen(true);
+    }
+  };
+
+  const handleDeleteEvent = (item: CalendarItem) => {
+    setSelectedEventForDelete(item);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleEventFormSubmit = async (formData: EventFormData) => {
+    const payload = {
+      title: formData.title,
+      description: formData.description || '',
+      type: formData.type,
+      start_at: formData.start_at,
+      end_at: formData.end_at || undefined,
+      all_day: formData.all_day,
+      reminder: formData.reminder,
+    };
+
+    if (selectedEventForEdit) {
+      await updateEventMutation.mutateAsync({
+        eventId: selectedEventForEdit.id,
+        payload,
+      });
+    } else {
+      await createEventMutation.mutateAsync(payload);
+    }
+    setIsEventModalOpen(false);
+    setSelectedEventForEdit(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedEventForDelete && selectedEventForDelete.type === 'event') {
+      await deleteEventMutation.mutateAsync(selectedEventForDelete.originalId);
+      setIsDeleteDialogOpen(false);
+      setSelectedEventForDelete(null);
+    }
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -177,7 +247,7 @@ const OptomyzeCalendar: React.FC = () => {
             {t('calendar.optomyze.description')}
           </p>
         </div>
-        <Button className="bg-primary hover:bg-primary/80">
+        <Button className="bg-primary hover:bg-primary/80" onClick={handleCreateEvent}>
           <Plus className="h-4 w-4 mr-2" />
           {t('calendar.new-event')}
         </Button>
@@ -301,7 +371,7 @@ const OptomyzeCalendar: React.FC = () => {
               {selectedDateItems.map(item => (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-lg border ${getItemColor(item)} cursor-pointer hover:scale-[1.02] transition-transform`}
+                  className={`p-4 rounded-lg border ${getItemColor(item)} hover:scale-[1.02] transition-transform`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -312,10 +382,47 @@ const OptomyzeCalendar: React.FC = () => {
                       )}
                       <h4 className="font-medium text-white">{item.title}</h4>
                     </div>
-                    <Badge variant="outline" className={getItemColor(item)}>
-                      {item.type === 'task' ? 'Task' : item.subType}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={getItemColor(item)}>
+                        {item.type === 'task' ? 'Task' : item.subType}
+                      </Badge>
+                      {item.type === 'event' && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(item);
+                            }}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteEvent(item);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Description */}
+                  {item.description && (
+                    <div className="mt-2 flex items-start gap-2 text-sm text-gray-300">
+                      <FileText className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
+                      <p className="line-clamp-2">{item.description}</p>
+                    </div>
+                  )}
+                  
                   <div className="mt-3 space-y-2 text-sm text-gray-400">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
@@ -342,22 +449,24 @@ const OptomyzeCalendar: React.FC = () => {
                         <span>{item.location}</span>
                       </div>
                     )}
-                    {item.priority && (
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {item.priority} priority
-                      </Badge>
-                    )}
-                    {item.status && (
-                      <Badge variant="outline" className="text-xs capitalize ml-1">
-                        {item.status.replace('_', ' ')}
-                      </Badge>
-                    )}
-                    {item.hasReminder && (
-                      <Badge variant="outline" className="text-xs ml-1">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Reminder
-                      </Badge>
-                    )}
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {item.priority && (
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {item.priority} priority
+                        </Badge>
+                      )}
+                      {item.status && (
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {item.status.replace('_', ' ')}
+                        </Badge>
+                      )}
+                      {item.hasReminder && (
+                        <Badge variant="outline" className="text-xs">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Reminder
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -419,6 +528,25 @@ const OptomyzeCalendar: React.FC = () => {
           </div>
         )}
       </motion.div>
+
+      {/* Event Form Modal */}
+      <EventFormModal
+        open={isEventModalOpen}
+        onOpenChange={setIsEventModalOpen}
+        onSubmit={handleEventFormSubmit}
+        event={selectedEventForEdit}
+        isLoading={createEventMutation.isPending || updateEventMutation.isPending}
+        defaultDate={selectedDate || undefined}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteEventDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        eventTitle={selectedEventForDelete?.title || ''}
+        isLoading={deleteEventMutation.isPending}
+      />
     </div>
   );
 };
