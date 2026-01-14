@@ -7,7 +7,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -40,6 +41,14 @@ const taskPriorityColors: Record<string, string> = {
   low: 'bg-green-500/20 text-green-400 border-green-500/30',
 };
 
+// Color mapping for task statuses
+const taskStatusColors: Record<string, string> = {
+  pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+};
+
 // Unified calendar item type
 interface CalendarItem {
   id: string;
@@ -57,11 +66,14 @@ interface CalendarItem {
   location?: string;
   hasReminder: boolean;
   leadName?: string;
+  leadId?: number;
+  funnelId?: number;
   originalEvent?: CalendarEvent;
 }
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   
@@ -97,6 +109,8 @@ const OptomyzeCalendar: React.FC = () => {
         hasReminder: task.reminder === 1,
         attendee: task.assignee?.name,
         leadName: task.lead ? `${task.lead.first_name} ${task.lead.last_name}` : undefined,
+        leadId: task.lead?.id,
+        funnelId: task.lead?.funnel_id,
       });
     });
 
@@ -437,10 +451,20 @@ const OptomyzeCalendar: React.FC = () => {
                         <span>{item.attendee}</span>
                       </div>
                     )}
-                    {item.leadName && (
+                    {item.leadName && item.leadId && item.funnelId && (
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        <span>Lead: {item.leadName}</span>
+                        <span>Lead: </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                          }}
+                          className="text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                        >
+                          {item.leadName}
+                          <ExternalLink className="h-3 w-3" />
+                        </button>
                       </div>
                     )}
                     {item.location && (
@@ -451,12 +475,12 @@ const OptomyzeCalendar: React.FC = () => {
                     )}
                     <div className="flex flex-wrap gap-1 pt-1">
                       {item.priority && (
-                        <Badge variant="outline" className="text-xs capitalize">
+                        <Badge variant="outline" className={`text-xs capitalize border ${taskPriorityColors[item.priority] || ''}`}>
                           {item.priority} priority
                         </Badge>
                       )}
                       {item.status && (
-                        <Badge variant="outline" className="text-xs capitalize">
+                        <Badge variant="outline" className={`text-xs capitalize border ${taskStatusColors[item.status] || ''}`}>
                           {item.status.replace('_', ' ')}
                         </Badge>
                       )}
@@ -516,8 +540,17 @@ const OptomyzeCalendar: React.FC = () => {
                   {item.attendee && (
                     <p className="text-xs text-gray-400">{item.attendee}</p>
                   )}
-                  {item.leadName && (
-                    <p className="text-xs text-gray-400">{item.leadName}</p>
+                  {item.leadName && item.leadId && item.funnelId && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                      }}
+                      className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                    >
+                      {item.leadName}
+                      <ExternalLink className="h-3 w-3" />
+                    </button>
                   )}
                 </div>
                 <Badge variant="outline" className="text-xs mt-2">
