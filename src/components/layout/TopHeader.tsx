@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,13 +18,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
-import echo from '../../services/echo'
+import echo from '../../services/echo';
 
 interface TopHeaderProps {
   sidebarCollapsed: boolean;
@@ -35,6 +38,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [connected, setConnected] = useState(false);
   const [searchResults, setSearchResults] = useState<LeadSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -43,9 +47,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, logout } = useAuth();
   const { t } = useLanguage();
-
-  // Mock unread count - will be replaced with real data later
-  const unreadNotifications = 3;
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   // Debounced search function
   const performSearch = useCallback(async (query: string) => {
@@ -135,6 +137,29 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
         setConnected(false);
     });
   }, []);
+
+  // Handle notification click
+  const handleNotificationClick = (notif: typeof notifications[0]) => {
+    markAsRead(notif.id);
+    setNotificationDropdownOpen(false);
+    navigate(`/leads/${notif.lead.funnel_id}/lead/${notif.lead.id}`);
+  };
+
+  // Format notification timestamp
+  const formatNotificationTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
 
   return (
     <motion.header
@@ -285,19 +310,123 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
 
       {/* Right Section - Notifications + User Menu */}
       <div className="flex items-center gap-2">
-        {/* Notification Bell */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground hover:text-primary hover:bg-primary/10"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadNotifications > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
-              {unreadNotifications > 9 ? '9+' : unreadNotifications}
-            </span>
-          )}
-        </Button>
+        {/* Notification Bell with Dropdown */}
+        <DropdownMenu open={notificationDropdownOpen} onOpenChange={setNotificationDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-muted-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-80 glass-card backdrop-blur-md bg-background/95 border border-white/20 max-h-96 overflow-hidden"
+            sideOffset={8}
+          >
+            <div className="flex items-center justify-between px-3 py-2">
+              <DropdownMenuLabel className="p-0 text-sm font-semibold">
+                {t('header.notifications') || 'Notifications'}
+              </DropdownMenuLabel>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-primary hover:text-primary/80"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    markAllAsRead();
+                  }}
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  {t('header.mark-all-read') || 'Mark all read'}
+                </Button>
+              )}
+            </div>
+            <DropdownMenuSeparator />
+            
+            <div className="max-h-72 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center">
+                  <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="text-sm text-muted-foreground">
+                    {t('header.no-notifications') || 'No notifications yet'}
+                  </p>
+                </div>
+              ) : (
+                notifications.slice(0, 10).map((notif) => (
+                  <DropdownMenuItem
+                    key={notif.id}
+                    className={`px-3 py-3 cursor-pointer focus:bg-primary/10 ${
+                      !notif.read ? 'bg-primary/5' : ''
+                    }`}
+                    onClick={() => handleNotificationClick(notif)}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      {/* Unread indicator */}
+                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                        notif.read ? 'bg-transparent' : 'bg-primary'
+                      }`} />
+                      
+                      {/* Creator avatar */}
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        {notif.creator.profile_pic ? (
+                          <img
+                            src={getStorageUrl(notif.creator.profile_pic)}
+                            alt={notif.creator.name}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-primary font-semibold text-xs">
+                            {notif.creator.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Notification content */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm leading-tight ${
+                          notif.read ? 'text-muted-foreground' : 'text-foreground font-medium'
+                        }`}>
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatNotificationTime(notif.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </div>
+            
+            {notifications.length > 10 && (
+              <>
+                <DropdownMenuSeparator />
+                <div className="p-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setNotificationDropdownOpen(false);
+                      // Navigate to notifications page if you have one
+                    }}
+                  >
+                    {t('header.view-all-notifications') || 'View all notifications'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* User Menu */}
         {user && (

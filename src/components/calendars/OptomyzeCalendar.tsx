@@ -90,12 +90,24 @@ const OptomyzeCalendar: React.FC = () => {
 
   // Helper to parse dates correctly (handles date-only strings without timezone shift)
   const parseDateSafe = (dateString: string): Date => {
-    // If it's a date-only string (YYYY-MM-DD), parse it as local date
-    if (dateString && dateString.length === 10 && dateString.includes('-')) {
+    if (!dateString) return new Date();
+    
+    // If it's a date-only string (YYYY-MM-DD), parse it as local date at noon to avoid any DST issues
+    if (dateString.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       const [year, month, day] = dateString.split('-').map(Number);
-      return new Date(year, month - 1, day);
+      return new Date(year, month - 1, day, 12, 0, 0);
     }
-    // Otherwise use parseISO for full datetime strings
+    
+    // For datetime strings, check if it has timezone info
+    // If it's a datetime without timezone (e.g., "2025-01-14 10:00:00"), parse as local
+    if (dateString.includes(' ') && !dateString.includes('T') && !dateString.includes('Z')) {
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours = 0, minutes = 0, seconds = 0] = (timePart || '').split(':').map(Number);
+      return new Date(year, month - 1, day, hours, minutes, seconds);
+    }
+    
+    // Otherwise use parseISO for full ISO datetime strings
     return parseISO(dateString);
   };
 
