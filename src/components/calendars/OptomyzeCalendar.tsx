@@ -88,6 +88,17 @@ const OptomyzeCalendar: React.FC = () => {
   const updateEventMutation = useUpdateCalendarEvent();
   const deleteEventMutation = useDeleteCalendarEvent();
 
+  // Helper to parse dates correctly (handles date-only strings without timezone shift)
+  const parseDateSafe = (dateString: string): Date => {
+    // If it's a date-only string (YYYY-MM-DD), parse it as local date
+    if (dateString && dateString.length === 10 && dateString.includes('-')) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    // Otherwise use parseISO for full datetime strings
+    return parseISO(dateString);
+  };
+
   // Transform API data to unified calendar items
   const calendarItems = useMemo<CalendarItem[]>(() => {
     if (!data) return [];
@@ -101,7 +112,7 @@ const OptomyzeCalendar: React.FC = () => {
         originalId: task.id,
         title: task.title,
         description: task.description || '',
-        date: parseISO(task.due_date),
+        date: parseDateSafe(task.due_date),
         type: 'task',
         subType: task.priority,
         priority: task.priority,
