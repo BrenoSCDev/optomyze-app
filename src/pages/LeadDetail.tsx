@@ -49,7 +49,20 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { leadService } from '@/services/leadApi';
+import { Trash2 } from 'lucide-react';
 import { VscSourceControl } from "react-icons/vsc";
 import ReportsModal from '@/components/leads/ReportsModal';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
@@ -182,6 +195,7 @@ const LeadDetailPage = () => {
   const [addProductsModalOpen, setAddProductsModalOpen] = useState(false);
   const [startPurchaseModalOpen, setStartPurchaseModalOpen] = useState(false);
   const [selectedProductsForPurchase, setSelectedProductsForPurchase] = useState<LeadProduct[]>([]);
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
 
   const fetchLeadData = async () => {
     if (!leadId || !token) return;
@@ -230,6 +244,22 @@ const LeadDetailPage = () => {
       navigate(`/leads/${funnelId}`);
     } else {
       navigate('/');
+    }
+  };
+
+  const handleDeleteLead = async () => {
+    if (!leadId) return;
+    
+    try {
+      setIsDeletingLead(true);
+      await leadService.deleteLead(leadId);
+      toast.success(t('lead-details.delete-lead-success'));
+      handleBack();
+    } catch (err: any) {
+      console.error('Error deleting lead:', err);
+      toast.error(t('lead-details.delete-lead-error'));
+    } finally {
+      setIsDeletingLead(false);
     }
   };
 
@@ -429,6 +459,8 @@ const LeadDetailPage = () => {
           onViewReports={() => setReportsModalOpen(true)}
           reportsCount={leadData.reports?.length || 0}
           onAssignUser={() => setAssignUserModalOpen(true)}
+          onDeleteLead={handleDeleteLead}
+          isDeleting={isDeletingLead}
         />
         
         {/* Main Content Grid */}
@@ -596,7 +628,9 @@ const LeadDetailHeader = ({
   onBack, 
   onViewReports, 
   reportsCount,
-  onAssignUser
+  onAssignUser,
+  onDeleteLead,
+  isDeleting
 }: { 
   lead: Lead; 
   onEdit: () => void; 
@@ -604,8 +638,11 @@ const LeadDetailHeader = ({
   onViewReports: () => void;
   reportsCount: number;
   onAssignUser: () => void;
+  onDeleteLead: () => void;
+  isDeleting: boolean;
 }) => {
   const { t } = useLanguage();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const getStatusColor = (status: string) => {
     const colors = {
@@ -720,18 +757,60 @@ const LeadDetailHeader = ({
                   <ArrowRightLeft className="w-4 h-4 mr-2" />
                   {t('lead-details.move-stage')}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+              <DropdownMenuItem 
                   onClick={onAssignUser}
                   className="text-white hover:bg-gray-700 focus:bg-gray-700 cursor-pointer"
                 >
                   <UserCheck className="w-4 h-4 mr-2" />
                   {t('lead-details.assign-user')}
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem 
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="text-red-400 hover:bg-red-500/20 focus:bg-red-500/20 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t('lead-details.delete-lead')}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
       </div>
+
+      {/* Delete Lead Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.delete-lead-title')}</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>{t('lead-details.delete-lead-confirmation')}</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDeleteLead();
+                setDeleteDialogOpen(false);
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.deleting')}
+                </>
+              ) : (
+                t('common.delete')
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };

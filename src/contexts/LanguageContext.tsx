@@ -1763,6 +1763,11 @@ const translations = {
     'lead-details.delete-document-error': 'Failed to delete document',
     'lead-details.delete-document-error-description': 'An error occurred while deleting the document. Please try again.',
     'lead-details.preview-document': 'Preview document',
+    'lead-details.delete-lead': 'Delete Lead',
+    'lead-details.delete-lead-title': 'Delete Lead',
+    'lead-details.delete-lead-confirmation': 'Are you sure you want to delete this lead? This action cannot be undone and will remove all associated data.',
+    'lead-details.delete-lead-success': 'Lead deleted successfully',
+    'lead-details.delete-lead-error': 'Failed to delete lead',
     
     // Tasks Section
     'tasks.title': 'Tasks',
@@ -3724,6 +3729,11 @@ const translations = {
     'lead-details.delete-document-error': 'Falha ao excluir documento',
     'lead-details.delete-document-error-description': 'Ocorreu um erro ao excluir o documento. Por favor, tente novamente.',
     'lead-details.preview-document': 'Visualizar documento',
+    'lead-details.delete-lead': 'Excluir Lead',
+    'lead-details.delete-lead-title': 'Excluir Lead',
+    'lead-details.delete-lead-confirmation': 'Tem certeza de que deseja excluir este lead? Esta ação não pode ser desfeita e removerá todos os dados associados.',
+    'lead-details.delete-lead-success': 'Lead excluído com sucesso',
+    'lead-details.delete-lead-error': 'Falha ao excluir lead',
     
     // Tasks Section
     'tasks.title': 'Tarefas',
@@ -5414,6 +5424,11 @@ const translations = {
     'lead-details.delete-document-error': 'Fehler beim Löschen des Dokuments',
     'lead-details.delete-document-error-description': 'Beim Löschen des Dokuments ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
     'lead-details.preview-document': 'Dokument anzeigen',
+    'lead-details.delete-lead': 'Lead löschen',
+    'lead-details.delete-lead-title': 'Lead löschen',
+    'lead-details.delete-lead-confirmation': 'Sind Sie sicher, dass Sie diesen Lead löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und entfernt alle zugehörigen Daten.',
+    'lead-details.delete-lead-success': 'Lead erfolgreich gelöscht',
+    'lead-details.delete-lead-error': 'Fehler beim Löschen des Leads',
     
     // Tasks Section
     'tasks.title': 'Aufgaben',
@@ -7210,6 +7225,11 @@ const translations = {
     'lead-details.delete-document-error': 'Error al eliminar documento',
     'lead-details.delete-document-error-description': 'Se produjo un error al eliminar el documento. Por favor, inténtelo de nuevo.',
     'lead-details.preview-document': 'Vista previa del documento',
+    'lead-details.delete-lead': 'Eliminar Lead',
+    'lead-details.delete-lead-title': 'Eliminar Lead',
+    'lead-details.delete-lead-confirmation': '¿Está seguro de que desea eliminar este lead? Esta acción no se puede deshacer y eliminará todos los datos asociados.',
+    'lead-details.delete-lead-success': 'Lead eliminado correctamente',
+    'lead-details.delete-lead-error': 'Error al eliminar lead',
     
     // Tasks Section
     'tasks.title': 'Tareas',
