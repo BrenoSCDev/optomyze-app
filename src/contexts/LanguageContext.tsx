@@ -41,6 +41,14 @@ const translations = {
     'header.search-placeholder': 'Search leads...',
     'header.my-profile': 'My Profile',
     'header.no-results': 'No leads found',
+    'header.notifications': 'Notifications',
+    'header.mark-all-read': 'Mark all read',
+    'header.no-notifications': 'No notifications yet',
+    'header.view-all-notifications': 'View all notifications',
+    'header.time.just-now': 'Just now',
+    'header.time.minutes-ago': '{count}m ago',
+    'header.time.hours-ago': '{count}h ago',
+    'header.time.days-ago': '{count}d ago',
     
     // Contracts
     'contracts.title': 'Contracts',
@@ -2023,6 +2031,14 @@ const translations = {
     'header.search-placeholder': 'Buscar leads...',
     'header.my-profile': 'Meu Perfil',
     'header.no-results': 'Nenhum lead encontrado',
+    'header.notifications': 'Notificações',
+    'header.mark-all-read': 'Marcar todas como lidas',
+    'header.no-notifications': 'Nenhuma notificação ainda',
+    'header.view-all-notifications': 'Ver todas as notificações',
+    'header.time.just-now': 'Agora mesmo',
+    'header.time.minutes-ago': 'Há {count}min',
+    'header.time.hours-ago': 'Há {count}h',
+    'header.time.days-ago': 'Há {count}d',
     
     // Contracts
     'contracts.title': 'Contratos',
@@ -3976,6 +3992,14 @@ const translations = {
     'header.search-placeholder': 'Leads suchen...',
     'header.my-profile': 'Mein Profil',
     'header.no-results': 'Keine Leads gefunden',
+    'header.notifications': 'Benachrichtigungen',
+    'header.mark-all-read': 'Alle als gelesen markieren',
+    'header.no-notifications': 'Noch keine Benachrichtigungen',
+    'header.view-all-notifications': 'Alle Benachrichtigungen anzeigen',
+    'header.time.just-now': 'Gerade eben',
+    'header.time.minutes-ago': 'Vor {count}Min',
+    'header.time.hours-ago': 'Vor {count}Std',
+    'header.time.days-ago': 'Vor {count}T',
     
     // Contracts
     'contracts.title': 'Verträge',
@@ -5764,6 +5788,14 @@ const translations = {
     'header.search-placeholder': 'Buscar leads...',
     'header.my-profile': 'Mi Perfil',
     'header.no-results': 'No se encontraron leads',
+    'header.notifications': 'Notificaciones',
+    'header.mark-all-read': 'Marcar todas como leídas',
+    'header.no-notifications': 'Aún no hay notificaciones',
+    'header.view-all-notifications': 'Ver todas las notificaciones',
+    'header.time.just-now': 'Ahora mismo',
+    'header.time.minutes-ago': 'Hace {count}min',
+    'header.time.hours-ago': 'Hace {count}h',
+    'header.time.days-ago': 'Hace {count}d',
     
     // Contracts
     'contracts.title': 'Contratos',
