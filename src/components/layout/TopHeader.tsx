@@ -154,10 +154,10 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('header.time.just-now');
+    if (diffMins < 60) return t('header.time.minutes-ago').replace('{count}', String(diffMins));
+    if (diffHours < 24) return t('header.time.hours-ago').replace('{count}', String(diffHours));
+    if (diffDays < 7) return t('header.time.days-ago').replace('{count}', String(diffDays));
     return date.toLocaleDateString();
   };
 
