@@ -98,11 +98,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         status: response.message.status,
         sent_at: response.message.sent_at,
       };
-      
-      toast({
-        title: t('chat.inbox.message-sent'),
-        description: t('chat.inbox.message-sent-description'),
-      });
 
       // Notify parent to add the message to the chat
       onMessageSent?.(sentMessage);
