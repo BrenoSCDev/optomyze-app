@@ -197,7 +197,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const messageGroups = groupMessagesByDate(chat.messages || []);
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
       <div className="p-4 border-b border-border/50 bg-card">
         <div className="flex items-center gap-3">
@@ -238,7 +238,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
+      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
         {chat.messages && chat.messages.length > 0 ? (
           <div className="space-y-4">
             {messageGroups.map((group, groupIndex) => (
