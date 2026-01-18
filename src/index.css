@@ -106,6 +106,31 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(271 81% 56% / 0.7);
   }
+
+  /* Dark Slick Scrollbar - for chat and content areas */
+  .scrollbar-dark {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0 0% 30%) hsl(0 0% 10%);
+  }
+
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: hsl(0 0% 10%);
+    border-radius: 3px;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(0 0% 35%), hsl(0 0% 25%));
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, hsl(0 0% 45%), hsl(0 0% 35%));
+  }
 }
 
 @layer components {
