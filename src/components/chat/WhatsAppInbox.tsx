@@ -159,7 +159,7 @@ const WhatsAppInbox: React.FC = () => {
 
       {/* Main Content - 3 Panel Layout */}
       {!error && (
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Desktop Layout - 3 columns */}
           <div className="hidden lg:flex flex-1">
             {/* Chat List - Left Panel */}
@@ -173,7 +173,7 @@ const WhatsAppInbox: React.FC = () => {
             </div>
 
             {/* Conversation - Center Panel */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 min-h-0">
               <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
             </div>
 
@@ -184,7 +184,7 @@ const WhatsAppInbox: React.FC = () => {
           </div>
 
           {/* Tablet Layout - 2 columns */}
-          <div className="hidden md:flex lg:hidden flex-1">
+          <div className="hidden md:flex lg:hidden flex-1 min-h-0">
             {/* Chat List - Left Panel */}
             <div className="w-72 border-r border-border/50 shrink-0">
               <ChatList
@@ -196,13 +196,13 @@ const WhatsAppInbox: React.FC = () => {
             </div>
 
             {/* Conversation - Center Panel */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 min-h-0">
               <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
             </div>
           </div>
 
           {/* Mobile Layout - Single column with view switching */}
-          <div className="flex md:hidden flex-1">
+          <div className="flex md:hidden flex-1 min-h-0">
             <AnimatePresence mode="wait">
               {mobileView === 'list' && (
                 <motion.div
