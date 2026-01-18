@@ -55,6 +55,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Calculate unread count
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Play notification sound
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audio = new Audio('/sounds/notification.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log('🔔 Could not play notification sound:', err));
+    } catch (err) {
+      console.log('🔔 Error creating audio:', err);
+    }
+  }, []);
+
   // Add a new notification
   const addNotification = useCallback((data: Omit<LeadNotification, 'read'>) => {
     const notification: LeadNotification = { ...data, read: false };
@@ -68,6 +79,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       return [notification, ...prev].slice(0, 50);
     });
 
+    // Play notification sound
+    playNotificationSound();
+
     // Show toast notification
     toast.success(data.message, {
       description: 'Click to view lead details',
@@ -80,7 +94,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       },
       duration: 5000,
     });
-  }, [navigate]);
+  }, [navigate, playNotificationSound]);
 
   // Mark a single notification as read
   const markAsRead = useCallback((notificationId: string) => {
