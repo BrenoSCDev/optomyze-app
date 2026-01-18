@@ -24,6 +24,14 @@ const echo = new Echo({
   disableStats: true,
 
   enabledTransports: ['ws'],
+  authEndpoint: `${import.meta.env.VITE_API_BASE_URL}/api/broadcasting/auth`,
+
+  auth: {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('optomyze_auth_token')}`,
+      Accept: 'application/json'
+    },
+  },
 });
 
 export default echo;
