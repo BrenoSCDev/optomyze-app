@@ -23,7 +23,7 @@ interface ChatConversationProps {
   chat: WhatsAppChat | null;
   onBack?: () => void;
   showBackButton?: boolean;
-  onMessageSent?: () => void;
+  onMessageSent?: (message: WhatsAppMessage) => void;
 }
 
 interface PendingMessage {
@@ -80,7 +80,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending' }]);
 
     try {
-      await sendWhatsAppMessage(chat.whatsapp_instance_id, {
+      const response = await sendWhatsAppMessage(chat.whatsapp_instance_id, {
         lead_id: chat.lead.id,
         text
       });
@@ -88,13 +88,24 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       // Remove pending message on success
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
       
+      // Create the message object from the API response
+      const sentMessage: WhatsAppMessage = {
+        id: response.message.id,
+        whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
+        direction: response.message.direction || 'outgoing',
+        type: 'text',
+        text: response.message.text,
+        status: response.message.status,
+        sent_at: response.message.sent_at,
+      };
+      
       toast({
         title: t('chat.inbox.message-sent'),
         description: t('chat.inbox.message-sent-description'),
       });
 
-      // Trigger refresh of chat data
-      onMessageSent?.();
+      // Notify parent to add the message to the chat
+      onMessageSent?.(sentMessage);
     } catch (error: any) {
       // Mark message as error
       setPendingMessages(prev => 

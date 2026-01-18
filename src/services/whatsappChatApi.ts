@@ -20,9 +20,21 @@ export interface SendMessagePayload {
   text: string;
 }
 
+export interface SentMessageData {
+  id: number;
+  whatsapp_evo_chat_id: number;
+  wa_message_id: string;
+  direction: 'incoming' | 'outgoing';
+  text: string;
+  status: string;
+  sent_at: string;
+  updated_at: string;
+  created_at: string;
+}
+
 export interface SendMessageResponse {
-  success: boolean;
-  message?: string;
+  status: string;
+  message: SentMessageData;
 }
 
 /**
