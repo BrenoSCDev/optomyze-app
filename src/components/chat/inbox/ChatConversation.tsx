@@ -238,7 +238,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 [&_[data-radix-scroll-area-viewport]]:scrollbar-dark" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
         {chat.messages && chat.messages.length > 0 ? (
           <div className="space-y-4">
             {messageGroups.map((group, groupIndex) => (
