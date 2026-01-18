@@ -16,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { fetchWhatsAppChats } from '@/services/whatsappChatApi';
-import { WhatsAppChat } from '@/types/whatsappChat';
+import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import ChatList from './inbox/ChatList';
 import ChatConversation from './inbox/ChatConversation';
 import ChatDetails from './inbox/ChatDetails';
@@ -77,6 +77,31 @@ const WhatsAppInbox: React.FC = () => {
 
   const handleCloseDetails = () => {
     setMobileView('conversation');
+  };
+
+  const handleMessageSent = (message: WhatsAppMessage) => {
+    if (!selectedChat) return;
+
+    // Add the sent message to the selected chat's messages
+    const updatedChat: WhatsAppChat = {
+      ...selectedChat,
+      messages: [...(selectedChat.messages || []), message],
+      last_message_at: message.sent_at,
+    };
+
+    // Update the selected chat
+    setSelectedChat(updatedChat);
+
+    // Update the chat in the chats list and re-sort
+    setChats(prevChats => {
+      const updatedChats = prevChats.map(chat =>
+        chat.id === selectedChat.id ? updatedChat : chat
+      );
+      // Re-sort by last_message_at descending
+      return updatedChats.sort((a, b) =>
+        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      );
+    });
   };
 
   return (
@@ -149,7 +174,7 @@ const WhatsAppInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0">
-              <ChatConversation chat={selectedChat} onMessageSent={loadChats} />
+              <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
             </div>
 
             {/* Details - Right Panel */}
@@ -172,7 +197,7 @@ const WhatsAppInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0">
-              <ChatConversation chat={selectedChat} onMessageSent={loadChats} />
+              <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
             </div>
           </div>
 
@@ -208,7 +233,7 @@ const WhatsAppInbox: React.FC = () => {
                     chat={selectedChat}
                     onBack={handleBackToList}
                     showBackButton
-                    onMessageSent={loadChats}
+                    onMessageSent={handleMessageSent}
                   />
                 </motion.div>
               )}
