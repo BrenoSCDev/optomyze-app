@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, Mic } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -293,6 +293,53 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                           )}
                                           <div className={cn(
                                             "flex items-center gap-1 px-2 pb-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : message.type === 'audio' && message.media_url ? (
+                                        <div className="space-y-2">
+                                          <div className="flex items-center gap-2">
+                                            <div className={cn(
+                                              "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                                              message.direction === 'outgoing' 
+                                                ? "bg-green-600" 
+                                                : "bg-muted"
+                                            )}>
+                                              <Mic className={cn(
+                                                "h-4 w-4",
+                                                message.direction === 'outgoing' 
+                                                  ? "text-white" 
+                                                  : "text-muted-foreground"
+                                              )} />
+                                            </div>
+                                            <audio 
+                                              controls 
+                                              src={getStorageUrl(message.media_url)}
+                                              className="h-8 max-w-[200px] sm:max-w-[250px]"
+                                              preload="metadata"
+                                            />
+                                          </div>
+                                          {message.text && (
+                                            <p className="text-sm whitespace-pre-wrap break-words">
+                                              {message.text}
+                                            </p>
+                                          )}
+                                          <div className={cn(
+                                            "flex items-center gap-1",
                                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
                                           )}>
                                             <span className={cn(
