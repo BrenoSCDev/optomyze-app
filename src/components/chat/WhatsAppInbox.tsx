@@ -5,6 +5,7 @@
  * - 3-panel layout: Chat list, Conversation, Details
  * - Message display and chat management
  * - Responsive design for desktop, tablet, and mobile
+ * - Real-time updates via WebSocket
  */
 
 import React, { useState, useEffect } from 'react';
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { fetchWhatsAppChats } from '@/services/whatsappChatApi';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import ChatList from './inbox/ChatList';
@@ -28,9 +30,16 @@ const WhatsAppInbox: React.FC = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const [chats, setChats] = useState<WhatsAppChat[]>([]);
-  const [selectedChat, setSelectedChat] = useState<WhatsAppChat | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use WhatsApp context for state management and real-time updates
+  const { 
+    chats, 
+    setChats, 
+    selectedChat, 
+    setSelectedChat, 
+    isLoading, 
+    setIsLoading 
+  } = useWhatsApp();
+  
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<ViewMode>('list');
 
