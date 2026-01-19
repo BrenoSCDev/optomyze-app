@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, Mic } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
+import AudioPlayer from './AudioPlayer';
 
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
@@ -312,27 +313,10 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                         </div>
                                       ) : message.type === 'audio' && message.media_url ? (
                                         <div className="space-y-2">
-                                          <div className="flex items-center gap-2">
-                                            <div className={cn(
-                                              "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                                              message.direction === 'outgoing' 
-                                                ? "bg-green-600" 
-                                                : "bg-muted"
-                                            )}>
-                                              <Mic className={cn(
-                                                "h-4 w-4",
-                                                message.direction === 'outgoing' 
-                                                  ? "text-white" 
-                                                  : "text-muted-foreground"
-                                              )} />
-                                            </div>
-                                            <audio 
-                                              controls 
-                                              src={getStorageUrl(message.media_url)}
-                                              className="h-8 max-w-[200px] sm:max-w-[250px]"
-                                              preload="metadata"
-                                            />
-                                          </div>
+                                          <AudioPlayer 
+                                            src={getStorageUrl(message.media_url) || ''} 
+                                            isOutgoing={message.direction === 'outgoing'}
+                                          />
                                           {message.text && (
                                             <p className="text-sm whitespace-pre-wrap break-words">
                                               {message.text}
