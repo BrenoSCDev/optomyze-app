@@ -1565,6 +1565,7 @@ const translations = {
     'chat.inbox.message-sent-description': 'Your message has been sent successfully.',
     'chat.inbox.message-error': 'Failed to Send',
     'chat.inbox.message-error-description': 'Unable to send your message. Please try again.',
+    'chat.inbox.photo': 'Photo',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -3531,6 +3532,7 @@ const translations = {
     'chat.inbox.message-sent-description': 'Sua mensagem foi enviada com sucesso.',
     'chat.inbox.message-error': 'Falha ao Enviar',
     'chat.inbox.message-error-description': 'Não foi possível enviar sua mensagem. Tente novamente.',
+    'chat.inbox.photo': 'Foto',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -5226,6 +5228,7 @@ const translations = {
     'chat.inbox.message-sent-description': 'Ihre Nachricht wurde erfolgreich gesendet.',
     'chat.inbox.message-error': 'Senden Fehlgeschlagen',
     'chat.inbox.message-error-description': 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
+    'chat.inbox.photo': 'Foto',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -7027,6 +7030,7 @@ const translations = {
     'chat.inbox.message-sent-description': 'Tu mensaje ha sido enviado correctamente.',
     'chat.inbox.message-error': 'Error al Enviar',
     'chat.inbox.message-error-description': 'No se pudo enviar tu mensaje. Inténtalo de nuevo.',
+    'chat.inbox.photo': 'Foto',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
