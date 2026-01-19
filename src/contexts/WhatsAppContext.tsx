@@ -1,8 +1,8 @@
 /**
- * WHATSAPP CONTEXT
+ * WHATSAPP CONTEXT - OPTIMIZED FOR MESSAGE-BASED BROADCASTING
  * 
- * Manages real-time WhatsApp chat updates
- * Subscribes to company-specific WebSocket channels for incoming messages
+ * Handles individual message events instead of full chat updates
+ * Much more efficient and scalable
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
@@ -11,10 +11,17 @@ import { useAuth } from './AuthContext';
 import echo from '@/services/echo';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 
+// Broadcast event payload structure for optimized message-based updates
+interface MessageReceivedEvent {
+  message: WhatsAppMessage;
+  chat: Omit<WhatsAppChat, 'messages'>; // Chat metadata without messages array
+  timestamp: string;
+}
+
 interface WhatsAppContextType {
   chats: WhatsAppChat[];
   setChats: React.Dispatch<React.SetStateAction<WhatsAppChat[]>>;
-  updateChatFromBroadcast: (updatedChat: WhatsAppChat) => void;
+  handleNewMessage: (event: MessageReceivedEvent) => void;
   selectedChat: WhatsAppChat | null;
   setSelectedChat: React.Dispatch<React.SetStateAction<WhatsAppChat | null>>;
   isLoading: boolean;
@@ -44,56 +51,88 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
     }
   }, []);
 
-  // Update chat state when receiving broadcast
-  const updateChatFromBroadcast = useCallback((updatedChat: WhatsAppChat) => {
-    console.log('💬 Updating chat from broadcast:', updatedChat.id);
-    
+  // OPTIMIZED: Handle individual message updates
+  const handleNewMessage = useCallback((event: MessageReceivedEvent) => {
+    const { message, chat: chatMetadata } = event;
+    console.log('💬 Processing new message:', message.id, 'for chat:', message.whatsapp_evo_chat_id);
+
     setChats(prevChats => {
-      // Remove the old version of this chat (if exists)
-      const filteredChats = prevChats.filter(c => c.id !== updatedChat.id);
-      
-      // Add updated chat at the beginning and re-sort by last_message_at
-      const newChats = [updatedChat, ...filteredChats].sort((a, b) => 
-        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-      );
-      
-      return newChats;
+      // Find existing chat
+      const existingChatIndex = prevChats.findIndex(c => c.id === message.whatsapp_evo_chat_id);
+
+      if (existingChatIndex !== -1) {
+        // Chat exists - add message to it
+        const updatedChats = [...prevChats];
+        const existingChat = { ...updatedChats[existingChatIndex] };
+
+        // Check if message already exists (prevent duplicates)
+        const messageExists = existingChat.messages?.some(m => m.id === message.id);
+        
+        if (!messageExists) {
+          // Add new message to the messages array
+          existingChat.messages = [...(existingChat.messages || []), message];
+          
+          // Update last_message_at from chat metadata
+          existingChat.last_message_at = chatMetadata.last_message_at;
+          
+          updatedChats[existingChatIndex] = existingChat;
+        } else {
+          console.warn('💬 Duplicate message prevented:', message.id);
+          return prevChats;
+        }
+
+        // Re-sort chats by last_message_at (move updated chat to top)
+        return updatedChats.sort((a, b) => 
+          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        );
+
+      } else {
+        // New chat - create it with the message
+        const newChat: WhatsAppChat = {
+          ...chatMetadata,
+          messages: [message],
+        } as WhatsAppChat;
+
+        // Add new chat at the beginning
+        return [newChat, ...prevChats];
+      }
     });
 
-    // Update selected chat if it's the one that was updated
+    // Update selected chat if it matches
     setSelectedChat(prevSelected => {
-      if (prevSelected && prevSelected.id === updatedChat.id) {
-        return updatedChat;
+      if (prevSelected && prevSelected.id === message.whatsapp_evo_chat_id) {
+        const messageExists = prevSelected.messages?.some(m => m.id === message.id);
+        if (!messageExists) {
+          return {
+            ...prevSelected,
+            messages: [...(prevSelected.messages || []), message],
+            last_message_at: chatMetadata.last_message_at,
+          };
+        }
       }
       return prevSelected;
     });
 
-    // Check for new incoming messages
-    const hasNewIncomingMessage = updatedChat.messages?.some(
-      msg => msg.direction === 'incoming' && 
-      new Date(msg.sent_at).getTime() > Date.now() - 5000 // Message sent in last 5 seconds
-    );
-
-    if (hasNewIncomingMessage) {
+    // Play sound and show notification for incoming messages
+    if (message.direction === 'incoming') {
       playMessageSound();
       
-      // Show toast notification
-      const leadName = `${updatedChat.lead?.first_name || ''} ${updatedChat.lead?.last_name || ''}`.trim() || 'Unknown';
-      const lastMessage = updatedChat.messages?.[updatedChat.messages.length - 1];
+      // Get chat info for notification
+      const leadName = `${chatMetadata.lead?.first_name || ''} ${chatMetadata.lead?.last_name || ''}`.trim() || 'Unknown';
       
       let messagePreview = '';
-      if (lastMessage) {
-        if (lastMessage.type === 'text') {
-          messagePreview = lastMessage.text || '';
-        } else if (lastMessage.type === 'image') {
-          messagePreview = '📷 Image';
-        } else if (lastMessage.type === 'audio') {
-          messagePreview = '🎤 Voice message';
-        }
+      if (message.type === 'text') {
+        messagePreview = message.text || '';
+      } else if (message.type === 'image') {
+        messagePreview = '📷 Image';
+      } else if (message.type === 'audio') {
+        messagePreview = '🎤 Voice message';
       }
 
       toast.info(`New message from ${leadName}`, {
-        description: messagePreview.slice(0, 50) + (messagePreview.length > 50 ? '...' : ''),
+        description: messagePreview.length > 50 
+          ? messagePreview.substring(0, 50) + '...' 
+          : messagePreview,
         duration: 4000,
       });
     }
@@ -108,31 +147,31 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
       return;
     }
 
-    console.log(`💬 Subscribing to WhatsApp updates: company.${companyId}`);
+    console.log(`💬 Subscribing to WhatsApp message updates: company.${companyId}`);
 
     // Subscribe to private channel (reuses existing Echo instance)
     const channel = echo.private(`company.${companyId}`);
 
-    // Listen for whatsapp.chat.updated events
-    channel.listen('.whatsapp.chat.updated', (event: { chat: WhatsAppChat; timestamp: string }) => {
-      console.log('💬 Received whatsapp.chat.updated event:', event);
-      updateChatFromBroadcast(event.chat);
+    // Listen for whatsapp.message.received events (OPTIMIZED EVENT)
+    channel.listen('.whatsapp.message.received', (event: MessageReceivedEvent) => {
+      console.log('💬 Received whatsapp.message.received event:', event);
+      handleNewMessage(event);
     });
 
-    console.log('💬 Subscribed to WhatsApp channel successfully');
+    console.log('💬 Subscribed to WhatsApp message channel successfully');
 
     // Cleanup - Note: Don't leave channel if NotificationContext is also using it
     return () => {
       console.log(`💬 Unsubscribing WhatsApp listener from company.${companyId}`);
-      channel.stopListening('.whatsapp.chat.updated');
+      channel.stopListening('.whatsapp.message.received');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
-  }, [user?.company_id, updateChatFromBroadcast]);
+  }, [user?.company_id, handleNewMessage]);
 
   const value: WhatsAppContextType = {
     chats,
     setChats,
-    updateChatFromBroadcast,
+    handleNewMessage,
     selectedChat,
     setSelectedChat,
     isLoading,
