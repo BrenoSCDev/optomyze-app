@@ -6,8 +6,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, Image as ImageIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -274,10 +275,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                     >
                                       {message.type === 'image' && message.media_url ? (
                                         <div className="space-y-1">
-                                          <a 
-                                            href={getStorageUrl(message.media_url)} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
+                                          <button 
+                                            onClick={() => setLightboxImage(getStorageUrl(message.media_url) || null)}
                                             className="block"
                                           >
                                             <img
@@ -286,7 +285,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                               className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                               loading="lazy"
                                             />
-                                          </a>
+                                          </button>
                                           {message.text && (
                                             <p className="text-sm whitespace-pre-wrap break-words px-2 pt-1">
                                               {message.text}
@@ -415,6 +414,39 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={() => setLightboxImage(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+              onClick={() => setLightboxImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              src={lightboxImage}
+              alt="Full size image"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
