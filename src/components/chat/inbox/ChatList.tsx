@@ -6,13 +6,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Clock } from 'lucide-react';
+import { MessageSquare, Clock, Image as ImageIcon } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { getStorageUrl } from '@/lib/constants';
 
 interface ChatListProps {
   chats: WhatsAppChat[];
@@ -36,12 +37,19 @@ const ChatList: React.FC<ChatListProps> = ({
     return chat.phone_number;
   };
 
-  const getLastMessage = (chat: WhatsAppChat): string => {
+  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image'; text: string; imageUrl?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
-      return lastMessage.text || '';
+      if (lastMessage.type === 'image') {
+        return { 
+          type: 'image', 
+          text: lastMessage.text || t('chat.inbox.photo'),
+          imageUrl: lastMessage.media_url ? getStorageUrl(lastMessage.media_url) : undefined
+        };
+      }
+      return { type: 'text', text: lastMessage.text || '' };
     }
-    return t('chat.inbox.no-messages-yet');
+    return { type: 'text', text: t('chat.inbox.no-messages-yet') };
   };
 
   const formatTime = (dateString: string): string => {
@@ -133,9 +141,29 @@ const ChatList: React.FC<ChatListProps> = ({
                       {getLeadName(chat)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    {getLastMessage(chat)}
-                  </p>
+                  {(() => {
+                    const lastMsg = getLastMessage(chat);
+                    return lastMsg.type === 'image' ? (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {lastMsg.imageUrl ? (
+                          <img 
+                            src={lastMsg.imageUrl} 
+                            alt="" 
+                            className="w-5 h-5 rounded object-cover shrink-0"
+                          />
+                        ) : (
+                          <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <span className="text-sm text-muted-foreground truncate">
+                          {lastMsg.text}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground truncate mt-0.5">
+                        {lastMsg.text}
+                      </p>
+                    );
+                  })()}
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {chat.lead?.funnel && (
                       <Badge variant="outline" className="text-xs px-1.5 py-0">
