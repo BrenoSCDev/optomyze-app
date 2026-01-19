@@ -81,11 +81,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
       
       {/* Microphone icon */}
       <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+        "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
         isOutgoing ? "bg-green-600" : "bg-muted"
       )}>
         <Mic className={cn(
-          "h-5 w-5",
+          "h-4 w-4",
           isOutgoing ? "text-white" : "text-muted-foreground"
         )} />
       </div>
@@ -94,38 +94,38 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
       <button
         onClick={togglePlayPause}
         className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors",
+          "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors",
           isOutgoing 
             ? "bg-green-600 hover:bg-green-700 text-white" 
             : "bg-muted hover:bg-muted/80 text-foreground"
         )}
       >
         {isPlaying ? (
-          <Pause className="h-4 w-4" />
+          <Pause className="h-3.5 w-3.5" />
         ) : (
-          <Play className="h-4 w-4 ml-0.5" />
+          <Play className="h-3.5 w-3.5 ml-0.5" />
         )}
       </button>
 
-      {/* Time and progress */}
-      <div className="flex-1 flex flex-col gap-1 min-w-0">
-        <div className={cn(
-          "text-xs font-medium",
-          isOutgoing ? "text-green-100" : "text-muted-foreground"
-        )}>
-          {formatTime(currentTime)} / {formatTime(duration)}
-        </div>
-        <Slider
-          value={[currentTime]}
-          max={duration || 100}
-          step={0.1}
-          onValueChange={handleSeek}
-          className={cn(
-            "w-full h-1",
-            isOutgoing ? "[&_[role=slider]]:bg-white [&_.bg-primary]:bg-white/80" : ""
-          )}
-        />
+      {/* Time display */}
+      <div className={cn(
+        "text-xs font-medium whitespace-nowrap",
+        isOutgoing ? "text-green-100" : "text-muted-foreground"
+      )}>
+        {formatTime(currentTime)} / {formatTime(duration)}
       </div>
+
+      {/* Progress bar */}
+      <Slider
+        value={[currentTime]}
+        max={duration || 100}
+        step={0.1}
+        onValueChange={handleSeek}
+        className={cn(
+          "flex-1 min-w-[60px] h-1",
+          isOutgoing ? "[&_[role=slider]]:bg-white [&_.bg-primary]:bg-white/80" : ""
+        )}
+      />
 
       {/* Volume icon */}
       <Volume2 className={cn(
