@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, Image as ImageIcon } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
+import { getStorageUrl } from '@/lib/constants';
 
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
@@ -262,36 +263,80 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       message.direction === 'outgoing' ? "justify-end" : "justify-start"
                     )}
                   >
-                    <div
-                      className={cn(
-                        "max-w-[75%] rounded-lg p-3 shadow-sm",
-                        message.direction === 'outgoing'
-                          ? "bg-green-500 text-white rounded-br-none"
-                          : "bg-card border border-border/50 rounded-bl-none"
-                      )}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.text}
-                      </p>
-                      <div className={cn(
-                        "flex items-center gap-1 mt-1",
-                        message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                      )}>
-                        <span className={cn(
-                          "text-xs",
-                          message.direction === 'outgoing' 
-                            ? "text-green-100" 
-                            : "text-muted-foreground"
-                        )}>
-                          {formatMessageTime(message.sent_at)}
-                        </span>
-                        {message.direction === 'outgoing' && message.status && (
-                          <span className="text-xs text-green-100">
-                            • {message.status}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                                    <div
+                                      className={cn(
+                                        "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
+                                        message.type === 'image' ? "p-1" : "p-3",
+                                        message.direction === 'outgoing'
+                                          ? "bg-green-500 text-white rounded-br-none"
+                                          : "bg-card border border-border/50 rounded-bl-none"
+                                      )}
+                                    >
+                                      {message.type === 'image' && message.media_url ? (
+                                        <div className="space-y-1">
+                                          <a 
+                                            href={getStorageUrl(message.media_url)} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="block"
+                                          >
+                                            <img
+                                              src={getStorageUrl(message.media_url)}
+                                              alt="Shared image"
+                                              className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                              loading="lazy"
+                                            />
+                                          </a>
+                                          {message.text && (
+                                            <p className="text-sm whitespace-pre-wrap break-words px-2 pt-1">
+                                              {message.text}
+                                            </p>
+                                          )}
+                                          <div className={cn(
+                                            "flex items-center gap-1 px-2 pb-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <p className="text-sm whitespace-pre-wrap break-words">
+                                            {message.text}
+                                          </p>
+                                          <div className={cn(
+                                            "flex items-center gap-1 mt-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
                   </motion.div>
                 ))}
               </div>
