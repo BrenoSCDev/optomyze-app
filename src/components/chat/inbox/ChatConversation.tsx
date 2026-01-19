@@ -268,7 +268,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                     <div
                                       className={cn(
                                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
-                                        message.type === 'image' ? "p-1" : "p-3",
+                                        message.type === 'image' ? "p-1" : 
+                                        message.type === 'audio' ? "px-2 py-1.5" : "p-3",
                                         message.direction === 'outgoing'
                                           ? "bg-green-500 text-white rounded-br-none"
                                           : "bg-card border border-border/50 rounded-bl-none"
