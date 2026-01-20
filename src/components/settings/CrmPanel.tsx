@@ -23,7 +23,7 @@ import PipelinesSection from './sales/PipelinesSection';
 import DealDefaultsSection from './sales/DealDefaultsSection';
 import DealRulesSection from './sales/DealRulesSection';
 import CommissionsSection from './sales/CommissionsSection';
-import NotificationsSection from './sales/NotificationsSection';
+// import NotificationsSection from './sales/NotificationsSection'; // Moved to global Notifications tab
 import AutomationsSection from './sales/AutomationsSection';
 import PermissionsSection from './sales/PermissionsSection';
 
@@ -298,8 +298,8 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Frequency Control */}
-              <AccordionItem value="frequency" className="border rounded-lg px-4 bg-background/50">
+              {/* Frequency Control - Coming Soon */}
+              {/* <AccordionItem value="frequency" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -318,7 +318,7 @@ const CrmPanel = () => {
                     />
                   </div>
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
 
               {/* Quiet Hours */}
               <AccordionItem value="quiet-hours" className="border rounded-lg px-4 bg-background/50">
@@ -342,8 +342,8 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Templates */}
-              <AccordionItem value="templates" className="border rounded-lg px-4 bg-background/50">
+              {/* Templates - Coming Soon */}
+              {/* <AccordionItem value="templates" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -364,7 +364,7 @@ const CrmPanel = () => {
                     />
                   </div>
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
 
               {/* Preview & Test */}
               <AccordionItem value="preview" className="border rounded-lg px-4 bg-background/50">
@@ -790,23 +790,7 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="notifications" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Bell className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.sales.notifications')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+              {/* Notifications moved to global Notifications tab */}
 
               <AccordionItem value="automations" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">

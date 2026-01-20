@@ -2,7 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { NotificationChannels } from '@/services/notificationSettingsApi';
-import { Mail, MessageCircle, Hash, Bell, Smartphone } from 'lucide-react';
+import { Mail, MessageCircle, Bell } from 'lucide-react';
 
 interface Props {
   channels: NotificationChannels;
@@ -12,9 +12,7 @@ interface Props {
 const channelConfig = [
   { key: 'email' as const, icon: Mail, defaultEnabled: true },
   { key: 'whatsapp' as const, icon: MessageCircle, defaultEnabled: false },
-  { key: 'slack' as const, icon: Hash, defaultEnabled: false },
   { key: 'in_app' as const, icon: Bell, defaultEnabled: true },
-  { key: 'push' as const, icon: Smartphone, defaultEnabled: false },
 ];
 
 export default function NotificationChannelsSection({ channels, onUpdate }: Props) {
