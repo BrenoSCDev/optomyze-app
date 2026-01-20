@@ -7,8 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack, Loader2, Cog } from 'lucide-react';
 import { Funnel, FunnelStage, STAGE_COLORS, defaultStageEntryRules, TemplateStageType } from '@/services/funnelSettingsApi';
+import StageEntryRequirementsModal, { EntryRequirement } from '@/components/stages/StageEntryRequirementsModal';
 
 interface Props {
   funnels: Funnel[];
@@ -76,8 +77,11 @@ const FunnelTemplatesSection = ({
   const [isStageDialogOpen, setIsStageDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isCreateFromTemplateDialogOpen, setIsCreateFromTemplateDialogOpen] = useState(false);
+  const [isEntryRequirementsModalOpen, setIsEntryRequirementsModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Funnel | null>(null);
   const [editingStage, setEditingStage] = useState<FunnelStage | null>(null);
+  const [entryRequirementsStage, setEntryRequirementsStage] = useState<FunnelStage | null>(null);
+  const [stageEntryRequirement, setStageEntryRequirement] = useState<EntryRequirement | null>(null);
   const [deletingTemplateId, setDeletingTemplateId] = useState<string | null>(null);
   const [templateForm, setTemplateForm] = useState<Omit<Funnel, 'id'>>(emptyFunnel);
   const [stageForm, setStageForm] = useState<Omit<FunnelStage, 'id'>>(emptyStage);
@@ -86,6 +90,22 @@ const FunnelTemplatesSection = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const selectedTemplate = templateFunnels.find(f => f.id === selectedTemplateId);
+
+  // Open entry requirements modal for a stage
+  const openEntryRequirementsModal = (stage: FunnelStage) => {
+    setEntryRequirementsStage(stage);
+    // Convert frontend entryRules to API EntryRequirement format if needed
+    // The modal will fetch the actual data from the API using the stage ID
+    setStageEntryRequirement(null); // Will be loaded by the modal
+    setIsEntryRequirementsModalOpen(true);
+  };
+
+  // Handle entry requirement update
+  const handleEntryRequirementUpdate = (updatedRequirement: EntryRequirement) => {
+    // Update is handled by the modal's API call
+    // The stage's entry_requirement will be updated via API
+    setStageEntryRequirement(updatedRequirement);
+  };
 
   const handleAddTemplate = () => {
     setEditingTemplate(null);
@@ -318,6 +338,15 @@ const FunnelTemplatesSection = ({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
+                        onClick={() => openEntryRequirementsModal(stage)}
+                        title={t('stages.configure_entry_requirements')}
+                      >
+                        <Cog className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
                         onClick={() => onEditStage(stage)}
                         title={t('settings.funnels.stage-rules')}
                       >
@@ -517,6 +546,21 @@ const FunnelTemplatesSection = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Entry Requirements Modal */}
+      {entryRequirementsStage && (
+        <StageEntryRequirementsModal
+          isOpen={isEntryRequirementsModalOpen}
+          onClose={() => {
+            setIsEntryRequirementsModalOpen(false);
+            setEntryRequirementsStage(null);
+          }}
+          stageId={parseInt(entryRequirementsStage.id, 10)}
+          stageName={entryRequirementsStage.name}
+          entryRequirement={stageEntryRequirement}
+          onUpdate={handleEntryRequirementUpdate}
+        />
+      )}
     </div>
   );
 };
