@@ -3,28 +3,46 @@ import {
   SettingsPanel, 
   ProductSettings, 
   SalesSettings,
-  defaultSettings 
+  defaultSettings,
+  getSettings,
 } from '@/services/settingsApi';
+import { ApiNotificationSettings } from '@/services/notificationSettingsApi';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+interface SettingsPanelResponse extends SettingsPanel {
+  notificationSettings?: ApiNotificationSettings | null;
+}
 
 export const useSettingsPanel = () => {
   const [settings, setSettings] = useState<SettingsPanel>(defaultSettings);
   const [originalSettings, setOriginalSettings] = useState<SettingsPanel>(defaultSettings);
+  const [notificationSettings, setNotificationSettings] = useState<ApiNotificationSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  // Using mock data for now - replace with API call when backend is ready
+  // Load settings from API
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      // Use default settings as mock data
-      setSettings(defaultSettings);
-      setOriginalSettings(defaultSettings);
+      const response = await getSettings() as SettingsPanelResponse;
+      
+      // Extract notification settings if present
+      if (response.notificationSettings) {
+        setNotificationSettings(response.notificationSettings);
+      }
+      
+      // Set product/sales settings
+      setSettings({
+        product_settings: response.product_settings || defaultSettings.product_settings,
+        sales_settings: response.sales_settings || defaultSettings.sales_settings,
+      });
+      setOriginalSettings({
+        product_settings: response.product_settings || defaultSettings.product_settings,
+        sales_settings: response.sales_settings || defaultSettings.sales_settings,
+      });
     } catch (error) {
       console.error('Failed to load settings:', error);
       toast({
@@ -125,6 +143,7 @@ export const useSettingsPanel = () => {
     settings,
     loading,
     saving,
+    notificationSettings,
     updateProductSettings,
     updateSalesSettings,
     hasProductChanges,

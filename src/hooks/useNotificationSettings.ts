@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   NotificationSettings,
   NotificationChannels,
@@ -27,6 +27,13 @@ export const useNotificationSettings = ({ initialData }: UseNotificationSettings
   const [activating, setActivating] = useState(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+
+  // Sync settings when initialData changes (e.g., after useSettingsPanel loads)
+  useEffect(() => {
+    if (initialData) {
+      setSettings(transformApiToFrontend(initialData));
+    }
+  }, [initialData]);
 
   // Check if settings are activated
   const isActivated = settings !== null;
