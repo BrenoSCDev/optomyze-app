@@ -6,24 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   NotificationEvent,
-  NotificationChannel,
   NotificationPriority,
-  RecipientType,
-  NotificationChannels,
 } from '@/services/notificationSettingsApi';
 import { ChevronDown, ChevronUp, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
 interface Props {
   events: NotificationEvent[];
-  enabledChannels: NotificationChannels;
   onUpdate: (eventId: string, updates: Partial<NotificationEvent>) => void;
 }
 
-const channelOptions: NotificationChannel[] = ['email', 'whatsapp', 'slack', 'in_app', 'push'];
-const recipientOptions: RecipientType[] = ['deal_owner', 'lead_owner', 'manager', 'admin'];
 const priorityOptions: NotificationPriority[] = ['low', 'normal', 'high'];
 
 const priorityIcons = {
@@ -38,23 +31,9 @@ const priorityColors = {
   high: 'bg-destructive/20 text-destructive',
 };
 
-export default function NotificationEventsSection({ events, enabledChannels, onUpdate }: Props) {
+export default function NotificationEventsSection({ events, onUpdate }: Props) {
   const { t } = useLanguage();
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
-
-  const toggleChannel = (eventId: string, channel: NotificationChannel, currentChannels: NotificationChannel[]) => {
-    const newChannels = currentChannels.includes(channel)
-      ? currentChannels.filter(c => c !== channel)
-      : [...currentChannels, channel];
-    onUpdate(eventId, { channels: newChannels });
-  };
-
-  const toggleRecipient = (eventId: string, recipient: RecipientType, currentRecipients: RecipientType[]) => {
-    const newRecipients = currentRecipients.includes(recipient)
-      ? currentRecipients.filter(r => r !== recipient)
-      : [...currentRecipients, recipient];
-    onUpdate(eventId, { recipients: newRecipients });
-  };
 
   return (
     <div className="space-y-4">
@@ -96,13 +75,6 @@ export default function NotificationEventsSection({ events, enabledChannels, onU
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        {event.channels.map((ch) => (
-                          <Badge key={ch} variant="secondary" className="text-xs">
-                            {t(`settings.notifications.channels.${ch}`)}
-                          </Badge>
-                        ))}
-                      </div>
                       {isExpanded ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
@@ -114,52 +86,6 @@ export default function NotificationEventsSection({ events, enabledChannels, onU
 
                 <CollapsibleContent>
                   <div className="px-4 pb-4 pt-2 border-t space-y-4">
-                    {/* Channels */}
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">
-                        {t('settings.notifications.events.channels-label')}
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {channelOptions.map((channel) => (
-                          <div key={channel} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`${event.id}-${channel}`}
-                              checked={event.channels.includes(channel)}
-                              onCheckedChange={() => toggleChannel(event.id, channel, event.channels)}
-                              disabled={!enabledChannels[channel]}
-                            />
-                            <Label
-                              htmlFor={`${event.id}-${channel}`}
-                              className={`text-sm ${!enabledChannels[channel] ? 'text-muted-foreground line-through' : ''}`}
-                            >
-                              {t(`settings.notifications.channels.${channel}`)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recipients */}
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">
-                        {t('settings.notifications.events.recipients-label')}
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {recipientOptions.map((recipient) => (
-                          <div key={recipient} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`${event.id}-${recipient}`}
-                              checked={event.recipients.includes(recipient)}
-                              onCheckedChange={() => toggleRecipient(event.id, recipient, event.recipients)}
-                            />
-                            <Label htmlFor={`${event.id}-${recipient}`} className="text-sm">
-                              {t(`settings.notifications.recipients.${recipient}`)}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Priority */}
                     <div>
                       <Label className="text-sm font-medium mb-2 block">
