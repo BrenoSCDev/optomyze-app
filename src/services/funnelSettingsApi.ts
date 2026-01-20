@@ -3,6 +3,20 @@
 // Stage Types
 export type TemplateStageType = 'entry' | 'normal' | 'service' | 'proposition' | 'qualified' | 'conversion' | 'lost';
 
+// Entry requirement from API (for template stages)
+export interface StageEntryRequirement {
+  id: number;
+  stage_id: number;
+  require_assigned_owner: boolean;
+  require_contact_email: boolean;
+  require_phone_number: boolean;
+  require_at_least_one_product: boolean;
+  require_deal_value: boolean;
+  require_recent_activity: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FunnelStage {
   id: string;
   name: string;
@@ -17,6 +31,8 @@ export interface FunnelStage {
   allowBackward: boolean;
   entryRules: StageEntryRules;
   actions: StageAction[];
+  // API returns entry_requirement for template stages
+  entry_requirement?: StageEntryRequirement;
 }
 
 export interface StageEntryRules {

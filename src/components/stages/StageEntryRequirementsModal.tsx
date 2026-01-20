@@ -11,19 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Loader2 } from 'lucide-react';
 import api from '@/services/api';
+import { StageEntryRequirement } from '@/services/funnelSettingsApi';
 
-export interface EntryRequirement {
-  id: number;
-  stage_id: number;
-  require_assigned_owner: boolean;
-  require_contact_email: boolean;
-  require_phone_number: boolean;
-  require_at_least_one_product: boolean;
-  require_deal_value: boolean;
-  require_recent_activity: boolean;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export for backward compatibility
+export type EntryRequirement = StageEntryRequirement;
 
 interface StageEntryRequirementsModalProps {
   isOpen: boolean;
