@@ -33,7 +33,9 @@ export const useFunnelSettings = () => {
         stages: (f.stages || []).map((s: any) => ({
           id: String(s.id),
           name: s.name,
+          description: s.description,
           type: s.type || 'lead',
+          templateType: s.type || 'normal',
           order: s.order,
           probability: s.probability || 50,
           color: s.color || '#3b82f6',
@@ -50,6 +52,8 @@ export const useFunnelSettings = () => {
             requireExpectedCloseDate: false,
             requireLastActivityDays: null,
           },
+          // Preserve raw entry_requirement from API for the modal
+          entry_requirement: s.entry_requirement || null,
           actions: s.actions || [],
         })),
       }));
@@ -290,6 +294,8 @@ export const useFunnelSettings = () => {
           requireExpectedCloseDate: false,
           requireLastActivityDays: null,
         },
+        // Preserve entry_requirement from API response
+        entry_requirement: response.data.entry_requirement || null,
         actions: [],
       };
       
