@@ -291,7 +291,6 @@ const CrmPanel = () => {
                   <div className="py-4 px-2 border-t">
                     <NotificationEventsSection
                       events={notificationSettings.events}
-                      enabledChannels={notificationSettings.channels}
                       onUpdate={updateEvent}
                     />
                   </div>
