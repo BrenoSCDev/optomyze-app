@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   Plus, 
-  Settings, 
+  Pencil, 
   Trash2, 
   ListTree,
   ChevronRight,
@@ -484,7 +484,7 @@ const FunnelStages = () => {
                     openEditModal(stage);
                   }}
                 >
-                  <Settings className="h-3.5 w-3.5" />
+                  <Pencil className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   variant="ghost"
