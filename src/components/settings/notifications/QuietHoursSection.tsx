@@ -55,8 +55,8 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
                   <Moon className="w-4 h-4 text-muted-foreground" />
                   <Input
                     type="time"
-                    value={quietHours.start}
-                    onChange={(e) => onUpdate({ start: e.target.value })}
+                    value={quietHours.from || ''}
+                    onChange={(e) => onUpdate({ from: e.target.value || null })}
                     className="w-32"
                   />
                 </div>
@@ -65,44 +65,12 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
                   <Sun className="w-4 h-4 text-muted-foreground" />
                   <Input
                     type="time"
-                    value={quietHours.end}
-                    onChange={(e) => onUpdate({ end: e.target.value })}
+                    value={quietHours.to || ''}
+                    onChange={(e) => onUpdate({ to: e.target.value || null })}
                     className="w-32"
                   />
                 </div>
               </div>
-            </div>
-
-            {/* Apply to Weekends */}
-            <div className="flex items-center justify-between p-4 rounded-lg border bg-background/50">
-              <div>
-                <Label className="font-medium">
-                  {t('settings.notifications.quiet-hours.apply-weekends')}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t('settings.notifications.quiet-hours.apply-weekends-hint')}
-                </p>
-              </div>
-              <Switch
-                checked={quietHours.applyToWeekends}
-                onCheckedChange={(checked) => onUpdate({ applyToWeekends: checked })}
-              />
-            </div>
-
-            {/* Allow Critical */}
-            <div className="flex items-center justify-between p-4 rounded-lg border bg-background/50">
-              <div>
-                <Label className="font-medium">
-                  {t('settings.notifications.quiet-hours.allow-critical')}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {t('settings.notifications.quiet-hours.allow-critical-hint')}
-                </p>
-              </div>
-              <Switch
-                checked={quietHours.allowCritical}
-                onCheckedChange={(checked) => onUpdate({ allowCritical: checked })}
-              />
             </div>
           </>
         )}

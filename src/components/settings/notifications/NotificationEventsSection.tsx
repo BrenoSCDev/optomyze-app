@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Label } from '@/components/ui/label';
 import {
-  NotificationEvent,
+  NotificationEvents,
+  NotificationEventConfig,
   NotificationPriority,
 } from '@/services/notificationSettingsApi';
 import { ChevronDown, ChevronUp, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 
 interface Props {
-  events: NotificationEvent[];
-  onUpdate: (eventId: string, updates: Partial<NotificationEvent>) => void;
+  events: NotificationEvents;
+  onUpdate: (eventKey: string, updates: Partial<NotificationEventConfig>) => void;
 }
 
 const priorityOptions: NotificationPriority[] = ['low', 'normal', 'high'];
@@ -35,6 +36,17 @@ export default function NotificationEventsSection({ events, onUpdate }: Props) {
   const { t } = useLanguage();
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
+  // Convert events object to array for rendering
+  const eventEntries = Object.entries(events);
+
+  if (eventEntries.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        {t('settings.notifications.events.no-events')}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -42,18 +54,18 @@ export default function NotificationEventsSection({ events, onUpdate }: Props) {
       </p>
 
       <div className="space-y-2">
-        {events.map((event) => {
-          const PriorityIcon = priorityIcons[event.priority];
-          const isExpanded = expandedEvent === event.id;
+        {eventEntries.map(([eventKey, eventConfig]) => {
+          const PriorityIcon = priorityIcons[eventConfig.priority];
+          const isExpanded = expandedEvent === eventKey;
 
           return (
             <Collapsible
-              key={event.id}
+              key={eventKey}
               open={isExpanded}
-              onOpenChange={(open) => setExpandedEvent(open ? event.id : null)}
+              onOpenChange={(open) => setExpandedEvent(open ? eventKey : null)}
             >
               <div className={`border rounded-lg transition-colors ${
-                event.enabled ? 'bg-background/50' : 'bg-muted/30'
+                eventConfig.enabled ? 'bg-background/50' : 'bg-muted/30'
               }`}>
                 <CollapsibleTrigger asChild>
                   <Button
@@ -62,16 +74,16 @@ export default function NotificationEventsSection({ events, onUpdate }: Props) {
                   >
                     <div className="flex items-center gap-3">
                       <Switch
-                        checked={event.enabled}
-                        onCheckedChange={(checked) => onUpdate(event.id, { enabled: checked })}
+                        checked={eventConfig.enabled}
+                        onCheckedChange={(checked) => onUpdate(eventKey, { enabled: checked })}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      <span className={`font-medium ${!event.enabled ? 'text-muted-foreground' : ''}`}>
-                        {t(`settings.notifications.events.${event.event}`)}
+                      <span className={`font-medium ${!eventConfig.enabled ? 'text-muted-foreground' : ''}`}>
+                        {t(`settings.notifications.events.${eventKey}`)}
                       </span>
-                      <Badge variant="outline" className={priorityColors[event.priority]}>
+                      <Badge variant="outline" className={priorityColors[eventConfig.priority]}>
                         <PriorityIcon className="w-3 h-3 mr-1" />
-                        {t(`settings.notifications.priority.${event.priority}`)}
+                        {t(`settings.notifications.priority.${eventConfig.priority}`)}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
@@ -92,8 +104,8 @@ export default function NotificationEventsSection({ events, onUpdate }: Props) {
                         {t('settings.notifications.events.priority-label')}
                       </Label>
                       <Select
-                        value={event.priority}
-                        onValueChange={(value: NotificationPriority) => onUpdate(event.id, { priority: value })}
+                        value={eventConfig.priority}
+                        onValueChange={(value: NotificationPriority) => onUpdate(eventKey, { priority: value })}
                       >
                         <SelectTrigger className="w-40">
                           <SelectValue />
