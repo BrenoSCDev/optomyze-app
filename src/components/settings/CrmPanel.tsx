@@ -58,6 +58,7 @@ const CrmPanel = () => {
     settings,
     loading,
     saving,
+    notificationSettings: initialNotificationSettings,
     updateProductSettings,
     updateSalesSettings,
     hasProductChanges,
@@ -106,7 +107,7 @@ const CrmPanel = () => {
     updateDefaultRecipients,
     updateEvent,
     updateQuietHours,
-  } = useNotificationSettings();
+  } = useNotificationSettings({ initialData: initialNotificationSettings });
 
   const {
     fields: customProductFields,
