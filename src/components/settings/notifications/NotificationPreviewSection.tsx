@@ -6,29 +6,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
-  NotificationEvent,
-  NotificationChannel,
-  NotificationTemplate,
+  NotificationEvents,
   NotificationChannels,
+  NotificationChannel,
   mockUsers,
 } from '@/services/notificationSettingsApi';
-import { Send, Mail, MessageCircle, Hash, Bell, Smartphone } from 'lucide-react';
+import { Send, Mail, MessageCircle, Bell } from 'lucide-react';
 
 interface Props {
-  events: NotificationEvent[];
-  templates: NotificationTemplate[];
+  events: NotificationEvents;
   enabledChannels: NotificationChannels;
 }
 
-const channelIcons = {
+const channelIcons: Record<NotificationChannel, typeof Mail> = {
   email: Mail,
   whatsapp: MessageCircle,
-  slack: Hash,
   in_app: Bell,
-  push: Smartphone,
 };
 
-export default function NotificationPreviewSection({ events, templates, enabledChannels }: Props) {
+export default function NotificationPreviewSection({ events, enabledChannels }: Props) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -37,17 +33,20 @@ export default function NotificationPreviewSection({ events, templates, enabledC
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [previewContent, setPreviewContent] = useState<string | null>(null);
 
-  const enabledChannelsList = Object.entries(enabledChannels)
+  // Get enabled events from the events object
+  const enabledEvents = Object.entries(events)
+    .filter(([, config]) => config.enabled)
+    .map(([key]) => key);
+
+  const enabledChannelsList = (Object.entries(enabledChannels) as [NotificationChannel, boolean][])
     .filter(([, enabled]) => enabled)
-    .map(([key]) => key as NotificationChannel);
+    .map(([key]) => key);
 
   const handlePreview = () => {
-    const event = events.find(e => e.event === selectedEvent);
-    const template = templates.find(t => t.channel === selectedChannel);
     const user = mockUsers.find(u => u.id === selectedUser);
 
-    if (event && user) {
-      let content = template?.body || `Notification: ${t(`settings.notifications.events.${selectedEvent}`)}`;
+    if (selectedEvent && user) {
+      let content = `Notification: ${t(`settings.notifications.events.${selectedEvent}`)}`;
 
       // Replace mock variables
       content = content
@@ -117,9 +116,9 @@ export default function NotificationPreviewSection({ events, templates, enabledC
                   <SelectValue placeholder={t('settings.notifications.preview.event-placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {events.filter(e => e.enabled).map((event) => (
-                    <SelectItem key={event.event} value={event.event}>
-                      {t(`settings.notifications.events.${event.event}`)}
+                  {enabledEvents.map((eventKey) => (
+                    <SelectItem key={eventKey} value={eventKey}>
+                      {t(`settings.notifications.events.${eventKey}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -98,19 +98,14 @@ const CrmPanel = () => {
 
   const {
     settings: notificationSettings,
+    isActivated: notificationActivated,
     loading: notificationLoading,
-    saving: notificationSaving,
-    hasChanges: hasNotificationChanges,
+    activating: notificationActivating,
+    activate: activateNotifications,
     updateChannels,
     updateDefaultRecipients,
     updateEvent,
-    updateFrequency,
     updateQuietHours,
-    updateTemplate,
-    addTemplate,
-    deleteTemplate,
-    saveSettings: saveNotificationSettings,
-    resetChanges: resetNotificationChanges,
   } = useNotificationSettings();
 
   const {
@@ -218,176 +213,137 @@ const CrmPanel = () => {
                   </p>
                 </div>
               </div>
-              {hasNotificationChanges() && (
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={resetNotificationChanges} disabled={notificationSaving}>
-                    {t('common.cancel')}
-                  </Button>
-                  <Button onClick={saveNotificationSettings} disabled={notificationSaving}>
-                    {notificationSaving ? t('common.saving') : t('common.save')}
-                  </Button>
-                </div>
-              )}
             </div>
 
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              {/* Channels */}
-              <AccordionItem value="channels" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-primary" />
+            {/* Activation State */}
+            {!notificationActivated ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Bell className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h4 className="text-lg font-medium mb-2">
+                  {t('settings.notifications.not-activated-title')}
+                </h4>
+                <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                  {t('settings.notifications.not-activated-description')}
+                </p>
+                <Button onClick={activateNotifications} disabled={notificationActivating}>
+                  {notificationActivating ? t('common.activating') : t('settings.notifications.activate')}
+                </Button>
+              </div>
+            ) : notificationSettings && (
+              <Accordion type="single" collapsible className="w-full space-y-4">
+                {/* Channels */}
+                <AccordionItem value="channels" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.notifications.channels.title')}
+                      </span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.channels.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationChannelsSection
-                      channels={notificationSettings.channels}
-                      onUpdate={updateChannels}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <NotificationChannelsSection
+                        channels={notificationSettings.channels}
+                        onUpdate={updateChannels}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {/* Default Recipients */}
-              <AccordionItem value="recipients" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-primary" />
+                {/* Default Recipients */}
+                <AccordionItem value="recipients" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.notifications.recipients.title')}
+                      </span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.recipients.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <DefaultRecipientsSection
-                      recipients={notificationSettings.defaultRecipients}
-                      onUpdate={updateDefaultRecipients}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <DefaultRecipientsSection
+                        recipients={notificationSettings.defaultRecipients}
+                        onUpdate={updateDefaultRecipients}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {/* Event Rules */}
-              <AccordionItem value="events" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 text-primary" />
+                {/* Event Rules */}
+                <AccordionItem value="events" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <BarChart3 className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.notifications.events.title')}
+                      </span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.events.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationEventsSection
-                      events={notificationSettings.events}
-                      onUpdate={updateEvent}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <NotificationEventsSection
+                        events={notificationSettings.events}
+                        onUpdate={updateEvent}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {/* Frequency Control - Coming Soon */}
-              {/* <AccordionItem value="frequency" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-primary" />
+                {/* Quiet Hours */}
+                <AccordionItem value="quiet-hours" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Moon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.notifications.quiet-hours.title')}
+                      </span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.frequency.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <FrequencyControlSection
-                      frequency={notificationSettings.frequency}
-                      onUpdate={updateFrequency}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem> */}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <QuietHoursSection
+                        quietHours={notificationSettings.quietHours}
+                        onUpdate={updateQuietHours}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {/* Quiet Hours */}
-              <AccordionItem value="quiet-hours" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Moon className="w-4 h-4 text-primary" />
+                {/* Preview & Test */}
+                <AccordionItem value="preview" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Send className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.notifications.preview.title')}
+                      </span>
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.quiet-hours.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <QuietHoursSection
-                      quietHours={notificationSettings.quietHours}
-                      onUpdate={updateQuietHours}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Templates - Coming Soon */}
-              {/* <AccordionItem value="templates" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-primary" />
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <NotificationPreviewSection
+                        events={notificationSettings.events}
+                        enabledChannels={notificationSettings.channels}
+                      />
                     </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.templates.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationTemplatesSection
-                      templates={notificationSettings.templates}
-                      onUpdate={updateTemplate}
-                      onAdd={addTemplate}
-                      onDelete={deleteTemplate}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem> */}
-
-              {/* Preview & Test */}
-              <AccordionItem value="preview" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Send className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.notifications.preview.title')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationPreviewSection
-                      events={notificationSettings.events}
-                      templates={notificationSettings.templates}
-                      enabledChannels={notificationSettings.channels}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
           </div>
         </TabsContent>
 
