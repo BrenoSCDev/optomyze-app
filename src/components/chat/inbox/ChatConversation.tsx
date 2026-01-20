@@ -200,7 +200,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const messageGroups = groupMessagesByDate(chat.messages || []);
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-background">
+    <div className="flex flex-col h-full min-h-0 bg-background" style={{maxHeight: "700px"}}>
       {/* Header */}
       <div className="p-4 border-b border-border/50 bg-card">
         <div className="flex items-center gap-3">
