@@ -45,38 +45,13 @@ const StageEntryRequirementsModal: React.FC<StageEntryRequirementsModalProps> = 
   const { t } = useLanguage();
   const [localRequirements, setLocalRequirements] = useState<EntryRequirement | null>(null);
   const [updatingField, setUpdatingField] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Fetch entry requirements when modal opens (if not passed or null)
+  // Set local requirements from prop when modal opens
   useEffect(() => {
-    const fetchEntryRequirements = async () => {
-      if (!isOpen || !stageId) return;
-      
-      // If entryRequirement is provided, use it
-      if (entryRequirement) {
-        setLocalRequirements(entryRequirement);
-        return;
-      }
-
-      // Otherwise fetch from API
-      setLoading(true);
-      try {
-        const response = await api.get(`/api/stages/${stageId}/entry-requirements`);
-        setLocalRequirements(response.data);
-      } catch (error) {
-        console.error('Error fetching entry requirements:', error);
-        toast({
-          title: t('common.error'),
-          description: t('stages.entry_requirement_error'),
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEntryRequirements();
-  }, [entryRequirement, isOpen, stageId, t, toast]);
+    if (isOpen && entryRequirement) {
+      setLocalRequirements(entryRequirement);
+    }
+  }, [entryRequirement, isOpen]);
 
   const handleToggle = async (field: EntryRequirementField, value: boolean) => {
     if (!localRequirements) return;
