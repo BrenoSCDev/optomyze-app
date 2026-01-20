@@ -52,7 +52,7 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
               </Label>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Moon className="w-4 h-4 text-muted-foreground" />
+                  <Moon className="w-4 h-4 text-foreground" />
                   <Input
                     type="time"
                     value={quietHours.from || ''}
@@ -62,7 +62,7 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
                 </div>
                 <span className="text-muted-foreground">{t('common.to')}</span>
                 <div className="flex items-center gap-2">
-                  <Sun className="w-4 h-4 text-muted-foreground" />
+                  <Sun className="w-4 h-4 text-foreground" />
                   <Input
                     type="time"
                     value={quietHours.to || ''}
