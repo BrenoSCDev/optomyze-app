@@ -57,7 +57,7 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
                     type="time"
                     value={quietHours.from || ''}
                     onChange={(e) => onUpdate({ from: e.target.value || null })}
-                    className="w-32"
+                    className="w-32 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert"
                   />
                 </div>
                 <span className="text-muted-foreground">{t('common.to')}</span>
@@ -67,7 +67,7 @@ export default function QuietHoursSection({ quietHours, onUpdate }: Props) {
                     type="time"
                     value={quietHours.to || ''}
                     onChange={(e) => onUpdate({ to: e.target.value || null })}
-                    className="w-32"
+                    className="w-32 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert"
                   />
                 </div>
               </div>
