@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, FileText, Copy } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, Eye, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -398,10 +398,9 @@ const N8nAgents: React.FC = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
-                      onClick={() => handleViewReports(agent)}
                     >
-                      <FileText className="w-3 h-3" />
-                      See Reports ({agent.reports?.length || 0})
+                      <Eye className="w-3 h-3" />
+                      Agent Prompt
                     </Button>
                     
                     <Button 
