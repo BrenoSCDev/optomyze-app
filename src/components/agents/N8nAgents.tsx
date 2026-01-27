@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, Eye, Copy, X } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, Eye, Copy, Info } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -421,7 +421,7 @@ const N8nAgents: React.FC = () => {
                       onClick={() => handleViewAgentPrompt(agent)}
                     >
                       <Eye className="w-3 h-3" />
-                      Agent Prompt
+                      {t('agents.n8n.agent-prompt')}
                     </Button>
                     
                     <Button 
@@ -431,7 +431,7 @@ const N8nAgents: React.FC = () => {
                       onClick={() => handleViewExecutions(agent)}
                     >
                       <Clock className="w-3 h-3" />
-                      View Executions
+                      {t('agents.n8n.view-executions')}
                     </Button>
                   </div>
                 </div>
@@ -465,22 +465,40 @@ const N8nAgents: React.FC = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Eye className="w-5 h-5" />
-                Agent Prompt - {selectedAgent?.agent_name}
+                {t('agents.n8n.prompt-modal-title')} - {selectedAgent?.agent_name}
               </DialogTitle>
             </DialogHeader>
             
-            <div className="py-4">
+            <div className="py-4 space-y-4">
               {promptLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <Textarea
-                  value={systemPrompt}
-                  readOnly
-                  className="min-h-[200px] resize-none"
-                  placeholder="No system prompt available"
-                />
+                <>
+                  <Textarea
+                    value={systemPrompt}
+                    readOnly
+                    className="min-h-[200px] resize-none"
+                    placeholder="No system prompt available"
+                  />
+                  
+                  {/* Info Message */}
+                  <div className="flex gap-3 p-4 bg-muted/50 rounded-lg border border-border">
+                    <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-foreground">
+                        {t('agents.n8n.prompt-managed-title')}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {t('agents.n8n.prompt-managed-description')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t('agents.n8n.prompt-contact-support')}
+                      </p>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </DialogContent>
