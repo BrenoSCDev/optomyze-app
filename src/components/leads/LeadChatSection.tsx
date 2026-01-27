@@ -81,18 +81,21 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
 
-  // REAL-TIME: Get live chat data from WhatsAppContext, fallback to initial prop
+  // REAL-TIME: Merge initial messages with live WebSocket messages
   const chat = useMemo(() => {
     if (!initialChat) return null;
     
     // Find matching chat in global context by chat ID
     const liveChat = chats.find(c => c.id === initialChat.id);
     
-    if (liveChat) {
-      // Merge: use live messages from context, keep initial chat metadata
-      return {
-        ...initialChat,
-        messages: liveChat.messages.map(m => ({
+    if (liveChat && liveChat.messages?.length > 0) {
+      // Get IDs of messages we already have from initial fetch
+      const initialMessageIds = new Set(initialChat.messages?.map(m => m.id) || []);
+      
+      // Find only NEW messages from WebSocket that aren't in initial data
+      const newMessages = liveChat.messages
+        .filter(m => !initialMessageIds.has(m.id))
+        .map(m => ({
           id: m.id,
           whatsapp_evo_chat_id: m.whatsapp_evo_chat_id,
           direction: m.direction,
@@ -105,7 +108,12 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
           sent_at: m.sent_at,
           created_at: m.sent_at,
           updated_at: m.sent_at,
-        })) as LeadWhatsAppMessage[],
+        })) as LeadWhatsAppMessage[];
+      
+      // Merge: keep all initial messages + append new WebSocket messages
+      return {
+        ...initialChat,
+        messages: [...(initialChat.messages || []), ...newMessages],
         last_message_at: liveChat.last_message_at,
       };
     }
