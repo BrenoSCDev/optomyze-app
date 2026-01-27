@@ -50,7 +50,11 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
     transition,
   };
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const parts = name.split(' ').filter(n => n.length > 0 && !n.includes('-'));
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    // Only first name initial + first last name initial
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
   const getPriorityColor = (priority: string) => {
