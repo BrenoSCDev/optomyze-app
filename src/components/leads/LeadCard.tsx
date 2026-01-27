@@ -18,11 +18,8 @@ import {
   User
 } from 'lucide-react';
 import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import {
-  CSS,
-} from '@dnd-kit/utilities';
+  useDraggable,
+} from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCardProps {
@@ -42,12 +39,11 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
     listeners,
     setNodeRef,
     transform,
-    transition,
-  } = useSortable({ id: lead.id });
+    isDragging: isCurrentlyDragging,
+  } = useDraggable({ id: lead.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
   };
   const getInitials = (name: string) => {
     const parts = name.split(' ').filter(n => n.length > 0 && !n.includes('-'));
