@@ -6,8 +6,8 @@
  */
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { MessageSquare, Phone, Send, Loader2, User, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, Phone, Send, Loader2, X } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { cn } from '@/lib/utils';
+import { getStorageUrl } from '@/lib/constants';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
-
+import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
 // Types matching the backend response
 export interface LeadWhatsAppMessage {
   id: number;
@@ -80,6 +81,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // REAL-TIME: Merge initial messages with live WebSocket messages
   const chat = useMemo(() => {
@@ -302,33 +304,106 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                   >
                     <div
                       className={cn(
-                        "max-w-[75%] rounded-lg p-3 shadow-sm",
+                        "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
+                        message.type === 'image' ? "p-1" : 
+                        message.type === 'audio' ? "px-2 py-1.5" : "p-3",
                         message.direction === 'outgoing'
                           ? "bg-green-600 text-white rounded-br-none"
                           : "bg-white/10 border border-white/10 text-white rounded-bl-none"
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.text}
-                      </p>
-                      <div className={cn(
-                        "flex items-center gap-1 mt-1",
-                        message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                      )}>
-                        <span className={cn(
-                          "text-xs",
-                          message.direction === 'outgoing' 
-                            ? "text-green-200" 
-                            : "text-gray-400"
-                        )}>
-                          {formatMessageTime(message.sent_at)}
-                        </span>
-                        {message.direction === 'outgoing' && message.status && (
-                          <span className="text-xs text-green-200">
-                            • {message.status}
-                          </span>
-                        )}
-                      </div>
+                      {message.type === 'image' && message.media_url ? (
+                        <div className="space-y-1">
+                          <button 
+                            onClick={() => setLightboxImage(getStorageUrl(message.media_url) || null)}
+                            className="block"
+                          >
+                            <img
+                              src={getStorageUrl(message.media_url)}
+                              alt="Shared image"
+                              className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                              loading="lazy"
+                            />
+                          </button>
+                          {message.text && (
+                            <p className="text-sm whitespace-pre-wrap break-words px-2 pt-1">
+                              {message.text}
+                            </p>
+                          )}
+                          <div className={cn(
+                            "flex items-center gap-1 px-2 pb-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'audio' && message.media_url ? (
+                        <div className="space-y-2">
+                          <AudioPlayer 
+                            src={getStorageUrl(message.media_url) || ''} 
+                            isOutgoing={message.direction === 'outgoing'}
+                          />
+                          {message.text && (
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {message.text}
+                            </p>
+                          )}
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm whitespace-pre-wrap break-words">
+                            {message.text}
+                          </p>
+                          <div className={cn(
+                            "flex items-center gap-1 mt-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -408,6 +483,37 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            onClick={() => setLightboxImage(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20"
+              onClick={() => setLightboxImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <motion.img
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              src={lightboxImage}
+              alt="Full size image"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
