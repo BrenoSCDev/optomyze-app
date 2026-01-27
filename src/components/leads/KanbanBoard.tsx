@@ -1,10 +1,16 @@
 /**
  * KANBAN BOARD COMPONENT
  * 
- * Main Kanban board layout with drag and drop functionality using react-beautiful-dnd
+ * Main Kanban board layout with drag and drop functionality using @dnd-kit
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses useDroppable for columns (drop targets only)
+ * - Uses useDraggable for lead cards (draggable only, NOT sortable)
+ * - Collision detection strictly validates column targets
+ * - All IDs are string-based, never index-based
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,24 +26,20 @@ import {
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
-  rectIntersection,
   useSensor,
   useSensors,
   PointerSensor,
   KeyboardSensor,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
   CollisionDetection,
-  getFirstCollision,
   pointerWithin,
+  rectIntersection,
+  getFirstCollision,
+  UniqueIdentifier,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
-  SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import LeadCard from './LeadCard';
 import {
@@ -63,7 +65,7 @@ import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 
 interface KanbanBoardProps {
-  funnel: any; // API funnel object
+  funnel: any;
   availableTags: any[];
   onCreateLead: () => void;
   onCreateTag: () => void;
@@ -84,6 +86,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   
   // Funnel display settings
   const { settings: displaySettings, setShowEstimatedValues, setShowAssignedUser } = useFunnelDisplaySettings();
@@ -104,12 +107,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      // Small delay for visual feedback
       await new Promise(resolve => setTimeout(resolve, 300));
-      
       const exportData = prepareFunnelExportData(funnel);
       exportFunnelToExcel(exportData);
-      
       toast.success(`Exported ${exportData.leads.length} leads to Excel`);
     } catch (error) {
       console.error('Export failed:', error);
@@ -119,160 +119,120 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     }
   }, [funnel]);
 
-  // DnD sensors with improved detection
+  // DnD sensors with optimized settings for reliability
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        // Require 10px movement to start drag - prevents accidental drags
+        distance: 10,
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  // Custom collision detection for better column detection across screen sizes
-  const customCollisionDetection: CollisionDetection = (args) => {
-    // First try pointer-within detection for more precise column detection
-    const pointerCollisions = pointerWithin(args);
-    
-    if (pointerCollisions.length > 0) {
-      // Filter to only column IDs (exclude lead IDs)
-      const columnCollisions = pointerCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Fallback to rectangle intersection for edge cases
-    const rectCollisions = rectIntersection(args);
-    
-    if (rectCollisions.length > 0) {
-      // Filter to only column IDs
-      const columnCollisions = rectCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Final fallback to closest center, but still filter for columns
-    const centerCollisions = closestCenter(args);
-    return centerCollisions.filter(collision => 
-      columns.some(col => col.id === collision.id)
-    );
-  };
   
   // Transform API data to kanban format
-  const kanbanColumns = funnel.stages
-    ?.sort((a: any, b: any) => a.order - b.order)
-    .map((stage: any) => ({
-      id: stage.id.toString(),
-      title: stage.name,
-      description: stage.description,
-      type: stage.type,
-      stageColor: stage.color || '#FFFFFF',
-      valueEstimated: stage.value_estimated || 0,
-      currency: stage.currency || funnel.currency || 'USD',
-      leads: stage.active_leads.map((lead: any) => ({
-        id: lead.id.toString(),
-        name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
-        email: lead.email,
-        phone: lead.phone,
-        company: lead.custom_fields?.industry || 'N/A',
-        title: lead.custom_fields?.title || 'Contact',
-        score: parseFloat(lead.ai_score || '0'),
-        value: parseFloat(lead.value_estimated || lead.estimated_value || '0'),
-        source: lead.source_platform || 'Direct',
-        tags: Array.isArray(lead.tags) ? lead.tags : [],
-        lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
-        priority: lead.priority || 'medium',
-        stage: stage.id.toString(),
-        avatar: lead.platform_data?.profile_picture,
-        notes: lead.notes,
-        createdAt: lead.created_at,
-        assignedTo: lead.assigned_to,
-        assigned_user: lead.assigned_user,
-        currency: lead.currency || 'USD',
-        initialMessage: lead.initial_message,
-        contactMethods: lead.contact_methods || [],
-        preferredContact: lead.preferred_contact_method || 'email'
-      }))
-    })) || [];
+  const kanbanColumns = useMemo(() => {
+    return funnel.stages
+      ?.sort((a: any, b: any) => a.order - b.order)
+      .map((stage: any) => ({
+        id: stage.id.toString(),
+        title: stage.name,
+        description: stage.description,
+        type: stage.type,
+        stageColor: stage.color || '#FFFFFF',
+        valueEstimated: stage.value_estimated || 0,
+        currency: stage.currency || funnel.currency || 'USD',
+        leads: stage.active_leads.map((lead: any) => ({
+          id: lead.id.toString(),
+          name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
+          email: lead.email,
+          phone: lead.phone,
+          company: lead.custom_fields?.industry || 'N/A',
+          title: lead.custom_fields?.title || 'Contact',
+          score: parseFloat(lead.ai_score || '0'),
+          value: parseFloat(lead.value_estimated || lead.estimated_value || '0'),
+          source: lead.source_platform || 'Direct',
+          tags: Array.isArray(lead.tags) ? lead.tags : [],
+          lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
+          priority: lead.priority || 'medium',
+          stage: stage.id.toString(),
+          avatar: lead.platform_data?.profile_picture,
+          notes: lead.notes,
+          createdAt: lead.created_at,
+          assignedTo: lead.assigned_to,
+          assigned_user: lead.assigned_user,
+          currency: lead.currency || 'USD',
+          initialMessage: lead.initial_message,
+          contactMethods: lead.contact_methods || [],
+          preferredContact: lead.preferred_contact_method || 'email'
+        }))
+      })) || [];
+  }, [funnel]);
 
   const [columns, setColumns] = useState(kanbanColumns);
   const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
+  
+  // Keep a ref to column IDs for collision detection (avoids stale closure)
+  const columnIdsRef = useRef<Set<string>>(new Set());
+  
+  // Update columnIdsRef whenever columns change
+  useEffect(() => {
+    columnIdsRef.current = new Set(columns.map(col => col.id));
+  }, [columns]);
+
+  // Sync columns when funnel data changes
+  useEffect(() => {
+    setColumns(kanbanColumns);
+  }, [kanbanColumns]);
 
   // Filter leads based on active filters
-  const filterLeads = (leads: any[], filters: any) => {
+  const filterLeads = useCallback((leads: any[], filters: any) => {
     return leads.filter(lead => {
-      
-      // Name filters - firstName and lastName are combined in the name field
       if (filters.firstName && !lead.name.toLowerCase().includes(filters.firstName.toLowerCase())) {
         return false;
       }
       if (filters.lastName && !lead.name.toLowerCase().includes(filters.lastName.toLowerCase())) {
         return false;
       }
-      
-      // Email filter
-      if (filters.email && !lead.email.toLowerCase().includes(filters.email.toLowerCase())) {
+      if (filters.email && !lead.email?.toLowerCase().includes(filters.email.toLowerCase())) {
         return false;
       }
-      
-      // Phone filter
-      if (filters.phone && !lead.phone.includes(filters.phone.replace(/\D/g, ''))) {
+      if (filters.phone && !lead.phone?.includes(filters.phone.replace(/\D/g, ''))) {
         return false;
       }
-      
-      // DDI filter
-      if (filters.ddi && !lead.phone.startsWith(filters.ddi)) {
+      if (filters.ddi && !lead.phone?.startsWith(filters.ddi)) {
         return false;
       }
-      
-      // Source platform filter
       if (filters.sourcePlatform && lead.source !== filters.sourcePlatform) {
         return false;
       }
-      
-      // Stage filter
       if (filters.stageId && lead.stage !== filters.stageId) {
         return false;
       }
-      
-      // Score range filter
       if (filters.scoreRange) {
         const [min, max] = filters.scoreRange;
         if (lead.score < min || lead.score > max) {
           return false;
         }
       }
-      
-      // Value range filter
       if (filters.valueRange) {
         const [min, max] = filters.valueRange;
         if (lead.value < min || lead.value > max) {
           return false;
         }
       }
-      
-      // Tags filter
       if (filters.tags && filters.tags.length > 0) {
-        const leadTags = lead.tags.map(tag => typeof tag === 'string' ? tag : tag.name);
-        const hasMatchingTag = filters.tags.some(filterTag => leadTags.includes(filterTag));
+        const leadTags = lead.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name);
+        const hasMatchingTag = filters.tags.some((filterTag: string) => leadTags.includes(filterTag));
         if (!hasMatchingTag) {
           return false;
         }
       }
-      
       return true;
     });
-  };
+  }, []);
 
   // Apply filters to columns
   useEffect(() => {
@@ -285,14 +245,12 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       }));
       setFilteredColumns(filtered);
     }
-  }, [columns, activeFilters]);
+  }, [columns, activeFilters, filterLeads]);
 
-  // Handle filter apply
   const handleFilterApply = (filters: any) => {
     setActiveFilters(filters);
   };
 
-  // Handle filter clear
   const handleFilterClear = () => {
     setActiveFilters({});
   };
@@ -302,40 +260,116 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     setLeadDialogOpen(true);
   }, []);
 
-  // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
+  /**
+   * COLLISION DETECTION STRATEGY
+   * 
+   * This is the critical function that determines which column a dragged card is over.
+   * 
+   * Strategy:
+   * 1. Use pointerWithin for precise detection when pointer is clearly inside a column
+   * 2. Fall back to rectIntersection for edge cases
+   * 3. NEVER use closestCenter - it can pick wrong targets across screen sizes
+   * 4. ONLY return collisions with valid column IDs - filter out lead card IDs
+   * 5. If no valid column detected, return empty array (abort drop)
+   */
+  const customCollisionDetection: CollisionDetection = useCallback((args) => {
+    const columnIds = columnIdsRef.current;
     
-    // Find the dragged lead
+    // Helper to filter collisions to only valid columns
+    const filterToColumns = (collisions: ReturnType<CollisionDetection>) => {
+      return collisions.filter(collision => columnIds.has(collision.id as string));
+    };
+    
+    // Strategy 1: pointerWithin - most accurate when pointer is inside a column
+    const pointerCollisions = pointerWithin(args);
+    const pointerColumnCollisions = filterToColumns(pointerCollisions);
+    
+    if (pointerColumnCollisions.length > 0) {
+      // Return the first (highest priority) column collision
+      return [pointerColumnCollisions[0]];
+    }
+    
+    // Strategy 2: rectIntersection - for when dragging near edges
+    const rectCollisions = rectIntersection(args);
+    const rectColumnCollisions = filterToColumns(rectCollisions);
+    
+    if (rectColumnCollisions.length > 0) {
+      // Sort by intersection ratio and return the best match
+      return [rectColumnCollisions[0]];
+    }
+    
+    // No valid column detected - return empty to prevent incorrect drops
+    return [];
+  }, []);
+
+  // Handle drag start
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const { active } = event;
+    const dragId = active.id as string;
+    
+    setActiveId(dragId);
+    
+    // Find the dragged lead from current columns state
     const lead = columns
       .flatMap(col => col.leads)
-      .find(lead => lead.id === active.id);
-    setDraggedLead(lead);
-  };
+      .find(lead => lead.id === dragId);
+    
+    if (lead) {
+      setDraggedLead(lead);
+    }
+  }, [columns]);
 
-  // Handle drag end
-  const handleDragEnd = async (event: DragEndEvent) => {
+  // Handle drag over - track which column we're hovering
+  const handleDragOver = useCallback((event: any) => {
+    const { over } = event;
+    
+    if (over && columnIdsRef.current.has(over.id as string)) {
+      setOverId(over.id as string);
+    } else {
+      setOverId(null);
+    }
+  }, []);
+
+  // Handle drag end - the main logic for moving leads between stages
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
     
+    // Reset drag state immediately
+    setActiveId(null);
+    setDraggedLead(null);
+    setOverId(null);
+    
+    // VALIDATION 1: Check we have both active and over
     if (!over || !active.id) {
-      setActiveId(null);
-      setDraggedLead(null);
+      console.log('[DnD] No valid drop target');
       return;
     }
 
     const leadId = active.id as string;
-    const newStageId = over.id as string;
+    const targetId = over.id as string;
+    
+    // VALIDATION 2: Verify target is a valid column ID (not a lead ID)
+    const isValidColumn = columns.some(col => col.id === targetId);
+    if (!isValidColumn) {
+      console.warn('[DnD] Drop target is not a valid column:', targetId);
+      return;
+    }
+    
+    const newStageId = targetId;
 
-    // Find current stage of the lead
+    // VALIDATION 3: Find current stage of the lead
     const currentStage = columns.find(col => 
       col.leads.some(lead => lead.id === leadId)
     );
 
-    // Early return if no current stage found or dropping in same column
-    if (!currentStage || currentStage.id === newStageId) {
-      setActiveId(null);
-      setDraggedLead(null);
+    if (!currentStage) {
+      console.warn('[DnD] Could not find current stage for lead:', leadId);
+      return;
+    }
+
+    // VALIDATION 4: Don't process if dropping in same column
+    if (currentStage.id === newStageId) {
+      console.log('[DnD] Dropped in same column, no action needed');
       return;
     }
 
@@ -343,17 +377,18 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     const leadToMove = currentStage.leads.find(lead => lead.id === leadId);
 
     if (!leadToMove) {
-      setActiveId(null);
-      setDraggedLead(null);
+      console.warn('[DnD] Could not find lead to move:', leadId);
       return;
     }
 
     // Get the lead value for updating stage estimated values
     const leadValue = leadToMove.value || 0;
 
+    console.log('[DnD] Moving lead', { leadId, from: oldStageId, to: newStageId, value: leadValue });
+
     // Optimistic update - add to top of target column and update estimated values
     setColumns(prevColumns => {
-      const newColumns = prevColumns.map(col => {
+      return prevColumns.map(col => {
         if (col.id === oldStageId) {
           return {
             ...col,
@@ -370,7 +405,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         }
         return col;
       });
-      return newColumns;
     });
 
     try {
@@ -407,11 +441,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onUpdateLeadStage(leadId, newStageId, oldStageId);
       }
     } catch (error) {
-      console.error('Error moving lead:', error);
+      console.error('[DnD] Error moving lead:', error);
       
-      // Revert optimistic update - restore to original position and values
+      // Revert optimistic update
       setColumns(prevColumns => {
-        const newColumns = prevColumns.map(col => {
+        return prevColumns.map(col => {
           if (col.id === newStageId) {
             return {
               ...col,
@@ -420,31 +454,26 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             };
           }
           if (col.id === oldStageId) {
-            // Find original position or add to end if not found
-            const originalIndex = col.leads.findIndex(lead => lead.id === leadId);
-            const newLeads = [...col.leads];
-            if (originalIndex >= 0) {
-              newLeads.splice(originalIndex, 0, leadToMove);
-            } else {
-              newLeads.push(leadToMove);
-            }
             return {
               ...col,
-              leads: newLeads,
+              leads: [...col.leads, leadToMove],
               valueEstimated: (col.valueEstimated || 0) + leadValue
             };
           }
           return col;
         });
-        return newColumns;
       });
 
       toast.error('Failed to move lead. Please try again.');
     }
+  }, [columns, onUpdateLeadStage]);
 
+  // Handle drag cancel - reset state
+  const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setDraggedLead(null);
-  };
+    setOverId(null);
+  }, []);
 
   // Handle tag icon click
   const handleTagClick = (lead: any) => {
@@ -469,7 +498,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
   // Handle tags updated with API response data
   const handleTagsUpdated = (leadId: string, updatedLead: any) => {
-    // Transform the API lead data to match our UI format
     const transformedLead = {
       id: updatedLead.id.toString(),
       name: `${updatedLead.first_name} ${updatedLead.last_name}`,
@@ -495,7 +523,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       preferredContact: updatedLead.preferred_contact_method || 'email'
     };
 
-    // Update the specific lead in the columns state
     setColumns(prevColumns => {
       return prevColumns.map(column => ({
         ...column,
@@ -505,7 +532,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       }));
     });
 
-    // Also notify parent component if callback is provided (but don't refetch)
     if (onTagsUpdated) {
       onTagsUpdated(leadId, updatedLead);
     }
@@ -630,29 +656,29 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       <style>
       {`
         .kanban-board {
-          max-width: 640px; /* Small screens (default) */
+          max-width: 640px;
           overflow-x: auto;
         }
 
-        @media (min-width: 768px) { /* Mid screens */
+        @media (min-width: 768px) {
           .kanban-board {
             max-width: 768px;
           }
         }
 
-        @media (min-width: 1024px) { /* Normal laptop */
+        @media (min-width: 1024px) {
           .kanban-board {
             max-width: 1024px;
           }
         }
 
-        @media (min-width: 1280px) { /* Wide */
+        @media (min-width: 1280px) {
           .kanban-board {
             max-width: 1200px;
           }
         }
 
-        @media (min-width: 1536px) { /* Ultra Wide */
+        @media (min-width: 1536px) {
           .kanban-board {
             max-width: 1600px;
           }
@@ -664,8 +690,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         sensors={sensors}
         collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        autoScroll={false}
+        onDragCancel={handleDragCancel}
       >
         <div
           className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
@@ -679,6 +706,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               onTagClick={handleTagClick}
               onLeadClick={handleLeadClick}
               activeId={activeId}
+              overId={overId}
               stageValueEstimated={(column as any).valueEstimated}
               stageCurrency={(column as any).currency}
               showEstimatedValues={displaySettings.showEstimatedValues}
@@ -695,7 +723,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         >
           {activeId && draggedLead ? (
             <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
-              {/* Enhanced shadow and glow effect */}
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
               <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
                 <LeadCard
