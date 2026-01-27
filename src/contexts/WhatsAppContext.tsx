@@ -5,7 +5,7 @@
  * Much more efficient and scalable
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { getEcho } from '@/services/echo';
@@ -40,8 +40,8 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  // Play notification sound for new messages
-  const playMessageSound = useCallback(() => {
+  // Play notification sound for new messages - kept as stable ref
+  const playMessageSoundRef = useRef(() => {
     try {
       const audio = new Audio('/sounds/notification.mp3');
       audio.volume = 0.3;
@@ -49,9 +49,9 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
     } catch (err) {
       console.log('🔔 Error creating audio:', err);
     }
-  }, []);
+  });
 
-  // OPTIMIZED: Handle individual message updates
+  // OPTIMIZED: Handle individual message updates - STABLE callback (no deps that change on route)
   const handleNewMessage = useCallback((event: MessageReceivedEvent) => {
     const { message, chat: chatMetadata } = event;
     console.log('💬 Processing new message:', message.id, 'for chat:', message.whatsapp_evo_chat_id);
@@ -115,7 +115,7 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
 
     // Play sound and show notification for incoming messages
     if (message.direction === 'incoming') {
-      playMessageSound();
+      playMessageSoundRef.current();
       
       // Get chat info for notification
       const leadName = `${chatMetadata.lead?.first_name || ''} ${chatMetadata.lead?.last_name || ''}`.trim() || 'Unknown';
@@ -136,9 +136,10 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
         duration: 4000,
       });
     }
-  }, [playMessageSound]);
+  }, []); // Empty deps = stable callback, uses refs for dynamic values
 
   // Subscribe to WebSocket channel when user is authenticated
+  // IMPORTANT: Only depends on company_id, NOT on callbacks (they're stable via refs)
   useEffect(() => {
     const companyId = user?.company_id;
     
@@ -166,13 +167,13 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
 
     console.log('💬 Subscribed to WhatsApp message channel successfully');
 
-    // Cleanup - Note: Don't leave channel if NotificationContext is also using it
+    // Cleanup - only on logout or company change, NOT on route navigation
     return () => {
       console.log(`💬 Unsubscribing WhatsApp listener from company.${companyId}`);
       channel.stopListening('.whatsapp.message.received');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
-  }, [user?.company_id, handleNewMessage]);
+  }, [user?.company_id, handleNewMessage]); // handleNewMessage is now stable (empty deps)
 
   const value: WhatsAppContextType = {
     chats,

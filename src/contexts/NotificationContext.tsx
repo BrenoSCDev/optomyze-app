@@ -5,7 +5,7 @@
  * Subscribes to company-specific WebSocket channels
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
@@ -66,7 +66,32 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     }
   }, []);
 
-  // Add a new notification
+  // Use refs to store latest callbacks for stable event handlers
+  const navigateRef = useRef(navigate);
+  const playNotificationSoundRef = useRef(playNotificationSound);
+  
+  // Keep refs updated
+  useEffect(() => {
+    navigateRef.current = navigate;
+    playNotificationSoundRef.current = playNotificationSound;
+  }, [navigate, playNotificationSound]);
+
+  // Mark a single notification as read - defined BEFORE addNotification since it's used there
+  const markAsRead = useCallback((notificationId: string) => {
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === notificationId ? { ...n, read: true } : n
+      )
+    );
+  }, []);
+
+  // Ref for markAsRead to use in toast callback without causing re-renders
+  const markAsReadRef = useRef(markAsRead);
+  useEffect(() => {
+    markAsReadRef.current = markAsRead;
+  }, [markAsRead]);
+
+  // Add a new notification - STABLE callback (no deps that change on route)
   const addNotification = useCallback((data: Omit<LeadNotification, 'read'>) => {
     const notification: LeadNotification = { ...data, read: false };
     
@@ -80,7 +105,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     });
 
     // Play notification sound
-    playNotificationSound();
+    playNotificationSoundRef.current();
 
     // Show toast notification
     toast.success(data.message, {
@@ -88,22 +113,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       action: {
         label: 'View',
         onClick: () => {
-          markAsRead(notification.id);
-          navigate(`/leads/${data.lead.funnel_id}/lead/${data.lead.id}`);
+          markAsReadRef.current(notification.id);
+          navigateRef.current(`/leads/${data.lead.funnel_id}/lead/${data.lead.id}`);
         },
       },
       duration: 5000,
     });
-  }, [navigate, playNotificationSound]);
-
-  // Mark a single notification as read
-  const markAsRead = useCallback((notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(n =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-  }, []);
+  }, []); // Empty deps = stable callback, uses refs for dynamic values
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(() => {
@@ -118,6 +134,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, []);
 
   // Subscribe to WebSocket channel when user is authenticated
+  // IMPORTANT: Only depends on company_id, NOT on callbacks (they're stable via refs)
   useEffect(() => {
     if (!user?.company_id) {
       console.log('🔔 No company_id, skipping WebSocket subscription');
@@ -143,12 +160,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     console.log('🔔 Subscribed to channel successfully');
 
-    // Cleanup on unmount or when company_id changes
+    // Cleanup - only on logout or company change, NOT on route navigation
     return () => {
       console.log(`🔔 Leaving channel: company.${user.company_id}`);
       echo.leave(`company.${user.company_id}`);
     };
-  }, [user?.company_id, addNotification]);
+  }, [user?.company_id, addNotification]); // addNotification is now stable (only depends on markAsRead which is stable)
 
   const value: NotificationContextType = {
     notifications,
