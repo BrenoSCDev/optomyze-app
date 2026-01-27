@@ -8,7 +8,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
-import echo from '@/services/echo';
+import { getEcho } from '@/services/echo';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 
 // Broadcast event payload structure for optimized message-based updates
@@ -144,6 +144,12 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
     
     if (!companyId) {
       console.log('💬 No company_id, skipping WhatsApp WebSocket subscription');
+      return;
+    }
+
+    const echo = getEcho();
+    if (!echo) {
+      console.log('💬 Echo not initialized, skipping WhatsApp WebSocket subscription');
       return;
     }
 
