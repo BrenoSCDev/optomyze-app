@@ -10,7 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, Eye, Copy } from 'lucide-react';
+import { RefreshCw, Bot, Workflow, Clock, Loader2, MessageSquare, Calendar, Eye, Copy, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -18,7 +18,8 @@ import { SiN8N, SiWhatsapp, SiInstagram, SiTelegram } from "react-icons/si";
 import { BiLogoGmail } from "react-icons/bi";
 import api from '../../services/api';
 import ExecutionsModal from './ExecutionsModal';
-import ReportsModal from '../leads/ReportsModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Textarea } from '../ui/textarea';
 
 interface AgentData {
   id: number;
@@ -82,8 +83,9 @@ const N8nAgents: React.FC = () => {
   const [executions, setExecutions] = useState([]);
   const [executionsLoading, setExecutionsLoading] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const [reportsModalOpen, setReportsModalOpen] = useState(false);
-  const [selectedAgentForReports, setSelectedAgentForReports] = useState<Agent | null>(null);
+  const [promptModalOpen, setPromptModalOpen] = useState(false);
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState('');
   const { t } = useLanguage();
   const { toast } = useToast();
 
@@ -157,9 +159,27 @@ const N8nAgents: React.FC = () => {
     }
   };
 
-  const handleViewReports = (agent: Agent) => {
-    setSelectedAgentForReports(agent);
-    setReportsModalOpen(true);
+  const handleViewAgentPrompt = async (agent: Agent) => {
+    setSelectedAgent(agent);
+    setPromptModalOpen(true);
+    setPromptLoading(true);
+    setSystemPrompt('');
+    
+    try {
+      const response = await api.get(`/api/integrations/agents/n8n/prompt/${agent.id}`);
+      
+      if (response.data && response.data.system_prompt) {
+        setSystemPrompt(response.data.system_prompt);
+      }
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: "Failed to load agent prompt",
+        variant: "destructive",
+      });
+    } finally {
+      setPromptLoading(false);
+    }
   };
 
   const handleCopyWorkflowId = (workflowId: string) => {
@@ -398,6 +418,7 @@ const N8nAgents: React.FC = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex items-center gap-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => handleViewAgentPrompt(agent)}
                     >
                       <Eye className="w-3 h-3" />
                       Agent Prompt
@@ -432,36 +453,38 @@ const N8nAgents: React.FC = () => {
           isLoading={executionsLoading}
         />
 
-        {/* Reports Modal */}
-        <ReportsModal
-          isOpen={reportsModalOpen}
-          onClose={() => {
-            setReportsModalOpen(false);
-            setSelectedAgentForReports(null);
-          }}
-          reports={(selectedAgentForReports?.reports || []).map(report => ({
-            ...report,
-            agent: {
-              id: selectedAgentForReports?.id || 0,
-              company_id: 1,
-              n8n_integration_id: 1,
-              workflow_id: selectedAgentForReports?.workflow_id || '',
-              workflow_name: selectedAgentForReports?.workflow_name || '',
-              platform: selectedAgentForReports?.platform || '',
-              agent_name: selectedAgentForReports?.agent_name || '',
-              description: selectedAgentForReports?.description,
-              configuration: '{}',
-              webhook_data: null,
-              status: selectedAgentForReports?.status || '',
-              last_execution_at: selectedAgentForReports?.last_execution_at,
-              last_execution_result: null,
-              execution_count: selectedAgentForReports?.execution_count || 0,
-              created_at: selectedAgentForReports?.created_at || '',
-              updated_at: selectedAgentForReports?.updated_at || ''
-            }
-          }))}
-          leadName={selectedAgentForReports?.agent_name || ''}
-        />
+        {/* Agent Prompt Modal */}
+        <Dialog open={promptModalOpen} onOpenChange={(open) => {
+          setPromptModalOpen(open);
+          if (!open) {
+            setSelectedAgent(null);
+            setSystemPrompt('');
+          }
+        }}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                Agent Prompt - {selectedAgent?.agent_name}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              {promptLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Textarea
+                  value={systemPrompt}
+                  readOnly
+                  className="min-h-[200px] resize-none"
+                  placeholder="No system prompt available"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
