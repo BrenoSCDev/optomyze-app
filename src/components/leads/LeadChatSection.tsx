@@ -122,12 +122,12 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     }
   };
 
-  // Auto-scroll when chat loads or messages change (from WebSocket)
+  // Auto-scroll when chat loads, messages change (WebSocket), or pending messages update
   useEffect(() => {
-    if (chat?.messages?.length) {
+    if (chat?.messages?.length || pendingMessages.length) {
       setTimeout(scrollToBottom, 100);
     }
-  }, [chat?.messages?.length]);
+  }, [chat?.messages?.length, pendingMessages.length]);
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !chat?.whatsapp_instance_id) {
