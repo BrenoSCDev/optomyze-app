@@ -649,7 +649,7 @@ const translations = {
     'common.default': 'Default',
     'common.to': 'to',
     'common.minutes': 'minutes',
-    'sale.start-purchase': 'Start Purchase',
+    'sale.start-purchase': 'Start Deal',
     'sale.modal-title': 'Create New Sale',
     'sale.selected-products': 'Selected Products',
     'sale.product-name': 'Product',
@@ -1732,7 +1732,7 @@ const translations = {
     'lead-details.tabs.products-short': 'Products',
     
     // Purchase History
-    'lead-details.purchase-history': 'Purchase History',
+    'lead-details.purchase-history': 'Deal History',
     'lead-details.no-purchases': 'No purchases recorded yet',
     'lead-details.order': 'Order',
     'lead-details.sale-status.pending': 'Pending',
@@ -2676,7 +2676,7 @@ const translations = {
     'common.default': 'Padrão',
     'common.to': 'até',
     'common.minutes': 'minutos',
-    'sale.start-purchase': 'Iniciar Compra',
+    'sale.start-purchase': 'Iniciar Negócio',
 
     'tags.title': 'Gerenciamento de Tags',
     'tags.breadcrumb': 'Configurações / Tags',
@@ -3731,7 +3731,7 @@ const translations = {
     'lead-details.tabs.products-short': 'Produtos',
     
     // Purchase History
-    'lead-details.purchase-history': 'Histórico de Compras',
+    'lead-details.purchase-history': 'Histórico de Negócios',
     'lead-details.no-purchases': 'Nenhuma compra registrada ainda',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendente',
@@ -4574,7 +4574,7 @@ const translations = {
     'common.default': 'Standard',
     'common.to': 'bis',
     'common.minutes': 'Minuten',
-    'sale.start-purchase': 'Kauf starten',
+    'sale.start-purchase': 'Deal starten',
 
     'tags.title': 'Tag-Verwaltung',
     'tags.breadcrumb': 'Einstellungen / Tags',
@@ -5459,7 +5459,7 @@ const translations = {
     'lead-details.tabs.products-short': 'Produkte',
     
     // Purchase History
-    'lead-details.purchase-history': 'Kaufhistorie',
+    'lead-details.purchase-history': 'Deal-Historie',
     'lead-details.no-purchases': 'Noch keine Käufe verzeichnet',
     'lead-details.order': 'Bestellung',
     'lead-details.sale-status.pending': 'Ausstehend',
@@ -6477,7 +6477,7 @@ const translations = {
     'common.test': 'Probar',
     'common.retry': 'Reintentar',
     'common.refresh': 'Actualizar',
-    'sale.start-purchase': 'Iniciar Compra',
+    'sale.start-purchase': 'Iniciar Negocio',
     
     // Observations
     'observations.add-new': 'Agregar Nueva Observación',
@@ -7293,7 +7293,7 @@ const translations = {
     'lead-details.tabs.products-short': 'Productos',
     
     // Purchase History
-    'lead-details.purchase-history': 'Historial de Compras',
+    'lead-details.purchase-history': 'Historial de Negocios',
     'lead-details.no-purchases': 'Aún no hay compras registradas',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendiente',
