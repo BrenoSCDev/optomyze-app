@@ -1397,6 +1397,12 @@ const translations = {
     'agents.n8n.synchronizing': 'Synchronizing...',
     'agents.n8n.last-sync': 'Last synchronized',
     'agents.n8n.never-synced': 'Never synchronized',
+    'agents.n8n.agent-prompt': 'Agent Prompt',
+    'agents.n8n.view-executions': 'View Executions',
+    'agents.n8n.prompt-modal-title': 'Agent Prompt',
+    'agents.n8n.prompt-managed-title': 'Agent behavior is managed by our team',
+    'agents.n8n.prompt-managed-description': 'To ensure stability, performance, and consistent results, AI agent prompts cannot be edited directly.',
+    'agents.n8n.prompt-contact-support': 'If you need to adjust the agent\'s behavior or instructions, please contact our support team and we\'ll be happy to help.',
     
     // Users Section
     'users.manage.title': 'Manage Users',
@@ -3368,6 +3374,12 @@ const translations = {
     'agents.n8n.synchronizing': 'Sincronizando...',
     'agents.n8n.last-sync': 'Última sincronização',
     'agents.n8n.never-synced': 'Nunca sincronizado',
+    'agents.n8n.agent-prompt': 'Prompt do Agente',
+    'agents.n8n.view-executions': 'Ver Execuções',
+    'agents.n8n.prompt-modal-title': 'Prompt do Agente',
+    'agents.n8n.prompt-managed-title': 'O comportamento do agente é gerenciado pela nossa equipe',
+    'agents.n8n.prompt-managed-description': 'Para garantir estabilidade, desempenho e resultados consistentes, os prompts dos agentes de IA não podem ser editados diretamente.',
+    'agents.n8n.prompt-contact-support': 'Se você precisar ajustar o comportamento ou as instruções do agente, entre em contato com nossa equipe de suporte e teremos prazer em ajudar.',
     
     // API Tokens (same as English, translated)
     // ... keep existing code (API Tokens translations in Portuguese)
@@ -5074,6 +5086,12 @@ const translations = {
     'agents.n8n.synchronizing': 'Synchronisiert...',
     'agents.n8n.last-sync': 'Zuletzt synchronisiert',
     'agents.n8n.never-synced': 'Nie synchronisiert',
+    'agents.n8n.agent-prompt': 'Agenten-Prompt',
+    'agents.n8n.view-executions': 'Ausführungen Anzeigen',
+    'agents.n8n.prompt-modal-title': 'Agenten-Prompt',
+    'agents.n8n.prompt-managed-title': 'Das Agentenverhalten wird von unserem Team verwaltet',
+    'agents.n8n.prompt-managed-description': 'Um Stabilität, Leistung und konsistente Ergebnisse zu gewährleisten, können KI-Agenten-Prompts nicht direkt bearbeitet werden.',
+    'agents.n8n.prompt-contact-support': 'Wenn Sie das Verhalten oder die Anweisungen des Agenten anpassen müssen, wenden Sie sich bitte an unser Support-Team und wir helfen Ihnen gerne.',
     
     // API Tokens (same as English, translated to German)
     // ... keep existing code (API Tokens translations in German)
@@ -6886,6 +6904,12 @@ const translations = {
     'agents.n8n.synchronizing': 'Sincronizando...',
     'agents.n8n.last-sync': 'Última sincronización',
     'agents.n8n.never-synced': 'Nunca sincronizado',
+    'agents.n8n.agent-prompt': 'Prompt del Agente',
+    'agents.n8n.view-executions': 'Ver Ejecuciones',
+    'agents.n8n.prompt-modal-title': 'Prompt del Agente',
+    'agents.n8n.prompt-managed-title': 'El comportamiento del agente es gestionado por nuestro equipo',
+    'agents.n8n.prompt-managed-description': 'Para garantizar estabilidad, rendimiento y resultados consistentes, los prompts de los agentes de IA no pueden editarse directamente.',
+    'agents.n8n.prompt-contact-support': 'Si necesitas ajustar el comportamiento o las instrucciones del agente, contacta a nuestro equipo de soporte y estaremos encantados de ayudarte.',
     
     // API Tokens (same as English, translated to Spanish)
     // ... keep existing code (API Tokens translations in Spanish)
