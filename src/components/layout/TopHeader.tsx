@@ -27,7 +27,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
-import echo from '../../services/echo';
+import { getEcho } from '@/services/echo';
 
 interface TopHeaderProps {
   sidebarCollapsed: boolean;
@@ -127,15 +127,31 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   }, []);
 
   useEffect(() => {
-    echo.connector.pusher.connection.bind('connected', () => {
-        console.log('Connected to WebSocket');
-        setConnected(true);
-    });
+    const echo = getEcho();
+    if (!echo) {
+      console.log('🔌 Echo not initialized, skipping connection status binding');
+      return;
+    }
 
-    echo.connector.pusher.connection.bind('disconnected', () => {
-        console.log('Disconnected from WebSocket');
-        setConnected(false);
-    });
+    const connector = echo.connector as { pusher?: { connection?: { bind: (event: string, callback: () => void) => void; unbind: (event: string, callback: () => void) => void } } };
+    
+    const handleConnected = () => {
+      console.log('Connected to WebSocket');
+      setConnected(true);
+    };
+    
+    const handleDisconnected = () => {
+      console.log('Disconnected from WebSocket');
+      setConnected(false);
+    };
+
+    connector.pusher?.connection?.bind('connected', handleConnected);
+    connector.pusher?.connection?.bind('disconnected', handleDisconnected);
+
+    return () => {
+      connector.pusher?.connection?.unbind('connected', handleConnected);
+      connector.pusher?.connection?.unbind('disconnected', handleDisconnected);
+    };
   }, []);
 
   // Handle notification click
