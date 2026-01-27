@@ -9,7 +9,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
-import echo from '@/services/echo';
+import { getEcho } from '@/services/echo';
 
 // TypeScript interfaces
 export interface LeadNotification {
@@ -121,6 +121,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   useEffect(() => {
     if (!user?.company_id) {
       console.log('🔔 No company_id, skipping WebSocket subscription');
+      return;
+    }
+
+    const echo = getEcho();
+    if (!echo) {
+      console.log('🔔 Echo not initialized, skipping WebSocket subscription');
       return;
     }
 

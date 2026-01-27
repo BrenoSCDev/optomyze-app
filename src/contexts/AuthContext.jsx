@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authService } from '../services/auth';
+import { initEcho, disconnectEcho } from '../services/echo';
 
 const AuthContext = createContext(undefined);
 
@@ -62,6 +63,12 @@ export const AuthProvider = ({ children }) => {
       type: 'INIT_AUTH',
       payload: authData,
     });
+    
+    // If user is already authenticated (page refresh), initialize Echo
+    if (authData.token) {
+      initEcho();
+      console.log('🔌 Echo initialized on app load (existing session)');
+    }
   }, []);
 
   const login = async (email, password) => {
@@ -78,6 +85,10 @@ export const AuthProvider = ({ children }) => {
         },
       });
       
+      // Initialize Echo AFTER login succeeds and token is stored
+      initEcho();
+      console.log('🔌 Echo initialized after login');
+      
       return data;
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -86,6 +97,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    // Disconnect Echo BEFORE logout to clean up WebSocket connections
+    disconnectEcho();
+    console.log('🔌 Echo disconnected on logout');
+    
     await authService.logout();
     dispatch({ type: 'LOGOUT' });
   };
