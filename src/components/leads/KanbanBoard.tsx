@@ -348,19 +348,24 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       return;
     }
 
-    // Optimistic update - add to top of target column
+    // Get the lead value for updating stage estimated values
+    const leadValue = leadToMove.value || 0;
+
+    // Optimistic update - add to top of target column and update estimated values
     setColumns(prevColumns => {
       const newColumns = prevColumns.map(col => {
         if (col.id === oldStageId) {
           return {
             ...col,
-            leads: col.leads.filter(lead => lead.id !== leadId)
+            leads: col.leads.filter(lead => lead.id !== leadId),
+            valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
           };
         }
         if (col.id === newStageId) {
           return {
             ...col,
-            leads: [{ ...leadToMove, stage: newStageId }, ...col.leads]
+            leads: [{ ...leadToMove, stage: newStageId }, ...col.leads],
+            valueEstimated: (col.valueEstimated || 0) + leadValue
           };
         }
         return col;
@@ -404,13 +409,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     } catch (error) {
       console.error('Error moving lead:', error);
       
-      // Revert optimistic update - restore to original position
+      // Revert optimistic update - restore to original position and values
       setColumns(prevColumns => {
         const newColumns = prevColumns.map(col => {
           if (col.id === newStageId) {
             return {
               ...col,
-              leads: col.leads.filter(lead => lead.id !== leadId)
+              leads: col.leads.filter(lead => lead.id !== leadId),
+              valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
             };
           }
           if (col.id === oldStageId) {
@@ -424,7 +430,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             }
             return {
               ...col,
-              leads: newLeads
+              leads: newLeads,
+              valueEstimated: (col.valueEstimated || 0) + leadValue
             };
           }
           return col;
