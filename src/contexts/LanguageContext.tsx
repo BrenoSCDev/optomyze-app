@@ -1404,6 +1404,22 @@ const translations = {
     'agents.n8n.prompt-managed-description': 'To ensure stability, performance, and consistent results, AI agent prompts cannot be edited directly.',
     'agents.n8n.prompt-contact-support': 'If you need to adjust the agent\'s behavior or instructions, please contact our support team and we\'ll be happy to help.',
     
+    // Optomyze Agents
+    'agents.optomyze.menu-title': 'Optomyze Agents',
+    'agents.optomyze.title': 'Optomyze Agents',
+    'agents.optomyze.subtitle': 'Native AI agents built into your CRM',
+    'agents.optomyze.coming-soon-badge': 'Coming Soon',
+    'agents.optomyze.headline': 'AI Agents Built for Your CRM',
+    'agents.optomyze.description': 'Soon you\'ll be able to configure intelligent AI agents designed specifically to qualify and engage leads directly within Optomyze.',
+    'agents.optomyze.feature1-title': 'Qualify & Engage Leads',
+    'agents.optomyze.feature1-desc': 'Configure AI agents designed to automatically qualify and engage leads inside your CRM, saving time and improving conversion rates.',
+    'agents.optomyze.feature2-title': 'Cross-Funnel Interactions',
+    'agents.optomyze.feature2-desc': 'Define how agents interact with contacts across different conversations and funnels for a seamless customer experience.',
+    'agents.optomyze.feature3-title': 'Choose Your LLM',
+    'agents.optomyze.feature3-desc': 'Select your preferred Large Language Model (OpenAI, Anthropic, etc.) as the agent\'s "brain" to power intelligent conversations.',
+    'agents.optomyze.roadmap-title': 'Part of Optomyze\'s Roadmap',
+    'agents.optomyze.roadmap-desc': 'This feature is currently in development and will be available soon. Stay tuned for updates on our native AI agent capabilities.',
+    
     // Users Section
     'users.manage.title': 'Manage Users',
     'users.manage.description': 'View and manage all users in your organization',
@@ -3381,6 +3397,22 @@ const translations = {
     'agents.n8n.prompt-managed-description': 'Para garantir estabilidade, desempenho e resultados consistentes, os prompts dos agentes de IA não podem ser editados diretamente.',
     'agents.n8n.prompt-contact-support': 'Se você precisar ajustar o comportamento ou as instruções do agente, entre em contato com nossa equipe de suporte e teremos prazer em ajudar.',
     
+    // Optomyze Agents
+    'agents.optomyze.menu-title': 'Agentes Optomyze',
+    'agents.optomyze.title': 'Agentes Optomyze',
+    'agents.optomyze.subtitle': 'Agentes de IA nativos integrados ao seu CRM',
+    'agents.optomyze.coming-soon-badge': 'Em Breve',
+    'agents.optomyze.headline': 'Agentes de IA Feitos para o Seu CRM',
+    'agents.optomyze.description': 'Em breve você poderá configurar agentes de IA inteligentes projetados especificamente para qualificar e engajar leads diretamente no Optomyze.',
+    'agents.optomyze.feature1-title': 'Qualificar e Engajar Leads',
+    'agents.optomyze.feature1-desc': 'Configure agentes de IA projetados para qualificar e engajar leads automaticamente dentro do seu CRM, economizando tempo e melhorando as taxas de conversão.',
+    'agents.optomyze.feature2-title': 'Interações Entre Funis',
+    'agents.optomyze.feature2-desc': 'Defina como os agentes interagem com contatos em diferentes conversas e funis para uma experiência de cliente perfeita.',
+    'agents.optomyze.feature3-title': 'Escolha Seu LLM',
+    'agents.optomyze.feature3-desc': 'Selecione seu Modelo de Linguagem preferido (OpenAI, Anthropic, etc.) como o "cérebro" do agente para alimentar conversas inteligentes.',
+    'agents.optomyze.roadmap-title': 'Parte do Roadmap da Optomyze',
+    'agents.optomyze.roadmap-desc': 'Este recurso está atualmente em desenvolvimento e estará disponível em breve. Fique atento para atualizações sobre nossas capacidades nativas de agentes de IA.',
+    
     // API Tokens (same as English, translated)
     // ... keep existing code (API Tokens translations in Portuguese)
     
@@ -5092,6 +5124,22 @@ const translations = {
     'agents.n8n.prompt-managed-title': 'Das Agentenverhalten wird von unserem Team verwaltet',
     'agents.n8n.prompt-managed-description': 'Um Stabilität, Leistung und konsistente Ergebnisse zu gewährleisten, können KI-Agenten-Prompts nicht direkt bearbeitet werden.',
     'agents.n8n.prompt-contact-support': 'Wenn Sie das Verhalten oder die Anweisungen des Agenten anpassen müssen, wenden Sie sich bitte an unser Support-Team und wir helfen Ihnen gerne.',
+    
+    // Optomyze Agents
+    'agents.optomyze.menu-title': 'Optomyze-Agenten',
+    'agents.optomyze.title': 'Optomyze-Agenten',
+    'agents.optomyze.subtitle': 'Native KI-Agenten in Ihr CRM integriert',
+    'agents.optomyze.coming-soon-badge': 'Demnächst',
+    'agents.optomyze.headline': 'KI-Agenten für Ihr CRM',
+    'agents.optomyze.description': 'Bald können Sie intelligente KI-Agenten konfigurieren, die speziell entwickelt wurden, um Leads direkt in Optomyze zu qualifizieren und zu engagieren.',
+    'agents.optomyze.feature1-title': 'Leads Qualifizieren & Engagieren',
+    'agents.optomyze.feature1-desc': 'Konfigurieren Sie KI-Agenten, die darauf ausgelegt sind, Leads automatisch in Ihrem CRM zu qualifizieren und zu engagieren, um Zeit zu sparen und die Konversionsraten zu verbessern.',
+    'agents.optomyze.feature2-title': 'Funnel-übergreifende Interaktionen',
+    'agents.optomyze.feature2-desc': 'Definieren Sie, wie Agenten mit Kontakten über verschiedene Gespräche und Funnels hinweg interagieren, für ein nahtloses Kundenerlebnis.',
+    'agents.optomyze.feature3-title': 'Wählen Sie Ihr LLM',
+    'agents.optomyze.feature3-desc': 'Wählen Sie Ihr bevorzugtes Large Language Model (OpenAI, Anthropic, usw.) als "Gehirn" des Agenten für intelligente Gespräche.',
+    'agents.optomyze.roadmap-title': 'Teil der Optomyze-Roadmap',
+    'agents.optomyze.roadmap-desc': 'Diese Funktion befindet sich derzeit in Entwicklung und wird bald verfügbar sein. Bleiben Sie dran für Updates zu unseren nativen KI-Agenten-Fähigkeiten.',
     
     // API Tokens (same as English, translated to German)
     // ... keep existing code (API Tokens translations in German)
@@ -6910,6 +6958,22 @@ const translations = {
     'agents.n8n.prompt-managed-title': 'El comportamiento del agente es gestionado por nuestro equipo',
     'agents.n8n.prompt-managed-description': 'Para garantizar estabilidad, rendimiento y resultados consistentes, los prompts de los agentes de IA no pueden editarse directamente.',
     'agents.n8n.prompt-contact-support': 'Si necesitas ajustar el comportamiento o las instrucciones del agente, contacta a nuestro equipo de soporte y estaremos encantados de ayudarte.',
+    
+    // Optomyze Agents
+    'agents.optomyze.menu-title': 'Agentes Optomyze',
+    'agents.optomyze.title': 'Agentes Optomyze',
+    'agents.optomyze.subtitle': 'Agentes de IA nativos integrados en tu CRM',
+    'agents.optomyze.coming-soon-badge': 'Próximamente',
+    'agents.optomyze.headline': 'Agentes de IA Diseñados para Tu CRM',
+    'agents.optomyze.description': 'Pronto podrás configurar agentes de IA inteligentes diseñados específicamente para calificar y captar leads directamente dentro de Optomyze.',
+    'agents.optomyze.feature1-title': 'Calificar y Captar Leads',
+    'agents.optomyze.feature1-desc': 'Configura agentes de IA diseñados para calificar y captar leads automáticamente dentro de tu CRM, ahorrando tiempo y mejorando las tasas de conversión.',
+    'agents.optomyze.feature2-title': 'Interacciones Entre Embudos',
+    'agents.optomyze.feature2-desc': 'Define cómo los agentes interactúan con contactos a través de diferentes conversaciones y embudos para una experiencia de cliente perfecta.',
+    'agents.optomyze.feature3-title': 'Elige Tu LLM',
+    'agents.optomyze.feature3-desc': 'Selecciona tu Modelo de Lenguaje Grande preferido (OpenAI, Anthropic, etc.) como el "cerebro" del agente para alimentar conversaciones inteligentes.',
+    'agents.optomyze.roadmap-title': 'Parte del Roadmap de Optomyze',
+    'agents.optomyze.roadmap-desc': 'Esta función está actualmente en desarrollo y estará disponible pronto. Mantente atento a las actualizaciones sobre nuestras capacidades nativas de agentes de IA.',
     
     // API Tokens (same as English, translated to Spanish)
     // ... keep existing code (API Tokens translations in Spanish)

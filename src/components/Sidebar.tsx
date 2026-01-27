@@ -123,6 +123,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // AI Agents submenu items
   const aiAgentsItems = [
     { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
+    { id: 'optomyze-agents', label: t('agents.optomyze.menu-title'), icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   // API submenu items
