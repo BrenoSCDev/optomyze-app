@@ -5,7 +5,7 @@
  * Displays chat messages and allows sending messages via the associated instance
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Phone, Send, Loader2, User, AlertCircle } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { cn } from '@/lib/utils';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
@@ -69,15 +70,48 @@ interface LeadChatSectionProps {
 }
 
 const LeadChatSection: React.FC<LeadChatSectionProps> = ({
-  chat,
+  chat: initialChat,
   leadId,
   onMessageSent
 }) => {
   const { t } = useLanguage();
+  const { chats } = useWhatsApp();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
+
+  // REAL-TIME: Get live chat data from WhatsAppContext, fallback to initial prop
+  const chat = useMemo(() => {
+    if (!initialChat) return null;
+    
+    // Find matching chat in global context by chat ID
+    const liveChat = chats.find(c => c.id === initialChat.id);
+    
+    if (liveChat) {
+      // Merge: use live messages from context, keep initial chat metadata
+      return {
+        ...initialChat,
+        messages: liveChat.messages.map(m => ({
+          id: m.id,
+          whatsapp_evo_chat_id: m.whatsapp_evo_chat_id,
+          direction: m.direction,
+          type: m.type,
+          text: m.text || '',
+          media_url: m.media_url,
+          media_mime: m.media_mime,
+          media_size: m.media_size,
+          status: m.status,
+          sent_at: m.sent_at,
+          created_at: m.sent_at,
+          updated_at: m.sent_at,
+        })) as LeadWhatsAppMessage[],
+        last_message_at: liveChat.last_message_at,
+      };
+    }
+    
+    return initialChat;
+  }, [initialChat, chats]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -88,15 +122,12 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     }
   };
 
+  // Auto-scroll when chat loads or messages change (from WebSocket)
   useEffect(() => {
-    if (chat) {
+    if (chat?.messages?.length) {
       setTimeout(scrollToBottom, 100);
     }
-  }, [chat]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [pendingMessages]);
+  }, [chat?.messages?.length]);
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !chat?.whatsapp_instance_id) {
