@@ -27,6 +27,7 @@ import LeadsManagement from '@/components/leads/LeadsManagement';
 import IntegrationsApps from '@/components/integrations/IntegrationsApps';
 import IntegrationPanel from '@/components/integrations/IntegrationPanel';
 import N8nAgents from '@/components/agents/N8nAgents';
+import OptomyzeAgents from '@/components/agents/OptomyzeAgents';
 import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
 import { ApiPlayground } from '@/components/api/playground';
@@ -118,6 +119,8 @@ const Index = () => {
       // AI Agents sections
       case 'n8n-agents':
         return <N8nAgents />;
+      case 'optomyze-agents':
+        return <OptomyzeAgents />;
       
       // Leads Management - Dynamic funnel routing
       case 'leads':
