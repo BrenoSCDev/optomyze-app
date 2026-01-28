@@ -22,7 +22,9 @@ import {
   Bot,
   Workflow,
   Calendar,
-  Check
+  Check,
+  Info,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -57,6 +59,7 @@ interface Integration {
   lastUpdated?: string;
   comingSoon?: boolean;
   icon: React.ReactNode;
+  requiresProductModule?: string; // If set, user.company.product_module must match this value
 }
 
 interface IntegrationCategory {
@@ -73,6 +76,7 @@ interface IntegrationCardProps {
   loading?: boolean;
   installing?: boolean;
   justInstalled?: boolean;
+  userProductModule?: string;
 }
 
 // Integration Card Component
@@ -81,12 +85,31 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   onAction, 
   loading = false, 
   installing = false,
-  justInstalled = false 
+  justInstalled = false,
+  userProductModule
 }) => {
   const { t } = useLanguage();
   const isDisabled = integration.comingSoon || loading || installing;
+  
+  // Check if this integration requires a specific product module
+  const requiresModuleChange = integration.requiresProductModule && 
+    userProductModule !== integration.requiresProductModule;
 
   const getActionButton = () => {
+    // If requires product module change, show notice instead of action button
+    if (requiresModuleChange) {
+      return (
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-amber-200">
+              {t('integrations.requires-module-change') || 'Contact support to change your company product module to enable this integration.'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     if (loading) {
       return (
         <button 
@@ -216,6 +239,7 @@ interface CategorySectionProps {
   loading: boolean;
   installingIntegrations: Set<string>;
   justInstalledIntegrations: Set<string>;
+  userProductModule?: string;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -223,7 +247,8 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   onAction,
   loading,
   installingIntegrations,
-  justInstalledIntegrations
+  justInstalledIntegrations,
+  userProductModule
 }) => {
   const { t } = useLanguage();
 
@@ -260,6 +285,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             loading={loading && integration.key === 'n8n'}
             installing={installingIntegrations.has(integration.key)}
             justInstalled={justInstalledIntegrations.has(integration.key)}
+            userProductModule={userProductModule}
           />
         ))}
       </div>
@@ -278,9 +304,12 @@ const IntegrationsApps: React.FC = () => {
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  
+  // Get user's company product module
+  const userProductModule = user?.company?.product_module;
 
   // Define categories with integrations
   const getInitialCategories = (): IntegrationCategory[] => [
@@ -433,6 +462,21 @@ const IntegrationsApps: React.FC = () => {
           available: false,
           comingSoon: true,
           icon: <SiGmail className="w-6 h-6" />
+        }
+      ]
+    },
+    {
+      id: 'optomyze-apps',
+      title: t('integrations.categories.optomyze-apps') || 'Optomyze Apps',
+      icon: <Building2 className="w-5 h-5" />,
+      integrations: [
+        {
+          key: 'optomyze-erp',
+          name: 'Optomyze ERP',
+          description: t('integrations.optomyze-erp.description') || 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
+          available: false,
+          icon: <Building2 className="w-6 h-6" />,
+          requiresProductModule: 'ERP'
         }
       ]
     }
@@ -607,6 +651,7 @@ const IntegrationsApps: React.FC = () => {
               loading={loading}
               installingIntegrations={installingIntegrations}
               justInstalledIntegrations={justInstalledIntegrations}
+              userProductModule={userProductModule}
             />
           ))}
         </div>

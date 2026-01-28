@@ -1054,6 +1054,9 @@ const translations = {
     'integrations.categories.ai': 'Artificial Intelligence',
     'integrations.categories.automation': 'Automation Platforms',
     'integrations.categories.google-apps': 'Google Apps',
+    'integrations.categories.optomyze-apps': 'Optomyze Apps',
+    'integrations.optomyze-erp.description': 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
+    'integrations.requires-module-change': 'Contact support to change your company product module to enable this integration.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Connect WhatsApp Business to manage customer conversations directly from your CRM.',
@@ -3047,6 +3050,9 @@ const translations = {
     'integrations.categories.ai': 'Inteligência Artificial',
     'integrations.categories.automation': 'Plataformas de Automação',
     'integrations.categories.google-apps': 'Apps do Google',
+    'integrations.categories.optomyze-apps': 'Apps Optomyze',
+    'integrations.optomyze-erp.description': 'Conecte-se ao Optomyze ERP para gestão empresarial completa incluindo estoque, orçamentos, faturamento e relatórios financeiros.',
+    'integrations.requires-module-change': 'Entre em contato com o suporte para alterar o módulo de produto da sua empresa e habilitar esta integração.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Conecte o WhatsApp Business para gerenciar conversas com clientes diretamente do seu CRM.',
@@ -4866,6 +4872,9 @@ const translations = {
     'integrations.categories.ai': 'Künstliche Intelligenz',
     'integrations.categories.automation': 'Automatisierungsplattformen',
     'integrations.categories.google-apps': 'Google Apps',
+    'integrations.categories.optomyze-apps': 'Optomyze Apps',
+    'integrations.optomyze-erp.description': 'Verbinden Sie sich mit Optomyze ERP für komplettes Geschäftsmanagement einschließlich Inventar, Budgets, Rechnungsstellung und Finanzberichte.',
+    'integrations.requires-module-change': 'Kontaktieren Sie den Support, um Ihr Firmen-Produktmodul zu ändern und diese Integration zu aktivieren.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Verbinden Sie WhatsApp Business, um Kundenkonversationen direkt aus Ihrem CRM zu verwalten.',
@@ -6700,6 +6709,9 @@ const translations = {
     'integrations.categories.ai': 'Inteligencia Artificial',
     'integrations.categories.automation': 'Plataformas de Automatización',
     'integrations.categories.google-apps': 'Apps de Google',
+    'integrations.categories.optomyze-apps': 'Apps de Optomyze',
+    'integrations.optomyze-erp.description': 'Conéctate a Optomyze ERP para gestión empresarial completa incluyendo inventario, presupuestos, facturación e informes financieros.',
+    'integrations.requires-module-change': 'Contacta con soporte para cambiar el módulo de producto de tu empresa y habilitar esta integración.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Conecta WhatsApp Business para gestionar conversaciones con clientes directamente desde tu CRM.',
