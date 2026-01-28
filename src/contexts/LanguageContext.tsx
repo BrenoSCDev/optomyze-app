@@ -3050,7 +3050,7 @@ const translations = {
     'integrations.categories.ai': 'Inteligência Artificial',
     'integrations.categories.automation': 'Plataformas de Automação',
     'integrations.categories.google-apps': 'Apps do Google',
-    'integrations.categories.optomyze-apps': 'Apps Optomyze',
+    'integrations.categories.optomyze-apps': 'Optomyze Apps',
     'integrations.optomyze-erp.description': 'Conecte-se ao Optomyze ERP para gestão empresarial completa incluindo estoque, orçamentos, faturamento e relatórios financeiros.',
     'integrations.requires-module-change': 'Entre em contato com o suporte para alterar o módulo de produto da sua empresa e habilitar esta integração.',
     

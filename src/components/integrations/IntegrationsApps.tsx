@@ -49,6 +49,8 @@ import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
 import { Badge } from '@/components/ui/badge';
+import OptoIcon from '@/assets/opto-icon.png';
+import { RiGeminiLine, RiClaudeFill } from "react-icons/ri";
 
 interface Integration {
   key: string;
@@ -337,6 +339,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'Google Analytics',
           description: t('integrations.google-analytics.description') || 'Track website traffic and user behavior with Google Analytics integration.',
           available: false,
+          comingSoon: true,
           icon: <SiGoogleanalytics className="w-6 h-6" />
         }
       ]
@@ -380,6 +383,21 @@ const IntegrationsApps: React.FC = () => {
       ]
     },
     {
+      id: 'optomyze-apps',
+      title: t('integrations.categories.optomyze-apps') || 'Optomyze Apps',
+      icon: <img src={OptoIcon} alt="Optomyze" className="h-5 w-5" />,
+      integrations: [
+        {
+          key: 'optomyze-erp',
+          name: 'Optomyze ERP',
+          description: t('integrations.optomyze-erp.description') || 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
+          available: false,
+          icon: <img src={OptoIcon} alt="Optomyze" className="h-6 w-6" />,
+          requiresProductModule: 'ERP'
+        }
+      ]
+    },
+    {
       id: 'artificial-intelligence',
       title: t('integrations.categories.ai') || 'Artificial Intelligence',
       icon: <Bot className="w-5 h-5" />,
@@ -399,7 +417,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.gemini.description') || 'Integrate Google Gemini for advanced AI capabilities and multimodal processing.',
           available: false,
           comingSoon: true,
-          icon: <Bot className="w-6 h-6" />
+          icon: <RiGeminiLine className="w-6 h-6" />
         },
         {
           key: 'claude',
@@ -407,7 +425,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.claude.description') || 'Use Anthropic Claude for safe and helpful AI assistance in your workflows.',
           available: false,
           comingSoon: true,
-          icon: <Bot className="w-6 h-6" />
+          icon: <RiClaudeFill className="w-6 h-6" />
         },
         {
           key: 'deepseek',
@@ -465,21 +483,6 @@ const IntegrationsApps: React.FC = () => {
         }
       ]
     },
-    {
-      id: 'optomyze-apps',
-      title: t('integrations.categories.optomyze-apps') || 'Optomyze Apps',
-      icon: <Building2 className="w-5 h-5" />,
-      integrations: [
-        {
-          key: 'optomyze-erp',
-          name: 'Optomyze ERP',
-          description: t('integrations.optomyze-erp.description') || 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
-          available: false,
-          icon: <Building2 className="w-6 h-6" />,
-          requiresProductModule: 'ERP'
-        }
-      ]
-    }
   ];
 
   // Fetch integration statuses
