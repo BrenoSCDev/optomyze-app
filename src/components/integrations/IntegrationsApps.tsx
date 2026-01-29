@@ -48,6 +48,7 @@ import N8nConfigModal from './N8nConfigModal';
 import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
+import OptomyzeErpConfigModal from './OptomyzeErpConfigModal';
 import { Badge } from '@/components/ui/badge';
 import OptoIcon from '@/assets/opto-icon.png';
 import { RiGeminiLine, RiClaudeFill } from "react-icons/ri";
@@ -306,6 +307,7 @@ const IntegrationsApps: React.FC = () => {
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
+  const [showOptomyzeErpConfigModal, setShowOptomyzeErpConfigModal] = useState(false);
   const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -528,6 +530,8 @@ const IntegrationsApps: React.FC = () => {
         setShowGoogleAdsConfigModal(true);
       } else if (integrationKey === 'wpp_evo') {
         setShowWhatsAppConfigModal(true);
+      } else if (integrationKey === 'optomyze-erp') {
+        setShowOptomyzeErpConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -678,6 +682,11 @@ const IntegrationsApps: React.FC = () => {
         <WhatsAppConfigModal
           open={showWhatsAppConfigModal}
           onOpenChange={setShowWhatsAppConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <OptomyzeErpConfigModal
+          open={showOptomyzeErpConfigModal}
+          onOpenChange={setShowOptomyzeErpConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>
