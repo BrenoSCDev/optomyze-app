@@ -91,7 +91,7 @@ const OptomyzeErpConfigModal: React.FC<OptomyzeErpConfigModalProps> = ({
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
-              <img src={OptoIcon} alt="Optomyze" className="h-6 w-6" />
+              <img src={OptoIcon} alt="Optomyze" className="w-10" />
             </div>
             <div>
               <DialogTitle>{t('integrations.configure-erp') || 'Configure Optomyze ERP'}</DialogTitle>
