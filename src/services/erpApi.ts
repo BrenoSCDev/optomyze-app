@@ -106,7 +106,7 @@ export const erpService = {
    * Fetch products and units from ERP
    */
   async getProductsAndUnits(): Promise<ERPProductsResponse> {
-    const response = await erpApi.get<ERPProductsResponse>('/api/v1/products/1');
+    const response = await erpApi.get<ERPProductsResponse>('/api/v1/products');
     return response.data;
   },
 
