@@ -1057,6 +1057,13 @@ const translations = {
     'integrations.categories.optomyze-apps': 'Optomyze Apps',
     'integrations.optomyze-erp.description': 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
     'integrations.requires-module-change': 'Contact support to change your company product module to enable this integration.',
+    'integrations.configure-erp': 'Configure Optomyze ERP',
+    'integrations.erp-config-description': 'Enter your Optomyze ERP API key to connect your account.',
+    'integrations.api-key': 'API Key',
+    'integrations.enter-api-key': 'Enter your API key',
+    'integrations.api-key-hint': 'You can find your API key in your Optomyze ERP account settings.',
+    'integrations.api-key-required': 'API Key is required',
+    'integrations.erp-configured-successfully': 'Optomyze ERP has been configured successfully.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Connect WhatsApp Business to manage customer conversations directly from your CRM.',
@@ -3053,6 +3060,13 @@ const translations = {
     'integrations.categories.optomyze-apps': 'Optomyze Apps',
     'integrations.optomyze-erp.description': 'Conecte-se ao Optomyze ERP para gestão empresarial completa incluindo estoque, orçamentos, faturamento e relatórios financeiros.',
     'integrations.requires-module-change': 'Entre em contato com o suporte para alterar o módulo de produto da sua empresa e habilitar esta integração.',
+    'integrations.configure-erp': 'Configurar Optomyze ERP',
+    'integrations.erp-config-description': 'Insira sua chave de API do Optomyze ERP para conectar sua conta.',
+    'integrations.api-key': 'Chave de API',
+    'integrations.enter-api-key': 'Insira sua chave de API',
+    'integrations.api-key-hint': 'Você pode encontrar sua chave de API nas configurações da sua conta Optomyze ERP.',
+    'integrations.api-key-required': 'A chave de API é obrigatória',
+    'integrations.erp-configured-successfully': 'Optomyze ERP foi configurado com sucesso.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Conecte o WhatsApp Business para gerenciar conversas com clientes diretamente do seu CRM.',
@@ -4875,6 +4889,13 @@ const translations = {
     'integrations.categories.optomyze-apps': 'Optomyze Apps',
     'integrations.optomyze-erp.description': 'Verbinden Sie sich mit Optomyze ERP für komplettes Geschäftsmanagement einschließlich Inventar, Budgets, Rechnungsstellung und Finanzberichte.',
     'integrations.requires-module-change': 'Kontaktieren Sie den Support, um Ihr Firmen-Produktmodul zu ändern und diese Integration zu aktivieren.',
+    'integrations.configure-erp': 'Optomyze ERP konfigurieren',
+    'integrations.erp-config-description': 'Geben Sie Ihren Optomyze ERP API-Schlüssel ein, um Ihr Konto zu verbinden.',
+    'integrations.api-key': 'API-Schlüssel',
+    'integrations.enter-api-key': 'Geben Sie Ihren API-Schlüssel ein',
+    'integrations.api-key-hint': 'Sie finden Ihren API-Schlüssel in den Einstellungen Ihres Optomyze ERP-Kontos.',
+    'integrations.api-key-required': 'API-Schlüssel ist erforderlich',
+    'integrations.erp-configured-successfully': 'Optomyze ERP wurde erfolgreich konfiguriert.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Verbinden Sie WhatsApp Business, um Kundenkonversationen direkt aus Ihrem CRM zu verwalten.',
@@ -6712,6 +6733,13 @@ const translations = {
     'integrations.categories.optomyze-apps': 'Apps de Optomyze',
     'integrations.optomyze-erp.description': 'Conéctate a Optomyze ERP para gestión empresarial completa incluyendo inventario, presupuestos, facturación e informes financieros.',
     'integrations.requires-module-change': 'Contacta con soporte para cambiar el módulo de producto de tu empresa y habilitar esta integración.',
+    'integrations.configure-erp': 'Configurar Optomyze ERP',
+    'integrations.erp-config-description': 'Introduce tu clave API de Optomyze ERP para conectar tu cuenta.',
+    'integrations.api-key': 'Clave API',
+    'integrations.enter-api-key': 'Introduce tu clave API',
+    'integrations.api-key-hint': 'Puedes encontrar tu clave API en la configuración de tu cuenta de Optomyze ERP.',
+    'integrations.api-key-required': 'La clave API es obligatoria',
+    'integrations.erp-configured-successfully': 'Optomyze ERP se ha configurado correctamente.',
     
     // Social Messaging Integrations
     'integrations.whatsapp.description': 'Conecta WhatsApp Business para gestionar conversaciones con clientes directamente desde tu CRM.',
