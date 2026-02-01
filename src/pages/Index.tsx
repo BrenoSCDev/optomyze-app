@@ -40,6 +40,7 @@ import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder
 import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
 import OptusChat from '@/components/support/OptusChat';
 import OpenTicket from '@/components/support/OpenTicket';
+import { ManageLeadCompanies } from '@/components/companies';
 
 const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
@@ -99,6 +100,8 @@ const Index = () => {
         return <FunnelsDashboard />; // Funnels management interface
       case 'tags':
         return <TagsDashboard />; // Tags management interface
+      case 'companies':
+        return <ManageLeadCompanies />; // Lead company management
       case 'general':
       case 'users':
       case 'api-keys':
