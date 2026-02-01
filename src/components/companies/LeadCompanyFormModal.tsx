@@ -184,14 +184,14 @@ export function LeadCompanyFormModal({
           <form onSubmit={form.handleSubmit(handleFormSubmit)}>
             <ScrollArea className="max-h-[calc(90vh-140px)] px-6">
               <Tabs defaultValue="identification" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsList className="grid w-full grid-cols-4 mb-6">
                   <TabsTrigger value="identification">Identification</TabsTrigger>
                   <TabsTrigger value="contact">Contact</TabsTrigger>
                   <TabsTrigger value="address">Address</TabsTrigger>
                   <TabsTrigger value="crm">CRM</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="identification" className="space-y-4 mt-0">
+                <TabsContent value="identification" className="space-y-6 mt-0 pb-4">
                   {/* Logo Upload */}
                   <div className="flex items-center gap-4">
                     <Avatar className="h-20 w-20 rounded-lg border-2 border-dashed border-border">
@@ -337,7 +337,7 @@ export function LeadCompanyFormModal({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="contact" className="space-y-4 mt-0">
+                <TabsContent value="contact" className="space-y-6 mt-0 pb-4">
                   <FormField
                     control={form.control}
                     name="email"
@@ -382,7 +382,7 @@ export function LeadCompanyFormModal({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="address" className="space-y-4 mt-0">
+                <TabsContent value="address" className="space-y-6 mt-0 pb-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                       <FormField
@@ -502,8 +502,8 @@ export function LeadCompanyFormModal({
                   </div>
                 </TabsContent>
 
-                <TabsContent value="crm" className="space-y-4 mt-0">
-                  <div className="grid grid-cols-2 gap-4">
+                <TabsContent value="crm" className="space-y-6 mt-0 pb-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
                       name="source"
