@@ -87,14 +87,14 @@ export function LeadCompanyFilters({
           <div className="space-y-2">
             <Label>Industry</Label>
             <Select 
-              value={filters.industry} 
-              onValueChange={(value) => updateFilter('industry', value)}
+              value={filters.industry || "_all"} 
+              onValueChange={(value) => updateFilter('industry', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All industries" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All industries</SelectItem>
+                <SelectItem value="_all">All industries</SelectItem>
                 {industries.map((industry) => (
                   <SelectItem key={industry} value={industry}>
                     {industry}
@@ -107,14 +107,14 @@ export function LeadCompanyFilters({
           <div className="space-y-2">
             <Label>Status</Label>
             <Select 
-              value={filters.status} 
-              onValueChange={(value) => updateFilter('status', value)}
+              value={filters.status || "_all"} 
+              onValueChange={(value) => updateFilter('status', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="_all">All statuses</SelectItem>
                 {COMPANY_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
@@ -127,14 +127,14 @@ export function LeadCompanyFilters({
           <div className="space-y-2">
             <Label>City</Label>
             <Select 
-              value={filters.city} 
-              onValueChange={(value) => updateFilter('city', value)}
+              value={filters.city || "_all"} 
+              onValueChange={(value) => updateFilter('city', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All cities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All cities</SelectItem>
+                <SelectItem value="_all">All cities</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
@@ -147,14 +147,14 @@ export function LeadCompanyFilters({
           <div className="space-y-2">
             <Label>State</Label>
             <Select 
-              value={filters.state} 
-              onValueChange={(value) => updateFilter('state', value)}
+              value={filters.state || "_all"} 
+              onValueChange={(value) => updateFilter('state', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All states" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All states</SelectItem>
+                <SelectItem value="_all">All states</SelectItem>
                 {states.map((state) => (
                   <SelectItem key={state} value={state}>
                     {state}
@@ -167,14 +167,14 @@ export function LeadCompanyFilters({
           <div className="space-y-2">
             <Label>Country</Label>
             <Select 
-              value={filters.country} 
-              onValueChange={(value) => updateFilter('country', value)}
+              value={filters.country || "_all"} 
+              onValueChange={(value) => updateFilter('country', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All countries" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All countries</SelectItem>
+                <SelectItem value="_all">All countries</SelectItem>
                 {countries.map((country) => (
                   <SelectItem key={country} value={country}>
                     {country}
