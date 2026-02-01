@@ -109,7 +109,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
   // Settings submenu items - Filter based on user role
   const settingsItems = [
     { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={OptoIcon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
-    { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
+    { id: 'leads-pipeline', label: t('nav.leads-pipeline'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
+    { id: 'sales-pipeline', label: t('nav.sales-pipeline'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
+    { id: 'companies', label: t('nav.companies'), icon: () => <Users size={13}/>, restrictedFor: ['agent'] },
     { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={13}/>, restrictedFor: ['agent'] },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },
   ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
@@ -334,6 +336,56 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     No funnels available
                   </div>
                 )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Sales Section */}
+        <div>
+          <button
+            onClick={() => toggleSection('sales')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Database className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.sales')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'sales' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <AnimatePresence>
+            {expandedSection === 'sales' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="ml-4 text-sm text-muted-foreground">
+                  {t('nav.no-sales-pipelines')}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
