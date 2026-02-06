@@ -51,6 +51,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import StageEditModal from './StageEditModal';
 import StageEntryRequirementsModal, { EntryRequirement } from './StageEntryRequirementsModal';
+import { getStageTypesForFunnel } from '@/lib/stageTypes';
 
 interface Stage {
   id: number;
@@ -90,6 +91,7 @@ interface Funnel {
   id: number;
   name: string;
   description: string;
+  type: 'sale' | 'deal';
 }
 
 const FunnelStages = () => {
@@ -136,16 +138,8 @@ const FunnelStages = () => {
   );
 
   
-  // Stage type options
-  const stageTypes = [
-    { value: 'entry', label: 'Entry' },
-    { value: 'normal', label: 'Normal' },
-    { value: 'service', label: 'Service' },
-    { value: 'proposition', label: 'Proposition' },
-    { value: 'qualified', label: 'Qualified' },
-    { value: 'conversion', label: 'Conversion' },
-    { value: 'lost', label: 'Lost' }
-  ];
+  // Stage type options based on funnel type
+  const stageTypes = funnel ? getStageTypesForFunnel(funnel.type) : [];
 
   // Fetch funnel details and stages
   useEffect(() => {
@@ -863,6 +857,7 @@ const FunnelStages = () => {
         }}
         stage={selectedStage}
         funnelId={funnelId || ''}
+        funnelType={funnel?.type || 'sale'}
         onUpdate={handleStageUpdate}
       />
 
