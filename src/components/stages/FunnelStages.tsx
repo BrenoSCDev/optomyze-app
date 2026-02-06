@@ -85,17 +85,17 @@ const STAGE_COLORS = [
   { value: '#8B5CF6', label: 'Purple' },
   { value: '#EC4899', label: 'Pink' },
   { value: '#6B7280', label: 'Gray' },
-  // Second row
-  { value: '#1F2937', label: 'Dark Gray' },
-  { value: '#DC2626', label: 'Dark Red' },
-  { value: '#EA580C', label: 'Dark Orange' },
-  { value: '#CA8A04', label: 'Dark Yellow' },
-  { value: '#16A34A', label: 'Dark Green' },
-  { value: '#0891B2', label: 'Dark Cyan' },
-  { value: '#2563EB', label: 'Dark Blue' },
-  { value: '#7C3AED', label: 'Dark Purple' },
-  { value: '#DB2777', label: 'Dark Pink' },
-  { value: '#A855F7', label: 'Light Purple' },
+  // Second row - more diverse colors
+  { value: '#0F172A', label: 'Slate' },
+  { value: '#7C2D12', label: 'Brown' },
+  { value: '#065F46', label: 'Emerald' },
+  { value: '#0E7490', label: 'Teal' },
+  { value: '#1E3A8A', label: 'Indigo' },
+  { value: '#4C1D95', label: 'Violet' },
+  { value: '#831843', label: 'Rose' },
+  { value: '#FCD34D', label: 'Amber' },
+  { value: '#A3E635', label: 'Lime' },
+  { value: '#F472B6', label: 'Fuchsia' },
 ];
 
 interface Funnel {
