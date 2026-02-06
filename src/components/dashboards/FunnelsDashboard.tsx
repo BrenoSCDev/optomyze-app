@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree } from 'lucide-react';
+import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { funnelService } from '@/services/funnelApi';
 import api from '@/services/api';
+import { MdCurrencyExchange } from 'react-icons/md';
 
 interface Funnel {
   id: number;
@@ -36,6 +38,7 @@ interface Funnel {
   is_active: boolean;
   created_by: number;
   settings: any;
+  type: 'sale' | 'deal';
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -45,13 +48,14 @@ interface Funnel {
 const FunnelsDashboard = () => {
   const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'sale' | 'deal'>('sale');
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
   const [showEditFunnelModal, setShowEditFunnelModal] = useState(false);
   const [deletingFunnelId, setDeletingFunnelId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', type: 'sale' as 'sale' | 'deal' });
   const [editFormData, setEditFormData] = useState({ name: '', description: '', is_active: true });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
@@ -122,7 +126,8 @@ const FunnelsDashboard = () => {
       setCreating(true);
       const response = await api.post('/api/funnels', {
         name: formData.name.trim(),
-        description: formData.description.trim()
+        description: formData.description.trim(),
+        type: formData.type
       });
       
       // Add new funnel to the list
@@ -134,13 +139,14 @@ const FunnelsDashboard = () => {
           id: response.data.id,
           name: response.data.name,
           nleads: response.data.nleads || 0,
-          is_active: response.data.is_active ?? true
+          is_active: response.data.is_active ?? true,
+          type: response.data.type
         }];
         updateFunnels(updatedGlobalFunnels);
       }
       
       // Reset form and close modal
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', type: activeTab });
       setShowNewFunnelModal(false);
       
       toast({
@@ -409,13 +415,13 @@ const FunnelsDashboard = () => {
         
         {/* Stats Section */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Leads Count */}
+          {/* Leads/Deals Count */}
           <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
             <div className="text-2xl font-bold text-primary mb-1">
               {funnel.nleads}
             </div>
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              {t('funnels.leads')}
+              {funnel.type === 'deal' ? t('funnels.deals') : t('funnels.leads')}
             </div>
           </div>
 
@@ -486,11 +492,16 @@ const FunnelsDashboard = () => {
           </nav>
         </div>
         
-        <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
+        <Dialog open={showNewFunnelModal} onOpenChange={(open) => {
+          setShowNewFunnelModal(open);
+          if (open) {
+            setFormData({ name: '', description: '', type: activeTab });
+          }
+        }}>
           <DialogTrigger asChild>
             <Button className="neon-border" size="lg">
               <Plus className="h-4 w-4 mr-2" />
-              {t('funnels.new-funnel')}
+              {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
             </Button>
           </DialogTrigger>
           <DialogContent className="glass-card max-w-lg">
@@ -547,9 +558,9 @@ const FunnelsDashboard = () => {
             <div className="flex justify-end gap-2 pt-4">
               <Button 
                 variant="outline" 
-                onClick={() => {
+              onClick={() => {
                   setShowNewFunnelModal(false);
-                  setFormData({ name: '', description: '' });
+                  setFormData({ name: '', description: '', type: activeTab });
                   setFormErrors({ name: '', description: '' });
                 }}
                 className="bg-muted/20 border-muted/30 hover:bg-muted/30"
@@ -688,22 +699,55 @@ const FunnelsDashboard = () => {
         </Dialog>
       </div>
 
-      {/* Funnels Grid */}
-      {loading ? (
-        <div className="grid grid-cols-2 gap-6">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-        </div>
-      ) : funnels.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="grid grid-cols-2 gap-6">
-          {funnels.map((funnel) => (
-            <FunnelCard key={funnel.id} funnel={funnel} />
-          ))}
-        </div>
-      )}
+      {/* Tabs for Sale and Deal Funnels */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'sale' | 'deal')} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="sale" className="gap-2">
+            <Users className="w-4 h-4" />
+            <span>{t('funnels.sales-funnels')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="deal" className="gap-2">
+            <MdCurrencyExchange className="w-4 h-4" />
+            <span>{t('funnels.deal-funnels')}</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sale" className="mt-0">
+          {loading ? (
+            <div className="grid grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : funnels.filter(f => f.type === 'sale').length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="grid grid-cols-2 gap-6">
+              {funnels.filter(f => f.type === 'sale').map((funnel) => (
+                <FunnelCard key={funnel.id} funnel={funnel} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="deal" className="mt-0">
+          {loading ? (
+            <div className="grid grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : funnels.filter(f => f.type === 'deal').length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="grid grid-cols-2 gap-6">
+              {funnels.filter(f => f.type === 'deal').map((funnel) => (
+                <FunnelCard key={funnel.id} funnel={funnel} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
