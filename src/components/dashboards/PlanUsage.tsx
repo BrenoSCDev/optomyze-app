@@ -19,7 +19,6 @@ import {
   Crown,
   Sparkles,
   Infinity,
-  GitBranch,
   Building2,
   MessageSquare
 } from 'lucide-react';
@@ -30,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import api from '@/services/api';
+import { IoFunnelOutline } from 'react-icons/io5';
 
 interface PlanUsageResponse {
   subscription_plan: string;
@@ -273,7 +273,7 @@ const PlanUsage = () => {
       label: t('planUsage.metrics.salesFunnels'),
       current: planData.sales_funnels.used,
       limit: planData.sales_funnels.limit,
-      icon: <GitBranch className="h-5 w-5" />,
+      icon: <IoFunnelOutline className="h-5 w-5" />,
       isUnlimited: planData.sales_funnels.is_unlimited,
       percentage: planData.sales_funnels.percentage,
     },
@@ -282,7 +282,7 @@ const PlanUsage = () => {
       label: t('planUsage.metrics.dealFunnels'),
       current: planData.deal_funnels.used,
       limit: planData.deal_funnels.limit,
-      icon: <GitBranch className="h-5 w-5" />,
+      icon: <IoFunnelOutline className="h-5 w-5" />,
       isUnlimited: planData.deal_funnels.is_unlimited,
       percentage: planData.deal_funnels.percentage,
     },

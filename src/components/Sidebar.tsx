@@ -52,6 +52,7 @@ import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 import { VscSettings } from "react-icons/vsc";
+import { MdBusinessCenter, MdCurrencyExchange } from "react-icons/md";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -111,7 +112,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={OptoIcon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
     { id: 'funnels', label: t('nav.leads-pipeline'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
     { id: 'sales-pipeline', label: t('nav.sales-pipeline'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
-    { id: 'companies', label: t('nav.companies'), icon: () => <Users size={13}/>, restrictedFor: ['agent'] },
+    { id: 'companies', label: t('nav.companies'), icon: () => <MdBusinessCenter size={16}/>, restrictedFor: ['agent'] },
     { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={13}/>, restrictedFor: ['agent'] },
     { id: 'languages', label: t('nav.languages'), icon: () => <IoLanguage />, restrictedFor: [] },
   ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
@@ -348,7 +349,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
             className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
-              <Database className="h-5 w-5" />
+              <MdCurrencyExchange className="h-4 w-4" />
               <AnimatePresence>
                 {!effectivelyCollapsed && (
                   <motion.span
