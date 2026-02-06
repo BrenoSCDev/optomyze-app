@@ -12,13 +12,13 @@ export interface StageTypeOption {
 export const SHARED_STAGE_TYPES: StageTypeOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'normal', label: 'Normal' },
-  { value: 'qualified', label: 'Qualified' },
   { value: 'lost', label: 'Lost' },
-  { value: 'conversion', label: 'Conversion' },
 ];
 
 // Sales-oriented stage types
 export const SALES_STAGE_TYPES: StageTypeOption[] = [
+  { value: 'qualified', label: 'Qualified' },
+  { value: 'conversion', label: 'Conversion' },
   { value: 'service', label: 'Service' },
   { value: 'proposition', label: 'Proposition' },
 ];
