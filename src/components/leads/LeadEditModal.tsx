@@ -263,30 +263,31 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="value_estimated" className="text-white">
-                          {t('lead-details.estimated-value')}
-                        </Label>
-                        <Input
-                          id="value_estimated"
-                          type="number"
-                          value={formData.value_estimated}
-                          onChange={(e) => updateField('value_estimated', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="currency" className="text-white">
-                          {t('lead-details.currency')}
-                        </Label>
-                        <Input
-                          id="currency"
-                          value={formData.currency}
-                          onChange={(e) => updateField('currency', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currency" className="text-white">
+                        {t('lead-details.currency')}
+                      </Label>
+                      <Select
+                        value={formData.currency}
+                        onValueChange={(value) => updateField('currency', value)}
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                          <SelectValue placeholder={t('lead-details.currency')} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/10">
+                          <SelectItem value="USD" className="text-white hover:bg-white/10">$ USD - US Dollar</SelectItem>
+                          <SelectItem value="EUR" className="text-white hover:bg-white/10">€ EUR - Euro</SelectItem>
+                          <SelectItem value="GBP" className="text-white hover:bg-white/10">£ GBP - British Pound</SelectItem>
+                          <SelectItem value="BRL" className="text-white hover:bg-white/10">R$ BRL - Brazilian Real</SelectItem>
+                          <SelectItem value="CAD" className="text-white hover:bg-white/10">C$ CAD - Canadian Dollar</SelectItem>
+                          <SelectItem value="AUD" className="text-white hover:bg-white/10">A$ AUD - Australian Dollar</SelectItem>
+                          <SelectItem value="JPY" className="text-white hover:bg-white/10">¥ JPY - Japanese Yen</SelectItem>
+                          <SelectItem value="CNY" className="text-white hover:bg-white/10">¥ CNY - Chinese Yuan</SelectItem>
+                          <SelectItem value="INR" className="text-white hover:bg-white/10">₹ INR - Indian Rupee</SelectItem>
+                          <SelectItem value="MXN" className="text-white hover:bg-white/10">$ MXN - Mexican Peso</SelectItem>
+                          <SelectItem value="CHF" className="text-white hover:bg-white/10">CHF CHF - Swiss Franc</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </TabsContent>
 
