@@ -38,8 +38,10 @@ import {
   Copy,
   UserCheck,
   ArrowRightLeft,
-  ShoppingBag
+  ShoppingBag,
+  Building2
 } from 'lucide-react';
+import { API_STORAGE_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -123,6 +125,18 @@ interface Stage {
   funnel?: Funnel;
 }
 
+interface LeadCompanyInfo {
+  id: number;
+  legal_name: string;
+  industry?: string | null;
+  logo_path?: string | null;
+}
+
+interface CompanyOption {
+  id: number;
+  legal_name: string;
+}
+
 interface Lead {
   id: number;
   first_name: string;
@@ -143,6 +157,9 @@ interface Lead {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Company association
+  job_title?: string | null;
+  lead_company?: LeadCompanyInfo | null;
   // Address fields
   address_line_1?: string | null;
   address_line_2?: string | null;
@@ -177,6 +194,7 @@ interface LeadData {
   docs: LeadDocument[];
   users: CompanyUser[];
   products: CompanyProduct[];
+  companies: CompanyOption[];
 }
 
 const LeadDetailPage = () => {
@@ -217,13 +235,16 @@ const LeadDetailPage = () => {
       const users = data.users || [];
       const companyProducts = data.products || [];
       
+      const companies = data.companies || [];
+      
       setLeadData({
         lead,
         transactions,
         tasks,
         docs,
         users,
-        products: companyProducts
+        products: companyProducts,
+        companies
       });
       
     } catch (err: any) {
@@ -554,6 +575,7 @@ const LeadDetailPage = () => {
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           lead={leadData.lead}
+          companies={leadData.companies}
           onUpdate={fetchLeadData}
         />
 
@@ -685,6 +707,35 @@ const LeadDetailHeader = ({
               <h1 className="text-2xl font-bold text-white mb-1">
                 {lead.first_name} {lead.last_name}
               </h1>
+              
+              {/* Company & Job Title */}
+              {(lead.lead_company || lead.job_title) && (
+                <div className="flex items-center gap-2 mb-2">
+                  {lead.lead_company && (
+                    <div className="flex items-center gap-2">
+                      {lead.lead_company.logo_path ? (
+                        <img 
+                          src={`${API_STORAGE_URL}/${lead.lead_company.logo_path}`}
+                          alt={lead.lead_company.legal_name}
+                          className="w-5 h-5 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center">
+                          <Building2 className="w-3 h-3 text-primary" />
+                        </div>
+                      )}
+                      <span className="text-white font-medium">{lead.lead_company.legal_name}</span>
+                    </div>
+                  )}
+                  {lead.lead_company && lead.job_title && (
+                    <span className="text-gray-500">•</span>
+                  )}
+                  {lead.job_title && (
+                    <span className="text-gray-400">{lead.job_title}</span>
+                  )}
+                </div>
+              )}
+              
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 {lead.email && (
                   <>
