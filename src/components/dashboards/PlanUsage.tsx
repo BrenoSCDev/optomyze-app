@@ -18,7 +18,10 @@ import {
   AlertTriangle,
   Crown,
   Sparkles,
-  Infinity
+  Infinity,
+  GitBranch,
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -37,6 +40,10 @@ interface PlanUsageResponse {
   active_deals: MetricData;
   tasks: MetricData;
   integrations: MetricData;
+  sales_funnels: MetricData;
+  deal_funnels: MetricData;
+  companies: MetricData;
+  messages: MetricData;
 }
 
 interface MetricData {
@@ -260,6 +267,42 @@ const PlanUsage = () => {
       icon: <Package className="h-5 w-5" />,
       isUnlimited: planData.products.is_unlimited,
       percentage: planData.products.percentage,
+    },
+    {
+      id: 'sales_funnels',
+      label: t('planUsage.metrics.salesFunnels'),
+      current: planData.sales_funnels.used,
+      limit: planData.sales_funnels.limit,
+      icon: <GitBranch className="h-5 w-5" />,
+      isUnlimited: planData.sales_funnels.is_unlimited,
+      percentage: planData.sales_funnels.percentage,
+    },
+    {
+      id: 'deal_funnels',
+      label: t('planUsage.metrics.dealFunnels'),
+      current: planData.deal_funnels.used,
+      limit: planData.deal_funnels.limit,
+      icon: <GitBranch className="h-5 w-5" />,
+      isUnlimited: planData.deal_funnels.is_unlimited,
+      percentage: planData.deal_funnels.percentage,
+    },
+    {
+      id: 'companies',
+      label: t('planUsage.metrics.companies'),
+      current: planData.companies.used,
+      limit: planData.companies.limit,
+      icon: <Building2 className="h-5 w-5" />,
+      isUnlimited: planData.companies.is_unlimited,
+      percentage: planData.companies.percentage,
+    },
+    {
+      id: 'messages',
+      label: t('planUsage.metrics.messages'),
+      current: planData.messages.used,
+      limit: planData.messages.limit,
+      icon: <MessageSquare className="h-5 w-5" />,
+      isUnlimited: planData.messages.is_unlimited,
+      percentage: planData.messages.percentage,
     },
   ];
 
