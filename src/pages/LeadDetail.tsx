@@ -150,6 +150,16 @@ interface Lead {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Address fields
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  state_code?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  // Relations
   assigned_user?: AssignedUser | null;
   transactions?: Transaction[];
   reports?: Report[];
@@ -159,6 +169,7 @@ interface Lead {
   sales?: Sale[];
   observations?: Observation[];
   whats_app_evo_chat?: LeadWhatsAppChat | null;
+  tags?: { id: number; name: string; color?: string }[];
 }
 
 interface CompanyProduct {
@@ -909,185 +920,7 @@ const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[]
   );
 };
 
-// Lead Edit Modal Component
-const LeadEditModal = ({ isOpen, onClose, lead, onUpdate }: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  lead: Lead; 
-  onUpdate: () => void; 
-}) => {
-  const { t } = useLanguage();
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    ddi: '+55',
-    source_platform: 'Direct',
-    value_estimated: '',
-    currency: 'USD',
-    notes: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const { token } = useAuth();
-
-  useEffect(() => {
-    if (lead && isOpen) {
-      setFormData({
-        first_name: lead.first_name || '',
-        last_name: lead.last_name || '',
-        email: lead.email || '',
-        phone: lead.phone || '',
-        ddi: lead.ddi || '+55',
-        source_platform: lead.source_platform || 'Direct',
-        value_estimated: lead.value_estimated?.toString() || '',
-        currency: lead.currency || 'USD',
-        notes: lead.notes || ''
-      });
-    }
-  }, [lead, isOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      await api.put(`/api/leads/${lead.id}`, formData);
-      
-      toast.success(t('lead-details.update-success'));
-      onUpdate();
-      onClose();
-      
-    } catch (error: any) {
-      console.error('Error updating lead:', error);
-      toast.error(t('lead-details.update-error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <motion.div 
-        className="glass-card w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-      >
-        <form onSubmit={handleSubmit}>
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 className="text-xl font-semibold text-white">{t('lead-details.edit-modal-title')}</h3>
-            <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10">
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-          
-          {/* Modal Body */}
-          <div className="p-6 space-y-6">
-            {/* Personal Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                label={t('lead-details.first-name')}
-                value={formData.first_name}
-                onChange={(value) => setFormData(prev => ({...prev, first_name: value}))}
-                required
-              />
-              <FormField
-                label={t('lead-details.last-name')}
-                value={formData.last_name}
-                onChange={(value) => setFormData(prev => ({...prev, last_name: value}))}
-                required
-              />
-              <FormField
-                label={t('lead-details.email')}
-                type="email"
-                value={formData.email}
-                onChange={(value) => setFormData(prev => ({...prev, email: value}))}
-              />
-              <FormField
-                label={t('lead-details.phone')}
-                value={formData.phone}
-                onChange={(value) => setFormData(prev => ({...prev, phone: value}))}
-              />
-            </div>
-            
-            {/* Additional Fields */}
-            <FormField
-              label={t('lead-details.notes')}
-              type="textarea"
-              value={formData.notes}
-              onChange={(value) => setFormData(prev => ({...prev, notes: value}))}
-              rows={4}
-            />
-          </div>
-          
-          {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10">
-            <Button
-              type="button"
-              onClick={onClose}
-              variant="outline"
-              disabled={loading}
-            >
-              {t('lead-details.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-primary hover:bg-primary/80"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {t('lead-details.saving')}
-                </>
-              ) : (
-                t('lead-details.save-changes')
-              )}
-            </Button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-};
-
-// Form Field Component
-const FormField = ({ 
-  label, 
-  type = 'text', 
-  value, 
-  onChange, 
-  required = false, 
-  rows = 1 
-}: { 
-  label: string; 
-  type?: string; 
-  value: string; 
-  onChange: (value: string) => void; 
-  required?: boolean; 
-  rows?: number; 
-}) => {
-  const Component = type === 'textarea' ? 'textarea' : 'input';
-  
-  return (
-    <div>
-      <label className="block text-sm font-medium text-white mb-2">
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
-      <Component
-        type={type !== 'textarea' ? type : undefined}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        rows={type === 'textarea' ? rows : undefined}
-        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:border-primary focus:outline-none resize-none"
-      />
-    </div>
-  );
-};
+// Lead Edit Modal - imported from component file
+import LeadEditModal from '@/components/leads/LeadEditModal';
 
 export default LeadDetailPage;

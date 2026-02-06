@@ -27,7 +27,8 @@ import {
   Copy,
   Brain,
   TrendingUp,
-  Calendar
+  Calendar,
+  MapPin
 } from 'lucide-react';
 import { VscSourceControl } from "react-icons/vsc";
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,16 @@ interface Lead {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Address fields
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  state_code?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  // Relations
   assigned_user?: AssignedUser | null;
   products?: LeadProduct[];
   observations?: Observation[];
@@ -291,6 +302,23 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
     return Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
   };
 
+  // Build full address string
+  const buildFullAddress = () => {
+    const parts = [
+      lead.address_line_1,
+      lead.address_line_2,
+      lead.neighborhood,
+      lead.city,
+      lead.state_code || lead.state,
+      lead.postal_code,
+      lead.country
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : null;
+  };
+
+  const fullAddress = buildFullAddress();
+  const hasAddressData = lead.address_line_1 || lead.city || lead.country;
+
   return (
     <div className="space-y-6">
       {/* General Information */}
@@ -311,6 +339,37 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
           />
         </div>
       </div>
+
+      {/* Address Section */}
+      {hasAddressData && (
+        <div className="pt-6 border-t border-white/10">
+          <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.address')}</h4>
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+            <div className="p-2 rounded-lg bg-orange-500/20">
+              <MapPin className="w-5 h-5 text-orange-400" />
+            </div>
+            <div className="flex-1">
+              {lead.address_line_1 && (
+                <p className="text-white font-medium">{lead.address_line_1}</p>
+              )}
+              {lead.address_line_2 && (
+                <p className="text-gray-400 text-sm">{lead.address_line_2}</p>
+              )}
+              <p className="text-gray-400 text-sm mt-1">
+                {[
+                  lead.neighborhood,
+                  lead.city,
+                  lead.state_code || lead.state,
+                  lead.postal_code
+                ].filter(Boolean).join(', ')}
+              </p>
+              {lead.country && (
+                <p className="text-gray-400 text-sm">{lead.country}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notes */}
       {lead.notes && (

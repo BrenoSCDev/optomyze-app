@@ -1,0 +1,464 @@
+/**
+ * LEAD EDIT MODAL
+ * 
+ * Tabbed modal for editing lead information
+ * Tabs: Contact, Address, Tracking (notes & tags)
+ */
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Loader2, User, MapPin, Tag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import api from '@/services/api';
+import { toast } from 'sonner';
+
+interface LeadTag {
+  id: number;
+  name: string;
+  color?: string;
+}
+
+interface Lead {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  ddi: string;
+  source_platform: string;
+  value_estimated: number;
+  currency: string;
+  notes: string;
+  // Address fields
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  state_code?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  // Tags
+  tags?: LeadTag[];
+}
+
+interface LeadEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  lead: Lead;
+  onUpdate: () => void;
+}
+
+const LeadEditModal: React.FC<LeadEditModalProps> = ({
+  isOpen,
+  onClose,
+  lead,
+  onUpdate
+}) => {
+  const { t } = useLanguage();
+  const { token } = useAuth();
+  const [activeTab, setActiveTab] = useState('contact');
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    // Contact fields
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    ddi: '+55',
+    source_platform: 'Direct',
+    value_estimated: '',
+    currency: 'USD',
+    // Address fields
+    address_line_1: '',
+    address_line_2: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    state_code: '',
+    postal_code: '',
+    country: '',
+    // Tracking fields
+    notes: ''
+  });
+
+  useEffect(() => {
+    if (lead && isOpen) {
+      setFormData({
+        first_name: lead.first_name || '',
+        last_name: lead.last_name || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        ddi: lead.ddi || '+55',
+        source_platform: lead.source_platform || 'Direct',
+        value_estimated: lead.value_estimated?.toString() || '',
+        currency: lead.currency || 'USD',
+        address_line_1: lead.address_line_1 || '',
+        address_line_2: lead.address_line_2 || '',
+        neighborhood: lead.neighborhood || '',
+        city: lead.city || '',
+        state: lead.state || '',
+        state_code: lead.state_code || '',
+        postal_code: lead.postal_code || '',
+        country: lead.country || '',
+        notes: lead.notes || ''
+      });
+      setActiveTab('contact');
+    }
+  }, [lead, isOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await api.put(`/api/leads/${lead.id}`, formData);
+      toast.success(t('lead-details.update-success'));
+      onUpdate();
+      onClose();
+    } catch (error: any) {
+      console.error('Error updating lead:', error);
+      toast.error(t('lead-details.update-error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateField = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <motion.div 
+          className="glass-card w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+        >
+          <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
+              <h3 className="text-xl font-semibold text-white">{t('lead-details.edit-modal-title')}</h3>
+              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            
+            {/* Tabs */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+                <div className="px-6 pt-4 shrink-0">
+                  <TabsList className="grid w-full grid-cols-3 bg-white/5">
+                    <TabsTrigger 
+                      value="contact" 
+                      className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                    >
+                      <User className="w-3.5 h-3.5 mr-1.5" />
+                      {t('lead-details.edit.contact')}
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="address" 
+                      className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                    >
+                      <MapPin className="w-3.5 h-3.5 mr-1.5" />
+                      {t('lead-details.edit.address')}
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="tracking" 
+                      className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                    >
+                      <Tag className="w-3.5 h-3.5 mr-1.5" />
+                      {t('lead-details.edit.tracking')}
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                  {/* Contact Tab */}
+                  <TabsContent value="contact" className="mt-0 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="first_name" className="text-white">
+                          {t('lead-details.first-name')} <span className="text-red-400">*</span>
+                        </Label>
+                        <Input
+                          id="first_name"
+                          value={formData.first_name}
+                          onChange={(e) => updateField('first_name', e.target.value)}
+                          required
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="last_name" className="text-white">
+                          {t('lead-details.last-name')} <span className="text-red-400">*</span>
+                        </Label>
+                        <Input
+                          id="last_name"
+                          value={formData.last_name}
+                          onChange={(e) => updateField('last_name', e.target.value)}
+                          required
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white">
+                        {t('lead-details.email')}
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => updateField('email', e.target.value)}
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="ddi" className="text-white">
+                          {t('lead-details.country-code')}
+                        </Label>
+                        <Input
+                          id="ddi"
+                          value={formData.ddi}
+                          onChange={(e) => updateField('ddi', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <Label htmlFor="phone" className="text-white">
+                          {t('lead-details.phone')}
+                        </Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => updateField('phone', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="value_estimated" className="text-white">
+                          {t('lead-details.estimated-value')}
+                        </Label>
+                        <Input
+                          id="value_estimated"
+                          type="number"
+                          value={formData.value_estimated}
+                          onChange={(e) => updateField('value_estimated', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="currency" className="text-white">
+                          {t('lead-details.currency')}
+                        </Label>
+                        <Input
+                          id="currency"
+                          value={formData.currency}
+                          onChange={(e) => updateField('currency', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Address Tab */}
+                  <TabsContent value="address" className="mt-0 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="address_line_1" className="text-white">
+                        {t('lead-details.address-line-1')}
+                      </Label>
+                      <Input
+                        id="address_line_1"
+                        value={formData.address_line_1}
+                        onChange={(e) => updateField('address_line_1', e.target.value)}
+                        placeholder={t('lead-details.address-line-1-placeholder')}
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address_line_2" className="text-white">
+                        {t('lead-details.address-line-2')}
+                      </Label>
+                      <Input
+                        id="address_line_2"
+                        value={formData.address_line_2}
+                        onChange={(e) => updateField('address_line_2', e.target.value)}
+                        placeholder={t('lead-details.address-line-2-placeholder')}
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="neighborhood" className="text-white">
+                          {t('lead-details.neighborhood')}
+                        </Label>
+                        <Input
+                          id="neighborhood"
+                          value={formData.neighborhood}
+                          onChange={(e) => updateField('neighborhood', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-white">
+                          {t('lead-details.city')}
+                        </Label>
+                        <Input
+                          id="city"
+                          value={formData.city}
+                          onChange={(e) => updateField('city', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="state" className="text-white">
+                          {t('lead-details.state')}
+                        </Label>
+                        <Input
+                          id="state"
+                          value={formData.state}
+                          onChange={(e) => updateField('state', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="state_code" className="text-white">
+                          {t('lead-details.state-code')}
+                        </Label>
+                        <Input
+                          id="state_code"
+                          value={formData.state_code}
+                          onChange={(e) => updateField('state_code', e.target.value)}
+                          maxLength={3}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="postal_code" className="text-white">
+                          {t('lead-details.postal-code')}
+                        </Label>
+                        <Input
+                          id="postal_code"
+                          value={formData.postal_code}
+                          onChange={(e) => updateField('postal_code', e.target.value)}
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="country" className="text-white">
+                        {t('lead-details.country')}
+                      </Label>
+                      <Input
+                        id="country"
+                        value={formData.country}
+                        onChange={(e) => updateField('country', e.target.value)}
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  {/* Tracking Tab */}
+                  <TabsContent value="tracking" className="mt-0 space-y-4">
+                    {/* Tags Display */}
+                    {lead.tags && lead.tags.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-white">{t('lead-details.tags')}</Label>
+                        <div className="flex flex-wrap gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+                          {lead.tags.map((tag) => (
+                            <Badge 
+                              key={tag.id} 
+                              variant="outline"
+                              className="text-xs"
+                              style={{ 
+                                borderColor: tag.color || '#8B5CF6',
+                                color: tag.color || '#8B5CF6',
+                                backgroundColor: `${tag.color || '#8B5CF6'}20`
+                              }}
+                            >
+                              {tag.name}
+                            </Badge>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {t('lead-details.tags-manage-hint')}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-white">
+                        {t('lead-details.notes')}
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        value={formData.notes}
+                        onChange={(e) => updateField('notes', e.target.value)}
+                        rows={6}
+                        placeholder={t('lead-details.notes-placeholder')}
+                        className="bg-white/5 border-white/10 text-white resize-none"
+                      />
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10 shrink-0">
+              <Button
+                type="button"
+                onClick={onClose}
+                variant="outline"
+                disabled={loading}
+              >
+                {t('lead-details.cancel')}
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-primary hover:bg-primary/80"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t('lead-details.saving')}
+                  </>
+                ) : (
+                  t('lead-details.save-changes')
+                )}
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+export default LeadEditModal;
