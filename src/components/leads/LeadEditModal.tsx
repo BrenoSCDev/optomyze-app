@@ -32,6 +32,18 @@ interface LeadTag {
   color?: string;
 }
 
+interface LeadCompanyInfo {
+  id: number;
+  legal_name: string;
+  industry?: string | null;
+  logo_path?: string | null;
+}
+
+interface CompanyOption {
+  id: number;
+  legal_name: string;
+}
+
 interface Lead {
   id: number;
   first_name: string;
@@ -45,6 +57,8 @@ interface Lead {
   notes: string;
   priority?: string;
   is_active?: boolean;
+  job_title?: string | null;
+  lead_company?: LeadCompanyInfo | null;
   // Address fields
   address_line_1?: string | null;
   address_line_2?: string | null;
@@ -62,6 +76,7 @@ interface LeadEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   lead: Lead;
+  companies?: CompanyOption[];
   onUpdate: () => void;
 }
 
@@ -69,6 +84,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
   isOpen,
   onClose,
   lead,
+  companies = [],
   onUpdate
 }) => {
   const { t } = useLanguage();
@@ -98,7 +114,9 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
     // Tracking fields
     notes: '',
     priority: 'medium',
-    is_active: true
+    is_active: true,
+    job_title: '',
+    lead_company_id: null as number | null
   });
 
   useEffect(() => {
@@ -122,7 +140,9 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
         country: lead.country || '',
         notes: lead.notes || '',
         priority: lead.priority || 'medium',
-        is_active: lead.is_active !== undefined ? lead.is_active : true
+        is_active: lead.is_active !== undefined ? lead.is_active : true,
+        job_title: lead.job_title || '',
+        lead_company_id: lead.lead_company?.id || null
       });
       setActiveTab('contact');
     }
@@ -399,6 +419,52 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
                   {/* Tracking Tab */}
                   <TabsContent value="tracking" className="mt-0 space-y-4">
+                    {/* Company Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="lead_company_id" className="text-white">
+                        {t('lead-details.company')}
+                      </Label>
+                      <Select
+                        value={formData.lead_company_id?.toString() || '_none'}
+                        onValueChange={(value) => setFormData(prev => ({ 
+                          ...prev, 
+                          lead_company_id: value === '_none' ? null : Number(value) 
+                        }))}
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                          <SelectValue placeholder={t('lead-details.select-company')} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/10">
+                          <SelectItem value="_none" className="text-white hover:bg-white/10">
+                            <span className="text-muted-foreground">{t('lead-details.no-company')}</span>
+                          </SelectItem>
+                          {companies.map((company) => (
+                            <SelectItem 
+                              key={company.id} 
+                              value={company.id.toString()} 
+                              className="text-white hover:bg-white/10"
+                            >
+                              {company.legal_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Job Title */}
+                    <div className="space-y-2">
+                      <Label htmlFor="job_title" className="text-white">
+                        {t('lead-details.job-title')}
+                      </Label>
+                      <Input
+                        id="job_title"
+                        value={formData.job_title}
+                        onChange={(e) => updateField('job_title', e.target.value)}
+                        placeholder={t('lead-details.job-title-placeholder')}
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    </div>
+
                     {/* Active Status */}
                     <div className="space-y-2">
                       <Label htmlFor="is_active" className="text-white">

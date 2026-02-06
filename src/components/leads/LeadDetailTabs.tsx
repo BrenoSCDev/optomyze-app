@@ -48,6 +48,13 @@ interface AssignedUser {
   email: string;
 }
 
+interface LeadCompanyInfo {
+  id: number;
+  legal_name: string;
+  industry?: string | null;
+  logo_path?: string | null;
+}
+
 interface Lead {
   id: number;
   first_name: string;
@@ -68,6 +75,9 @@ interface Lead {
   notes: string;
   created_at: string;
   updated_at: string;
+  // Company association
+  job_title?: string | null;
+  lead_company?: LeadCompanyInfo | null;
   // Address fields
   address_line_1?: string | null;
   address_line_2?: string | null;
