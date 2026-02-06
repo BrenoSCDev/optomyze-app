@@ -64,7 +64,7 @@ import {
 import { leadService } from '@/services/leadApi';
 import { Trash2 } from 'lucide-react';
 import { VscSourceControl } from "react-icons/vsc";
-import ReportsModal from '@/components/leads/ReportsModal';
+
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
 import TaskDeleteDialog from '@/components/leads/TaskDeleteDialog';
 import DocumentUploadModal from '@/components/leads/DocumentUploadModal';
@@ -95,35 +95,6 @@ interface Transaction {
   created_at: string;
 }
 
-interface Agent {
-  id: number;
-  company_id: number;
-  n8n_integration_id: number;
-  workflow_id: string;
-  workflow_name: string;
-  platform: string;
-  agent_name: string;
-  description: string | null;
-  configuration: string;
-  webhook_data: string | null;
-  status: string;
-  last_execution_at: string | null;
-  last_execution_result: string | null;
-  execution_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Report {
-  id: number;
-  lead_id: number;
-  n8n_agent_id: number;
-  platform: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  agent: Agent;
-}
 
 interface AssignedUser {
   id: number;
@@ -161,7 +132,7 @@ interface Lead {
   ddi: string;
   source_platform: string;
   source_type: string;
-  status: string;
+  is_active: boolean;
   priority: string;
   value_estimated: number;
   currency: string;
@@ -184,7 +155,6 @@ interface Lead {
   // Relations
   assigned_user?: AssignedUser | null;
   transactions?: Transaction[];
-  reports?: Report[];
   tasks?: Task[];
   docs?: LeadDocument[];
   products?: LeadProduct[];
@@ -203,7 +173,6 @@ interface CompanyProduct {
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
-  reports: Report[];
   tasks: Task[];
   docs: LeadDocument[];
   users: CompanyUser[];
@@ -220,7 +189,6 @@ const LeadDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [reportsModalOpen, setReportsModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
@@ -241,10 +209,9 @@ const LeadDetailPage = () => {
       const response = await api.get(`/api/leads/${leadId}`);
       const data = response.data;
       
-      // Handle both structures: transactions/reports/tasks inside lead object or at root level
+      // Handle both structures: transactions/tasks inside lead object or at root level
       const lead = data.lead || data;
       const transactions = data.transactions || lead.transactions || [];
-      const reports = data.reports || lead.reports || [];
       const tasks = data.tasks || lead.tasks || [];
       const docs = lead.docs || [];
       const users = data.users || [];
@@ -253,7 +220,6 @@ const LeadDetailPage = () => {
       setLeadData({
         lead,
         transactions,
-        reports,
         tasks,
         docs,
         users,
@@ -490,8 +456,6 @@ const LeadDetailPage = () => {
           lead={leadData.lead} 
           onEdit={() => setEditModalOpen(true)}
           onBack={handleBack}
-          onViewReports={() => setReportsModalOpen(true)}
-          reportsCount={leadData.reports?.length || 0}
           onAssignUser={() => setAssignUserModalOpen(true)}
           onDeleteLead={handleDeleteLead}
           isDeleting={isDeletingLead}
@@ -593,13 +557,6 @@ const LeadDetailPage = () => {
           onUpdate={fetchLeadData}
         />
 
-        {/* Reports Modal */}
-        <ReportsModal
-          isOpen={reportsModalOpen}
-          onClose={() => setReportsModalOpen(false)}
-          reports={leadData.reports || []}
-          leadName={`${leadData.lead.first_name} ${leadData.lead.last_name}`}
-        />
 
         {/* Task Creation/Edit Modal */}
         <TaskCreationModal
@@ -665,8 +622,6 @@ const LeadDetailHeader = ({
   lead, 
   onEdit, 
   onBack, 
-  onViewReports, 
-  reportsCount,
   onAssignUser,
   onDeleteLead,
   isDeleting
@@ -674,25 +629,12 @@ const LeadDetailHeader = ({
   lead: Lead; 
   onEdit: () => void; 
   onBack: () => void; 
-  onViewReports: () => void;
-  reportsCount: number;
   onAssignUser: () => void;
   onDeleteLead: () => void;
   isDeleting: boolean;
 }) => {
   const { t } = useLanguage();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  
-  const getStatusColor = (status: string) => {
-    const colors = {
-      'new': 'bg-blue-600/20 text-blue-400 border-blue-600/30',
-      'contacted': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
-      'qualified': 'bg-green-600/20 text-green-400 border-green-600/30',
-      'converted': 'bg-purple-600/20 text-purple-400 border-purple-600/30',
-      'lost': 'bg-red-600/20 text-red-400 border-red-600/30'
-    };
-    return colors[status as keyof typeof colors] || 'bg-gray-600/20 text-gray-400 border-gray-600/30';
-  };
 
   const getPriorityColor = (priority: string) => {
     const colors = {
@@ -753,8 +695,8 @@ const LeadDetailHeader = ({
                 <span className="text-gray-400">{lead.ddi} {lead.phone}</span>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <Badge className={`text-xs font-medium border ${getStatusColor(lead.status)}`}>
-                  {lead.status}
+                <Badge className={`text-xs font-medium border ${lead.is_active ? 'bg-green-600/20 text-green-400 border-green-600/30' : 'bg-red-600/20 text-red-400 border-red-600/30'}`}>
+                  {lead.is_active ? t('lead-details.active') : t('lead-details.inactive')}
                 </Badge>
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${getPriorityColor(lead.priority)}`}></div>
@@ -767,15 +709,6 @@ const LeadDetailHeader = ({
           
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            <Button onClick={onViewReports} variant="outline" className="glass-card">
-              <FileText className="w-4 h-4 mr-2" />
-              {t('lead-details.see-reports')}
-              {reportsCount > 0 && (
-                <Badge className="ml-2 bg-primary/20 text-primary border-primary/30">
-                  {reportsCount}
-                </Badge>
-              )}
-            </Button>
             <Button onClick={onEdit} className="bg-primary hover:bg-primary/80">
               <Edit className="w-4 h-4 mr-2" />
               {t('lead-details.edit-lead')}

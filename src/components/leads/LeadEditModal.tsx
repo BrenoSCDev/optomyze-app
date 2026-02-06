@@ -44,6 +44,7 @@ interface Lead {
   currency: string;
   notes: string;
   priority?: string;
+  is_active?: boolean;
   // Address fields
   address_line_1?: string | null;
   address_line_2?: string | null;
@@ -96,7 +97,8 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
     country: '',
     // Tracking fields
     notes: '',
-    priority: 'medium'
+    priority: 'medium',
+    is_active: true
   });
 
   useEffect(() => {
@@ -119,7 +121,8 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
         postal_code: lead.postal_code || '',
         country: lead.country || '',
         notes: lead.notes || '',
-        priority: lead.priority || 'medium'
+        priority: lead.priority || 'medium',
+        is_active: lead.is_active !== undefined ? lead.is_active : true
       });
       setActiveTab('contact');
     }
@@ -396,6 +399,35 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
                   {/* Tracking Tab */}
                   <TabsContent value="tracking" className="mt-0 space-y-4">
+                    {/* Active Status */}
+                    <div className="space-y-2">
+                      <Label htmlFor="is_active" className="text-white">
+                        {t('lead-details.status-label')}
+                      </Label>
+                      <Select
+                        value={formData.is_active ? 'active' : 'inactive'}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, is_active: value === 'active' }))}
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                          <SelectValue placeholder={t('lead-details.status-select')} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/10">
+                          <SelectItem value="active" className="text-white hover:bg-white/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                              {t('lead-details.active')}
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="inactive" className="text-white hover:bg-white/10">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                              {t('lead-details.inactive')}
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     {/* Priority */}
                     <div className="space-y-2">
                       <Label htmlFor="priority" className="text-white">
