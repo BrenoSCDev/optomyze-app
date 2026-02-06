@@ -53,9 +53,9 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
     : 100;
 
   return (
-    <div className="glass-card p-4">
+    <div className="glass-card p-4 mb-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div>
           <h4 className="text-sm font-medium text-white">{funnel.name}</h4>
           <p className="text-xs text-gray-400">
@@ -70,8 +70,11 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-3">
-        <Progress value={progressPercentage} className="h-2" />
+      <div className="mb-3 bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div 
+          className="h-full bg-primary rounded-full transition-all duration-300"
+          style={{ width: `${progressPercentage}%` }}
+        />
       </div>
 
       {/* Stage Indicators */}
@@ -87,7 +90,7 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
               title={s.name}
             >
               <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center transition-all
+                w-5 h-5 rounded-full flex items-center justify-center transition-all
                 ${isCompleted 
                   ? 'bg-green-500/20 text-green-400' 
                   : isCurrent 
@@ -96,13 +99,13 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
                 }
               `}>
                 {isCompleted ? (
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 ) : (
-                  <Circle className={`w-3 h-3 ${isCurrent ? 'fill-primary' : ''}`} />
+                  <Circle className={`w-2.5 h-2.5 ${isCurrent ? 'fill-primary' : ''}`} />
                 )}
               </div>
               <span className={`
-                text-[10px] mt-1 truncate max-w-[60px] text-center
+                text-[10px] mt-1 truncate max-w-[70px] text-center
                 ${isCurrent ? 'text-primary font-medium' : isCompleted ? 'text-gray-400' : 'text-gray-500'}
               `}>
                 {s.name}

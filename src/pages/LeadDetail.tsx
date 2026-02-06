@@ -503,7 +503,7 @@ const LeadDetailPage = () => {
         )}
         
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left Column - Tabbed Lead Information */}
           <div className="lg:col-span-2 space-y-6">
             <LeadDetailTabs
@@ -710,7 +710,7 @@ const LeadDetailHeader = ({
 
   return (
     <motion.div 
-      className="mb-8"
+      className="mb-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
