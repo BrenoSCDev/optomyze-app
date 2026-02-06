@@ -48,14 +48,10 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
   const currentStageIndex = rawStageIndex >= 0 ? rawStageIndex : 0;
   const totalStages = stages.length;
 
-  // Calculate progress percentage (0 to 100) across the span BETWEEN first and last stage dots.
-  const progressPercentage = totalStages > 1
-    ? (currentStageIndex / (totalStages - 1)) * 100
-    : 100;
-
-  // Offset the bar so its endpoints line up with the first/last dot centers.
-  // With N equally-sized stage columns, dot centers sit at (0.5/N) ... (1 - 0.5/N).
-  const edgeOffsetPercent = 100 / (totalStages * 2);
+  // Calculate progress percentage based on stage position
+  // For N stages, each stage represents (100 / N)% of the bar
+  // Current progress = (currentStageIndex + 1) / totalStages * 100
+  const progressPercentage = ((currentStageIndex + 1) / totalStages) * 100;
 
   return (
     <div className="glass-card p-4 mb-4">
@@ -74,20 +70,12 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
         </div>
       </div>
 
-      {/* Progress Bar (aligned to stage dot centers) */}
-      <div
-        className="mb-3"
-        style={{
-          paddingLeft: `${edgeOffsetPercent}%`,
-          paddingRight: `${edgeOffsetPercent}%`,
-        }}
-      >
-        <div className="bg-white/10 rounded-full h-1.5 overflow-hidden">
-          <div
-            className="h-full bg-primary rounded-full transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
+      {/* Progress Bar (full width) */}
+      <div className="mb-3 bg-white/10 rounded-full h-1.5 overflow-hidden">
+        <div
+          className="h-full bg-primary rounded-full transition-all duration-300"
+          style={{ width: `${progressPercentage}%` }}
+        />
       </div>
 
       {/* Stage Indicators */}
