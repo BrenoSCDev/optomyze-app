@@ -72,10 +72,31 @@ const planBadgeVariants: Record<string, string> = {
   enterprise: 'bg-accent/20 text-accent border border-accent/30',
 };
 
+// Usage helpers
+const coercePercentage = (value: unknown): number => {
+  let num: number | null = null;
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    num = value;
+  } else if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed)) num = parsed;
+  }
+
+  if (num === null) {
+    if (import.meta.env.DEV && value !== undefined && value !== null) {
+      console.warn('[PlanUsage] Unexpected percentage value:', value);
+    }
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, num));
+};
+
 // Usage card component
 const UsageCard = ({ metric }: { metric: UsageMetric }) => {
   const { t } = useLanguage();
-  const percentage = metric.percentage;
+  const percentage = metric.isUnlimited ? 0 : coercePercentage(metric.percentage);
   const isHighUsage = !metric.isUnlimited && percentage >= 80;
   const isCritical = !metric.isUnlimited && percentage >= 95;
   
@@ -125,8 +146,8 @@ const UsageCard = ({ metric }: { metric: UsageMetric }) => {
             </div>
             
             <Progress 
-              value={metric.isUnlimited ? 0 : percentage} 
-              className={`h-2 ${
+              value={percentage} 
+              className={`h-2 bg-muted ${
                 isCritical 
                   ? '[&>div]:bg-destructive' 
                   : isHighUsage 
