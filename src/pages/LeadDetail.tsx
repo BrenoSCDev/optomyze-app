@@ -76,6 +76,7 @@ import AddProductsModal from '@/components/leads/AddProductsModal';
 import PurchaseHistorySection, { Sale } from '@/components/leads/PurchaseHistorySection';
 import StartPurchaseModal from '@/components/leads/StartPurchaseModal';
 import LeadDetailTabs from '@/components/leads/LeadDetailTabs';
+import FunnelProgress from '@/components/leads/FunnelProgress';
 import { LeadWhatsAppChat } from '@/components/leads/LeadChatSection';
 import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
@@ -130,6 +131,27 @@ interface AssignedUser {
   email: string;
 }
 
+interface FunnelStage {
+  id: number;
+  funnel_id: number;
+  name: string;
+  order: number;
+}
+
+interface Funnel {
+  id: number;
+  name: string;
+  stages: FunnelStage[];
+}
+
+interface Stage {
+  id: number;
+  name: string;
+  funnel_id: number;
+  order: number;
+  funnel?: Funnel;
+}
+
 interface Lead {
   id: number;
   first_name: string;
@@ -170,6 +192,7 @@ interface Lead {
   observations?: Observation[];
   whats_app_evo_chat?: LeadWhatsAppChat | null;
   tags?: { id: number; name: string; color?: string }[];
+  stage?: Stage | null;
 }
 
 interface CompanyProduct {
@@ -473,6 +496,11 @@ const LeadDetailPage = () => {
           onDeleteLead={handleDeleteLead}
           isDeleting={isDeletingLead}
         />
+
+        {/* Funnel Progress */}
+        {leadData.lead.stage && (
+          <FunnelProgress stage={leadData.lead.stage} />
+        )}
         
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
