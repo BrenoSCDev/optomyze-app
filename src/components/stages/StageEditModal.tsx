@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import api from '@/services/api';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getStageTypesForFunnel } from '@/lib/stageTypes';
 
 interface Stage {
   id: number;
@@ -61,6 +62,7 @@ interface StageEditModalProps {
   onClose: () => void;
   stage: Stage | null;
   funnelId: string;
+  funnelType: 'sale' | 'deal';
   onUpdate: (updatedStage: Stage) => void;
 }
 
@@ -70,6 +72,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
   onClose,
   stage,
   funnelId,
+  funnelType,
   onUpdate
 }) => {
   const { t } = useLanguage();
@@ -88,16 +91,8 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
     type: ''
   });
 
-  // Stage type options
-  const stageTypes = [
-    { value: 'entry', label: 'Entry' },
-    { value: 'normal', label: 'Normal' },
-    { value: 'service', label: 'Service' },
-    { value: 'proposition', label: 'Proposition' },
-    { value: 'qualified', label: 'Qualified' },
-    { value: 'conversion', label: 'Conversion' },
-    { value: 'lost', label: 'Lost' }
-  ];
+  // Stage type options based on funnel type
+  const stageTypes = getStageTypesForFunnel(funnelType);
 
   // Pre-fill form with stage data when modal opens
   useEffect(() => {
