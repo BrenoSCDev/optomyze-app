@@ -55,8 +55,9 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-l-red-500';
-      case 'medium': return 'border-l-orange-500';
+      case 'urgent': return 'border-l-red-500';
+      case 'high': return 'border-l-orange-500';
+      case 'medium': return 'border-l-yellow-500';
       case 'low': return 'border-l-green-500';
       default: return 'border-l-gray-500';
     }
