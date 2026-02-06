@@ -1736,6 +1736,28 @@ const translations = {
     'lead-details.cancel': 'Cancel',
     'lead-details.general-information': 'General Information',
     
+    // Lead Edit Modal Tabs
+    'lead-details.edit.contact': 'Contact',
+    'lead-details.edit.address': 'Address',
+    'lead-details.edit.tracking': 'Tracking',
+    
+    // Address Fields
+    'lead-details.address': 'Address',
+    'lead-details.address-line-1': 'Address Line 1',
+    'lead-details.address-line-1-placeholder': 'Street address, P.O. box',
+    'lead-details.address-line-2': 'Address Line 2',
+    'lead-details.address-line-2-placeholder': 'Apartment, suite, unit, building, floor',
+    'lead-details.neighborhood': 'Neighborhood',
+    'lead-details.city': 'City',
+    'lead-details.state': 'State',
+    'lead-details.state-code': 'State Code',
+    'lead-details.postal-code': 'Postal Code',
+    'lead-details.country': 'Country',
+    'lead-details.country-code': 'Country Code',
+    'lead-details.tags': 'Tags',
+    'lead-details.tags-manage-hint': 'Tags can be managed from the lead kanban board.',
+    'lead-details.notes-placeholder': 'Add notes about this lead...',
+    
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
     'lead-details.tabs.info-short': 'Lead',
@@ -3761,6 +3783,28 @@ const translations = {
     'lead-details.cancel': 'Cancelar',
     'lead-details.general-information': 'Informações Gerais',
     
+    // Lead Edit Modal Tabs
+    'lead-details.edit.contact': 'Contato',
+    'lead-details.edit.address': 'Endereço',
+    'lead-details.edit.tracking': 'Acompanhamento',
+    
+    // Address Fields
+    'lead-details.address': 'Endereço',
+    'lead-details.address-line-1': 'Endereço Linha 1',
+    'lead-details.address-line-1-placeholder': 'Rua, número, caixa postal',
+    'lead-details.address-line-2': 'Endereço Linha 2',
+    'lead-details.address-line-2-placeholder': 'Apartamento, sala, bloco, andar',
+    'lead-details.neighborhood': 'Bairro',
+    'lead-details.city': 'Cidade',
+    'lead-details.state': 'Estado',
+    'lead-details.state-code': 'Sigla do Estado',
+    'lead-details.postal-code': 'CEP',
+    'lead-details.country': 'País',
+    'lead-details.country-code': 'DDI',
+    'lead-details.tags': 'Tags',
+    'lead-details.tags-manage-hint': 'Tags podem ser gerenciadas no quadro kanban de leads.',
+    'lead-details.notes-placeholder': 'Adicione notas sobre este lead...',
+    
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
     'lead-details.tabs.info-short': 'Lead',
@@ -5514,6 +5558,28 @@ const translations = {
     'lead-details.last-name': 'Nachname',
     'lead-details.cancel': 'Abbrechen',
     'lead-details.general-information': 'Allgemeine Informationen',
+    
+    // Lead Edit Modal Tabs
+    'lead-details.edit.contact': 'Kontakt',
+    'lead-details.edit.address': 'Adresse',
+    'lead-details.edit.tracking': 'Verfolgung',
+    
+    // Address Fields
+    'lead-details.address': 'Adresse',
+    'lead-details.address-line-1': 'Adresszeile 1',
+    'lead-details.address-line-1-placeholder': 'Straße, Hausnummer, Postfach',
+    'lead-details.address-line-2': 'Adresszeile 2',
+    'lead-details.address-line-2-placeholder': 'Wohnung, Suite, Gebäude, Etage',
+    'lead-details.neighborhood': 'Stadtteil',
+    'lead-details.city': 'Stadt',
+    'lead-details.state': 'Bundesland',
+    'lead-details.state-code': 'Bundesland-Kürzel',
+    'lead-details.postal-code': 'Postleitzahl',
+    'lead-details.country': 'Land',
+    'lead-details.country-code': 'Ländervorwahl',
+    'lead-details.tags': 'Tags',
+    'lead-details.tags-manage-hint': 'Tags können auf dem Lead-Kanban-Board verwaltet werden.',
+    'lead-details.notes-placeholder': 'Notizen zu diesem Lead hinzufügen...',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
@@ -7375,6 +7441,28 @@ const translations = {
     'lead-details.last-name': 'Apellido',
     'lead-details.cancel': 'Cancelar',
     'lead-details.general-information': 'Información General',
+    
+    // Lead Edit Modal Tabs
+    'lead-details.edit.contact': 'Contacto',
+    'lead-details.edit.address': 'Dirección',
+    'lead-details.edit.tracking': 'Seguimiento',
+    
+    // Address Fields
+    'lead-details.address': 'Dirección',
+    'lead-details.address-line-1': 'Línea de Dirección 1',
+    'lead-details.address-line-1-placeholder': 'Calle, número, apartado postal',
+    'lead-details.address-line-2': 'Línea de Dirección 2',
+    'lead-details.address-line-2-placeholder': 'Apartamento, suite, edificio, piso',
+    'lead-details.neighborhood': 'Barrio',
+    'lead-details.city': 'Ciudad',
+    'lead-details.state': 'Estado/Provincia',
+    'lead-details.state-code': 'Código de Estado',
+    'lead-details.postal-code': 'Código Postal',
+    'lead-details.country': 'País',
+    'lead-details.country-code': 'Código de País',
+    'lead-details.tags': 'Etiquetas',
+    'lead-details.tags-manage-hint': 'Las etiquetas se pueden gestionar desde el tablero kanban de leads.',
+    'lead-details.notes-placeholder': 'Añade notas sobre este lead...',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
