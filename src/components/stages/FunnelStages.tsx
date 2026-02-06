@@ -89,9 +89,16 @@ const STAGE_COLORS = [
 
 interface Funnel {
   id: number;
+  company_id: number;
   name: string;
   description: string;
+  is_active: boolean;
+  created_by: number;
+  settings: any;
   type: 'sale' | 'deal';
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
 const FunnelStages = () => {
@@ -149,13 +156,10 @@ const FunnelStages = () => {
       try {
         setLoading(true);
         
-        // Fetch funnel details
-        const funnelResponse = await api.get(`/api/funnels/${funnelId}`);
-        setFunnel(funnelResponse.data);
-
-        // Fetch stages
-        const stagesResponse = await api.get(`/api/funnels/${funnelId}/stages`);
-        setStages(stagesResponse.data || []);
+        // Fetch stages and funnel data (new API response format)
+        const response = await api.get(`/api/funnels/${funnelId}/stages`);
+        setStages(response.data.stages || []);
+        setFunnel(response.data.funnel || null);
         
         // Mark as initially loaded for animation control
         if (!hasInitiallyLoaded) {
