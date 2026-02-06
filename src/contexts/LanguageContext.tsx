@@ -1757,6 +1757,12 @@ const translations = {
     'lead-details.tags': 'Tags',
     'lead-details.tags-manage-hint': 'Tags can be managed from the lead kanban board.',
     'lead-details.notes-placeholder': 'Add notes about this lead...',
+    'lead-details.priority-label': 'Priority',
+    'lead-details.priority-select': 'Select priority',
+    'lead-details.priority-low': 'Low',
+    'lead-details.priority-medium': 'Medium',
+    'lead-details.priority-high': 'High',
+    'lead-details.priority-urgent': 'Urgent',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
@@ -3804,6 +3810,12 @@ const translations = {
     'lead-details.tags': 'Tags',
     'lead-details.tags-manage-hint': 'Tags podem ser gerenciadas no quadro kanban de leads.',
     'lead-details.notes-placeholder': 'Adicione notas sobre este lead...',
+    'lead-details.priority-label': 'Prioridade',
+    'lead-details.priority-select': 'Selecione a prioridade',
+    'lead-details.priority-low': 'Baixa',
+    'lead-details.priority-medium': 'Média',
+    'lead-details.priority-high': 'Alta',
+    'lead-details.priority-urgent': 'Urgente',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
@@ -5580,6 +5592,12 @@ const translations = {
     'lead-details.tags': 'Tags',
     'lead-details.tags-manage-hint': 'Tags können auf dem Lead-Kanban-Board verwaltet werden.',
     'lead-details.notes-placeholder': 'Notizen zu diesem Lead hinzufügen...',
+    'lead-details.priority-label': 'Priorität',
+    'lead-details.priority-select': 'Priorität auswählen',
+    'lead-details.priority-low': 'Niedrig',
+    'lead-details.priority-medium': 'Mittel',
+    'lead-details.priority-high': 'Hoch',
+    'lead-details.priority-urgent': 'Dringend',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
@@ -7463,6 +7481,12 @@ const translations = {
     'lead-details.tags': 'Etiquetas',
     'lead-details.tags-manage-hint': 'Las etiquetas se pueden gestionar desde el tablero kanban de leads.',
     'lead-details.notes-placeholder': 'Añade notas sobre este lead...',
+    'lead-details.priority-label': 'Prioridad',
+    'lead-details.priority-select': 'Seleccionar prioridad',
+    'lead-details.priority-low': 'Baja',
+    'lead-details.priority-medium': 'Media',
+    'lead-details.priority-high': 'Alta',
+    'lead-details.priority-urgent': 'Urgente',
     
     // Lead Details Tabs
     'lead-details.tabs.info': 'Lead',
