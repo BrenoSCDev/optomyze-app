@@ -97,9 +97,19 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> }, // Website traffic data
   ];
 
-  // Dynamic leads submenu items from API - only show active funnels
+  // Dynamic leads submenu items from API - only show active sale funnels
   const leadsItems = funnels
-    .filter(funnel => funnel.is_active)
+    .filter(funnel => funnel.is_active && funnel.type === 'sale')
+    .map(funnel => ({
+      id: funnel.id.toString(),
+      label: funnel.name,
+      count: funnel.nleads,
+      path: `/leads/${funnel.id}`
+    }));
+
+  // Dynamic deals submenu items from API - only show active deal funnels
+  const dealsItems = funnels
+    .filter(funnel => funnel.is_active && funnel.type === 'deal')
     .map(funnel => ({
       id: funnel.id.toString(),
       label: funnel.name,
@@ -342,10 +352,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
-        {/* Sales Section */}
+        {/* Deals Section */}
         <div>
           <button
-            onClick={() => toggleSection('sales')}
+            onClick={() => toggleSection('deals')}
             className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
@@ -357,7 +367,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    {t('nav.sales')}
+                    {t('nav.deals')}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -369,14 +379,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {expandedSection === 'sales' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  {expandedSection === 'deals' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                 </motion.div>
               )}
             </AnimatePresence>
           </button>
 
           <AnimatePresence>
-            {expandedSection === 'sales' && !effectivelyCollapsed && (
+            {expandedSection === 'deals' && !effectivelyCollapsed && (
               <motion.div
                 className="ml-4 space-y-1 mt-2"
                 initial={{ opacity: 0, height: 0 }}
@@ -384,9 +394,26 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="ml-4 text-sm text-muted-foreground">
-                  {t('nav.no-sales-pipelines')}
-                </div>
+                {dealsItems.length > 0 ? (
+                  dealsItems.map((item) => (
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      className={({ isActive }) => `
+                        nav-item-sub w-full ${
+                          isActive ? 'active' : ''
+                        }
+                      `}
+                    >
+                      <IoFunnelOutline size={12} />
+                      <span className="truncate">{item.label}</span>
+                    </NavLink>
+                  ))
+                ) : (
+                  <div className="ml-4 text-sm text-muted-foreground">
+                    {t('nav.no-deal-pipelines')}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
