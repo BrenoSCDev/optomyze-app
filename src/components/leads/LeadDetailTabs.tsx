@@ -57,7 +57,7 @@ interface Lead {
   ddi: string;
   source_platform: string;
   source_type: string;
-  status: string;
+  is_active: boolean;
   priority: string;
   value_estimated: number;
   currency: string;
