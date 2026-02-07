@@ -147,7 +147,7 @@ const UsageCard = ({ metric }: { metric: UsageMetric }) => {
             
             <Progress 
               value={percentage} 
-              className={`h-2 bg-muted ${
+              className={`h-2 bg-gray-800 ${
                 isCritical 
                   ? '[&>div]:bg-destructive' 
                   : isHighUsage 
