@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, 
   Users, 
+  UsersRound,
+  Shield,
   Settings, 
   Database, 
   ChevronDown,
@@ -39,7 +41,8 @@ import {
   FileStack,
   ClipboardList,
   TicketPlus,
-  MessageSquareText
+  MessageSquareText,
+  Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -145,9 +148,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
     { id: 'api-playground', label: t('api.playground.title'), icon: () => <Key size={18}/> },
   ];
 
-  // Users submenu items
-  const usersItems = [
-    { id: 'manage-users', label: 'Manage Users', icon: () => <Users size={18}/> },
+  // Organization submenu items (renamed from Users)
+  const organizationItems = [
+    { id: 'manage-users', label: t('organization.users'), icon: () => <Users size={18}/> },
+    { id: 'manage-teams', label: t('organization.teams'), icon: () => <UsersRound size={18}/> },
+    { id: 'manage-roles', label: t('organization.roles'), icon: () => <Shield size={18}/> },
   ];
 
   // Chat submenu items
@@ -654,15 +659,15 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
           </AnimatePresence>
         </div>
 
-        {/* Users Section - Hidden for Agent role */}
+        {/* Organization Section - Hidden for Agent role (renamed from Users) */}
         {user?.role !== 'agent' && (
           <div>
             <button
-              onClick={() => toggleSection('users')}
+              onClick={() => toggleSection('organization')}
               className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
             >
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5" />
+                <Building className="h-5 w-5" />
                 <AnimatePresence>
                   {!effectivelyCollapsed && (
                     <motion.span
@@ -670,7 +675,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      {t('nav.users')}
+                      {t('nav.organization')}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -682,14 +687,14 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    {expandedSection === 'users' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    {expandedSection === 'organization' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </motion.div>
                 )}
               </AnimatePresence>
             </button>
 
             <AnimatePresence>
-              {expandedSection === 'users' && !effectivelyCollapsed && (
+              {expandedSection === 'organization' && !effectivelyCollapsed && (
                 <motion.div
                   className="ml-4 space-y-1 mt-2"
                   initial={{ opacity: 0, height: 0 }}
@@ -697,7 +702,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {usersItems.map((item) => (
+                  {organizationItems.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => handleSectionNavigation(item.id)}

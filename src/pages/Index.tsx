@@ -32,6 +32,8 @@ import ApiTokens from '@/components/api/ApiTokens';
 import ApiSetup from '@/components/api/ApiSetup';
 import { ApiPlayground } from '@/components/api/playground';
 import ManageUsers from '@/components/users/ManageUsers';
+import { ManageTeams } from '@/components/teams';
+import { ManageRoles } from '@/components/roles';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 import ManageProducts from '@/components/products/ManageProducts';
@@ -137,9 +139,13 @@ const Index = () => {
       case 'api-playground':
         return <ApiPlayground />;
       
-      // Users sections
+      // Organization sections (renamed from Users)
       case 'manage-users':
         return <ManageUsers />;
+      case 'manage-teams':
+        return <ManageTeams />;
+      case 'manage-roles':
+        return <ManageRoles />;
       
       // Chat sections
       case 'whatsapp-inbox':
