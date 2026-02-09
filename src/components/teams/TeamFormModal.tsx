@@ -77,15 +77,29 @@ const TeamFormModal: React.FC<TeamFormModalProps> = ({
           description: team.description || '',
           manager_user_id: team.manager_user_id,
         });
-        setTeamMembers(
-          team.users?.map(u => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            role: u.role || '',
-            profile_photo_url: u.profile_photo_url,
-          })) || []
-        );
+        // Fetch full team data to ensure users are loaded
+        teamApi.getTeam(team.id).then(fullTeam => {
+          setTeamMembers(
+            fullTeam.users?.map(u => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role || '',
+              profile_photo_url: u.profile_photo_url,
+            })) || []
+          );
+        }).catch(() => {
+          // Fallback to whatever we have
+          setTeamMembers(
+            team.users?.map(u => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role || '',
+              profile_photo_url: u.profile_photo_url,
+            })) || []
+          );
+        });
       } else {
         setFormData({
           name: '',
