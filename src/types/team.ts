@@ -6,6 +6,13 @@ export interface TeamUser {
   email: string;
   role?: string; // Role within the team (e.g., "closer", "pre-sales")
   profile_photo_url?: string | null;
+  pivot?: {
+    team_id: number;
+    user_id: number;
+    role: string | null;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface Team {
