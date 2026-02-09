@@ -93,7 +93,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onEdit, onView, onDelete }) =
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              {team.users?.length || 0} {t('teams.members')}
+              {(team.users?.length || 0) + 1} {t('teams.members')}
             </span>
           </div>
           
