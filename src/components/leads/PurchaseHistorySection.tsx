@@ -95,6 +95,7 @@ interface SaleUser {
 export interface Sale {
   id: number;
   lead_id: number;
+  name?: string;
   status: 'pending' | 'sent' | 'closed' | 'lost';
   subtotal: number;
   total_value: number;
@@ -111,6 +112,15 @@ export interface Sale {
   discounts?: SaleDiscount[];
   docs?: SaleDocument[];
   documents?: SaleDocument[];
+  funnel?: {
+    id: number;
+    name: string;
+  };
+  stage?: {
+    id: number;
+    name: string;
+    color: string;
+  };
 }
 
 interface PurchaseHistorySectionProps {
@@ -384,13 +394,27 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
             <ShoppingBag className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-white font-medium">
-                {t('lead-details.order')} #{sale.id}
+                {sale.name || `${t('lead-details.order')} #${sale.id}`}
               </span>
-              <Badge className={`text-xs font-medium border ${getStatusColor(localStatus)}`}>
-                {t(`lead-details.sale-status.${localStatus}`)}
-              </Badge>
+              {sale.stage && (
+                <Badge 
+                  className="text-xs font-medium border"
+                  style={{ 
+                    backgroundColor: `${sale.stage.color}20`,
+                    color: sale.stage.color,
+                    borderColor: `${sale.stage.color}50`
+                  }}
+                >
+                  {sale.stage.name}
+                </Badge>
+              )}
+              {sale.funnel && (
+                <span className="text-xs text-gray-400">
+                  {sale.funnel.name}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
               <span className="flex items-center gap-1">
