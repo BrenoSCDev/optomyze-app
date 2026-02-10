@@ -21,7 +21,8 @@ import {
   Tag,
   UserPlus,
   Download,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import {
   DndContext,
@@ -74,9 +75,10 @@ interface KanbanBoardProps {
   onLeadCreated?: () => void;
   onTagCreated?: (newTag: any) => void;
   onTagsUpdated?: (leadId: string, updatedLead: any) => void;
+  onRefresh?: () => void;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated, onRefresh }: KanbanBoardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -96,6 +98,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   
   // Export state
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Tag modal state
   const [tagModalState, setTagModalState] = useState({
@@ -648,6 +653,27 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           >
             <UserPlus className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">{t('funnel.page.create-lead')}</span>
+          </Button>
+
+          {/* Refresh Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="glass-card border-white/20 hover:bg-white/10"
+            onClick={async () => {
+              if (onRefresh) {
+                setIsRefreshing(true);
+                try {
+                  await onRefresh();
+                } finally {
+                  setIsRefreshing(false);
+                }
+              }
+            }}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
         </div>
       </div>

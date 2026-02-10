@@ -124,6 +124,7 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
         onLeadCreated={refetch}
         onTagCreated={handleTagCreated}
         onTagsUpdated={handleTagsUpdated}
+        onRefresh={refetch}
       />
     </motion.div>
   );
