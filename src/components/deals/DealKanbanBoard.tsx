@@ -258,7 +258,7 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
 
           <div className="flex items-center gap-4">
             <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
-            <Badge variant="secondary" className="bg-primary/20 text-primary px-3 py-1">
+            <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 px-3 py-1">
               {totalDeals} {totalDeals === 1 ? 'Deal' : 'Deals'}
             </Badge>
           </div>
@@ -266,17 +266,17 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
 
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {/* View Switcher */}
-          <div className="flex items-center rounded-md border border-white/20 overflow-hidden">
+          <div className="flex items-center rounded-md border border-deal/30 overflow-hidden">
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-deal/20 text-deal' : 'text-muted-foreground hover:text-deal'}`}
               onClick={() => handleViewModeChange('kanban')}
             >
               <TbLayoutKanbanFilled className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 border-l border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-none h-9 px-2.5 border-l border-deal/30 ${viewMode === 'table' ? 'bg-deal/20 text-deal' : 'text-muted-foreground hover:text-deal'}`}
               onClick={() => handleViewModeChange('table')}
             >
               <List className="h-4 w-4" />
@@ -286,7 +286,7 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
           {/* Refresh */}
           <Button
             variant="outline" size="sm"
-            className="glass-card border-white/20 hover:bg-white/10"
+            className="deal-glass-card border-deal/20 hover:bg-deal/10"
             onClick={async () => {
               if (onRefresh) {
                 setIsRefreshing(true);
@@ -302,15 +302,15 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
           {/* Filters */}
           <Button
             variant="outline" size="sm"
-            className={`glass-card border-white/20 hover:bg-white/10 ${
-              Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
+            className={`deal-glass-card border-deal/20 hover:bg-deal/10 ${
+              Object.keys(activeFilters).length > 0 ? 'ring-2 ring-deal/50 bg-deal/10' : ''
             }`}
             onClick={() => setFilterDialogOpen(true)}
           >
             <Filter className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">{t('funnel.page.filters')}</span>
             {Object.keys(activeFilters).length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-deal text-deal-foreground rounded-full">
                 {Object.keys(activeFilters).length}
               </span>
             )}
@@ -323,7 +323,7 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
               setSelectedStageId('');
               setDealDialogOpen(true);
             }}
-            className="bg-gradient-primary hover:opacity-90 text-white font-medium"
+            className="bg-gradient-deal hover:opacity-90 text-white font-medium"
           >
             <Plus className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Create Deal</span>

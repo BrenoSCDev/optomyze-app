@@ -1,7 +1,7 @@
 /**
  * DEAL KANBAN COLUMN COMPONENT
  * 
- * Drop target column for the Deal Kanban board.
+ * Teal-accented drop target column for the Deal Kanban board.
  */
 
 import { useState } from 'react';
@@ -36,8 +36,8 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, activeId, ove
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative min-h-[400px] overflow-hidden border-white/10 ${
-        isOver || isDropTarget ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+      className={`deal-glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative min-h-[400px] overflow-hidden ${
+        isOver || isDropTarget ? 'ring-2 ring-deal/50 bg-deal/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -47,51 +47,51 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, activeId, ove
       style={{ zIndex: isOver || isDropTarget ? 10 : 1 }}
       data-column-id={column.id}
     >
-      {/* Stage Color Bar */}
+      {/* Stage Color Bar - thicker for deals */}
       <div
-        className="absolute top-0 left-0 right-0 h-1"
-        style={{ backgroundColor: column.stageColor || '#FFFFFF' }}
+        className="absolute top-0 left-0 right-0 h-1.5 rounded-t-xl"
+        style={{ backgroundColor: column.stageColor || '#14b8a6' }}
       />
 
       {/* Column Header */}
-      <div className="flex flex-col gap-1 mb-4 pt-1">
+      <div className="flex flex-col gap-1 mb-4 pt-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">{column.title}</h3>
-            <Badge variant="secondary" className="bg-muted/50 text-muted-foreground">
+            <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
+            <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 text-xs">
               {column.deals.length}
             </Badge>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" onClick={() => onAddDeal(column.id)}>
-              <Plus className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal" onClick={() => onAddDeal(column.id)}>
+              <Plus className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal">
+              <MoreVertical className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
         {/* Stage Total Value */}
         {column.totalValue > 0 && (
-          <Badge className="text-xs font-medium w-fit">
+          <Badge className="text-xs font-medium w-fit bg-deal/15 text-deal border-deal/30">
             {formatCurrency(column.totalValue, column.currency)}
           </Badge>
         )}
       </div>
 
       {/* Column Body */}
-      <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+      <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-deal">
         {/* Drop placeholder */}
         {activeId && isDropTarget && (
           <motion.div
-            className="glass-card border-2 border-dashed border-primary bg-primary/10 rounded-lg p-4 min-h-[80px] flex items-center justify-center mb-3"
+            className="deal-glass-card border-2 border-dashed border-deal bg-deal/10 rounded-lg p-3 min-h-[60px] flex items-center justify-center mb-2"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
           >
-            <p className="text-sm text-primary font-medium">Drop here</p>
+            <p className="text-sm text-deal font-medium">Drop here</p>
           </motion.div>
         )}
 
@@ -121,9 +121,9 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, activeId, ove
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <Package className="h-8 w-8 text-muted-foreground mb-2" />
+            <Package className="h-8 w-8 text-deal/40 mb-2" />
             <p className="text-sm text-muted-foreground mb-2">No deals in this stage</p>
-            <Button variant="outline" size="sm" onClick={() => onAddDeal(column.id)} className="text-xs">
+            <Button variant="outline" size="sm" onClick={() => onAddDeal(column.id)} className="text-xs border-deal/30 text-deal hover:bg-deal/10">
               Add First Deal
             </Button>
           </motion.div>

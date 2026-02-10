@@ -1,8 +1,8 @@
 /**
  * DEAL CARD COMPONENT
  * 
- * Rich deal card for the Deal Kanban board.
- * Displays deal name, lead info, financial breakdown, items, charges, discounts, and more.
+ * Rich deal card with teal accent and dense layout.
+ * Visually distinct from lead cards in sales funnels.
  */
 
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { 
   GripVertical,
-  DollarSign,
   User,
   Clock,
   FileText,
@@ -18,7 +17,6 @@ import {
   Phone,
   TrendingUp,
   TrendingDown,
-  Receipt,
   Package,
   CircleDot,
   GitBranch,
@@ -77,24 +75,22 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 border-l-primary/50 relative ${
-          isDragging ? 'opacity-20 scale-95' : 'hover:scale-102'
+        className={`deal-glass-card p-3 cursor-pointer transition-all duration-300 relative border-t-2 border-t-deal ${
+          isDragging ? 'opacity-20 scale-95' : ''
         }`}
         whileHover={{ y: isDragging ? 0 : -2 }}
         layout
       >
-        {/* Deal Header */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <div {...listeners} className="cursor-grab active:cursor-grabbing">
-              <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-            </div>
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                {getInitials(deal.name || leadName)}
-              </AvatarFallback>
-            </Avatar>
+        {/* Deal Header - Compact row */}
+        <div className="flex items-center gap-2.5 mb-2">
+          <div {...listeners} className="cursor-grab active:cursor-grabbing shrink-0">
+            <GripVertical className="h-3.5 w-3.5 text-muted-foreground hover:text-deal transition-colors" />
           </div>
+          <Avatar className="h-8 w-8 shrink-0 rounded-full">
+            <AvatarFallback className="bg-deal/20 text-deal text-xs font-semibold rounded-full">
+              {getInitials(deal.name || leadName)}
+            </AvatarFallback>
+          </Avatar>
 
           <div className="flex-1 min-w-0">
             <button
@@ -102,57 +98,57 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
                 e.stopPropagation();
                 onDealClick?.(deal.id);
               }}
-              className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
+              className="font-semibold text-foreground text-sm truncate hover:text-deal transition-colors cursor-pointer text-left w-full block"
             >
               {deal.name}
             </button>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-[11px] text-muted-foreground truncate leading-tight">
               {leadName}
             </p>
           </div>
 
-          {/* Final Total - prominent */}
+          {/* Final Total Badge */}
           {finalTotal > 0 && (
-            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-semibold shrink-0">
+            <Badge className="bg-deal/15 text-deal border-deal/30 text-xs font-semibold shrink-0 px-2 py-0.5">
               {formatCurrency(finalTotal, currency)}
             </Badge>
           )}
         </div>
 
-        {/* Lead Contact Info */}
-        {deal.lead && (
-          <div className="space-y-1 mb-3">
+        {/* Lead Contact - Inline compact */}
+        {deal.lead && (deal.lead.email || deal.lead.phone) && (
+          <div className="flex items-center gap-3 mb-2 text-[11px] text-muted-foreground pl-[42px]">
             {deal.lead.email && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Mail className="h-3 w-3 shrink-0" />
+              <span className="flex items-center gap-1 truncate">
+                <Mail className="h-2.5 w-2.5 shrink-0 text-deal/60" />
                 <span className="truncate">{deal.lead.email}</span>
-              </div>
+              </span>
             )}
             {deal.lead.phone && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Phone className="h-3 w-3 shrink-0" />
-                <span>{deal.lead.phone}</span>
-              </div>
+              <span className="flex items-center gap-1 shrink-0">
+                <Phone className="h-2.5 w-2.5 text-deal/60" />
+                {deal.lead.phone}
+              </span>
             )}
           </div>
         )}
 
-        {/* Lead Funnel & Stage badges */}
+        {/* Lead Funnel & Stage - Horizontal chips */}
         {deal.lead && (deal.lead.funnel || deal.lead.stage) && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex items-center gap-1.5 mb-2 pl-[42px]">
             {deal.lead.funnel && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground flex items-center gap-1">
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-deal/10 text-deal/80 border-deal/20 flex items-center gap-0.5">
                 <GitBranch className="w-2.5 h-2.5" />
                 {deal.lead.funnel.name}
               </Badge>
             )}
             {deal.lead.stage && (
               <Badge
-                className="text-xs px-2 py-0.5 border flex items-center gap-1"
+                className="text-[10px] px-1.5 py-0 h-5 border flex items-center gap-0.5"
                 style={{
-                  backgroundColor: `${deal.lead.stage.color}20`,
+                  backgroundColor: `${deal.lead.stage.color}15`,
                   color: deal.lead.stage.color,
-                  borderColor: `${deal.lead.stage.color}50`,
+                  borderColor: `${deal.lead.stage.color}40`,
                 }}
               >
                 <CircleDot className="w-2.5 h-2.5" />
@@ -162,17 +158,17 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
           </div>
         )}
 
-        {/* Items list */}
+        {/* Items - Horizontal compact list */}
         {deal.items && deal.items.length > 0 && (
-          <div className="mb-3 p-2.5 rounded-md bg-white/5 border border-white/5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
-              <Package className="h-3 w-3" />
-              <span className="font-medium">{deal.items.length} item{deal.items.length > 1 ? 's' : ''}</span>
+          <div className="mb-2 p-2 rounded-lg bg-deal/5 border border-deal/10">
+            <div className="flex items-center gap-1 text-[10px] text-deal/70 mb-1">
+              <Package className="h-2.5 w-2.5" />
+              <span className="font-medium uppercase tracking-wider">{deal.items.length} item{deal.items.length > 1 ? 's' : ''}</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {deal.items.slice(0, 3).map((item: any, i: number) => (
-                <div key={item.id || i} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground truncate max-w-[140px]">
+                <div key={item.id || i} className="flex items-center justify-between text-[11px]">
+                  <span className="text-muted-foreground truncate max-w-[130px]">
                     {item.product_name} × {item.quantity}
                   </span>
                   <span className="text-foreground font-medium">
@@ -181,61 +177,61 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
                 </div>
               ))}
               {deal.items.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{deal.items.length - 3} more</span>
+                <span className="text-[10px] text-muted-foreground">+{deal.items.length - 3} more</span>
               )}
             </div>
           </div>
         )}
 
-        {/* Financial Breakdown */}
+        {/* Financial Breakdown - Compact */}
         {(chargesTotal > 0 || discountTotal > 0) && (
-          <div className="mb-3 p-2.5 rounded-md bg-white/5 border border-white/5 space-y-1">
+          <div className="mb-2 p-2 rounded-lg bg-deal/5 border border-deal/10 space-y-0.5">
             {subtotal > 0 && (
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-[11px]">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-foreground">{formatCurrency(subtotal, currency)}</span>
               </div>
             )}
             {chargesTotal > 0 && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <TrendingUp className="h-2.5 w-2.5 text-green-400" />
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-0.5 text-muted-foreground">
+                  <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
                   Charges
                 </span>
-                <span className="text-green-400">+{formatCurrency(chargesTotal, currency)}</span>
+                <span className="text-emerald-400">+{formatCurrency(chargesTotal, currency)}</span>
               </div>
             )}
             {discountTotal > 0 && (
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <TrendingDown className="h-2.5 w-2.5 text-red-400" />
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-0.5 text-muted-foreground">
+                  <TrendingDown className="h-2.5 w-2.5 text-rose-400" />
                   Discounts
                 </span>
-                <span className="text-red-400">-{formatCurrency(discountTotal, currency)}</span>
+                <span className="text-rose-400">-{formatCurrency(discountTotal, currency)}</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Notes */}
+        {/* Notes - Single line */}
         {deal.notes && (
-          <div className="flex items-start gap-1.5 mb-3 text-xs text-muted-foreground">
-            <FileText className="h-3 w-3 shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{deal.notes}</span>
+          <div className="flex items-center gap-1 mb-2 text-[11px] text-muted-foreground pl-[42px]">
+            <FileText className="h-2.5 w-2.5 shrink-0 text-deal/60" />
+            <span className="truncate">{deal.notes}</span>
           </div>
         )}
 
-        {/* Bottom Section */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-1.5 border-t border-deal/10 mt-1">
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Clock className="h-2.5 w-2.5" />
             <span>{deal.created_at ? new Date(deal.created_at).toLocaleDateString() : '—'}</span>
           </div>
 
           {deal.user && (
-            <div className="flex items-center gap-1.5">
-              <User className="h-3 w-3 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{deal.user.name}</span>
+            <div className="flex items-center gap-1">
+              <User className="h-2.5 w-2.5 text-deal/60" />
+              <span className="text-[10px] text-muted-foreground">{deal.user.name}</span>
             </div>
           )}
         </div>

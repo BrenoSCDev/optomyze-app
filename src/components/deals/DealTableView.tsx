@@ -1,7 +1,7 @@
 /**
  * DEAL TABLE VIEW COMPONENT
  * 
- * Renders deal funnel stages as collapsible accordions with deals in table format.
+ * Teal-accented table view for deal funnels with accordion stages.
  */
 
 import { useState, useEffect } from 'react';
@@ -17,7 +17,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Clock, User, ArrowRightLeft, FileText } from 'lucide-react';
+import { DollarSign, Clock, User, Package, Mail, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { dealFunnelService } from '@/services/dealFunnelApi';
@@ -69,7 +69,6 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
     const dealToMove = currentColumn?.deals.find((d: any) => d.id === dealId);
     if (!dealToMove) return;
 
-    // Optimistic update
     setColumns(prev =>
       prev.map(col => {
         if (col.id === currentStageId) {
@@ -86,7 +85,6 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
       await dealFunnelService.moveDealToStage(dealId, newStageId);
       toast.success('Deal moved successfully');
     } catch {
-      // Revert
       setColumns(prev =>
         prev.map(col => {
           if (col.id === newStageId) {
@@ -111,16 +109,16 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
     >
       <Accordion type="multiple" value={openStages} onValueChange={setOpenStages} className="space-y-3">
         {columns.map((column) => (
-          <AccordionItem key={column.id} value={column.id} className="glass-card border-white/10 rounded-lg overflow-hidden">
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-white/5">
+          <AccordionItem key={column.id} value={column.id} className="deal-glass-card border-deal/10 rounded-lg overflow-hidden">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-deal/5">
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: column.stageColor || '#FFFFFF' }} />
+                <div className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-deal/20" style={{ backgroundColor: column.stageColor || '#14b8a6' }} />
                 <span className="font-semibold text-foreground">{column.title}</span>
-                <Badge variant="secondary" className="bg-muted/50 text-muted-foreground">
+                <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 text-xs">
                   {column.deals.length}
                 </Badge>
                 {column.totalValue > 0 && (
-                  <Badge className="text-xs font-medium">
+                  <Badge className="text-xs font-medium bg-deal/15 text-deal border-deal/30">
                     {formatCurrency(column.totalValue, column.currency)}
                   </Badge>
                 )}
@@ -129,8 +127,9 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
             <AccordionContent className="px-0 pb-0">
               {column.deals.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Package className="h-8 w-8 text-deal/30 mb-2" />
                   <p className="text-sm text-muted-foreground mb-2">No deals in this stage</p>
-                  <Button variant="outline" size="sm" onClick={() => onAddDeal(column.id)} className="text-xs">
+                  <Button variant="outline" size="sm" onClick={() => onAddDeal(column.id)} className="text-xs border-deal/30 text-deal hover:bg-deal/10">
                     Add First Deal
                   </Button>
                 </div>
@@ -138,14 +137,15 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-white/10 hover:bg-transparent">
-                        <TableHead className="text-muted-foreground">Deal</TableHead>
-                        <TableHead className="text-muted-foreground">Lead</TableHead>
-                        <TableHead className="text-muted-foreground">Value</TableHead>
-                        <TableHead className="text-muted-foreground">Items</TableHead>
-                        <TableHead className="text-muted-foreground">Assigned</TableHead>
-                        <TableHead className="text-muted-foreground">Created</TableHead>
-                        <TableHead className="text-muted-foreground">Move</TableHead>
+                      <TableRow className="border-deal/10 hover:bg-transparent">
+                        <TableHead className="text-deal/70">Deal</TableHead>
+                        <TableHead className="text-deal/70">Lead</TableHead>
+                        <TableHead className="text-deal/70">Contact</TableHead>
+                        <TableHead className="text-deal/70">Value</TableHead>
+                        <TableHead className="text-deal/70">Items</TableHead>
+                        <TableHead className="text-deal/70">Assigned</TableHead>
+                        <TableHead className="text-deal/70">Created</TableHead>
+                        <TableHead className="text-deal/70">Move</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -154,25 +154,46 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                         return (
                           <TableRow
                             key={deal.id}
-                            className="border-white/5 hover:bg-white/5 cursor-pointer"
+                            className="border-deal/5 hover:bg-deal/5 cursor-pointer"
                             onClick={() => onDealClick?.(deal.id)}
                           >
                             <TableCell>
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-medium">
+                                <Avatar className="h-8 w-8 rounded-full">
+                                  <AvatarFallback className="bg-deal/20 text-deal text-xs font-medium rounded-full">
                                     {getInitials(deal.name || leadName)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <p className="font-medium text-foreground text-sm truncate max-w-[180px]">{deal.name}</p>
+                                <div className="min-w-0">
+                                  <p className="font-medium text-foreground text-sm truncate max-w-[160px]">{deal.name}</p>
+                                  {deal.notes && (
+                                    <p className="text-[10px] text-muted-foreground truncate max-w-[160px]">{deal.notes}</p>
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <span className="text-sm text-muted-foreground">{leadName}</span>
                             </TableCell>
                             <TableCell>
+                              <div className="space-y-0.5">
+                                {deal.lead?.email && (
+                                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                    <Mail className="h-2.5 w-2.5 text-deal/50" />
+                                    <span className="truncate max-w-[140px]">{deal.lead.email}</span>
+                                  </div>
+                                )}
+                                {deal.lead?.phone && (
+                                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                    <Phone className="h-2.5 w-2.5 text-deal/50" />
+                                    <span>{deal.lead.phone}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
                               {deal.final_total > 0 ? (
-                                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
+                                <Badge className="bg-deal/15 text-deal border-deal/30 text-xs">
                                   {formatCurrency(deal.final_total, deal.currency || 'USD')}
                                 </Badge>
                               ) : (
@@ -187,7 +208,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                             <TableCell>
                               {deal.user ? (
                                 <div className="flex items-center gap-1.5">
-                                  <User className="h-3 w-3 text-muted-foreground" />
+                                  <User className="h-3 w-3 text-deal/50" />
                                   <span className="text-xs text-muted-foreground">{deal.user.name}</span>
                                 </div>
                               ) : (
@@ -196,7 +217,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Clock className="h-3 w-3" />
+                                <Clock className="h-3 w-3 text-deal/50" />
                                 <span>{deal.created_at ? new Date(deal.created_at).toLocaleDateString() : '—'}</span>
                               </div>
                             </TableCell>
@@ -205,14 +226,14 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                                 value={column.id}
                                 onValueChange={(newStageId) => handleMoveDeal(deal.id, column.id, newStageId)}
                               >
-                                <SelectTrigger className="h-8 w-[140px] text-xs bg-background border-white/10">
+                                <SelectTrigger className="h-8 w-[140px] text-xs bg-background border-deal/20 focus:ring-deal/30">
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-background border-white/10 z-50">
+                                <SelectContent className="bg-background border-deal/20 z-50">
                                   {columns.map((col) => (
                                     <SelectItem key={col.id} value={col.id}>
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: col.stageColor || '#FFFFFF' }} />
+                                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: col.stageColor || '#14b8a6' }} />
                                         {col.title}
                                       </div>
                                     </SelectItem>
