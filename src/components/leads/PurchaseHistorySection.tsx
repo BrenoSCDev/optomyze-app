@@ -69,6 +69,14 @@ interface SaleCharge {
   calculated_amount: number;
 }
 
+interface SaleDiscount {
+  id: number;
+  name: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  calculated_amount: number;
+}
+
 interface SaleDocument {
   id: number;
   name: string;
@@ -91,6 +99,7 @@ export interface Sale {
   subtotal: number;
   total_value: number;
   charges_total: number;
+  discounts_total: number;
   final_total: number;
   currency: string;
   created_at: string;
@@ -99,6 +108,7 @@ export interface Sale {
   user?: SaleUser;
   items?: SaleProduct[];
   charges?: SaleCharge[];
+  discounts?: SaleDiscount[];
   docs?: SaleDocument[];
   documents?: SaleDocument[];
 }
@@ -154,6 +164,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const { toast } = useToast();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
+  const [discountsOpen, setDiscountsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDocDialogOpen, setDeleteDocDialogOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<SaleDocument | null>(null);
@@ -355,8 +366,10 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   };
 
   const totalCharges = sale.charges_total || 0;
+  const totalDiscounts = sale.discounts_total || 0;
   const items = sale.items || [];
   const charges = sale.charges || [];
+  const discounts = sale.discounts || [];
 
   return (
     <motion.div 
@@ -404,14 +417,18 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       )}
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-white/5 rounded-lg">
+      <div className="grid grid-cols-4 gap-3 mb-4 p-3 bg-white/5 rounded-lg">
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.subtotal')}</p>
           <p className="text-white font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</p>
         </div>
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.charges')}</p>
-          <p className="text-white font-medium">{formatCurrency(totalCharges, sale.currency)}</p>
+          <p className="text-green-400 font-medium">+{formatCurrency(totalCharges, sale.currency)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.discounts')}</p>
+          <p className="text-red-400 font-medium">-{formatCurrency(totalDiscounts, sale.currency)}</p>
         </div>
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.total')}</p>
@@ -487,6 +504,42 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                     </Badge>
                   </div>
                   <span className="text-white font-medium">{formatCurrency(charge.calculated_amount, sale.currency)}</span>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Discounts Section */}
+      {discounts.length > 0 && (
+        <Collapsible open={discountsOpen} onOpenChange={setDiscountsOpen}>
+          <CollapsibleTrigger className="w-full">
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors mt-2">
+              <div className="flex items-center gap-2 text-gray-300">
+                <Receipt className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {t('lead-details.discounts-section')} ({discounts.length})
+                </span>
+              </div>
+              {discountsOpen ? (
+                <ChevronUp className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              )}
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="mt-2 space-y-2">
+              {discounts.map((discount) => (
+                <div key={discount.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white">{discount.name}</span>
+                    <Badge variant="outline" className="text-xs border-white/20 text-gray-400">
+                      {discount.type === 'percentage' ? `${discount.value}%` : t('lead-details.fixed')}
+                    </Badge>
+                  </div>
+                  <span className="text-red-400 font-medium">-{formatCurrency(discount.calculated_amount, sale.currency)}</span>
                 </div>
               ))}
             </div>
