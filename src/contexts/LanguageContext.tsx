@@ -44,6 +44,8 @@ const translations = {
     'nav.contracts': 'Contracts',
     'nav.support': 'Support',
     'nav.reports': 'Reports',
+    'reports.tasks': 'Tasks',
+    'reports.transactions': 'Transactions',
     
     // Header
     'header.search-placeholder': 'Search leads...',
@@ -2210,6 +2212,8 @@ const translations = {
     'nav.contracts': 'Contratos',
     'nav.support': 'Suporte',
     'nav.reports': 'Relatórios',
+    'reports.tasks': 'Tarefas',
+    'reports.transactions': 'Transações',
     
     // Header
     'header.search-placeholder': 'Buscar leads...',
@@ -4347,6 +4351,8 @@ const translations = {
     'nav.contracts': 'Verträge',
     'nav.support': 'Support',
     'nav.reports': 'Berichte',
+    'reports.tasks': 'Aufgaben',
+    'reports.transactions': 'Transaktionen',
     
     // Header
     'header.search-placeholder': 'Leads suchen...',
@@ -6320,6 +6326,8 @@ const translations = {
     'nav.contracts': 'Contratos',
     'nav.support': 'Soporte',
     'nav.reports': 'Informes',
+    'reports.tasks': 'Tareas',
+    'reports.transactions': 'Transacciones',
     
     // Header
     'header.search-placeholder': 'Buscar leads...',
