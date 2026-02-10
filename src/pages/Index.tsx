@@ -104,14 +104,24 @@ const Index = () => {
         return <TagsDashboard />; // Tags management interface
       case 'companies':
         return <ManageLeadCompanies />; // Lead company management
-      case 'reports':
+      case 'reports-tasks':
         return (
           <div className="text-center py-12">
             <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <span className="text-2xl">📊</span>
+              <span className="text-2xl">📋</span>
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">Coming Soon</h3>
-            <p className="text-muted-foreground">Reports feature is under development.</p>
+            <p className="text-muted-foreground">Tasks report is under development.</p>
+          </div>
+        );
+      case 'reports-transactions':
+        return (
+          <div className="text-center py-12">
+            <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">💰</span>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Coming Soon</h3>
+            <p className="text-muted-foreground">Transactions report is under development.</p>
           </div>
         );
       case 'general':

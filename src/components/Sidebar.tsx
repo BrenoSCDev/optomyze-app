@@ -486,13 +486,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         {/* Reports Section */}
         <div>
           <button
-            onClick={() => {
-              toggleSection('reports');
-              handleSectionNavigation('reports');
-            }}
-            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'} ${
-              activeSection === 'reports' ? 'active' : ''
-            }`}
+            onClick={() => toggleSection('reports')}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
           >
             <div className="flex items-center gap-3">
               <PieChart className="h-5 w-5" />
@@ -508,7 +503,45 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 )}
               </AnimatePresence>
             </div>
+            <AnimatePresence>
+              {!effectivelyCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {expandedSection === 'reports' ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </button>
+
+          <AnimatePresence>
+            {expandedSection === 'reports' && !effectivelyCollapsed && (
+              <motion.div
+                className="ml-4 space-y-1 mt-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <button
+                  onClick={() => handleSectionNavigation('reports-tasks')}
+                  className={`nav-item-sub w-full ${activeSection === 'reports-tasks' ? 'active' : ''}`}
+                >
+                  <ClipboardList size={14} />
+                  <span>{t('reports.tasks')}</span>
+                </button>
+                <button
+                  onClick={() => handleSectionNavigation('reports-transactions')}
+                  className={`nav-item-sub w-full ${activeSection === 'reports-transactions' ? 'active' : ''}`}
+                >
+                  <MdCurrencyExchange size={14} />
+                  <span>{t('reports.transactions')}</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Integrations Section */}
