@@ -43,6 +43,7 @@ const translations = {
     'nav.crm-panel': 'CRM Panel',
     'nav.contracts': 'Contracts',
     'nav.support': 'Support',
+    'nav.reports': 'Reports',
     
     // Header
     'header.search-placeholder': 'Search leads...',
@@ -2208,6 +2209,7 @@ const translations = {
     'nav.crm-panel': 'Painel CRM',
     'nav.contracts': 'Contratos',
     'nav.support': 'Suporte',
+    'nav.reports': 'Relatórios',
     
     // Header
     'header.search-placeholder': 'Buscar leads...',
@@ -4344,6 +4346,7 @@ const translations = {
     'nav.tags': 'Tags',
     'nav.contracts': 'Verträge',
     'nav.support': 'Support',
+    'nav.reports': 'Berichte',
     
     // Header
     'header.search-placeholder': 'Leads suchen...',
@@ -6316,6 +6319,7 @@ const translations = {
     'nav.crm-panel': 'Panel CRM',
     'nav.contracts': 'Contratos',
     'nav.support': 'Soporte',
+    'nav.reports': 'Informes',
     
     // Header
     'header.search-placeholder': 'Buscar leads...',

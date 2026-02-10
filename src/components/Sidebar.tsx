@@ -42,7 +42,8 @@ import {
   ClipboardList,
   TicketPlus,
   MessageSquareText,
-  Building
+  Building,
+  PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -480,6 +481,34 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Reports Section */}
+        <div>
+          <button
+            onClick={() => {
+              toggleSection('reports');
+              handleSectionNavigation('reports');
+            }}
+            className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'} ${
+              activeSection === 'reports' ? 'active' : ''
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <PieChart className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {t('nav.reports')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+          </button>
         </div>
 
         {/* Integrations Section */}
