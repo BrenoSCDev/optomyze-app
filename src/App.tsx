@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
 import LeadDetail from "./pages/LeadDetail";
+import DealFunnel from "./pages/DealFunnel";
 
 const queryClient = new QueryClient();
 
@@ -64,7 +65,15 @@ const App = () => (
                    } 
                  />
                  <Route 
-                   path="/ai-agents/n8n" 
+                   path="/deals/:funnelId" 
+                   element={
+                     <ProtectedRoute>
+                       <DealFunnel />
+                     </ProtectedRoute>
+                   } 
+                 />
+                 <Route 
+                   path="/ai-agents/n8n"
                    element={
                      <ProtectedRoute>
                        <Index />
