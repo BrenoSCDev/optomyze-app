@@ -470,7 +470,10 @@ const FunnelsDashboard = () => {
       <h3 className="text-lg font-semibold text-foreground mb-2">{t('funnels.no-funnels')}</h3>
       <p className="text-muted-foreground mb-6">{t('funnels.no-funnels-subtitle')}</p>
       <Button 
-        onClick={() => setShowNewFunnelModal(true)}
+        onClick={() => {
+          setFormData({ name: '', description: '', type: activeTab });
+          setShowNewFunnelModal(true);
+        }}
         className="neon-border"
       >
         <Plus className="h-4 w-4 mr-2" />
