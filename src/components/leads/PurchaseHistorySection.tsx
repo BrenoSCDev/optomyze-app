@@ -445,22 +445,22 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       )}
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4 p-4 bg-white/5 rounded-lg">
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.subtotal')}</p>
-          <p className="text-white font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</p>
+      <div className="mb-4 p-4 bg-white/5 rounded-lg space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-400">{t('lead-details.charges')}</span>
+          <span className="text-green-400 font-medium">+{formatCurrency(totalCharges, sale.currency)}</span>
         </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.charges')}</p>
-          <p className="text-green-400 font-medium">+{formatCurrency(totalCharges, sale.currency)}</p>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-400">{t('lead-details.discounts')}</span>
+          <span className="text-red-400 font-medium">-{formatCurrency(totalDiscounts, sale.currency)}</span>
         </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.discounts')}</p>
-          <p className="text-red-400 font-medium">-{formatCurrency(totalDiscounts, sale.currency)}</p>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-400">{t('lead-details.subtotal')}</span>
+          <span className="text-white font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</span>
         </div>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.total')}</p>
-          <p className="text-lg font-bold text-primary">{formatCurrency(sale.final_total || 0, sale.currency)}</p>
+        <div className="border-t border-white/10 pt-2 flex items-center justify-between">
+          <span className="text-gray-400 font-medium">{t('lead-details.total')}</span>
+          <span className="text-lg font-bold text-primary">{formatCurrency(sale.final_total || 0, sale.currency)}</span>
         </div>
       </div>
 
