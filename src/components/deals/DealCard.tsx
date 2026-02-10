@@ -1,8 +1,8 @@
 /**
  * DEAL CARD COMPONENT
  * 
- * Individual deal card for the Deal Kanban board.
- * Displays deal-specific data: name, lead info, total value, user.
+ * Rich deal card for the Deal Kanban board.
+ * Displays deal name, lead info, financial breakdown, items, charges, discounts, and more.
  */
 
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,14 @@ import {
   User,
   Clock,
   FileText,
+  Mail,
+  Phone,
+  TrendingUp,
+  TrendingDown,
+  Receipt,
+  Package,
+  CircleDot,
+  GitBranch,
 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -57,6 +65,12 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
     ? `${deal.lead.first_name} ${deal.lead.last_name || ''}`.trim()
     : 'No lead';
 
+  const currency = deal.currency || 'USD';
+  const chargesTotal = deal.charges_total || 0;
+  const discountTotal = parseFloat(deal.discount_total || '0');
+  const subtotal = parseFloat(deal.subtotal || '0');
+  const finalTotal = deal.final_total || 0;
+
   return (
     <div className="relative">
       <motion.div
@@ -96,46 +110,118 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
               {leadName}
             </p>
           </div>
+
+          {/* Final Total - prominent */}
+          {finalTotal > 0 && (
+            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-semibold shrink-0">
+              {formatCurrency(finalTotal, currency)}
+            </Badge>
+          )}
         </div>
 
-        {/* Deal Value */}
-        {deal.final_total > 0 && (
-          <div className="flex items-center gap-1.5 mb-3">
-            <DollarSign className="h-3 w-3 text-green-400" />
-            <span className="text-sm font-semibold text-green-400">
-              {formatCurrency(deal.final_total, deal.currency || 'USD')}
-            </span>
-          </div>
-        )}
-
-        {/* Items count */}
-        {deal.items && deal.items.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground">
-            <FileText className="h-3 w-3" />
-            <span>{deal.items.length} item{deal.items.length > 1 ? 's' : ''}</span>
-          </div>
-        )}
-
-        {/* Lead info badges */}
+        {/* Lead Contact Info */}
         {deal.lead && (
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="space-y-1 mb-3">
+            {deal.lead.email && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{deal.lead.email}</span>
+              </div>
+            )}
+            {deal.lead.phone && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Phone className="h-3 w-3 shrink-0" />
+                <span>{deal.lead.phone}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lead Funnel & Stage badges */}
+        {deal.lead && (deal.lead.funnel || deal.lead.stage) && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {deal.lead.funnel && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground">
+              <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-muted/50 text-muted-foreground flex items-center gap-1">
+                <GitBranch className="w-2.5 h-2.5" />
                 {deal.lead.funnel.name}
               </Badge>
             )}
             {deal.lead.stage && (
               <Badge
-                className="text-xs px-2 py-0.5 border"
+                className="text-xs px-2 py-0.5 border flex items-center gap-1"
                 style={{
                   backgroundColor: `${deal.lead.stage.color}20`,
                   color: deal.lead.stage.color,
                   borderColor: `${deal.lead.stage.color}50`,
                 }}
               >
+                <CircleDot className="w-2.5 h-2.5" />
                 {deal.lead.stage.name}
               </Badge>
             )}
+          </div>
+        )}
+
+        {/* Items list */}
+        {deal.items && deal.items.length > 0 && (
+          <div className="mb-3 p-2.5 rounded-md bg-white/5 border border-white/5">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+              <Package className="h-3 w-3" />
+              <span className="font-medium">{deal.items.length} item{deal.items.length > 1 ? 's' : ''}</span>
+            </div>
+            <div className="space-y-1">
+              {deal.items.slice(0, 3).map((item: any, i: number) => (
+                <div key={item.id || i} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground truncate max-w-[140px]">
+                    {item.product_name} × {item.quantity}
+                  </span>
+                  <span className="text-foreground font-medium">
+                    {formatCurrency(parseFloat(item.total_price || '0'), currency)}
+                  </span>
+                </div>
+              ))}
+              {deal.items.length > 3 && (
+                <span className="text-xs text-muted-foreground">+{deal.items.length - 3} more</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Financial Breakdown */}
+        {(chargesTotal > 0 || discountTotal > 0) && (
+          <div className="mb-3 p-2.5 rounded-md bg-white/5 border border-white/5 space-y-1">
+            {subtotal > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-foreground">{formatCurrency(subtotal, currency)}</span>
+              </div>
+            )}
+            {chargesTotal > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <TrendingUp className="h-2.5 w-2.5 text-green-400" />
+                  Charges
+                </span>
+                <span className="text-green-400">+{formatCurrency(chargesTotal, currency)}</span>
+              </div>
+            )}
+            {discountTotal > 0 && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <TrendingDown className="h-2.5 w-2.5 text-red-400" />
+                  Discounts
+                </span>
+                <span className="text-red-400">-{formatCurrency(discountTotal, currency)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notes */}
+        {deal.notes && (
+          <div className="flex items-start gap-1.5 mb-3 text-xs text-muted-foreground">
+            <FileText className="h-3 w-3 shrink-0 mt-0.5" />
+            <span className="line-clamp-2">{deal.notes}</span>
           </div>
         )}
 
