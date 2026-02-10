@@ -118,7 +118,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
       id: funnel.id.toString(),
       label: funnel.name,
       count: funnel.nleads,
-      path: `/leads/${funnel.id}`
+      path: `/deals/${funnel.id}`
     }));
 
   // Settings submenu items - Filter based on user role
