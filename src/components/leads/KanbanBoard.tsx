@@ -562,7 +562,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           
           {/* Title and Stats */}
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-foreground">{funnel.name}</h1>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
             <Badge
               variant="secondary"
               className="bg-primary/20 text-primary px-3 py-1"
@@ -583,7 +583,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {/* Settings Dropdown */}
           <FunnelSettingsDropdown
             showEstimatedValues={displaySettings.showEstimatedValues}
@@ -601,11 +601,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             disabled={isExporting}
           >
             {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:mr-1 animate-spin" />
             ) : (
-              <Download className="h-4 w-4 mr-1" />
+              <Download className="h-4 w-4 sm:mr-1" />
             )}
-            {isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}
+            <span className="hidden sm:inline">{isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}</span>
           </Button>
           
           {/* Create Tag Button - Hidden for Agent role */}
@@ -616,8 +616,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               onClick={() => setTagDialogOpen(true)}
               className="glass-card border-accent/30 hover:bg-accent/10"
             >
-              <Tag className="h-4 w-4 mr-1" />
-              {t('funnel.page.create-tag')}
+              <Tag className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">{t('funnel.page.create-tag')}</span>
             </Button>
           )}
           
@@ -629,8 +629,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
-            <Filter className="h-4 w-4 mr-1" />
-            {t('funnel.page.filters')}
+            <Filter className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t('funnel.page.filters')}</span>
             {Object.keys(activeFilters).length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
                 {Object.keys(activeFilters).length}
@@ -646,8 +646,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             }}
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
-            <UserPlus className="h-4 w-4 mr-1" />
-            {t('funnel.page.create-lead')}
+            <UserPlus className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t('funnel.page.create-lead')}</span>
           </Button>
         </div>
       </div>
