@@ -25,7 +25,9 @@ import {
   X,
   File,
   CheckCircle,
-  XCircle
+  XCircle,
+  CircleDot,
+  GitBranch
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -400,18 +402,20 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               </span>
               {sale.stage && (
                 <Badge 
-                  className="text-xs font-medium border"
+                  className="text-xs font-medium border flex items-center gap-1"
                   style={{ 
                     backgroundColor: `${sale.stage.color}20`,
                     color: sale.stage.color,
                     borderColor: `${sale.stage.color}50`
                   }}
                 >
+                  <CircleDot className="w-3 h-3" />
                   {sale.stage.name}
                 </Badge>
               )}
               {sale.funnel && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <GitBranch className="w-3 h-3" />
                   {sale.funnel.name}
                 </span>
               )}
@@ -441,7 +445,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       )}
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-4 gap-3 mb-4 p-3 bg-white/5 rounded-lg">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4 p-4 bg-white/5 rounded-lg">
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{t('lead-details.subtotal')}</p>
           <p className="text-white font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</p>
