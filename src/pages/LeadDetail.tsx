@@ -187,6 +187,19 @@ interface CompanyProduct {
   name: string;
 }
 
+interface DealFunnelStage {
+  id: number;
+  funnel_id: number;
+  name: string;
+  order: number;
+}
+
+interface DealFunnel {
+  id: number;
+  name: string;
+  stages: DealFunnelStage[];
+}
+
 interface LeadData {
   lead: Lead;
   transactions: Transaction[];
@@ -195,6 +208,7 @@ interface LeadData {
   users: CompanyUser[];
   products: CompanyProduct[];
   companies: CompanyOption[];
+  dealFunnels: DealFunnel[];
 }
 
 const LeadDetailPage = () => {
@@ -236,6 +250,7 @@ const LeadDetailPage = () => {
       const companyProducts = data.products || [];
       
       const companies = data.companies || [];
+      const dealFunnels = data.dealFunnels || [];
       
       setLeadData({
         lead,
@@ -244,7 +259,8 @@ const LeadDetailPage = () => {
         docs,
         users,
         products: companyProducts,
-        companies
+        companies,
+        dealFunnels
       });
       
     } catch (err: any) {
@@ -632,6 +648,7 @@ const LeadDetailPage = () => {
           onClose={() => setStartPurchaseModalOpen(false)}
           leadId={leadData.lead.id}
           selectedProducts={selectedProductsForPurchase}
+          dealFunnels={leadData.dealFunnels}
           onSaleCreated={fetchLeadData}
         />
       </div>
