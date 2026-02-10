@@ -11,7 +11,8 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { LayoutGrid, List } from 'lucide-react';
+import { List } from 'lucide-react';
+import { TbLayoutKanbanFilled } from "react-icons/tb";
 import FunnelTableView from './FunnelTableView';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -610,7 +611,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               onClick={() => handleViewModeChange('kanban')}
               title={t('funnel.page.view-kanban') || 'Kanban'}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <TbLayoutKanbanFilled className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
