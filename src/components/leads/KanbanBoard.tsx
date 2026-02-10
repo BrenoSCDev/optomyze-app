@@ -11,6 +11,8 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { LayoutGrid, List } from 'lucide-react';
+import FunnelTableView from './FunnelTableView';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,6 +90,16 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  
+  // View mode state (persisted in localStorage)
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
+    return (localStorage.getItem('funnel_view_mode') as 'kanban' | 'table') || 'kanban';
+  });
+  
+  const handleViewModeChange = useCallback((mode: 'kanban' | 'table') => {
+    setViewMode(mode);
+    localStorage.setItem('funnel_view_mode', mode);
+  }, []);
   const [overId, setOverId] = useState<string | null>(null);
   
   // Funnel display settings
@@ -589,6 +601,28 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {/* View Switcher */}
+          <div className="flex items-center rounded-md border border-white/20 overflow-hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => handleViewModeChange('kanban')}
+              title={t('funnel.page.view-kanban') || 'Kanban'}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-none h-9 px-2.5 border-l border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => handleViewModeChange('table')}
+              title={t('funnel.page.view-table') || 'Table'}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+
           {/* Refresh Button */}
           <Button
             variant="outline"
@@ -678,90 +712,81 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         </div>
       </div>
 
-      {/* Kanban Board */}
-      <style>
-      {`
-        .kanban-board {
-          max-width: 640px;
-          overflow-x: auto;
-        }
+      {/* View Content */}
+      {viewMode === 'kanban' ? (
+        <>
+          <style>
+          {`
+            .kanban-board { max-width: 640px; overflow-x: auto; }
+            @media (min-width: 768px) { .kanban-board { max-width: 768px; } }
+            @media (min-width: 1024px) { .kanban-board { max-width: 1024px; } }
+            @media (min-width: 1280px) { .kanban-board { max-width: 1200px; } }
+            @media (min-width: 1536px) { .kanban-board { max-width: 1600px; } }
+          `}
+          </style>
 
-        @media (min-width: 768px) {
-          .kanban-board {
-            max-width: 768px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .kanban-board {
-            max-width: 1024px;
-          }
-        }
-
-        @media (min-width: 1280px) {
-          .kanban-board {
-            max-width: 1200px;
-          }
-        }
-
-        @media (min-width: 1536px) {
-          .kanban-board {
-            max-width: 1600px;
-          }
-        }
-      `}
-      </style>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={customCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-      >
-        <div
-          className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
-        >
-          {filteredColumns.map((column, index) => (
-            <KanbanColumn
-              key={column.id}
-              column={column}
-              index={index}
-              onAddLead={handleAddLead}
-              onTagClick={handleTagClick}
-              onLeadClick={handleLeadClick}
-              activeId={activeId}
-              overId={overId}
-              stageValueEstimated={(column as any).valueEstimated}
-              stageCurrency={(column as any).currency}
-              showEstimatedValues={displaySettings.showEstimatedValues}
-              showAssignedUser={displaySettings.showAssignedUser}
-            />
-          ))}
-        </div>
-        
-        <DragOverlay 
-          dropAnimation={{
-            duration: 200,
-            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-          }}
-        >
-          {activeId && draggedLead ? (
-            <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
-              <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
-                <LeadCard
-                  lead={draggedLead}
-                  isDragging={false}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={customCollisionDetection}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board">
+              {filteredColumns.map((column, index) => (
+                <KanbanColumn
+                  key={column.id}
+                  column={column}
+                  index={index}
+                  onAddLead={handleAddLead}
                   onTagClick={handleTagClick}
                   onLeadClick={handleLeadClick}
+                  activeId={activeId}
+                  overId={overId}
+                  stageValueEstimated={(column as any).valueEstimated}
+                  stageCurrency={(column as any).currency}
+                  showEstimatedValues={displaySettings.showEstimatedValues}
+                  showAssignedUser={displaySettings.showAssignedUser}
                 />
-              </div>
+              ))}
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+            
+            <DragOverlay 
+              dropAnimation={{
+                duration: 200,
+                easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+              }}
+            >
+              {activeId && draggedLead ? (
+                <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
+                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
+                  <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
+                    <LeadCard
+                      lead={draggedLead}
+                      isDragging={false}
+                      onTagClick={handleTagClick}
+                      onLeadClick={handleLeadClick}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </>
+      ) : (
+        <FunnelTableView
+          columns={filteredColumns}
+          funnel={funnel}
+          onAddLead={handleAddLead}
+          onTagClick={handleTagClick}
+          onLeadClick={handleLeadClick}
+          onUpdateLeadStage={onUpdateLeadStage}
+          showEstimatedValues={displaySettings.showEstimatedValues}
+          showAssignedUser={displaySettings.showAssignedUser}
+          setColumns={setColumns}
+        />
+      )}
 
 
       {/* Tag Creation Dialog */}
