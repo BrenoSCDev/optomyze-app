@@ -589,6 +589,27 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {/* Refresh Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="glass-card border-white/20 hover:bg-white/10"
+            onClick={async () => {
+              if (onRefresh) {
+                setIsRefreshing(true);
+                try {
+                  await onRefresh();
+                } finally {
+                  setIsRefreshing(false);
+                }
+              }
+            }}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('common.refresh')}</span>
+          </Button>
+
           {/* Settings Dropdown */}
           <FunnelSettingsDropdown
             showEstimatedValues={displaySettings.showEstimatedValues}
@@ -653,27 +674,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           >
             <UserPlus className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">{t('funnel.page.create-lead')}</span>
-          </Button>
-
-          {/* Refresh Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="glass-card border-white/20 hover:bg-white/10"
-            onClick={async () => {
-              if (onRefresh) {
-                setIsRefreshing(true);
-                try {
-                  await onRefresh();
-                } finally {
-                  setIsRefreshing(false);
-                }
-              }
-            }}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 sm:mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
         </div>
       </div>
