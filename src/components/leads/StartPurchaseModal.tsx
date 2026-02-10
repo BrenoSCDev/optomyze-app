@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, Package, Calculator, FileText, DollarSign, Percent, Tag } from 'lucide-react';
 import { LeadProduct } from './ProductsSection';
 import { saleService, SaleCharge, CreateSalePayload } from '@/services/saleApi';
+import { Briefcase } from 'lucide-react';
 
 type PricingModel = 'product' | 'commission' | 'hybrid';
 type ChargeType = 'percentage' | 'fixed';
@@ -28,11 +29,25 @@ interface Charge {
   value: number;
 }
 
+interface DealFunnelStage {
+  id: number;
+  funnel_id: number;
+  name: string;
+  order: number;
+}
+
+interface DealFunnel {
+  id: number;
+  name: string;
+  stages: DealFunnelStage[];
+}
+
 interface StartPurchaseModalProps {
   isOpen: boolean;
   onClose: () => void;
   leadId: number;
   selectedProducts: LeadProduct[];
+  dealFunnels: DealFunnel[];
   onSaleCreated: () => void;
 }
 
@@ -40,7 +55,8 @@ const StartPurchaseModal = ({
   isOpen, 
   onClose, 
   leadId, 
-  selectedProducts, 
+  selectedProducts,
+  dealFunnels,
   onSaleCreated 
 }: StartPurchaseModalProps) => {
   const { t } = useLanguage();
@@ -53,6 +69,20 @@ const StartPurchaseModal = ({
   const [discounts, setDiscounts] = useState<Charge[]>([]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dealName, setDealName] = useState('');
+  const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
+
+  // Get stages for selected funnel
+  const selectedFunnel = useMemo(() => {
+    if (!selectedFunnelId) return null;
+    return dealFunnels.find(f => f.id.toString() === selectedFunnelId) || null;
+  }, [selectedFunnelId, dealFunnels]);
+
+  const availableStages = useMemo(() => {
+    if (!selectedFunnel) return [];
+    return [...selectedFunnel.stages].sort((a, b) => a.order - b.order);
+  }, [selectedFunnel]);
 
   // Generate unique ID for charges
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -65,7 +95,16 @@ const StartPurchaseModal = ({
     setCharges([]);
     setDiscounts([]);
     setNotes('');
+    setDealName('');
+    setSelectedFunnelId('');
+    setSelectedStageId('');
     onClose();
+  };
+
+  // Reset stage when funnel changes
+  const handleFunnelChange = (funnelId: string) => {
+    setSelectedFunnelId(funnelId);
+    setSelectedStageId('');
   };
 
   // Calculate products subtotal
@@ -146,6 +185,20 @@ const StartPurchaseModal = ({
 
   // Handle submit
   const handleSubmit = async () => {
+    // Validate deal info
+    if (!dealName.trim()) {
+      toast.error(t('sale.validation.name-required'));
+      return;
+    }
+    if (!selectedFunnelId) {
+      toast.error(t('sale.validation.funnel-required'));
+      return;
+    }
+    if (!selectedStageId) {
+      toast.error(t('sale.validation.stage-required'));
+      return;
+    }
+
     // Validation
     if ((pricingModel === 'product' || pricingModel === 'hybrid') && selectedProducts.length === 0) {
       toast.error(t('sale.validation.products-required'));
@@ -163,6 +216,9 @@ const StartPurchaseModal = ({
       const payload: CreateSalePayload = {
         pricing_model: pricingModel,
         product_ids: selectedProducts.map(p => p.id),
+        funnel_id: Number(selectedFunnelId),
+        stage_id: Number(selectedStageId),
+        name: dealName.trim(),
       };
 
       // Add commission fields if applicable
@@ -219,13 +275,72 @@ const StartPurchaseModal = ({
       <DialogContent className="max-w-2xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Package className="w-5 h-5 text-primary" />
-            {t('sale.modal-title')}
+            <Briefcase className="w-5 h-5 text-primary" />
+            {t('sale.deal-modal-title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-white/5">
           <div className="space-y-6 pb-4 pr-2">
+            {/* 0. Deal Information */}
+            <div className="space-y-4">
+              <Label className="text-white font-medium flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                {t('sale.deal-information')}
+              </Label>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-gray-400 text-sm">{t('sale.deal-name')} *</Label>
+                  <Input
+                    value={dealName}
+                    onChange={(e) => setDealName(e.target.value)}
+                    placeholder={t('sale.deal-name-placeholder')}
+                    className="bg-white/5 border-white/10 text-white"
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-sm">{t('sale.deal-funnel')} *</Label>
+                    <Select value={selectedFunnelId} onValueChange={handleFunnelChange}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectValue placeholder={t('sale.select-funnel')} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-white/10">
+                        {dealFunnels.map((funnel) => (
+                          <SelectItem key={funnel.id} value={funnel.id.toString()} className="text-white hover:bg-gray-700">
+                            {funnel.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-gray-400 text-sm">{t('sale.deal-stage')} *</Label>
+                    <Select 
+                      value={selectedStageId} 
+                      onValueChange={setSelectedStageId}
+                      disabled={!selectedFunnelId}
+                    >
+                      <SelectTrigger className={`bg-white/5 border-white/10 text-white ${!selectedFunnelId ? 'opacity-50' : ''}`}>
+                        <SelectValue placeholder={selectedFunnelId ? t('sale.select-stage') : t('sale.select-funnel-first')} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-white/10">
+                        {availableStages.map((stage) => (
+                          <SelectItem key={stage.id} value={stage.id.toString()} className="text-white hover:bg-gray-700">
+                            {stage.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 1. Selected Products Summary */}
             <div className="space-y-3">
               <Label className="text-white font-medium flex items-center gap-2">
@@ -530,8 +645,8 @@ const StartPurchaseModal = ({
               </>
             ) : (
               <>
-                <Package className="w-4 h-4 mr-2" />
-                {t('sale.create-sale')}
+                <Briefcase className="w-4 h-4 mr-2" />
+                {t('sale.create-deal')}
               </>
             )}
           </Button>

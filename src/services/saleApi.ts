@@ -21,6 +21,9 @@ export interface SaleDiscount {
 export interface CreateSalePayload {
   pricing_model: 'product' | 'commission' | 'hybrid';
   product_ids: number[];
+  funnel_id: number;
+  stage_id: number;
+  name: string;
   commission_type?: 'percentage' | 'fixed';
   commission_value?: number;
   reference_value?: number;
