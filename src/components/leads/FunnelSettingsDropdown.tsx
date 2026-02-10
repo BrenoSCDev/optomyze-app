@@ -40,8 +40,8 @@ const FunnelSettingsDropdown = ({
           size="sm"
           className="glass-card border-white/20 hover:bg-white/10"
         >
-          <Settings className="h-4 w-4 mr-1" />
-          {t('funnel.page.settings')}
+          <Settings className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">{t('funnel.page.settings')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
