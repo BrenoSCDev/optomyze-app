@@ -93,9 +93,9 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
           exit={{ opacity: 0, scale: 0.95 }}
           className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl"
         >
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-deal/20">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-primary to-primary/80">
+              <div className="p-2 rounded-lg bg-gradient-deal">
                 <Plus className="h-5 w-5 text-white" />
               </div>
               <h2 className="text-xl font-semibold text-white">Create New Deal</h2>
@@ -113,7 +113,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter deal name..."
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors"
                 disabled={isSubmitting}
               />
             </div>
@@ -123,7 +123,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               <select
                 value={formData.stage_id}
                 onChange={(e) => setFormData(prev => ({ ...prev, stage_id: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white focus:outline-none focus:border-deal transition-colors"
                 disabled={isSubmitting}
               >
                 {sortedStages.map((stage) => (
@@ -141,7 +141,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Optional notes..."
                 rows={3}
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:border-primary transition-colors resize-none"
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors resize-none"
                 disabled={isSubmitting}
               />
             </div>
@@ -150,14 +150,14 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white hover:bg-deal/10 transition-colors"
                 disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-3 rounded-lg bg-gradient-primary text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="flex-1 px-4 py-3 rounded-lg bg-gradient-deal text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Creating...' : 'Create Deal'}
