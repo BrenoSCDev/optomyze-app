@@ -65,15 +65,15 @@
     --glow-primary: 0 0 20px hsl(271 81% 56% / 0.3);
     --glow-accent: 0 0 30px hsl(271 91% 65% / 0.4);
     
-    /* Deal Accent Tokens (Teal/Cyan) */
-    --deal-accent: 174 72% 50%;
+    /* Deal Accent Tokens (Light Blue) */
+    --deal-accent: 199 89% 58%;
     --deal-accent-foreground: 0 0% 98%;
-    --deal-glow: 0 0 20px hsl(174 72% 50% / 0.3);
-    --deal-glow-accent: 0 0 30px hsl(174 72% 50% / 0.4);
-    --gradient-deal: linear-gradient(135deg, hsl(174 72% 40%), hsl(174 72% 55%));
-    --deal-glass-bg: 174 30% 8% / 0.6;
-    --deal-glass-border: 174 30% 20% / 0.3;
-    --deal-glass-hover: 174 20% 12% / 0.8;
+    --deal-glow: 0 0 20px hsl(199 89% 58% / 0.3);
+    --deal-glow-accent: 0 0 30px hsl(199 89% 58% / 0.4);
+    --gradient-deal: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 89% 62%));
+    --deal-glass-bg: 199 30% 8% / 0.6;
+    --deal-glass-border: 199 30% 20% / 0.3;
+    --deal-glass-hover: 199 20% 12% / 0.8;
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,14 +316,14 @@
   .deal-glass-card:hover {
     @apply transform scale-[1.02];
     background: hsl(var(--deal-glass-hover));
-    box-shadow: 0 0 20px hsl(174 72% 50% / 0.15);
+    box-shadow: 0 0 20px hsl(199 89% 58% / 0.15);
     border-color: hsl(var(--deal-accent) / 0.4);
   }
 
   /* Deal Scrollbar Styling */
   .scrollbar-deal {
     scrollbar-width: thin;
-    scrollbar-color: hsl(174 72% 50% / 0.5) hsl(0 0% 100% / 0.05);
+    scrollbar-color: hsl(199 89% 58% / 0.5) hsl(0 0% 100% / 0.05);
   }
 
   .scrollbar-deal::-webkit-scrollbar {
@@ -337,11 +337,11 @@
   }
 
   .scrollbar-deal::-webkit-scrollbar-thumb {
-    background: hsl(174 72% 50% / 0.5);
+    background: hsl(199 89% 58% / 0.5);
     border-radius: 4px;
   }
 
   .scrollbar-deal::-webkit-scrollbar-thumb:hover {
-    background: hsl(174 72% 50% / 0.7);
+    background: hsl(199 89% 58% / 0.7);
   }
 }
