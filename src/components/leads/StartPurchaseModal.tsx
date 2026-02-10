@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Plus, Trash2, Package, Calculator, FileText, DollarSign, Percent } from 'lucide-react';
+import { Loader2, Plus, Trash2, Package, Calculator, FileText, DollarSign, Percent, Tag } from 'lucide-react';
 import { LeadProduct } from './ProductsSection';
 import { saleService, SaleCharge, CreateSalePayload } from '@/services/saleApi';
 
@@ -50,6 +50,7 @@ const StartPurchaseModal = ({
   const [commissionType, setCommissionType] = useState<ChargeType>('percentage');
   const [commissionValue, setCommissionValue] = useState<number>(0);
   const [charges, setCharges] = useState<Charge[]>([]);
+  const [discounts, setDiscounts] = useState<Charge[]>([]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +63,7 @@ const StartPurchaseModal = ({
     setCommissionType('percentage');
     setCommissionValue(0);
     setCharges([]);
+    setDiscounts([]);
     setNotes('');
     onClose();
   };
@@ -93,8 +95,16 @@ const StartPurchaseModal = ({
     }, 0);
   }, [charges, baseSubtotal]);
 
-  // Calculate final total
-  const finalTotal = baseSubtotal + chargesTotal;
+  // Calculate discounts total
+  const discountsTotal = useMemo(() => {
+    return discounts.reduce((sum, discount) => {
+      if (discount.type === 'fixed') return sum + discount.value;
+      return sum + (baseSubtotal * discount.value) / 100;
+    }, 0);
+  }, [discounts, baseSubtotal]);
+
+  // Calculate final total (never below zero)
+  const finalTotal = Math.max(0, baseSubtotal + chargesTotal - discountsTotal);
 
   // Format currency
   const formatPrice = (value: number): string => {
@@ -117,6 +127,21 @@ const StartPurchaseModal = ({
   // Remove charge
   const removeCharge = (id: string) => {
     setCharges(charges.filter(c => c.id !== id));
+  };
+
+  // Add new discount
+  const addDiscount = () => {
+    setDiscounts([...discounts, { id: generateId(), name: '', type: 'percentage', value: 0 }]);
+  };
+
+  // Update discount
+  const updateDiscount = (id: string, field: keyof Charge, value: string | number) => {
+    setDiscounts(discounts.map(d => d.id === id ? { ...d, [field]: value } : d));
+  };
+
+  // Remove discount
+  const removeDiscount = (id: string) => {
+    setDiscounts(discounts.filter(d => d.id !== id));
   };
 
   // Handle submit
@@ -155,6 +180,17 @@ const StartPurchaseModal = ({
             name: c.name,
             type: c.type,
             value: c.value
+          }));
+      }
+
+      // Add discounts if any
+      if (discounts.length > 0) {
+        payload.discounts = discounts
+          .filter(d => d.name.trim() && d.value > 0)
+          .map(d => ({
+            name: d.name,
+            type: d.type,
+            value: d.value
           }));
       }
 
@@ -373,6 +409,72 @@ const StartPurchaseModal = ({
               )}
             </div>
 
+            {/* 4b. Discounts */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-white font-medium flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  {t('sale.discounts')}
+                </Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addDiscount}
+                  className="glass-card text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  {t('sale.add-discount')}
+                </Button>
+              </div>
+
+              {discounts.length > 0 && (
+                <div className="space-y-2">
+                  {discounts.map((discount) => (
+                    <div key={discount.id} className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg">
+                      <Input
+                        placeholder={t('sale.discount-name')}
+                        value={discount.name}
+                        onChange={(e) => updateDiscount(discount.id, 'name', e.target.value)}
+                        className="flex-1 bg-white/5 border-white/10 text-white text-sm"
+                      />
+                      <Select value={discount.type} onValueChange={(v) => updateDiscount(discount.id, 'type', v)}>
+                        <SelectTrigger className="w-28 bg-white/5 border-white/10 text-white text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-white/10">
+                          <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
+                          <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={discount.type === 'percentage' ? 0.01 : 1}
+                        value={discount.value}
+                        onChange={(e) => updateDiscount(discount.id, 'value', Number(e.target.value))}
+                        className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                        placeholder="0"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeDiscount(discount.id)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {discounts.length === 0 && (
+                <p className="text-sm text-gray-500 italic">{t('sale.no-discounts')}</p>
+              )}
+            </div>
+
             {/* Notes */}
             <div className="space-y-2">
               <Label className="text-white font-medium">{t('sale.notes')}</Label>
@@ -394,7 +496,13 @@ const StartPurchaseModal = ({
               {chargesTotal > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">{t('sale.charges-total')}</span>
-                  <span className="text-white">{formatPrice(chargesTotal)}</span>
+                  <span className="text-green-400">+{formatPrice(chargesTotal)}</span>
+                </div>
+              )}
+              {discountsTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300">{t('sale.discounts-total')}</span>
+                  <span className="text-red-400">-{formatPrice(discountsTotal)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-semibold pt-2 border-t border-primary/20">

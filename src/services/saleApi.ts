@@ -12,6 +12,12 @@ export interface SaleCharge {
   value: number;
 }
 
+export interface SaleDiscount {
+  name: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+}
+
 export interface CreateSalePayload {
   pricing_model: 'product' | 'commission' | 'hybrid';
   product_ids: number[];
@@ -19,6 +25,7 @@ export interface CreateSalePayload {
   commission_value?: number;
   reference_value?: number;
   charges?: SaleCharge[];
+  discounts?: SaleDiscount[];
   notes?: string;
 }
 
@@ -29,9 +36,11 @@ export interface SaleResponse {
   status: string;
   subtotal: number;
   charges_total: number;
+  discounts_total: number;
   total: number;
   items: any[];
   charges: any[];
+  discounts: any[];
   user: any;
   created_at: string;
   updated_at: string;
