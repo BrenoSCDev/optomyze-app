@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { List } from 'lucide-react';
+import { List, DollarSign } from 'lucide-react';
 import { TbLayoutKanbanFilled } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -238,6 +238,12 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
   };
 
   const totalDeals = funnel.stages?.reduce((sum: number, s: any) => sum + (s.deals?.length || 0), 0) || 0;
+  const totalSalesValue = useMemo(() => {
+    return (funnel.stages || []).reduce((sum: number, s: any) => {
+      return sum + (s.deals || []).reduce((dSum: number, d: any) => dSum + (d.final_total || 0), 0);
+    }, 0);
+  }, [funnel]);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: funnel.currency || 'BRL' }).format(value);
 
   return (
     <div className="space-y-6">
@@ -260,6 +266,10 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
             <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
             <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 px-3 py-1">
               {totalDeals} {totalDeals === 1 ? 'Deal' : 'Deals'}
+            </Badge>
+            <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 px-3 py-1 flex items-center gap-1">
+              <DollarSign className="h-3.5 w-3.5" />
+              {formatCurrency(totalSalesValue)}
             </Badge>
           </div>
         </div>
