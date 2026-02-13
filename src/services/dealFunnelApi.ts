@@ -26,7 +26,7 @@ export const dealFunnelService = {
    */
   async moveDealToStage(dealId: string | number, stageId: string | number) {
     try {
-      const response = await api.put(`/api/deals/${dealId}/move`, {
+      const response = await api.patch(`/api/sales/${dealId}/move-stage`, {
         stage_id: stageId
       });
       return response.data;
