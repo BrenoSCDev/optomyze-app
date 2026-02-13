@@ -18,6 +18,7 @@ import DealTableView from './DealTableView';
 import DealCard from './DealCard';
 import { DealCreationDialog } from './DealCreationDialog';
 import { DealFilterDialog } from './DealFilterDialog';
+import DealPreviewModal from './DealPreviewModal';
 import {
   Plus, Filter, Download, Loader2, RefreshCw,
 } from 'lucide-react';
@@ -50,6 +51,8 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
   const [overId, setOverId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any>({});
+  const [previewDealId, setPreviewDealId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
     return (localStorage.getItem('deal_funnel_view_mode') as 'kanban' | 'table') || 'kanban';
@@ -233,8 +236,8 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
   }, []);
 
   const handleDealClick = (dealId: string) => {
-    // Future: navigate to deal detail page
-    toast.info('Deal detail view coming soon');
+    setPreviewDealId(dealId);
+    setPreviewOpen(true);
   };
 
   const totalDeals = funnel.stages?.reduce((sum: number, s: any) => sum + (s.deals?.length || 0), 0) || 0;
@@ -425,6 +428,13 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
         stages={funnel.stages || []}
         onFilterApply={setActiveFilters}
         onFilterClear={() => setActiveFilters({})}
+      />
+
+      {/* Deal Preview Modal */}
+      <DealPreviewModal
+        isOpen={previewOpen}
+        onClose={() => { setPreviewOpen(false); setPreviewDealId(null); }}
+        dealId={previewDealId}
       />
     </div>
   );
