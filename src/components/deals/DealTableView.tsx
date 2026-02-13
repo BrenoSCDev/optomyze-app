@@ -17,7 +17,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Clock, User, Package, Mail, Phone } from 'lucide-react';
+import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { dealFunnelService } from '@/services/dealFunnelApi';
@@ -192,13 +192,31 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                               </div>
                             </TableCell>
                             <TableCell>
-                              {deal.final_total > 0 ? (
-                                <Badge className="bg-deal/15 text-deal border-deal/30 text-xs">
-                                  {formatCurrency(deal.final_total, deal.currency || 'USD')}
-                                </Badge>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
-                              )}
+                              <div className="space-y-0.5">
+                                {deal.final_total > 0 ? (
+                                  <Badge className="bg-deal/15 text-deal border-deal/30 text-xs">
+                                    {formatCurrency(deal.final_total, deal.currency || 'USD')}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                                {(parseFloat(deal.charges_total || '0') > 0 || parseFloat(deal.discount_total || '0') > 0) && (
+                                  <div className="flex flex-col gap-0.5 mt-1">
+                                    {parseFloat(deal.charges_total || '0') > 0 && (
+                                      <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
+                                        <TrendingUp className="h-2.5 w-2.5" />
+                                        +{formatCurrency(parseFloat(deal.charges_total), deal.currency || 'USD')}
+                                      </span>
+                                    )}
+                                    {parseFloat(deal.discount_total || '0') > 0 && (
+                                      <span className="flex items-center gap-0.5 text-[10px] text-rose-400">
+                                        <TrendingDown className="h-2.5 w-2.5" />
+                                        -{formatCurrency(parseFloat(deal.discount_total), deal.currency || 'USD')}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <span className="text-xs text-muted-foreground">
