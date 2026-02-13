@@ -3,6 +3,7 @@ import api from './api';
 export interface LeadSearchResult {
   id: number;
   first_name: string;
+  last_name: string;
   funnel_id: number;
 }
 
