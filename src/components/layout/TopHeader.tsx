@@ -242,7 +242,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
                       </span>
                     </div>
                     <span className="text-sm font-medium text-foreground truncate">
-                      {lead.first_name}
+                      {lead.first_name} {lead.last_name}
                     </span>
                   </button>
                 ))}
@@ -303,7 +303,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
                         className="w-full px-3 py-2 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0"
                       >
                         <span className="text-sm font-medium text-foreground truncate block">
-                          {lead.first_name}
+                          {lead.first_name} {lead.last_name}
                         </span>
                       </button>
                     ))}
