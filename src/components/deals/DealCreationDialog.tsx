@@ -154,6 +154,23 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
     }, 400);
   }, [selectedLead]);
 
+  const handleRemoveProduct = async (productId: number) => {
+    if (!selectedLead) return;
+    setIsAddingProduct(true);
+    try {
+      const remainingProducts = selectedLead.products
+        .filter(p => p.id !== productId)
+        .map(p => ({ id: p.id, quantity: parseInt(String(p.pivot.quantity)) || 1 }));
+      await addProductsToLead(selectedLead.id, remainingProducts);
+      setSelectedLead(prev => prev ? { ...prev, products: prev.products.filter(p => p.id !== productId) } : prev);
+      toast({ title: 'Product removed', description: 'Product removed from lead.' });
+    } catch {
+      toast({ title: 'Error', description: 'Failed to remove product.', variant: 'destructive' });
+    } finally {
+      setIsAddingProduct(false);
+    }
+  };
+
   const handleAddProduct = async (product: ProductSearchResult) => {
     if (!selectedLead) return;
     setIsAddingProduct(true);
@@ -407,6 +424,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                             <th className="text-center p-3 text-gray-400 font-medium">Qty</th>
                             <th className="text-right p-3 text-gray-400 font-medium">Unit Price</th>
                             <th className="text-right p-3 text-gray-400 font-medium">Total</th>
+                            <th className="w-10 p-3"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -416,12 +434,22 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                               <td className="p-3 text-center text-gray-300">{p.pivot.quantity}</td>
                               <td className="p-3 text-right text-gray-300">{formatPrice(parseFloat(p.pivot.unit_price))}</td>
                               <td className="p-3 text-right text-deal font-medium">{formatPrice(parseFloat(p.pivot.total_price))}</td>
+                              <td className="p-3 text-center">
+                                <button
+                                  onClick={() => handleRemoveProduct(p.id)}
+                                  disabled={isSubmitting || isAddingProduct}
+                                  className="text-white/30 hover:text-rose-400 transition-colors disabled:opacity-50"
+                                  title="Remove product"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
                         <tfoot className="bg-white/5">
                           <tr>
-                            <td colSpan={3} className="p-3 text-right text-gray-400 font-medium">Subtotal</td>
+                            <td colSpan={4} className="p-3 text-right text-gray-400 font-medium">Subtotal</td>
                             <td className="p-3 text-right text-white font-semibold">{formatPrice(productsSubtotal)}</td>
                           </tr>
                         </tfoot>
