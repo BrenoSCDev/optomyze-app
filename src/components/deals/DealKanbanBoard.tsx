@@ -243,7 +243,7 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
       return sum + (s.deals || []).reduce((dSum: number, d: any) => dSum + (d.final_total || 0), 0);
     }, 0);
   }, [funnel]);
-  const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: funnel.currency || 'BRL' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(value);
 
   return (
     <div className="space-y-6">
@@ -267,7 +267,15 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
             <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 px-3 py-1">
               {totalDeals} {totalDeals === 1 ? 'Deal' : 'Deals'}
             </Badge>
-            <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 px-3 py-1 flex items-center gap-1">
+          </div>
+
+          {/* Description & Total Sales Value KPI */}
+          {funnel.description && (
+            <p className="text-sm text-muted-foreground">{funnel.description}</p>
+          )}
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm text-muted-foreground">Total Sales Value:</span>
+            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 px-3 text-sm font-semibold flex items-center gap-1">
               <DollarSign className="h-3.5 w-3.5" />
               {formatCurrency(totalSalesValue)}
             </Badge>
