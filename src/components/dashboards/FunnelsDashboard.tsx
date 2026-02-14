@@ -29,6 +29,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { funnelService } from '@/services/funnelApi';
 import api from '@/services/api';
 import { MdCurrencyExchange } from 'react-icons/md';
+import FunnelStagesModal from '@/components/stages/FunnelStagesModal';
 
 interface Funnel {
   id: number;
@@ -59,6 +60,7 @@ const FunnelsDashboard = () => {
   const [editFormData, setEditFormData] = useState({ name: '', description: '', is_active: true });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
+  const [stagesModalFunnelId, setStagesModalFunnelId] = useState<string | null>(null);
   
   const { toast } = useToast();
   const { funnels: authFunnels, updateFunnels, updateFunnel: updateFunnelInContext } = useAuth();
@@ -350,7 +352,7 @@ const FunnelsDashboard = () => {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-purple-400 hover:bg-purple-500/10 neon-border"
-            onClick={() => navigate(`/settings/funnels/${funnel.id}/stages`)}
+            onClick={() => setStagesModalFunnelId(funnel.id.toString())}
             title="Manage Stages"
           >
             <ListTree className="h-4 w-4" />
@@ -751,6 +753,13 @@ const FunnelsDashboard = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Funnel Stages Modal */}
+      <FunnelStagesModal
+        isOpen={!!stagesModalFunnelId}
+        onClose={() => setStagesModalFunnelId(null)}
+        funnelId={stagesModalFunnelId}
+      />
     </div>
   );
 };

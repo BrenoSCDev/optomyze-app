@@ -112,8 +112,15 @@ interface Funnel {
   deleted_at: string | null;
 }
 
-const FunnelStages = () => {
-  const { funnelId } = useParams<{ funnelId: string }>();
+interface FunnelStagesProps {
+  funnelIdProp?: string;
+  onBack?: () => void;
+  isEmbedded?: boolean;
+}
+
+const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStagesProps = {}) => {
+  const params = useParams<{ funnelId: string }>();
+  const funnelId = funnelIdProp || params.funnelId;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -571,48 +578,52 @@ const FunnelStages = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-primary/5 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={isEmbedded ? "space-y-6" : "min-h-screen bg-gradient-to-br from-background via-background/80 to-primary/5 p-6"}>
+      <div className={isEmbedded ? "space-y-6" : "max-w-7xl mx-auto space-y-6"}>
         {/* Header Section */}
         <div className="space-y-4">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button
-              onClick={() => navigate('/?section=funnels')}
-              className="hover:text-foreground transition-colors"
-            >
-              {t('nav.settings')}
-            </button>
-            <ChevronRight className="h-4 w-4" />
-            <button
-              onClick={() => navigate('/?section=funnels')}
-              className="hover:text-foreground transition-colors"
-            >
-              {t('nav.funnels')}
-            </button>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">
-              {funnel?.name || t('stages.loading')}
-            </span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground">
-              {t('stages.title')}
-            </span>
-          </div>
+          {/* Breadcrumb - only show when not embedded */}
+          {!isEmbedded && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <button
+                onClick={() => navigate('/?section=funnels')}
+                className="hover:text-foreground transition-colors"
+              >
+                {t('nav.settings')}
+              </button>
+              <ChevronRight className="h-4 w-4" />
+              <button
+                onClick={() => navigate('/?section=funnels')}
+                className="hover:text-foreground transition-colors"
+              >
+                {t('nav.funnels')}
+              </button>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground font-medium">
+                {funnel?.name || t('stages.loading')}
+              </span>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground">
+                {t('stages.title')}
+              </span>
+            </div>
+          )}
 
           {/* Page Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/?section=funnels')}
-                className="hover:bg-primary/10"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              {!isEmbedded && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onBack ? onBack() : navigate('/?section=funnels')}
+                  className="hover:bg-primary/10"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
               <div>
-                <h1 className="text-3xl font-bold text-foreground">
+                <h1 className={isEmbedded ? "text-2xl font-bold text-foreground" : "text-3xl font-bold text-foreground"}>
                   {t('stages.title')}
                 </h1>
                 <p className="text-muted-foreground">
