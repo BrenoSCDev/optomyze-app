@@ -67,6 +67,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
+import LeadPreviewModal from './LeadPreviewModal';
 
 interface KanbanBoardProps {
   funnel: any;
@@ -120,6 +121,10 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     isOpen: false,
     selectedLead: null
   });
+
+  // Lead preview modal state
+  const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Handle export to Excel
   const handleExport = useCallback(async () => {
@@ -509,9 +514,10 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     });
   };
 
-  // Handle lead click to navigate to detail page
+  // Handle lead click to open preview modal
   const handleLeadClick = (leadId: string) => {
-    navigate(`/leads/${funnel.id}/lead/${leadId}`);
+    setPreviewLeadId(leadId);
+    setPreviewOpen(true);
   };
 
   // Handle tags updated with API response data
@@ -831,6 +837,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         availableTags={availableTags}
         onFilterApply={handleFilterApply}
         onFilterClear={handleFilterClear}
+      />
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={previewOpen}
+        onClose={() => { setPreviewOpen(false); setPreviewLeadId(null); }}
+        leadId={previewLeadId}
+        onLeadDeleted={onRefresh}
       />
     </div>
   );
