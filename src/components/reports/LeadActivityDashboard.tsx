@@ -366,48 +366,51 @@ const LeadActivityDashboard: React.FC = () => {
           <ListTodo className="w-3.5 h-3.5" />
           {t('lead-activity.kanban-title')}
         </h3>
-        <div className="glass-card p-5 overflow-x-auto scrollbar-dark">
           <DndContext
             collisionDetection={pointerWithin}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            <div className="flex gap-4 min-w-[900px]">
-              <DroppableKanbanColumn
-                status="pending"
-                title={t('tasks.status.pending')}
-                icon={<Clock className="w-4 h-4 text-yellow-400" />}
-                tasks={tasksByStatus.pending}
-                headerColor="border-yellow-600/40"
-              />
-              <DroppableKanbanColumn
-                status="in_progress"
-                title={t('tasks.status.in_progress')}
-                icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
-                tasks={tasksByStatus.in_progress}
-                headerColor="border-blue-600/40"
-              />
-              <DroppableKanbanColumn
-                status="completed"
-                title={t('tasks.status.completed')}
-                icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
-                tasks={tasksByStatus.completed}
-                headerColor="border-green-600/40"
-              />
-              <DroppableKanbanColumn
-                status="cancelled"
-                title={t('tasks.status.cancelled')}
-                icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
-                tasks={tasksByStatus.cancelled}
-                headerColor="border-border"
-              />
+            <div className="glass-card p-5 overflow-x-auto scrollbar-dark">
+              <div className="flex gap-4 min-w-[900px]">
+                <DroppableKanbanColumn
+                  status="pending"
+                  title={t('tasks.status.pending')}
+                  icon={<Clock className="w-4 h-4 text-yellow-400" />}
+                  tasks={tasksByStatus.pending}
+                  headerColor="border-yellow-600/40"
+                />
+                <DroppableKanbanColumn
+                  status="in_progress"
+                  title={t('tasks.status.in_progress')}
+                  icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
+                  tasks={tasksByStatus.in_progress}
+                  headerColor="border-blue-600/40"
+                />
+                <DroppableKanbanColumn
+                  status="completed"
+                  title={t('tasks.status.completed')}
+                  icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
+                  tasks={tasksByStatus.completed}
+                  headerColor="border-green-600/40"
+                />
+                <DroppableKanbanColumn
+                  status="cancelled"
+                  title={t('tasks.status.cancelled')}
+                  icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
+                  tasks={tasksByStatus.cancelled}
+                  headerColor="border-border"
+                />
+              </div>
             </div>
 
-            <DragOverlay>
+            <DragOverlay dropAnimation={{
+              duration: 250,
+              easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+            }}>
               {activeTask ? <TaskCardOverlay task={activeTask} /> : null}
             </DragOverlay>
           </DndContext>
-        </div>
       </div>
 
       {/* ─── Activity Feed ─── */}
