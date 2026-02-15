@@ -1,5 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import {
+  DndContext,
+  DragOverlay,
+  pointerWithin,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   Activity,
   ListTodo,
@@ -13,11 +21,17 @@ import {
   XCircle,
   Calendar,
   User,
+  GripVertical,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { leadActivityApi, type ActivityTask, type ActivityTransaction } from '@/services/leadActivityApi';
+import { taskApi } from '@/services/taskApi';
+import { toast } from 'sonner';
+
+const STATUSES = ['pending', 'in_progress', 'completed', 'cancelled'] as const;
+type TaskStatus = typeof STATUSES[number];
 
 // ─── KPI Card ───
 const KPICard: React.FC<{
@@ -49,14 +63,17 @@ const priorityBorderColor: Record<string, string> = {
   urgent: 'border-l-red-500',
 };
 
-// ─── Task Kanban Column ───
-const KanbanColumn: React.FC<{
-  title: string;
-  icon: React.ReactNode;
-  tasks: ActivityTask[];
-  headerColor: string;
-}> = ({ title, icon, tasks, headerColor }) => {
+// ─── Draggable Task Card ───
+const DraggableTaskCard: React.FC<{ task: ActivityTask }> = ({ task }) => {
   const { t } = useLanguage();
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `task-${task.id}`,
+    data: { task },
+  });
+
+  const style = transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
 
   const formatDate = (d: string) => {
     const date = new Date(d);
@@ -64,50 +81,106 @@ const KanbanColumn: React.FC<{
   };
 
   return (
-    <div className="flex-1 min-w-[240px] flex flex-col">
-      {/* Column header */}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`glass-card p-3 rounded-lg space-y-1.5 border-l-2 ${priorityBorderColor[task.priority] || 'border-l-border'} ${
+        isDragging ? 'opacity-30' : ''
+      } cursor-grab active:cursor-grabbing`}
+      {...listeners}
+      {...attributes}
+    >
+      <div className="flex items-start gap-1.5">
+        <GripVertical className="w-3.5 h-3.5 text-muted-foreground/50 mt-0.5 shrink-0" />
+        <p className="text-sm font-medium text-foreground leading-tight flex-1">{task.title}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground ml-5">
+        {task.due_date && (
+          <span className={`flex items-center gap-1 ${
+            new Date(task.due_date) < new Date() && task.status !== 'completed' && task.status !== 'cancelled'
+              ? 'text-red-400 font-medium' : ''
+          }`}>
+            <Calendar className="w-3 h-3" />
+            {formatDate(task.due_date)}
+          </span>
+        )}
+        {task.assignee && (
+          <span className="flex items-center gap-1">
+            <User className="w-3 h-3" />
+            {task.assignee.name}
+          </span>
+        )}
+      </div>
+
+      <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground truncate ml-5">
+        {task.lead.first_name} {task.lead.last_name}
+      </div>
+    </div>
+  );
+};
+
+// ─── Task Card (for overlay, no drag hooks) ───
+const TaskCardOverlay: React.FC<{ task: ActivityTask }> = ({ task }) => {
+  const formatDate = (d: string) => {
+    const date = new Date(d);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  };
+
+  return (
+    <div className={`glass-card p-3 rounded-lg space-y-1.5 border-l-2 ${priorityBorderColor[task.priority] || 'border-l-border'} w-[240px] shadow-lg shadow-black/40 rotate-2`}>
+      <p className="text-sm font-medium text-foreground leading-tight">{task.title}</p>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+        {task.due_date && (
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {formatDate(task.due_date)}
+          </span>
+        )}
+        {task.assignee && (
+          <span className="flex items-center gap-1">
+            <User className="w-3 h-3" />
+            {task.assignee.name}
+          </span>
+        )}
+      </div>
+      <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground truncate">
+        {task.lead.first_name} {task.lead.last_name}
+      </div>
+    </div>
+  );
+};
+
+// ─── Droppable Kanban Column ───
+const DroppableKanbanColumn: React.FC<{
+  status: TaskStatus;
+  title: string;
+  icon: React.ReactNode;
+  tasks: ActivityTask[];
+  headerColor: string;
+}> = ({ status, title, icon, tasks, headerColor }) => {
+  const { t } = useLanguage();
+  const { isOver, setNodeRef } = useDroppable({ id: status });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex-1 min-w-[240px] flex flex-col rounded-lg transition-colors duration-200 ${
+        isOver ? 'bg-accent/5 ring-1 ring-accent/20' : ''
+      }`}
+    >
       <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${headerColor}`}>
         {icon}
         <span className="text-sm font-semibold text-foreground">{title}</span>
         <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{tasks.length}</Badge>
       </div>
 
-      {/* Cards */}
-      <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 scrollbar-dark flex-1">
+      <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 scrollbar-dark flex-1 min-h-[80px]">
         {tasks.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-8">{t('lead-activity.no-tasks')}</p>
         ) : (
           tasks.map((task) => (
-            <motion.div
-              key={task.id}
-              className={`glass-card p-3 rounded-lg space-y-1.5 border-l-2 ${priorityBorderColor[task.priority] || 'border-l-border'}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-sm font-medium text-foreground leading-tight">{task.title}</p>
-
-              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                {task.due_date && (
-                  <span className={`flex items-center gap-1 ${
-                    new Date(task.due_date) < new Date() && task.status !== 'completed' && task.status !== 'cancelled'
-                      ? 'text-red-400 font-medium' : ''
-                  }`}>
-                    <Calendar className="w-3 h-3" />
-                    {formatDate(task.due_date)}
-                  </span>
-                )}
-                {task.assignee && (
-                  <span className="flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    {task.assignee.name}
-                  </span>
-                )}
-              </div>
-
-              <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground truncate">
-                {task.lead.first_name} {task.lead.last_name}
-              </div>
-            </motion.div>
+            <DraggableTaskCard key={task.id} task={task} />
           ))
         )}
       </div>
@@ -166,6 +239,8 @@ const LeadActivityDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<ActivityTask[]>([]);
   const [transactions, setTransactions] = useState<ActivityTransaction[]>([]);
+  const [activeTask, setActiveTask] = useState<ActivityTask | null>(null);
+  const validColumnsRef = useRef<Set<string>>(new Set(STATUSES));
 
   useEffect(() => {
     leadActivityApi.fetchActivity()
@@ -194,6 +269,40 @@ const LeadActivityDashboard: React.FC = () => {
     tasks.forEach((tk) => { (groups[tk.status] || (groups[tk.status] = [])).push(tk); });
     return groups;
   }, [tasks]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const task = event.active.data.current?.task as ActivityTask | undefined;
+    if (task) setActiveTask(task);
+  }, []);
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    setActiveTask(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const targetStatus = over.id as string;
+    if (!validColumnsRef.current.has(targetStatus)) return;
+
+    const task = active.data.current?.task as ActivityTask | undefined;
+    if (!task || task.status === targetStatus) return;
+
+    const previousStatus = task.status;
+
+    // Optimistic update
+    setTasks(prev => prev.map(tk =>
+      tk.id === task.id ? { ...tk, status: targetStatus as TaskStatus } : tk
+    ));
+
+    try {
+      await taskApi.updateTask(task.id, { status: targetStatus as TaskStatus });
+    } catch {
+      // Revert on failure
+      setTasks(prev => prev.map(tk =>
+        tk.id === task.id ? { ...tk, status: previousStatus } : tk
+      ));
+      toast.error(t('tasks.modal.update-error') || 'Failed to update task');
+    }
+  }, [t]);
 
   if (loading) {
     return (
@@ -256,39 +365,53 @@ const LeadActivityDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* ─── Kanban Board ─── */}
+      {/* ─── Kanban Board with Drag & Drop ─── */}
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
           <ListTodo className="w-3.5 h-3.5" />
           {t('lead-activity.kanban-title')}
         </h3>
         <div className="glass-card p-5 overflow-x-auto scrollbar-dark">
-          <div className="flex gap-4 min-w-[900px]">
-            <KanbanColumn
-              title={t('tasks.status.pending')}
-              icon={<Clock className="w-4 h-4 text-yellow-400" />}
-              tasks={tasksByStatus.pending}
-              headerColor="border-yellow-600/40"
-            />
-            <KanbanColumn
-              title={t('tasks.status.in_progress')}
-              icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
-              tasks={tasksByStatus.in_progress}
-              headerColor="border-blue-600/40"
-            />
-            <KanbanColumn
-              title={t('tasks.status.completed')}
-              icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
-              tasks={tasksByStatus.completed}
-              headerColor="border-green-600/40"
-            />
-            <KanbanColumn
-              title={t('tasks.status.cancelled')}
-              icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
-              tasks={tasksByStatus.cancelled}
-              headerColor="border-border"
-            />
-          </div>
+          <DndContext
+            collisionDetection={pointerWithin}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="flex gap-4 min-w-[900px]">
+              <DroppableKanbanColumn
+                status="pending"
+                title={t('tasks.status.pending')}
+                icon={<Clock className="w-4 h-4 text-yellow-400" />}
+                tasks={tasksByStatus.pending}
+                headerColor="border-yellow-600/40"
+              />
+              <DroppableKanbanColumn
+                status="in_progress"
+                title={t('tasks.status.in_progress')}
+                icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
+                tasks={tasksByStatus.in_progress}
+                headerColor="border-blue-600/40"
+              />
+              <DroppableKanbanColumn
+                status="completed"
+                title={t('tasks.status.completed')}
+                icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
+                tasks={tasksByStatus.completed}
+                headerColor="border-green-600/40"
+              />
+              <DroppableKanbanColumn
+                status="cancelled"
+                title={t('tasks.status.cancelled')}
+                icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
+                tasks={tasksByStatus.cancelled}
+                headerColor="border-border"
+              />
+            </div>
+
+            <DragOverlay>
+              {activeTask ? <TaskCardOverlay task={activeTask} /> : null}
+            </DragOverlay>
+          </DndContext>
         </div>
       </div>
 
