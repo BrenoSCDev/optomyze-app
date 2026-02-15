@@ -66,14 +66,10 @@ const priorityBorderColor: Record<string, string> = {
 // ─── Draggable Task Card ───
 const DraggableTaskCard: React.FC<{ task: ActivityTask }> = ({ task }) => {
   const { t } = useLanguage();
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `task-${task.id}`,
     data: { task },
   });
-
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
 
   const formatDate = (d: string) => {
     const date = new Date(d);
@@ -83,10 +79,9 @@ const DraggableTaskCard: React.FC<{ task: ActivityTask }> = ({ task }) => {
   return (
     <div
       ref={setNodeRef}
-      style={style}
       className={`glass-card p-3 rounded-lg space-y-1.5 border-l-2 ${priorityBorderColor[task.priority] || 'border-l-border'} ${
-        isDragging ? 'opacity-30' : ''
-      } cursor-grab active:cursor-grabbing`}
+        isDragging ? 'opacity-20 scale-95' : ''
+      } cursor-grab active:cursor-grabbing transition-opacity`}
       {...listeners}
       {...attributes}
     >
