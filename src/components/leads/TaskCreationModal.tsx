@@ -31,7 +31,7 @@ interface TaskCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   leadId: number;
-  onTaskCreated: (task: Task) => void;
+  onTaskCreated: (task: Task, transaction?: any) => void;
   editTask?: Task | null;
   onTaskUpdated?: (task: Task) => void;
 }
@@ -136,9 +136,9 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
         onTaskUpdated?.(updatedTask);
       } else {
         // Create new task
-        const newTask = await taskApi.createTask(payload);
+        const result = await taskApi.createTask(payload);
         toast.success(t('tasks.modal.create-success'));
-        onTaskCreated(newTask);
+        onTaskCreated(result.task, result.transaction);
       }
       
       onClose();

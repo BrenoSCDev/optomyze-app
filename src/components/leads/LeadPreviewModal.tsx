@@ -12,7 +12,7 @@ import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
   AlertCircle, ArrowRightLeft, UserCheck, Trash2,
   MoreVertical, Building2, ShoppingBag, Activity,
-  ArrowRight, RefreshCw, FileText, ArrowLeft, ChevronRight, PlusCircle, PackageCheck,
+  ArrowRight, RefreshCw, FileText, ArrowLeft, ChevronRight, PlusCircle, PackageCheck, ListTodo,
 } from 'lucide-react';
 import { VscSourceControl } from 'react-icons/vsc';
 import { Button } from '@/components/ui/button';
@@ -126,8 +126,12 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
   };
 
   // Handlers mirroring LeadDetail page
-  const handleTaskCreated = (newTask: Task) => {
-    setLeadData((prev: any) => prev ? { ...prev, tasks: [newTask, ...prev.tasks] } : prev);
+  const handleTaskCreated = (newTask: Task, transaction?: any) => {
+    setLeadData((prev: any) => prev ? {
+      ...prev,
+      tasks: [newTask, ...prev.tasks],
+      transactions: transaction ? [transaction, ...prev.transactions] : prev.transactions,
+    } : prev);
   };
   const handleTaskUpdated = (updatedTask: Task) => {
     setLeadData((prev: any) => prev ? { ...prev, tasks: prev.tasks.map((t: Task) => t.id === updatedTask.id ? updatedTask : t) } : prev);
@@ -529,6 +533,7 @@ const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
       email_sent: <Mail className="w-4 h-4" />,
       creation: <PlusCircle className="w-4 h-4" />,
       product_update: <PackageCheck className="w-4 h-4" />,
+      task: <ListTodo className="w-4 h-4" />,
     };
     return icons[type] || <Activity className="w-4 h-4" />;
   };
@@ -536,7 +541,7 @@ const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
     const colors: Record<string, string> = {
       stage_change: 'bg-blue-600', status_change: 'bg-yellow-600',
       note_added: 'bg-green-600', contact_attempt: 'bg-purple-600', email_sent: 'bg-orange-600',
-      creation: 'bg-emerald-600', product_update: 'bg-cyan-600',
+      creation: 'bg-emerald-600', product_update: 'bg-cyan-600', task: 'bg-indigo-600',
     };
     return colors[type] || 'bg-muted';
   };

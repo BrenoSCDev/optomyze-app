@@ -41,7 +41,8 @@ import {
   ShoppingBag,
    Building2,
    PlusCircle,
-   PackageCheck
+   PackageCheck,
+   ListTodo
 } from 'lucide-react';
 import { API_STORAGE_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
@@ -302,12 +303,13 @@ const LeadDetailPage = () => {
     }
   };
 
-  const handleTaskCreated = (newTask: Task) => {
+  const handleTaskCreated = (newTask: Task, transaction?: any) => {
     setLeadData(prev => {
       if (!prev) return prev;
       return {
         ...prev,
-        tasks: [newTask, ...prev.tasks]
+        tasks: [newTask, ...prev.tasks],
+        transactions: transaction ? [transaction, ...prev.transactions] : prev.transactions,
       };
     });
   };
@@ -869,7 +871,8 @@ const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[]
       'contact_attempt': <Phone className="w-4 h-4" />,
       'email_sent': <Mail className="w-4 h-4" />,
       'creation': <PlusCircle className="w-4 h-4" />,
-      'product_update': <PackageCheck className="w-4 h-4" />
+      'product_update': <PackageCheck className="w-4 h-4" />,
+      'task': <ListTodo className="w-4 h-4" />
     };
     return icons[type as keyof typeof icons] || <Activity className="w-4 h-4" />;
   };
@@ -882,7 +885,8 @@ const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[]
       'contact_attempt': 'bg-purple-600',
       'email_sent': 'bg-orange-600',
       'creation': 'bg-emerald-600',
-      'product_update': 'bg-cyan-600'
+      'product_update': 'bg-cyan-600',
+      'task': 'bg-indigo-600'
     };
     return colors[type as keyof typeof colors] || 'bg-gray-600';
   };
