@@ -13,10 +13,7 @@ import {
   XCircle,
   Calendar,
   User,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -31,37 +28,35 @@ const KPICard: React.FC<{
   delay?: number;
 }> = ({ label, count, icon, color, delay = 0 }) => (
   <motion.div
-    className="glass-card p-5 flex items-center gap-4"
+    className="glass-card p-4 flex items-center gap-3"
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: delay * 0.08 }}
+    transition={{ delay: delay * 0.06 }}
   >
-    <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
+    <div className={`p-2.5 rounded-lg ${color}`}>{icon}</div>
     <div>
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="text-2xl font-bold text-foreground">{count}</p>
+      <p className="text-xs text-muted-foreground leading-none mb-1">{label}</p>
+      <p className="text-xl font-bold text-foreground leading-none">{count}</p>
     </div>
   </motion.div>
 );
+
+// ─── Priority left-border color ───
+const priorityBorderColor: Record<string, string> = {
+  low: 'border-l-green-500',
+  medium: 'border-l-yellow-500',
+  high: 'border-l-orange-500',
+  urgent: 'border-l-red-500',
+};
 
 // ─── Task Kanban Column ───
 const KanbanColumn: React.FC<{
   title: string;
   icon: React.ReactNode;
   tasks: ActivityTask[];
-  color: string;
-}> = ({ title, icon, tasks, color }) => {
+  headerColor: string;
+}> = ({ title, icon, tasks, headerColor }) => {
   const { t } = useLanguage();
-
-  const getPriorityColor = (p: string) => {
-    const map: Record<string, string> = {
-      low: 'bg-muted text-muted-foreground border-border',
-      medium: 'bg-blue-600/20 text-blue-400 border-blue-600/30',
-      high: 'bg-orange-600/20 text-orange-400 border-orange-600/30',
-      urgent: 'bg-red-600/20 text-red-400 border-red-600/30',
-    };
-    return map[p] || map.medium;
-  };
 
   const formatDate = (d: string) => {
     const date = new Date(d);
@@ -69,46 +64,48 @@ const KanbanColumn: React.FC<{
   };
 
   return (
-    <div className="flex-1 min-w-[260px]">
-      <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${color}`}>
+    <div className="flex-1 min-w-[240px] flex flex-col">
+      {/* Column header */}
+      <div className={`flex items-center gap-2 mb-3 pb-2 border-b ${headerColor}`}>
         {icon}
         <span className="text-sm font-semibold text-foreground">{title}</span>
-        <Badge variant="secondary" className="ml-auto text-xs">{tasks.length}</Badge>
+        <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0">{tasks.length}</Badge>
       </div>
-      <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+
+      {/* Cards */}
+      <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 scrollbar-dark flex-1">
         {tasks.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-6">{t('lead-activity.no-tasks')}</p>
+          <p className="text-xs text-muted-foreground text-center py-8">{t('lead-activity.no-tasks')}</p>
         ) : (
           tasks.map((task) => (
             <motion.div
               key={task.id}
-              className="glass-card p-3 rounded-lg space-y-2"
+              className={`glass-card p-3 rounded-lg space-y-1.5 border-l-2 ${priorityBorderColor[task.priority] || 'border-l-border'}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
               <p className="text-sm font-medium text-foreground leading-tight">{task.title}</p>
-              <div className="flex flex-wrap gap-1.5">
-                <Badge className={`text-[10px] border ${getPriorityColor(task.priority)}`}>
-                  {t(`tasks.priority.${task.priority}`)}
-                </Badge>
+
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                {task.due_date && (
+                  <span className={`flex items-center gap-1 ${
+                    new Date(task.due_date) < new Date() && task.status !== 'completed' && task.status !== 'cancelled'
+                      ? 'text-red-400 font-medium' : ''
+                  }`}>
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(task.due_date)}
+                  </span>
+                )}
+                {task.assignee && (
+                  <span className="flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    {task.assignee.name}
+                  </span>
+                )}
               </div>
-              {task.due_date && (
-                <div className={`flex items-center gap-1 text-[11px] ${
-                  new Date(task.due_date) < new Date() && task.status !== 'completed' && task.status !== 'cancelled'
-                    ? 'text-red-400' : 'text-muted-foreground'
-                }`}>
-                  <Calendar className="w-3 h-3" />
-                  {formatDate(task.due_date)}
-                </div>
-              )}
-              {task.assignee && (
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <User className="w-3 h-3" />
-                  {task.assignee.name}
-                </div>
-              )}
-              <div className="pt-1.5 border-t border-border/50 flex items-center gap-1 text-[11px] text-muted-foreground">
-                <span className="truncate">{task.lead.first_name} {task.lead.last_name}</span>
+
+              <div className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground truncate">
+                {task.lead.first_name} {task.lead.last_name}
               </div>
             </motion.div>
           ))
@@ -118,17 +115,17 @@ const KanbanColumn: React.FC<{
   );
 };
 
-// ─── Transaction Log ───
+// ─── Transaction Log Item ───
 const TransactionItem: React.FC<{ tx: ActivityTransaction; index: number }> = ({ tx, index }) => {
   const getIcon = (type: string) => {
     const map: Record<string, { icon: React.ReactNode; color: string }> = {
-      creation: { icon: <PlusCircle className="w-4 h-4" />, color: 'bg-emerald-600' },
-      task: { icon: <ListTodo className="w-4 h-4" />, color: 'bg-indigo-600' },
-      product_update: { icon: <PackageCheck className="w-4 h-4" />, color: 'bg-cyan-600' },
-      stage_change: { icon: <ArrowRightLeft className="w-4 h-4" />, color: 'bg-amber-600' },
-      deal: { icon: <Handshake className="w-4 h-4" />, color: 'bg-purple-600' },
+      creation: { icon: <PlusCircle className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
+      task: { icon: <ListTodo className="w-3.5 h-3.5" />, color: 'bg-indigo-600' },
+      product_update: { icon: <PackageCheck className="w-3.5 h-3.5" />, color: 'bg-cyan-600' },
+      stage_change: { icon: <ArrowRightLeft className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
+      deal: { icon: <Handshake className="w-3.5 h-3.5" />, color: 'bg-purple-600' },
     };
-    return map[type] || { icon: <Activity className="w-4 h-4" />, color: 'bg-muted' };
+    return map[type] || { icon: <Activity className="w-3.5 h-3.5" />, color: 'bg-muted' };
   };
 
   const { icon, color } = getIcon(tx.type);
@@ -143,27 +140,27 @@ const TransactionItem: React.FC<{ tx: ActivityTransaction; index: number }> = ({
 
   return (
     <motion.div
-      className="flex gap-3 py-3"
-      initial={{ opacity: 0, x: -12 }}
+      className="flex gap-3 py-2.5"
+      initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
+      transition={{ delay: Math.min(index * 0.02, 0.4) }}
     >
-      <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center shrink-0 text-white`}>
+      <div className={`w-7 h-7 rounded-full ${color} flex items-center justify-center shrink-0 text-white`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-foreground leading-snug">{tx.description}</p>
-        <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-muted-foreground">
+        <p className="text-[13px] text-foreground leading-snug">{tx.description}</p>
+        <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
           <span>{formatTimestamp(tx.created_at)}</span>
-          {tx.user && <span>{tx.user.name}</span>}
-          <span className="text-accent">{tx.lead.first_name} {tx.lead.last_name}</span>
+          {tx.user && <span>• {tx.user.name}</span>}
+          <span className="text-accent">• {tx.lead.first_name} {tx.lead.last_name}</span>
         </div>
       </div>
     </motion.div>
   );
 };
 
-// ─── Main Dashboard ───
+// ─── Main 360° Dashboard ───
 const LeadActivityDashboard: React.FC = () => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
@@ -180,24 +177,21 @@ const LeadActivityDashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Task KPIs — by priority
   const taskPriorityKPIs = useMemo(() => {
     const counts = { low: 0, medium: 0, high: 0, urgent: 0 };
-    tasks.forEach((t) => { if (counts[t.priority] !== undefined) counts[t.priority]++; });
+    tasks.forEach((tk) => { if (counts[tk.priority] !== undefined) counts[tk.priority]++; });
     return counts;
   }, [tasks]);
 
-  // Transaction KPIs — by type
   const txTypeKPIs = useMemo(() => {
     const counts: Record<string, number> = {};
     transactions.forEach((tx) => { counts[tx.type] = (counts[tx.type] || 0) + 1; });
     return counts;
   }, [transactions]);
 
-  // Group tasks by status
   const tasksByStatus = useMemo(() => {
     const groups: Record<string, ActivityTask[]> = { pending: [], in_progress: [], completed: [], cancelled: [] };
-    tasks.forEach((t) => { (groups[t.status] || (groups[t.status] = [])).push(t); });
+    tasks.forEach((tk) => { (groups[tk.status] || (groups[tk.status] = [])).push(tk); });
     return groups;
   }, [tasks]);
 
@@ -205,25 +199,28 @@ const LeadActivityDashboard: React.FC = () => {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-lg" />)}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
         </div>
-        <Skeleton className="h-96 rounded-lg" />
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-20 rounded-lg" />)}
+        </div>
+        <Skeleton className="h-80 rounded-lg" />
       </div>
     );
   }
 
-  const txKpiConfig: { type: string; label: string; icon: React.ReactNode; color: string }[] = [
-    { type: 'creation', label: t('lead-activity.kpi.creation'), icon: <PlusCircle className="w-5 h-5 text-emerald-400" />, color: 'bg-emerald-600/20' },
-    { type: 'task', label: t('lead-activity.kpi.task'), icon: <ListTodo className="w-5 h-5 text-indigo-400" />, color: 'bg-indigo-600/20' },
-    { type: 'product_update', label: t('lead-activity.kpi.product-update'), icon: <PackageCheck className="w-5 h-5 text-cyan-400" />, color: 'bg-cyan-600/20' },
-    { type: 'stage_change', label: t('lead-activity.kpi.stage-change'), icon: <ArrowRightLeft className="w-5 h-5 text-amber-400" />, color: 'bg-amber-600/20' },
-    { type: 'deal', label: t('lead-activity.kpi.deal'), icon: <Handshake className="w-5 h-5 text-purple-400" />, color: 'bg-purple-600/20' },
+  const txKpiConfig = [
+    { type: 'creation', label: t('lead-activity.kpi.creation'), icon: <PlusCircle className="w-4 h-4 text-emerald-400" />, color: 'bg-emerald-600/20' },
+    { type: 'task', label: t('lead-activity.kpi.task'), icon: <ListTodo className="w-4 h-4 text-indigo-400" />, color: 'bg-indigo-600/20' },
+    { type: 'product_update', label: t('lead-activity.kpi.product-update'), icon: <PackageCheck className="w-4 h-4 text-cyan-400" />, color: 'bg-cyan-600/20' },
+    { type: 'stage_change', label: t('lead-activity.kpi.stage-change'), icon: <ArrowRightLeft className="w-4 h-4 text-amber-400" />, color: 'bg-amber-600/20' },
+    { type: 'deal', label: t('lead-activity.kpi.deal'), icon: <Handshake className="w-4 h-4 text-purple-400" />, color: 'bg-purple-600/20' },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* ─── Header ─── */}
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Activity className="w-6 h-6 text-accent" />
@@ -232,93 +229,87 @@ const LeadActivityDashboard: React.FC = () => {
         <p className="text-sm text-muted-foreground mt-1">{t('lead-activity.subtitle')}</p>
       </div>
 
-      <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="bg-card border border-border">
-          <TabsTrigger value="tasks" className="data-[state=active]:bg-accent/20 data-[state=active]:text-accent">
-            <ListTodo className="w-4 h-4 mr-1.5" />
-            {t('lead-activity.tab.tasks')}
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="data-[state=active]:bg-accent/20 data-[state=active]:text-accent">
-            <Activity className="w-4 h-4 mr-1.5" />
-            {t('lead-activity.tab.transactions')}
-          </TabsTrigger>
-        </TabsList>
+      {/* ─── KPI Row 1: Task Priorities ─── */}
+      <div>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <ListTodo className="w-3.5 h-3.5" />
+          {t('lead-activity.tab.tasks')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KPICard label={t('tasks.priority.low')} count={taskPriorityKPIs.low} icon={<CheckCircle2 className="w-4 h-4 text-green-400" />} color="bg-green-600/20" delay={0} />
+          <KPICard label={t('tasks.priority.medium')} count={taskPriorityKPIs.medium} icon={<Clock className="w-4 h-4 text-yellow-400" />} color="bg-yellow-600/20" delay={1} />
+          <KPICard label={t('tasks.priority.high')} count={taskPriorityKPIs.high} icon={<AlertCircle className="w-4 h-4 text-orange-400" />} color="bg-orange-600/20" delay={2} />
+          <KPICard label={t('tasks.priority.urgent')} count={taskPriorityKPIs.urgent} icon={<XCircle className="w-4 h-4 text-red-400" />} color="bg-red-600/20" delay={3} />
+        </div>
+      </div>
 
-        {/* ─── Tasks Tab ─── */}
-        <TabsContent value="tasks" className="space-y-6 mt-6">
-          {/* Task Priority KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KPICard label={t('tasks.priority.low')} count={taskPriorityKPIs.low} icon={<CheckCircle2 className="w-5 h-5 text-muted-foreground" />} color="bg-muted" delay={0} />
-            <KPICard label={t('tasks.priority.medium')} count={taskPriorityKPIs.medium} icon={<Clock className="w-5 h-5 text-blue-400" />} color="bg-blue-600/20" delay={1} />
-            <KPICard label={t('tasks.priority.high')} count={taskPriorityKPIs.high} icon={<AlertCircle className="w-5 h-5 text-orange-400" />} color="bg-orange-600/20" delay={2} />
-            <KPICard label={t('tasks.priority.urgent')} count={taskPriorityKPIs.urgent} icon={<XCircle className="w-5 h-5 text-red-400" />} color="bg-red-600/20" delay={3} />
+      {/* ─── KPI Row 2: Transaction Types ─── */}
+      <div>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          {t('lead-activity.tab.transactions')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {txKpiConfig.map((cfg, i) => (
+            <KPICard key={cfg.type} label={cfg.label} count={txTypeKPIs[cfg.type] || 0} icon={cfg.icon} color={cfg.color} delay={i} />
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Kanban Board ─── */}
+      <div>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <ListTodo className="w-3.5 h-3.5" />
+          {t('lead-activity.kanban-title')}
+        </h3>
+        <div className="glass-card p-5 overflow-x-auto scrollbar-dark">
+          <div className="flex gap-4 min-w-[900px]">
+            <KanbanColumn
+              title={t('tasks.status.pending')}
+              icon={<Clock className="w-4 h-4 text-yellow-400" />}
+              tasks={tasksByStatus.pending}
+              headerColor="border-yellow-600/40"
+            />
+            <KanbanColumn
+              title={t('tasks.status.in_progress')}
+              icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
+              tasks={tasksByStatus.in_progress}
+              headerColor="border-blue-600/40"
+            />
+            <KanbanColumn
+              title={t('tasks.status.completed')}
+              icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
+              tasks={tasksByStatus.completed}
+              headerColor="border-green-600/40"
+            />
+            <KanbanColumn
+              title={t('tasks.status.cancelled')}
+              icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
+              tasks={tasksByStatus.cancelled}
+              headerColor="border-border"
+            />
           </div>
+        </div>
+      </div>
 
-          {/* Kanban Board */}
-          <div className="glass-card p-6 overflow-x-auto">
-            <div className="flex gap-4 min-w-[900px]">
-              <KanbanColumn
-                title={t('tasks.status.pending')}
-                icon={<Clock className="w-4 h-4 text-yellow-400" />}
-                tasks={tasksByStatus.pending}
-                color="border-yellow-600/40"
-              />
-              <KanbanColumn
-                title={t('tasks.status.in_progress')}
-                icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
-                tasks={tasksByStatus.in_progress}
-                color="border-blue-600/40"
-              />
-              <KanbanColumn
-                title={t('tasks.status.completed')}
-                icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
-                tasks={tasksByStatus.completed}
-                color="border-green-600/40"
-              />
-              <KanbanColumn
-                title={t('tasks.status.cancelled')}
-                icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
-                tasks={tasksByStatus.cancelled}
-                color="border-border"
-              />
+      {/* ─── Activity Feed ─── */}
+      <div>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Activity className="w-3.5 h-3.5" />
+          {t('lead-activity.activity-log')}
+        </h3>
+        <div className="glass-card p-5">
+          {transactions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">{t('lead-activity.no-transactions')}</p>
+          ) : (
+            <div className="divide-y divide-border/40 max-h-[500px] overflow-y-auto scrollbar-dark pr-1">
+              {transactions.map((tx, i) => (
+                <TransactionItem key={tx.id} tx={tx} index={i} />
+              ))}
             </div>
-          </div>
-        </TabsContent>
-
-        {/* ─── Transactions Tab ─── */}
-        <TabsContent value="transactions" className="space-y-6 mt-6">
-          {/* Transaction Type KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {txKpiConfig.map((cfg, i) => (
-              <KPICard
-                key={cfg.type}
-                label={cfg.label}
-                count={txTypeKPIs[cfg.type] || 0}
-                icon={cfg.icon}
-                color={cfg.color}
-                delay={i}
-              />
-            ))}
-          </div>
-
-          {/* Activity Log */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-accent" />
-              {t('lead-activity.activity-log')}
-            </h3>
-            {transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">{t('lead-activity.no-transactions')}</p>
-            ) : (
-              <div className="divide-y divide-border/50 max-h-[600px] overflow-y-auto custom-scrollbar">
-                {transactions.map((tx, i) => (
-                  <TransactionItem key={tx.id} tx={tx} index={i} />
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
