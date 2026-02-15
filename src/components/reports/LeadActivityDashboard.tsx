@@ -153,14 +153,15 @@ const DroppableKanbanColumn: React.FC<{
   icon: React.ReactNode;
   tasks: ActivityTask[];
   headerColor: string;
-}> = ({ status, title, icon, tasks, headerColor }) => {
+  isDragActive: boolean;
+}> = ({ status, title, icon, tasks, headerColor, isDragActive }) => {
   const { t } = useLanguage();
   const { isOver, setNodeRef } = useDroppable({ id: status });
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-w-[240px] flex flex-col rounded-lg transition-colors duration-200 ${
+      className={`flex-1 min-w-[240px] flex flex-col rounded-lg transition-all duration-200 p-2 ${
         isOver ? 'bg-accent/5 ring-1 ring-accent/20' : ''
       }`}
     >
@@ -171,7 +172,20 @@ const DroppableKanbanColumn: React.FC<{
       </div>
 
       <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 scrollbar-dark flex-1 min-h-[80px]">
-        {tasks.length === 0 ? (
+        {/* Drop placeholder */}
+        {isDragActive && isOver && (
+          <motion.div
+            className="border-2 border-dashed border-accent/40 bg-accent/5 rounded-lg p-3 min-h-[60px] flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+          >
+            <p className="text-xs text-accent font-medium">{t('lead-activity.drop-here')}</p>
+          </motion.div>
+        )}
+
+        {tasks.length === 0 && !isOver ? (
           <p className="text-xs text-muted-foreground text-center py-8">{t('lead-activity.no-tasks')}</p>
         ) : (
           tasks.map((task) => (
@@ -379,6 +393,7 @@ const LeadActivityDashboard: React.FC = () => {
                   icon={<Clock className="w-4 h-4 text-yellow-400" />}
                   tasks={tasksByStatus.pending}
                   headerColor="border-yellow-600/40"
+                  isDragActive={!!activeTask}
                 />
                 <DroppableKanbanColumn
                   status="in_progress"
@@ -386,6 +401,7 @@ const LeadActivityDashboard: React.FC = () => {
                   icon={<ArrowRightLeft className="w-4 h-4 text-blue-400" />}
                   tasks={tasksByStatus.in_progress}
                   headerColor="border-blue-600/40"
+                  isDragActive={!!activeTask}
                 />
                 <DroppableKanbanColumn
                   status="completed"
@@ -393,6 +409,7 @@ const LeadActivityDashboard: React.FC = () => {
                   icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
                   tasks={tasksByStatus.completed}
                   headerColor="border-green-600/40"
+                  isDragActive={!!activeTask}
                 />
                 <DroppableKanbanColumn
                   status="cancelled"
@@ -400,6 +417,7 @@ const LeadActivityDashboard: React.FC = () => {
                   icon={<XCircle className="w-4 h-4 text-muted-foreground" />}
                   tasks={tasksByStatus.cancelled}
                   headerColor="border-border"
+                  isDragActive={!!activeTask}
                 />
               </div>
             </div>
