@@ -526,18 +526,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
                 transition={{ duration: 0.3 }}
               >
                 <button
-                  onClick={() => handleSectionNavigation('reports-tasks')}
-                  className={`nav-item-sub w-full ${activeSection === 'reports-tasks' ? 'active' : ''}`}
+                  onClick={() => handleSectionNavigation('lead-activity')}
+                  className={`nav-item-sub w-full ${activeSection === 'lead-activity' ? 'active' : ''}`}
                 >
                   <ClipboardList size={14} />
-                  <span>{t('reports.tasks')}</span>
-                </button>
-                <button
-                  onClick={() => handleSectionNavigation('reports-transactions')}
-                  className={`nav-item-sub w-full ${activeSection === 'reports-transactions' ? 'active' : ''}`}
-                >
-                  <MdCurrencyExchange size={14} />
-                  <span>{t('reports.transactions')}</span>
+                  <span>{t('reports.lead-activity')}</span>
                 </button>
               </motion.div>
             )}
