@@ -36,12 +36,19 @@ export interface CreateTaskPayload {
   reminder?: boolean;
 }
 
+export interface CreateTaskResult {
+  task: Task;
+  transaction?: any;
+}
+
 export const taskApi = {
-  createTask: async (taskData: CreateTaskPayload): Promise<Task> => {
+  createTask: async (taskData: CreateTaskPayload): Promise<CreateTaskResult> => {
     try {
       const response = await api.post('/api/tasks', taskData);
-      // Backend returns { message: string, task: Task }
-      return response.data.task || response.data;
+      return {
+        task: response.data.task || response.data,
+        transaction: response.data.transaction || null,
+      };
     } catch (error) {
       console.error('Error creating task:', error);
       throw error;
