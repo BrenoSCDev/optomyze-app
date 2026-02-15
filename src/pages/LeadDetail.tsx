@@ -39,7 +39,9 @@ import {
   UserCheck,
   ArrowRightLeft,
   ShoppingBag,
-  Building2
+   Building2,
+   PlusCircle,
+   PackageCheck
 } from 'lucide-react';
 import { API_STORAGE_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
@@ -865,7 +867,9 @@ const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[]
       'status_change': <RefreshCw className="w-4 h-4" />,
       'note_added': <FileText className="w-4 h-4" />,
       'contact_attempt': <Phone className="w-4 h-4" />,
-      'email_sent': <Mail className="w-4 h-4" />
+      'email_sent': <Mail className="w-4 h-4" />,
+      'creation': <PlusCircle className="w-4 h-4" />,
+      'product_update': <PackageCheck className="w-4 h-4" />
     };
     return icons[type as keyof typeof icons] || <Activity className="w-4 h-4" />;
   };
@@ -876,7 +880,9 @@ const ActivityTimelineContent = ({ transactions }: { transactions: Transaction[]
       'status_change': 'bg-yellow-600', 
       'note_added': 'bg-green-600',
       'contact_attempt': 'bg-purple-600',
-      'email_sent': 'bg-orange-600'
+      'email_sent': 'bg-orange-600',
+      'creation': 'bg-emerald-600',
+      'product_update': 'bg-cyan-600'
     };
     return colors[type as keyof typeof colors] || 'bg-gray-600';
   };
