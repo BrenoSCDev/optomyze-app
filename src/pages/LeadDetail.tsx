@@ -66,7 +66,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { leadService } from '@/services/leadApi';
 import { Trash2 } from 'lucide-react';
 import { VscSourceControl } from "react-icons/vsc";
@@ -561,11 +560,6 @@ const LeadDetailPage = () => {
                   >
                     <Activity className="w-3.5 h-3.5 mr-1.5" />
                     {t('lead-details.activity-timeline')}
-                    {leadData.transactions.length > 0 && (
-                      <Badge className="ml-1 bg-primary/20 text-primary border-primary/30 text-xs">
-                        {leadData.transactions.length}
-                      </Badge>
-                    )}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="purchases" 
@@ -582,18 +576,14 @@ const LeadDetailPage = () => {
                 </TabsList>
                 
                 <TabsContent value="activity" className="mt-0">
-                  <ScrollArea className="max-h-[500px]" scrollbarVariant="dark">
-                    <ActivityTimelineContent transactions={leadData.transactions} />
-                  </ScrollArea>
+                  <ActivityTimelineContent transactions={leadData.transactions} />
                 </TabsContent>
                 
                 <TabsContent value="purchases" className="mt-0">
-                  <ScrollArea className="max-h-[500px]" scrollbarVariant="dark">
-                    <PurchaseHistorySection 
-                      sales={leadData.lead.sales || []} 
-                      onSaleDeleted={handleSaleDeleted}
-                    />
-                  </ScrollArea>
+                  <PurchaseHistorySection 
+                    sales={leadData.lead.sales || []} 
+                    onSaleDeleted={handleSaleDeleted}
+                  />
                 </TabsContent>
               </Tabs>
             </motion.div>
