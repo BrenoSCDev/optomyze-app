@@ -28,9 +28,11 @@ interface DealCardProps {
   deal: any;
   isDragging?: boolean;
   onDealClick?: (dealId: string) => void;
+  showProducts?: boolean;
+  showCharges?: boolean;
 }
 
-const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
+const DealCard = ({ deal, isDragging, onDealClick, showProducts = true, showCharges = true }: DealCardProps) => {
   const { t } = useLanguage();
   const {
     attributes,
@@ -159,7 +161,7 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
         )}
 
         {/* Items - Horizontal compact list */}
-        {deal.items && deal.items.length > 0 && (
+        {showProducts && deal.items && deal.items.length > 0 && (
           <div className="mb-2 p-2 rounded-lg bg-deal/5 border border-deal/10">
             <div className="flex items-center gap-1 text-[10px] text-deal/70 mb-1">
               <Package className="h-2.5 w-2.5" />
@@ -184,7 +186,7 @@ const DealCard = ({ deal, isDragging, onDealClick }: DealCardProps) => {
         )}
 
         {/* Financial Breakdown - Compact */}
-        {(chargesTotal > 0 || discountTotal > 0) && (
+        {showCharges && (chargesTotal > 0 || discountTotal > 0) && (
           <div className="mb-2 p-2 rounded-lg bg-deal/5 border border-deal/10 space-y-0.5">
             {subtotal > 0 && (
               <div className="flex items-center justify-between text-[11px]">
