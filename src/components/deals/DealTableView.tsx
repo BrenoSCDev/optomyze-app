@@ -31,9 +31,11 @@ interface DealTableViewProps {
   onAddDeal: (columnId: string) => void;
   onDealClick?: (dealId: string) => void;
   setColumns: React.Dispatch<React.SetStateAction<any[]>>;
+  showProducts?: boolean;
+  showCharges?: boolean;
 }
 
-const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: DealTableViewProps) => {
+const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, showProducts = true, showCharges = true }: DealTableViewProps) => {
   const { t } = useLanguage();
 
   const [openStages, setOpenStages] = useState<string[]>(() => {
@@ -142,7 +144,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                         <TableHead className="text-deal/70">Lead</TableHead>
                         <TableHead className="text-deal/70">Contact</TableHead>
                         <TableHead className="text-deal/70">Value</TableHead>
-                        <TableHead className="text-deal/70">Items</TableHead>
+                        {showProducts && <TableHead className="text-deal/70">Items</TableHead>}
                         <TableHead className="text-deal/70">Assigned</TableHead>
                         <TableHead className="text-deal/70">Created</TableHead>
                         <TableHead className="text-deal/70">Move</TableHead>
@@ -200,7 +202,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                                 ) : (
                                   <span className="text-xs text-muted-foreground">—</span>
                                 )}
-                                {(parseFloat(deal.charges_total || '0') > 0 || parseFloat(deal.discount_total || '0') > 0) && (
+                                {showCharges && (parseFloat(deal.charges_total || '0') > 0 || parseFloat(deal.discount_total || '0') > 0) && (
                                   <div className="flex flex-col gap-0.5 mt-1">
                                     {parseFloat(deal.charges_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
@@ -218,11 +220,13 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns }: 
                                 )}
                               </div>
                             </TableCell>
+                            {showProducts && (
                             <TableCell>
                               <span className="text-xs text-muted-foreground">
                                 {deal.items?.length || 0}
                               </span>
                             </TableCell>
+                            )}
                             <TableCell>
                               {deal.user ? (
                                 <div className="flex items-center gap-1.5">

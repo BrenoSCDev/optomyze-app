@@ -2236,6 +2236,12 @@ const translations = {
     'funnel.page.table-no-leads': 'No leads in this stage',
     'funnel.page.add-first-lead': 'Add First Lead',
     'funnel.page.lead-moved': 'Lead moved successfully',
+
+    // Deal Funnel Page
+    'deal.page.settings': 'Settings',
+    'deal.page.display-settings': 'Display Settings',
+    'deal.page.show-products': 'Show Products on Cards',
+    'deal.page.show-charges': 'Show Charges & Discounts',
   },
   'pt-BR': {
     // Navigation
@@ -4424,6 +4430,12 @@ const translations = {
     'funnel.page.table-no-leads': 'Nenhum lead nesta etapa',
     'funnel.page.add-first-lead': 'Adicionar Primeiro Lead',
     'funnel.page.lead-moved': 'Lead movido com sucesso',
+
+    // Deal Funnel Page
+    'deal.page.settings': 'Configurações',
+    'deal.page.display-settings': 'Configurações de Exibição',
+    'deal.page.show-products': 'Mostrar Produtos nos Cards',
+    'deal.page.show-charges': 'Mostrar Cobranças e Descontos',
   },
   de: {
     // Navigation
@@ -6341,6 +6353,12 @@ const translations = {
     'funnel.page.table-no-leads': 'Keine Leads in dieser Phase',
     'funnel.page.add-first-lead': 'Ersten Lead hinzufügen',
     'funnel.page.lead-moved': 'Lead erfolgreich verschoben',
+
+    // Deal Funnel Page
+    'deal.page.settings': 'Einstellungen',
+    'deal.page.display-settings': 'Anzeigeeinstellungen',
+    'deal.page.show-products': 'Produkte auf Karten anzeigen',
+    'deal.page.show-charges': 'Gebühren & Rabatte anzeigen',
     
     // API Playground
     'api.playground.title': 'API Playground',
@@ -8365,6 +8383,12 @@ const translations = {
     'funnel.page.table-no-leads': 'Sin leads en esta etapa',
     'funnel.page.add-first-lead': 'Agregar Primer Lead',
     'funnel.page.lead-moved': 'Lead movido exitosamente',
+
+    // Deal Funnel Page
+    'deal.page.settings': 'Configuración',
+    'deal.page.display-settings': 'Configuración de Visualización',
+    'deal.page.show-products': 'Mostrar Productos en Tarjetas',
+    'deal.page.show-charges': 'Mostrar Cargos y Descuentos',
     
     // API Playground
     'api.playground.title': 'API Playground',

@@ -8,8 +8,11 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { List, DollarSign } from 'lucide-react';
+import { List, DollarSign, Loader2 as ExportLoader } from 'lucide-react';
 import { TbLayoutKanbanFilled } from 'react-icons/tb';
+import DealSettingsDropdown from './DealSettingsDropdown';
+import { useDealDisplaySettings } from '@/hooks/useDealDisplaySettings';
+import { exportDealFunnelToExcel, prepareDealFunnelExportData } from '@/utils/dealFunnelExport';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +54,8 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
   const [overId, setOverId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<any>({});
+  const [isExporting, setIsExporting] = useState(false);
+  const { settings: displaySettings, setShowProducts, setShowCharges } = useDealDisplaySettings();
   const [previewDealId, setPreviewDealId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -131,6 +136,21 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
     setSelectedStageId(columnId);
     setDealDialogOpen(true);
   }, []);
+
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const exportData = prepareDealFunnelExportData(funnel);
+      exportDealFunnelToExcel(exportData);
+      toast.success(`Exported ${exportData.deals.length} deals to Excel`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export deals. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [funnel]);
 
   // Collision detection (same strategy as sales kanban)
   const customCollisionDetection: CollisionDetection = useCallback((args) => {
@@ -320,7 +340,29 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
             <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
 
-          {/* Filters */}
+          {/* Settings Dropdown */}
+          <DealSettingsDropdown
+            showProducts={displaySettings.showProducts}
+            showCharges={displaySettings.showCharges}
+            onShowProductsChange={setShowProducts}
+            onShowChargesChange={setShowCharges}
+          />
+
+          {/* Export Button */}
+          <Button
+            variant="outline" size="sm"
+            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <ExportLoader className="h-4 w-4 sm:mr-1 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 sm:mr-1" />
+            )}
+            <span className="hidden sm:inline">{isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}</span>
+          </Button>
+
           <Button
             variant="outline" size="sm"
             className={`deal-glass-card border-deal/20 hover:bg-deal/10 ${
@@ -381,6 +423,8 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
                   onDealClick={handleDealClick}
                   activeId={activeId}
                   overId={overId}
+                  showProducts={displaySettings.showProducts}
+                  showCharges={displaySettings.showCharges}
                 />
               ))}
             </div>
@@ -390,7 +434,7 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
                 <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
                   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
                   <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
-                    <DealCard deal={draggedDeal} isDragging={false} onDealClick={handleDealClick} />
+                    <DealCard deal={draggedDeal} isDragging={false} onDealClick={handleDealClick} showProducts={displaySettings.showProducts} showCharges={displaySettings.showCharges} />
                   </div>
                 </div>
               ) : null}
@@ -404,6 +448,8 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
           onAddDeal={handleAddDeal}
           onDealClick={handleDealClick}
           setColumns={setColumns}
+          showProducts={displaySettings.showProducts}
+          showCharges={displaySettings.showCharges}
         />
       )}
 
