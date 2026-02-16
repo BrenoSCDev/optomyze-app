@@ -8,7 +8,7 @@ export interface LeadSearchResult {
 }
 
 export const searchLeads = async (query: string): Promise<LeadSearchResult[]> => {
-  const response = await api.get('/api/leads/search', {
+  const response = await api.get('/api/leads/search/products', {
     params: { q: query }
   });
   return response.data;
