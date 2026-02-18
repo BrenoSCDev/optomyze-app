@@ -14,7 +14,6 @@ import PasswordReset from "./pages/PasswordReset";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
-import LeadDetail from "./pages/LeadDetail";
 import DealFunnel from "./pages/DealFunnel";
 
 const queryClient = new QueryClient();
@@ -85,14 +84,6 @@ const App = () => (
                    element={
                      <ProtectedRoute>
                        <Profile />
-                     </ProtectedRoute>
-                   } 
-                 />
-                 <Route 
-                   path="/leads/:funnelId/lead/:leadId" 
-                   element={
-                     <ProtectedRoute>
-                       <LeadDetail />
                      </ProtectedRoute>
                    } 
                  />

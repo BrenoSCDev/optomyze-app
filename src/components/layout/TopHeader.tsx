@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check } from 'lucide-react';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -43,6 +44,8 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   const [searchResults, setSearchResults] = useState<LeadSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, logout } = useAuth();
@@ -89,12 +92,13 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
     }, 400);
   };
 
-  // Handle lead selection
+  // Handle lead selection - open preview modal
   const handleLeadSelect = (lead: LeadSearchResult) => {
     setShowResults(false);
     setSearchQuery('');
     setSearchResults([]);
-    navigate(`/leads/${lead.funnel_id}/lead/${lead.id}`);
+    setSelectedLeadId(String(lead.id));
+    setIsLeadModalOpen(true);
   };
 
   // Handle keyboard events
@@ -154,11 +158,12 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
     };
   }, []);
 
-  // Handle notification click
+  // Handle notification click - open preview modal
   const handleNotificationClick = (notif: typeof notifications[0]) => {
     markAsRead(notif.id);
     setNotificationDropdownOpen(false);
-    navigate(`/leads/${notif.lead.funnel_id}/lead/${notif.lead.id}`);
+    setSelectedLeadId(String(notif.lead.id));
+    setIsLeadModalOpen(true);
   };
 
   // Format notification timestamp
@@ -178,6 +183,7 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   };
 
   return (
+    <>
     <motion.header
       className="fixed top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-none"
       initial={false}
@@ -504,6 +510,14 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
         )}
       </div>
     </motion.header>
+
+    {/* Lead Preview Modal - opened from search or notifications */}
+    <LeadPreviewModal
+      isOpen={isLeadModalOpen}
+      onClose={() => { setIsLeadModalOpen(false); setSelectedLeadId(null); }}
+      leadId={selectedLeadId}
+    />
+    </>
   );
 };
 
