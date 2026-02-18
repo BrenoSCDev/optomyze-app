@@ -50,6 +50,17 @@ const Index = () => {
   // Sidebar collapse state - controls whether sidebar is minimized or expanded
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
+  // Mobile sidebar open state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Track mobile breakpoint
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   // Active dashboard section state - determines which analytics dashboard to display
   const [activeSection, setActiveSection] = useState('optomyze-metrics');
   
@@ -201,30 +212,26 @@ const Index = () => {
         </div>
       </div>
 
-      {/* FIXED TOP HEADER */}
-      <TopHeader sidebarCollapsed={sidebarCollapsed} />
+        {/* FIXED TOP HEADER */}
+        <TopHeader sidebarCollapsed={sidebarCollapsed} onMobileMenuToggle={() => setMobileSidebarOpen(true)} />
 
-      {/* MAIN LAYOUT CONTAINER */}
-      <div className="relative z-10 flex pt-16">
-        {/* COLLAPSIBLE SIDEBAR NAVIGATION
-            Features glassmorphism design with smooth collapse/expand animations
-            Handles routing between different dashboard sections */}
-        <Sidebar
-          isCollapsed={sidebarCollapsed}
-          onToggle={toggleSidebar}
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
+        {/* MAIN LAYOUT CONTAINER */}
+        <div className="relative z-10 flex pt-16">
+          {/* COLLAPSIBLE SIDEBAR NAVIGATION */}
+          <Sidebar
+            isCollapsed={sidebarCollapsed}
+            onToggle={toggleSidebar}
+            activeSection={activeSection}
+            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
 
-        {/* MAIN CONTENT AREA
-            Responsive container that adjusts margin based on sidebar state
-            Uses Framer Motion for smooth transitions when sidebar collapses/expands */}
+          {/* MAIN CONTENT AREA - no left margin on mobile, sidebar-aware on desktop */}
         <motion.main
-          className={`flex-1 transition-all duration-300 ${
-            sidebarCollapsed ? 'ml-16' : 'ml-64'
-          }`}
+          className="flex-1 transition-all duration-300"
           initial={false}
-          animate={{ marginLeft: sidebarCollapsed ? 64 : 256 }}
+          animate={{ marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256) }}
         >
           <div className="p-8">
             {/* DASHBOARD CONTENT WITH PAGE TRANSITIONS
