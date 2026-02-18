@@ -802,28 +802,84 @@ const OptomyzeMetrics = () => {
   };
 
   const getKPIData = () => {
-    if (!periodicData?.data) return [];
-    const { lead_statistics, conversion_rate, performance_comparison } = periodicData.data;
-    if (!lead_statistics) return [];
-    const { totalAnnualRevenue, totalMonthlyRevenue, avgDealValue } = getRevenueMetrics();
+    const d = periodicData?.data;
+    const lead_statistics       = d?.lead_statistics;
+    const conversion_rate       = d?.conversion_rate;
+    const performance_comparison = d?.performance_comparison;
+    const { totalAnnualRevenue } = getRevenueMetrics();
 
-    const kpis = [
-      { title: t('metrics.total-leads'),      value: lead_statistics.total_leads,        trend: getTrendData(performance_comparison?.total_leads),        icon: <Users      className="h-5 w-5 text-primary" /> },
-      { title: t('metrics.leads-in-service'), value: lead_statistics.in_service,          trend: getTrendData(performance_comparison?.in_service),          icon: <UserCheck  className="h-5 w-5 text-primary" /> },
-      { title: t('metrics.lost-leads'),       value: lead_statistics.total_leads_lost,    trend: getTrendData(performance_comparison?.total_leads_lost),    icon: <UserX      className="h-5 w-5 text-primary" /> },
-      { title: t('metrics.converted-sales'), value: lead_statistics.converted_leads,     trend: getTrendData(performance_comparison?.converted_leads),     icon: <Trophy     className="h-5 w-5 text-primary" /> },
-      { title: t('metrics.conversion-rate'), value: `${conversion_rate?.toFixed(2) || '0.00'}%`, trend: getTrendData(performance_comparison?.conversion_rate), icon: <Percent className="h-5 w-5 text-primary" /> },
+    // ── Row 1: Lead KPIs ──────────────────────────────────────────────────────
+    const row1 = [
+      {
+        title: t('metrics.total-leads'),
+        value: lead_statistics?.total_leads ?? 0,
+        trend: getTrendData(performance_comparison?.total_leads),
+        icon: <Users className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Qualified Leads',
+        value: lead_statistics?.qualified_leads ?? '—',
+        trend: { value: '+0%', isPositive: true },
+        icon: <UserCheck className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: t('metrics.lost-leads'),
+        value: lead_statistics?.total_leads_lost ?? 0,
+        trend: getTrendData(performance_comparison?.total_leads_lost),
+        icon: <UserX className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Converted Deals',
+        value: lead_statistics?.converted_leads ?? 0,
+        trend: getTrendData(performance_comparison?.converted_leads),
+        icon: <Trophy className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: t('metrics.conversion-rate'),
+        value: `${conversion_rate?.toFixed(2) ?? '0.00'}%`,
+        trend: getTrendData(performance_comparison?.conversion_rate),
+        icon: <Percent className="h-5 w-5 text-primary" />,
+      },
     ];
 
-    if (!isErpModule) {
-      kpis.push(
-        { title: t('metrics.total-annual-revenue'),  value: totalAnnualRevenue  >= 1000 ? `$${(totalAnnualRevenue).toFixed(1)}k`  : `$${totalAnnualRevenue.toLocaleString()}`,  trend: { value: '+0%', isPositive: true }, icon: <DollarSign  className="h-5 w-5 text-primary" /> },
-        { title: t('metrics.total-monthly-revenue'), value: totalMonthlyRevenue >= 1000 ? `$${(totalMonthlyRevenue).toFixed(1)}k` : `$${totalMonthlyRevenue.toLocaleString()}`, trend: { value: '+0%', isPositive: true }, icon: <TrendingUp  className="h-5 w-5 text-primary" /> },
-        { title: t('metrics.avg-deal-value'),        value: avgDealValue        >= 1000 ? `$${(avgDealValue).toFixed(1)}k`        : `$${avgDealValue.toLocaleString()}`,        trend: { value: '+0%', isPositive: true }, icon: <Target      className="h-5 w-5 text-primary" /> },
-      );
-    }
+    // ── Row 2: Deal KPIs ──────────────────────────────────────────────────────
+    const dealStats = d?.deal_statistics;
+    const row2 = [
+      {
+        title: 'Total Deals',
+        value: dealStats?.total_deals ?? '—',
+        trend: { value: '+0%', isPositive: true },
+        icon: <BarChart3 className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Closed Deals',
+        value: dealStats?.closed_deals ?? '—',
+        trend: { value: '+0%', isPositive: true },
+        icon: <TrendingUp className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Lost Deals',
+        value: dealStats?.lost_deals ?? '—',
+        trend: { value: '+0%', isPositive: false },
+        icon: <TrendingDown className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Deal Conversion Rate',
+        value: dealStats?.conversion_rate != null ? `${dealStats.conversion_rate.toFixed(2)}%` : '—',
+        trend: { value: '+0%', isPositive: true },
+        icon: <Target className="h-5 w-5 text-primary" />,
+      },
+      {
+        title: 'Revenue',
+        value: totalAnnualRevenue >= 1000
+          ? `$${(totalAnnualRevenue / 1000).toFixed(1)}k`
+          : `$${totalAnnualRevenue.toLocaleString()}`,
+        trend: { value: '+0%', isPositive: true },
+        icon: <DollarSign className="h-5 w-5 text-primary" />,
+      },
+    ];
 
-    return kpis;
+    return { row1, row2 };
   };
 
   const getMonthlyData = () => {
@@ -857,7 +913,7 @@ const OptomyzeMetrics = () => {
     );
   }
 
-  const kpiData    = getKPIData();
+  const kpiData     = getKPIData();
   const monthlyData = getMonthlyData();
 
   return (
@@ -912,11 +968,19 @@ const OptomyzeMetrics = () => {
               <DateRangeSelector value={dateRange} onChange={setDateRange} />
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* KPI Row 1 — Leads */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {periodicLoading
-                ? Array.from({ length: 8 }).map((_, i) => <SkeletonKPICard key={i} />)
-                : kpiData.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
+                ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={i} />)
+                : kpiData.row1.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
+              }
+            </div>
+
+            {/* KPI Row 2 — Deals */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {periodicLoading
+                ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={`d${i}`} />)
+                : kpiData.row2.map((kpi, i) => <KPICard key={i} {...kpi} delay={i + 5} />)
               }
             </div>
 
