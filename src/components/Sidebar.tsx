@@ -158,7 +158,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
 
   // Chat submenu items
   const chatItems = [
-    { id: 'whatsapp-inbox', label: 'WhatsApp Inbox', icon: () => <FaWhatsapp size={18}/> },
+    { id: 'whatsapp-inbox',    label: 'WhatsApp Inbox',    icon: () => <FaWhatsapp size={18}/> },
+    { id: 'optomyze-inbox',    label: 'Optomyze Inbox',    icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   // Calendars submenu items
