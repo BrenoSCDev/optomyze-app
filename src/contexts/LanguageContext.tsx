@@ -1686,7 +1686,7 @@ const translations = {
     'roles.examples.hint': 'These are examples. You can assign any role name when adding users to teams.',
     
     // Chat Section
-    'nav.chat': 'Chats',
+    'nav.chat': 'Inboxes',
     'chat.whatsapp.title': 'WhatsApp Inbox',
     'chat.whatsapp.description': 'Manage WhatsApp conversations and messages',
     'chat.whatsapp.coming-soon': 'Coming Soon',
@@ -3880,7 +3880,7 @@ const translations = {
     'roles.examples.hint': 'Estes são exemplos. Você pode atribuir qualquer nome de função ao adicionar usuários às equipes.',
     
     // Chat Section
-    'nav.chat': 'Chats',
+    'nav.chat': 'Inboxes',
     'chat.whatsapp.title': 'Caixa de Entrada WhatsApp',
     'chat.whatsapp.description': 'Gerencie conversas e mensagens do WhatsApp',
     'chat.whatsapp.coming-soon': 'Em Breve',
@@ -5803,7 +5803,7 @@ const translations = {
     'roles.examples.hint': 'Dies sind Beispiele. Sie können beim Hinzufügen von Benutzern zu Teams jeden Rollennamen zuweisen.',
     
     // Chat Section
-    'nav.chat': 'Chats',
+    'nav.chat': 'Inboxes',
     'chat.whatsapp.title': 'WhatsApp Posteingang',
     'chat.whatsapp.description': 'WhatsApp-Unterhaltungen und -Nachrichten verwalten',
     'chat.whatsapp.coming-soon': 'Demnächst',
@@ -7833,7 +7833,7 @@ const translations = {
     'roles.examples.hint': 'Estos son ejemplos. Puedes asignar cualquier nombre de rol al agregar usuarios a equipos.',
     
     // Chat Section
-    'nav.chat': 'Chats',
+    'nav.chat': 'Inboxes',
     'chat.whatsapp.title': 'Bandeja de Entrada WhatsApp',
     'chat.whatsapp.description': 'Gestionar conversaciones y mensajes de WhatsApp',
     'chat.whatsapp.coming-soon': 'Próximamente',
