@@ -369,6 +369,16 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
             <span className="hidden sm:inline">{isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}</span>
           </Button>
 
+          {/* Create Tag */}
+          <Button
+            variant="outline" size="sm"
+            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            onClick={() => setTagDialogOpen(true)}
+          >
+            <Tags className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Create Tag</span>
+          </Button>
+
           <Button
             variant="outline" size="sm"
             className={`deal-glass-card border-deal/20 hover:bg-deal/10 ${
@@ -383,16 +393,6 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
                 {Object.keys(activeFilters).length}
               </span>
             )}
-          </Button>
-
-          {/* Create Tag */}
-          <Button
-            variant="outline" size="sm"
-            className="deal-glass-card border-deal/20 hover:bg-deal/10"
-            onClick={() => setTagDialogOpen(true)}
-          >
-            <Tags className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Create Tag</span>
           </Button>
 
           {/* Create Deal */}
