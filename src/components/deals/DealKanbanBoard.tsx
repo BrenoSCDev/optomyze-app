@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { List, DollarSign, Loader2 as ExportLoader } from 'lucide-react';
+import { List, DollarSign, Loader2 as ExportLoader, Tags } from 'lucide-react';
 import { TbLayoutKanbanFilled } from 'react-icons/tb';
 import DealSettingsDropdown from './DealSettingsDropdown';
 import { useDealDisplaySettings } from '@/hooks/useDealDisplaySettings';
@@ -22,6 +22,8 @@ import DealCard from './DealCard';
 import { DealCreationDialog } from './DealCreationDialog';
 import { DealFilterDialog } from './DealFilterDialog';
 import DealPreviewModal from './DealPreviewModal';
+import { TagCreationDialog } from '@/components/leads/TagCreationDialog';
+import DealTagManagementModal from './DealTagManagementModal';
 import {
   Plus, Filter, Download, Loader2, RefreshCw,
 } from 'lucide-react';
@@ -39,10 +41,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DealKanbanBoardProps {
   funnel: any;
+  availableTags: any[];
   onRefresh?: () => void;
 }
 
-const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
+const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -58,6 +61,9 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
   const { settings: displaySettings, setShowProducts, setShowCharges } = useDealDisplaySettings();
   const [previewDealId, setPreviewDealId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [selectedDealForTag, setSelectedDealForTag] = useState<any>(null);
 
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
     return (localStorage.getItem('deal_funnel_view_mode') as 'kanban' | 'table') || 'kanban';
@@ -379,6 +385,16 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
             )}
           </Button>
 
+          {/* Create Tag */}
+          <Button
+            variant="outline" size="sm"
+            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            onClick={() => setTagDialogOpen(true)}
+          >
+            <Tags className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Create Tag</span>
+          </Button>
+
           {/* Create Deal */}
           <Button
             size="sm"
@@ -415,12 +431,13 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
           >
             <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 deal-kanban-board">
               {filteredColumns.map((column, index) => (
-                <DealKanbanColumn
+              <DealKanbanColumn
                   key={column.id}
                   column={column}
                   index={index}
                   onAddDeal={handleAddDeal}
                   onDealClick={handleDealClick}
+                  onTagClick={(deal) => { setSelectedDealForTag(deal); setTagModalOpen(true); }}
                   activeId={activeId}
                   overId={overId}
                   showProducts={displaySettings.showProducts}
@@ -481,6 +498,22 @@ const DealKanbanBoard = ({ funnel, onRefresh }: DealKanbanBoardProps) => {
         isOpen={previewOpen}
         onClose={() => { setPreviewOpen(false); setPreviewDealId(null); }}
         dealId={previewDealId}
+      />
+
+      {/* Create Tag Dialog */}
+      <TagCreationDialog
+        open={tagDialogOpen}
+        onOpenChange={setTagDialogOpen}
+        onTagCreated={() => onRefresh?.()}
+      />
+
+      {/* Deal Tag Management Modal */}
+      <DealTagManagementModal
+        isOpen={tagModalOpen}
+        onClose={() => { setTagModalOpen(false); setSelectedDealForTag(null); }}
+        deal={selectedDealForTag}
+        availableTags={availableTags}
+        onTagsUpdated={() => onRefresh?.()}
       />
     </div>
   );
