@@ -6,7 +6,6 @@
  * - Ads & Analytics
  * - Social Messaging Platforms
  * - Artificial Intelligence (Coming Soon)
- * - Automation Platforms
  * - Google Apps (Coming Soon)
  */
 
@@ -20,17 +19,14 @@ import {
   TrendingUp,
   MessageCircle,
   Bot,
-  Workflow,
   Calendar,
   Check,
   Info,
-  Building2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
 import { 
-  SiN8N, 
   SiGoogleanalytics, 
   SiGoogleads,
   SiWhatsapp,
@@ -44,13 +40,10 @@ import {
 } from "react-icons/si";
 import { FaMeta } from "react-icons/fa6";
 import { useToast } from '../../hooks/use-toast';
-import N8nConfigModal from './N8nConfigModal';
 import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
-import OptomyzeErpConfigModal from './OptomyzeErpConfigModal';
 import { Badge } from '@/components/ui/badge';
-import OptoIcon from '@/assets/opto-icon.png';
 import { RiGeminiLine, RiClaudeFill } from "react-icons/ri";
 
 interface Integration {
@@ -61,8 +54,8 @@ interface Integration {
   status?: string;
   lastUpdated?: string;
   comingSoon?: boolean;
+  beta?: boolean;
   icon: React.ReactNode;
-  requiresProductModule?: string; // If set, user.company.product_module must match this value
 }
 
 interface IntegrationCategory {
@@ -79,7 +72,6 @@ interface IntegrationCardProps {
   loading?: boolean;
   installing?: boolean;
   justInstalled?: boolean;
-  userProductModule?: string;
 }
 
 // Integration Card Component
@@ -89,30 +81,11 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   loading = false, 
   installing = false,
   justInstalled = false,
-  userProductModule
 }) => {
   const { t } = useLanguage();
   const isDisabled = integration.comingSoon || loading || installing;
-  
-  // Check if this integration requires a specific product module
-  const requiresModuleChange = integration.requiresProductModule && 
-    userProductModule !== integration.requiresProductModule;
 
   const getActionButton = () => {
-    // If requires product module change, show notice instead of action button
-    if (requiresModuleChange) {
-      return (
-        <div className="space-y-2">
-          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-            <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-200">
-              {t('integrations.requires-module-change') || 'Contact support to change your company product module to enable this integration.'}
-            </p>
-          </div>
-        </div>
-      );
-    }
-
     if (loading) {
       return (
         <button 
@@ -192,22 +165,29 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           : 'hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20'
       }`}
     >
-      {/* Status Badge */}
-      {integration.comingSoon ? (
-        <Badge 
-          variant="secondary" 
-          className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-xs"
-        >
-          {t('integrations.coming-soon')}
-        </Badge>
-      ) : integration.available ? (
-        <Badge 
-          className="absolute top-3 right-3 bg-green-500/20 text-green-400 border-green-500/30 text-xs"
-        >
-          <Check className="w-3 h-3 mr-1" />
-          {t('integrations.available')}
-        </Badge>
-      ) : null}
+      {/* Status / Beta Badge */}
+      <div className="absolute top-3 right-3 flex items-center gap-1">
+        {integration.beta && (
+          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+            Beta
+          </Badge>
+        )}
+        {integration.comingSoon ? (
+          <Badge 
+            variant="secondary" 
+            className="bg-muted/50 text-muted-foreground text-xs"
+          >
+            {t('integrations.coming-soon')}
+          </Badge>
+        ) : integration.available ? (
+          <Badge 
+            className="bg-green-500/20 text-green-400 border-green-500/30 text-xs"
+          >
+            <Check className="w-3 h-3 mr-1" />
+            {t('integrations.available')}
+          </Badge>
+        ) : null}
+      </div>
 
       <div className="flex flex-col h-full">
         {/* Icon */}
@@ -242,7 +222,6 @@ interface CategorySectionProps {
   loading: boolean;
   installingIntegrations: Set<string>;
   justInstalledIntegrations: Set<string>;
-  userProductModule?: string;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({
@@ -251,7 +230,6 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   loading,
   installingIntegrations,
   justInstalledIntegrations,
-  userProductModule
 }) => {
   const { t } = useLanguage();
 
@@ -285,10 +263,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({
             key={integration.key}
             integration={integration}
             onAction={onAction}
-            loading={loading && integration.key === 'n8n'}
+            loading={loading && integration.key === 'meta-ads'}
             installing={installingIntegrations.has(integration.key)}
             justInstalled={justInstalledIntegrations.has(integration.key)}
-            userProductModule={userProductModule}
           />
         ))}
       </div>
@@ -303,17 +280,12 @@ const IntegrationsApps: React.FC = () => {
   const [error, setError] = useState<Error | null>(null);
   const [installingIntegrations, setInstallingIntegrations] = useState<Set<string>>(new Set());
   const [justInstalledIntegrations, setJustInstalledIntegrations] = useState<Set<string>>(new Set());
-  const [showN8nConfigModal, setShowN8nConfigModal] = useState(false);
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
-  const [showOptomyzeErpConfigModal, setShowOptomyzeErpConfigModal] = useState(false);
   const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
-  // Get user's company product module
-  const userProductModule = user?.company?.product_module;
 
   // Define categories with integrations
   const getInitialCategories = (): IntegrationCategory[] => [
@@ -356,6 +328,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'WhatsApp',
           description: t('integrations.whatsapp-evo.description') || 'Connect WhatsApp via Evolution API to manage customer conversations directly from your CRM.',
           available: false,
+          beta: true,
           icon: <SiWhatsapp className="w-6 h-6" />
         },
         {
@@ -381,21 +354,6 @@ const IntegrationsApps: React.FC = () => {
           available: false,
           comingSoon: true,
           icon: <SiTelegram className="w-6 h-6" />
-        }
-      ]
-    },
-    {
-      id: 'optomyze-apps',
-      title: t('integrations.categories.optomyze-apps') || 'Optomyze Apps',
-      icon: <img src={OptoIcon} alt="Optomyze" className="h-5 w-5" />,
-      integrations: [
-        {
-          key: 'optomyze-erp',
-          name: 'Optomyze ERP',
-          description: t('integrations.optomyze-erp.description') || 'Connect to Optomyze ERP for complete business management including inventory, budgets, invoicing, and financial reporting.',
-          available: false,
-          icon: <img src={OptoIcon} alt="Optomyze" className="h-6 w-6" />,
-          requiresProductModule: 'ERP'
         }
       ]
     },
@@ -436,20 +394,6 @@ const IntegrationsApps: React.FC = () => {
           available: false,
           comingSoon: true,
           icon: <Bot className="w-6 h-6" />
-        }
-      ]
-    },
-    {
-      id: 'automation',
-      title: t('integrations.categories.automation') || 'Automation Platforms',
-      icon: <Workflow className="w-5 h-5" />,
-      integrations: [
-        {
-          key: 'n8n',
-          name: 'n8n',
-          description: t('integrations.n8n.description') || 'Connect n8n for powerful workflow automation and integration with hundreds of services.',
-          available: false,
-          icon: <SiN8N className="w-6 h-6" />
         }
       ]
     },
@@ -522,16 +466,12 @@ const IntegrationsApps: React.FC = () => {
   // Handle integration actions
   const handleIntegrationAction = async (integrationKey: string, action: string) => {
     if (action === 'configure') {
-      if (integrationKey === 'n8n') {
-        setShowN8nConfigModal(true);
-      } else if (integrationKey === 'meta-ads') {
+      if (integrationKey === 'meta-ads') {
         setShowMetaAdsConfigModal(true);
       } else if (integrationKey === 'google-ads') {
         setShowGoogleAdsConfigModal(true);
       } else if (integrationKey === 'wpp_evo') {
         setShowWhatsAppConfigModal(true);
-      } else if (integrationKey === 'optomyze-erp') {
-        setShowOptomyzeErpConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -549,9 +489,7 @@ const IntegrationsApps: React.FC = () => {
       setInstallingIntegrations(prev => new Set(prev).add(integrationKey));
 
       let endpoint: string;
-      if (integrationKey === 'n8n') {
-        endpoint = '/api/integrations/n8n-integrations';
-      } else if (integrationKey === 'wpp_evo') {
+      if (integrationKey === 'wpp_evo') {
         endpoint = '/api/integrations/whatsapp-evo-integrations';
       } else {
         endpoint = `/api/integrations/${integrationKey}`;
@@ -658,17 +596,11 @@ const IntegrationsApps: React.FC = () => {
               loading={loading}
               installingIntegrations={installingIntegrations}
               justInstalledIntegrations={justInstalledIntegrations}
-              userProductModule={userProductModule}
             />
           ))}
         </div>
 
         {/* Config Modals */}
-        <N8nConfigModal
-          open={showN8nConfigModal}
-          onOpenChange={setShowN8nConfigModal}
-          onConfigurationSaved={handleConfigSaved}
-        />
         <MetaAdsConfigModal
           open={showMetaAdsConfigModal}
           onOpenChange={setShowMetaAdsConfigModal}
@@ -682,11 +614,6 @@ const IntegrationsApps: React.FC = () => {
         <WhatsAppConfigModal
           open={showWhatsAppConfigModal}
           onOpenChange={setShowWhatsAppConfigModal}
-          onConfigurationSaved={handleConfigSaved}
-        />
-        <OptomyzeErpConfigModal
-          open={showOptomyzeErpConfigModal}
-          onOpenChange={setShowOptomyzeErpConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>
