@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check } from 'lucide-react';
+import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu } from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,9 +32,10 @@ import { getEcho } from '@/services/echo';
 
 interface TopHeaderProps {
   sidebarCollapsed: boolean;
+  onMobileMenuToggle?: () => void;
 }
 
-const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
+const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -46,11 +47,19 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  // Track mobile breakpoint reactively
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string) => {
@@ -185,16 +194,26 @@ const TopHeader = ({ sidebarCollapsed }: TopHeaderProps) => {
   return (
     <>
     <motion.header
-      className="fixed top-0 z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-none"
+      className="fixed top-0 left-0 w-full z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-none"
       initial={false}
       animate={{ 
-        left: sidebarCollapsed ? 64 : 256,
-        width: sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)'
+        left: isMobile ? 0 : (sidebarCollapsed ? 64 : 256),
+        width: isMobile ? '100%' : (sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)')
       }}
       transition={{ duration: 0.3 }}
     >
-      {/* Left Section - Logo (hidden on mobile, shown when sidebar is collapsed) */}
+      {/* Left Section */}
       <div className="flex items-center gap-4">
+        {/* Mobile hamburger */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMobileMenuToggle}
+          className="md:hidden text-muted-foreground hover:text-primary hover:bg-primary/10"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
         <AnimatePresence>
           {sidebarCollapsed && (
             <motion.img
