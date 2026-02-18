@@ -5,6 +5,7 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { 
@@ -173,6 +174,7 @@ interface SaleCardProps {
 
 const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
@@ -414,10 +416,14 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                 </Badge>
               )}
               {sale.funnel && (
-                <span className="text-xs text-gray-400 flex items-center gap-1">
+                <button
+                  onClick={() => navigate(`/deals/${sale.funnel!.id}`)}
+                  className="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition-colors cursor-pointer underline-offset-2 hover:underline"
+                  title={`Go to funnel: ${sale.funnel.name}`}
+                >
                   <GitBranch className="w-3 h-3" />
                   {sale.funnel.name}
-                </span>
+                </button>
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
