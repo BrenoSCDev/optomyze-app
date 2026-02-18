@@ -902,11 +902,11 @@ const OptomyzeMetrics = () => {
     return (
       <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <img src={OptoIcon} alt="Optomyze" className="h-8 w-8" />
-            <h1 className="text-3xl font-bold text-white">{t('dashboard.title.optomyze')}</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <img src={OptoIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
+            <h1 className="text-xl sm:text-3xl font-bold text-white">{t('dashboard.title.optomyze')}</h1>
           </div>
-          <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
         </div>
         <ErrorState onRetry={fetchMetricsData} error={error} />
       </motion.div>
@@ -922,11 +922,11 @@ const OptomyzeMetrics = () => {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <img src={OptoIcon} alt="Optomyze" className="h-8 w-8" />
-            <h1 className="text-3xl font-bold text-white">{t('dashboard.title.optomyze')}</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <img src={OptoIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
+            <h1 className="text-xl sm:text-3xl font-bold text-white leading-tight">{t('dashboard.title.optomyze')}</h1>
           </div>
-          <p className="text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
         </div>
       </div>
 
@@ -960,16 +960,16 @@ const OptomyzeMetrics = () => {
             transition={{ duration: 0.25 }}
           >
             {/* Date Range Filter */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Showing data for:</span>
-                <span className="text-sm font-medium text-foreground">{selectedRangeLabel}</span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs sm:text-sm text-muted-foreground">Showing data for:</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground">{selectedRangeLabel}</span>
               </div>
               <DateRangeSelector value={dateRange} onChange={setDateRange} />
             </div>
 
             {/* KPI Row 1 — Leads */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               {periodicLoading
                 ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={i} />)
                 : kpiData.row1.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
@@ -977,7 +977,7 @@ const OptomyzeMetrics = () => {
             </div>
 
             {/* KPI Row 2 — Deals */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               {periodicLoading
                 ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={`d${i}`} />)
                 : kpiData.row2.map((kpi, i) => <KPICard key={i} {...kpi} delay={i + 5} />)

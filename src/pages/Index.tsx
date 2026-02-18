@@ -233,7 +233,7 @@ const Index = () => {
           initial={false}
           animate={{ marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256) }}
         >
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             {/* DASHBOARD CONTENT WITH PAGE TRANSITIONS
                 AnimatePresence enables smooth transitions between different dashboard views
                 Each dashboard change triggers a fade + slide animation */}
