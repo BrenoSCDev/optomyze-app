@@ -9,14 +9,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
-  BarChart, Bar, PieChart, Pie, Cell, ComposedChart,
+  BarChart, Bar, Cell, ComposedChart,
 } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   TrendingUp, Users, UserX, DollarSign, Target, Percent, Trophy, UserCheck,
-  AlertCircle, Filter, BarChart3, PieChartIcon, Calendar, TrendingDown,
+  AlertCircle, Filter, BarChart3, Calendar, TrendingDown,
 } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -416,88 +416,163 @@ const PipelineValueChart = ({ pipelineData, isLoading }: { pipelineData: Pipelin
   );
 };
 
-// ============= DEALS STATUS DISTRIBUTION CHART =============
+// ============= DEALS STAGES DISTRIBUTION CHART =============
 
-interface DealsDistribution {
-  total_deals: number;
-  distribution: {
-    pending: { count: number; percentage: number };
-    sent:    { count: number; percentage: number };
-    closed:  { count: number; percentage: number };
-    lost:    { count: number; percentage: number };
-  };
+interface DealFunnelStage {
+  stage_id: number;
+  stage_name: string;
+  stage_type: string;
+  sales: number;
+  percentage: number;
 }
 
-const DealsStatusChart = ({ dealsData, isLoading }: { dealsData: DealsDistribution | null; isLoading: boolean }) => {
-  const { t } = useLanguage();
+interface DealFunnelData {
+  funnel_id: number;
+  funnel_name: string;
+  total_sales: number;
+  stages: DealFunnelStage[];
+}
+
+interface DealsByFunnelStage {
+  available: boolean;
+  funnels: DealFunnelData[];
+  total_funnels: number;
+}
+
+const STAGE_TYPE_COLORS: Record<string, string> = {
+  entry:       '#8B5CF6',
+  negotiation: '#3B82F6',
+  approval:    '#F59E0B',
+  contract:    '#06B6D4',
+  won:         '#10B981',
+  lost:        '#EF4444',
+  normal:      '#6366F1',
+  on_hold:     '#9CA3AF',
+};
+
+const DealsStagesDistributionChart = ({
+  dealsFunnelData,
+  isLoading,
+}: {
+  dealsFunnelData: DealsByFunnelStage | null;
+  isLoading: boolean;
+}) => {
+  const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
+
+  useEffect(() => {
+    if (dealsFunnelData?.funnels?.length && !selectedFunnelId) {
+      setSelectedFunnelId(String(dealsFunnelData.funnels[0].funnel_id));
+    }
+  }, [dealsFunnelData, selectedFunnelId]);
+
   if (isLoading) return <SkeletonChart />;
 
-  const statusColors: Record<string, string> = { pending: '#F59E0B', sent: '#3B82F6', closed: '#10B981', lost: '#EF4444' };
-  const statusLabels: Record<string, string> = {
-    pending: t('metrics.status-pending'), sent: t('metrics.status-sent'),
-    closed: t('metrics.status-closed'),   lost: t('metrics.status-lost'),
-  };
+  // Hidden when not available
+  if (!dealsFunnelData?.available) return null;
 
-  const chartData = dealsData
-    ? Object.entries(dealsData.distribution).map(([key, value]) => ({
-        name: statusLabels[key] || key,
-        value: value.count,
-        percentage: value.percentage,
-        color: statusColors[key],
-      }))
-    : [];
+  const funnels = dealsFunnelData.funnels || [];
 
-  const total = dealsData?.total_deals || 0;
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-    if (percent === 0) return null;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  if (funnels.length === 0) {
     return (
-      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight="bold">
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
+      <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+          <BarChart3 className="w-5 h-5 text-primary" /> Deals Stages Distribution
+        </h3>
+        <p className="text-muted-foreground text-center py-8">No deal funnels available.</p>
+      </motion.div>
     );
-  };
+  }
+
+  const selectedFunnel = funnels.find(f => String(f.funnel_id) === selectedFunnelId) || funnels[0];
+  const totalSales = selectedFunnel.total_sales;
+
+  const stageData = selectedFunnel.stages.map((stage) => ({
+    stage: stage.stage_name,
+    count: stage.sales,
+    percentage: stage.percentage,
+    color: STAGE_TYPE_COLORS[stage.stage_type] || PRODUCT_COLORS[0],
+    stage_type: stage.stage_type,
+  }));
+
+  const showFunnelSelector = funnels.length > 1;
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+    <motion.div
+      className="chart-container"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <PieChartIcon className="w-5 h-5 text-primary" /> {t('metrics.deals-status')}
-        </h3>
-        <span className="text-sm text-muted-foreground">
-          {t('metrics.total')}: <span className="font-semibold text-foreground">{total}</span> {t('metrics.deals')}
-        </span>
-      </div>
-
-      <div className="flex flex-col lg:flex-row items-center gap-8">
-        <ResponsiveContainer width="100%" height={280}>
-          <PieChart>
-            <Pie data={chartData} cx="50%" cy="50%" labelLine={false} label={renderCustomizedLabel}
-              outerRadius={110} innerRadius={60} paddingAngle={2} dataKey="value">
-              {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />)}
-            </Pie>
-            <Tooltip contentStyle={chartTooltipStyle} formatter={(value: number) => [value, t('metrics.deals')]} />
-          </PieChart>
-        </ResponsiveContainer>
-
-        <div className="flex flex-col gap-3 min-w-[180px]">
-          {chartData.map((item) => (
-            <div key={item.name} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-sm">{item.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{item.value}</span>
-                <span className="text-muted-foreground text-sm">({item.percentage.toFixed(0)}%)</span>
-              </div>
-            </div>
-          ))}
+        <div>
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary" /> Deals Stages Distribution
+          </h3>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Total Deals: <span className="font-semibold text-foreground">{totalSales}</span>
+          </p>
         </div>
+
+        {showFunnelSelector && (
+          <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
+            <SelectTrigger className="w-[180px] glass-card">
+              <SelectValue placeholder="Select funnel" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              {funnels.map(f => (
+                <SelectItem key={f.funnel_id} value={String(f.funnel_id)}>
+                  {f.funnel_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
+      {totalSales === 0 ? (
+        <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+          No deals registered in this funnel for the selected period.
+        </div>
+      ) : (
+        <>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={stageData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+              <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+              <YAxis type="category" dataKey="stage" stroke="#9CA3AF" fontSize={12} width={90} />
+              <Tooltip
+                contentStyle={chartTooltipStyle}
+                formatter={(value: number, _name: string, props: any) => [
+                  <span key="val">
+                    <span className="font-bold">{value}</span>
+                    <span className="text-muted-foreground ml-2">({props.payload.percentage.toFixed(0)}%)</span>
+                  </span>,
+                  'Deals',
+                ]}
+              />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                {stageData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+
+          <div className="mt-4 flex flex-wrap gap-3 justify-center">
+            {stageData.map((stage) => (
+              <div
+                key={stage.stage}
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-sm"
+              >
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
+                <span>{stage.stage}:</span>
+                <span className="font-semibold">{stage.count}</span>
+                <span className="text-muted-foreground">({stage.percentage.toFixed(0)}%)</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 };
@@ -673,7 +748,7 @@ const OptomyzeMetrics = () => {
   const getMonthlyDealsData  = () => metricsData?.data?.revenue_metrics?.metrics?.monthly_deals_analysis?.monthly_data || null;
   const getFunnelsData       = () => metricsData?.data?.leads_by_funnel_stage?.funnels                                  || null;
   const getPipelineData      = () => metricsData?.data?.estimated_vs_closed_value?.funnels                              || null;
-  const getDealsStatusData   = () => metricsData?.data?.revenue_metrics?.metrics?.deals_status_distribution              || null;
+  const getDealsByFunnelStage = (): DealsByFunnelStage | null => metricsData?.data?.deals_by_funnel_stage || null;
 
   const selectedRangeLabel = DATE_RANGE_OPTIONS.find(o => o.value === dateRange)?.label || 'Last 7 Days';
 
@@ -757,7 +832,7 @@ const OptomyzeMetrics = () => {
 
             {/* Deals Status & Lead Breakdown */}
             <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
-              {!isErpModule && <DealsStatusChart dealsData={getDealsStatusData()} isLoading={loading} />}
+              {!isErpModule && <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />}
               <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
             </div>
 
