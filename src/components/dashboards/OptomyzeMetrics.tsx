@@ -777,10 +777,9 @@ const OptomyzeMetrics = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
-  // Convenience aliases — periodic tab uses periodicData, monthly tab uses monthlyChartsData
-  const metricsData      = activeTab === 'periodic' ? periodicData      : monthlyChartsData;
-  const loading          = activeTab === 'periodic' ? periodicLoading   : monthlyLoading;
-  const error            = activeTab === 'periodic' ? periodicError     : monthlyError;
+  // Loading / error state for the active tab
+  const loading          = activeTab === 'periodic' ? periodicLoading : monthlyLoading;
+  const error            = activeTab === 'periodic' ? periodicError   : monthlyError;
   const fetchMetricsData = () => activeTab === 'periodic' ? fetchPeriodicData(true) : fetchMonthlyData(true);
 
   const getTrendData = (performanceData: any) => {
@@ -793,7 +792,7 @@ const OptomyzeMetrics = () => {
   };
 
   const getRevenueMetrics = () => {
-    const rm = metricsData?.data?.revenue_metrics?.metrics;
+    const rm = periodicData?.data?.revenue_metrics?.metrics;
     if (!rm) return { totalAnnualRevenue: 0, totalMonthlyRevenue: 0, avgDealValue: 0 };
     return {
       totalAnnualRevenue:  rm.total_annual_revenue  || 0,
@@ -803,8 +802,9 @@ const OptomyzeMetrics = () => {
   };
 
   const getKPIData = () => {
-    if (!metricsData?.data) return [];
-    const { lead_statistics, conversion_rate, performance_comparison } = metricsData.data;
+    if (!periodicData?.data) return [];
+    const { lead_statistics, conversion_rate, performance_comparison } = periodicData.data;
+    if (!lead_statistics) return [];
     const { totalAnnualRevenue, totalMonthlyRevenue, avgDealValue } = getRevenueMetrics();
 
     const kpis = [
@@ -827,14 +827,18 @@ const OptomyzeMetrics = () => {
   };
 
   const getMonthlyData = () => {
-    if (!metricsData?.data?.monthly_lead_data) return [];
-    return metricsData.data.monthly_lead_data.map((item: any) => ({ name: item.month, leads: item.leads }));
+    // Monthly lead flow comes from the monthly-charts endpoint
+    const source = monthlyChartsData ?? periodicData;
+    if (!source?.data?.monthly_lead_data) return [];
+    return source.data.monthly_lead_data.map((item: any) => ({ name: item.month, leads: item.leads }));
   };
 
-  const getMonthlyDealsData  = () => metricsData?.data?.revenue_metrics?.metrics?.monthly_deals_analysis?.monthly_data || null;
-  const getFunnelsData       = () => metricsData?.data?.leads_by_funnel_stage?.funnels                                  || null;
-  const getPipelineData      = () => metricsData?.data?.estimated_vs_closed_value?.funnels                              || null;
-  const getDealsByFunnelStage = (): DealsByFunnelStage | null => metricsData?.data?.deals_by_funnel_stage || null;
+  // Monthly charts endpoint data
+  const getMonthlyDealsData  = () => monthlyChartsData?.data?.revenue_metrics?.metrics?.monthly_deals_analysis?.monthly_data || null;
+  // Periodic endpoint data
+  const getFunnelsData       = () => periodicData?.data?.leads_by_funnel_stage?.funnels || null;
+  const getPipelineData      = () => periodicData?.data?.estimated_vs_closed_value?.funnels || null;
+  const getDealsByFunnelStage = (): DealsByFunnelStage | null => periodicData?.data?.deals_by_funnel_stage || null;
 
   const selectedRangeLabel = DATE_RANGE_OPTIONS.find(o => o.value === dateRange)?.label || 'Last 7 Days';
 
@@ -910,7 +914,7 @@ const OptomyzeMetrics = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {loading
+              {periodicLoading
                 ? Array.from({ length: 8 }).map((_, i) => <SkeletonKPICard key={i} />)
                 : kpiData.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
               }
@@ -919,7 +923,7 @@ const OptomyzeMetrics = () => {
             {/* Deals Status & Lead Breakdown */}
             <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
               {!isErpModule && <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />}
-              <LeadBreakdownFunnel data={metricsData} isLoading={loading} />
+              <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />
             </div>
 
             {/* Leads by Stage & Pipeline Value */}
