@@ -95,15 +95,15 @@ const KPICard = ({ title, value, trend, icon, delay = 0 }: KPICardProps) => {
       whileHover={{ scale: 1.05 }} // Gentle scale on hover
     >
       {/* Card Header with title, value, and optional icon */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">{title}</h3>
-          <div className="kpi-value"> {/* Large gradient text for the main metric */}
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight">{title}</h3>
+          <div className="kpi-value text-xl sm:text-2xl lg:text-3xl">
             <AnimatedCounter value={value} delay={delay * 100} />
           </div>
         </div>
         {icon && (
-          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20 shrink-0 ml-2">
             {icon}
           </div>
         )}
@@ -111,11 +111,11 @@ const KPICard = ({ title, value, trend, icon, delay = 0 }: KPICardProps) => {
       
       {/* Optional trend indicator with color-coded icons */}
       {trend && (
-        <div className={`flex items-center gap-1 kpi-trend ${trend.isPositive ? 'positive' : 'negative'}`}>
+        <div className={`flex items-center gap-1 kpi-trend text-xs sm:text-sm ${trend.isPositive ? 'positive' : 'negative'}`}>
           {trend.isPositive ? (
-            <TrendingUp className="h-4 w-4" /> // Green upward arrow for positive trends
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
           ) : (
-            <TrendingDown className="h-4 w-4" /> // Red downward arrow for negative trends
+            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
           )}
           <span>{trend.value}</span>
         </div>
