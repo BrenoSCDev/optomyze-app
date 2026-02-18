@@ -228,9 +228,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
         </AnimatePresence>
       </div>
 
-      {/* Center Section - Search Bar */}
+      {/* Center Section - Desktop Search Bar only */}
       <div className="flex-1 flex justify-center max-w-xl mx-4">
-        {/* Desktop Search */}
         <div ref={searchContainerRef} className="hidden md:flex relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
           {isSearching && (
@@ -291,43 +290,56 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
             )}
           </AnimatePresence>
         </div>
+      </div>
 
-        {/* Mobile Search - Icon that expands */}
-        <div className="md:hidden relative" ref={!searchContainerRef.current ? searchContainerRef : undefined}>
+      {/* Right Section - Search (mobile) + Notifications + User Menu */}
+      <div className="flex items-center gap-1" ref={searchContainerRef}>
+
+        {/* Mobile Search - icon that expands into an overlay input */}
+        <div className="md:hidden relative">
           <AnimatePresence>
             {searchExpanded ? (
               <motion.div
-                className="flex items-center gap-2 relative"
-                initial={{ width: 40 }}
-                animate={{ width: 200 }}
-                exit={{ width: 40 }}
+                className="fixed inset-x-0 top-0 h-16 bg-background/95 backdrop-blur-md border-b border-white/10 flex items-center px-4 gap-2 z-[60]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
+                <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <Input
                   type="text"
                   placeholder={t('header.search-placeholder')}
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-background/50 border-white/10"
+                  className="flex-1 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
                   autoFocus
-                  onBlur={() => {
-                    if (!searchQuery) setSearchExpanded(false);
-                  }}
                 />
-                {isSearching && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-                )}
-                
+                {isSearching && <Loader2 className="h-4 w-4 text-muted-foreground animate-spin flex-shrink-0" />}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground flex-shrink-0"
+                  onClick={() => { setSearchExpanded(false); setSearchQuery(''); setShowResults(false); }}
+                >
+                  {t('common.cancel') || 'Cancel'}
+                </Button>
+
                 {/* Mobile Search Results */}
                 {showResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-0 bg-background border-b border-white/20 shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
                     {searchResults.map((lead) => (
                       <button
                         key={lead.id}
                         onClick={() => handleLeadSelect(lead)}
-                        className="w-full px-3 py-2 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0"
+                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
                       >
-                        <span className="text-sm font-medium text-foreground truncate block">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-primary font-semibold text-sm">
+                            {lead.first_name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground truncate">
                           {lead.first_name} {lead.last_name}
                         </span>
                       </button>
@@ -340,17 +352,14 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchExpanded(true)}
-                className="text-muted-foreground hover:text-primary"
+                className="text-muted-foreground hover:text-primary hover:bg-primary/10"
               >
                 <Search className="h-5 w-5" />
               </Button>
             )}
           </AnimatePresence>
         </div>
-      </div>
 
-      {/* Right Section - Notifications + User Menu */}
-      <div className="flex items-center gap-2">
         {/* Notification Bell with Dropdown */}
         <DropdownMenu open={notificationDropdownOpen} onOpenChange={setNotificationDropdownOpen}>
           <DropdownMenuTrigger asChild>
