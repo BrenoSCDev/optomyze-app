@@ -9,7 +9,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
-  BarChart, Bar, Cell, ComposedChart,
+  BarChart, Bar, Cell, ComposedChart, PieChart, Pie,
 } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -105,6 +105,9 @@ const chartTooltipStyle = {
   borderRadius: '8px',
   color: 'hsl(var(--foreground))',
 };
+
+const chartTooltipLabelStyle = { color: 'hsl(var(--foreground))', fontWeight: 600 };
+const chartTooltipItemStyle  = { color: 'hsl(var(--foreground))' };
 
 // ============= MONTHLY REVENUE CHART =============
 
@@ -323,7 +326,12 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
           <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
           <YAxis type="category" dataKey="stage" stroke="#9CA3AF" fontSize={12} width={80} />
-          <Tooltip contentStyle={chartTooltipStyle} formatter={(value: number) => [value, t('metrics.leads')]} />
+          <Tooltip
+            contentStyle={chartTooltipStyle}
+            labelStyle={chartTooltipLabelStyle}
+            itemStyle={chartTooltipItemStyle}
+            formatter={(value: number) => [value, t('metrics.leads')]}
+          />
           <Bar dataKey="count" radius={[0, 4, 4, 0]}>
             {stageData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
           </Bar>
@@ -496,6 +504,9 @@ const DealsStagesDistributionChart = ({
 
   const showFunnelSelector = funnels.length > 1;
 
+  // Filter out zero-count stages only for rendering the donut (still show in legend)
+  const donutData = stageData.filter(s => s.count > 0);
+
   return (
     <motion.div
       className="chart-container"
@@ -535,41 +546,65 @@ const DealsStagesDistributionChart = ({
         </div>
       ) : (
         <>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stageData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-              <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
-              <YAxis type="category" dataKey="stage" stroke="#9CA3AF" fontSize={12} width={90} />
-              <Tooltip
-                contentStyle={chartTooltipStyle}
-                formatter={(value: number, _name: string, props: any) => [
-                  <span key="val">
-                    <span className="font-bold">{value}</span>
-                    <span className="text-muted-foreground ml-2">({props.payload.percentage.toFixed(0)}%)</span>
-                  </span>,
-                  'Deals',
-                ]}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                {stageData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex flex-col lg:flex-row items-center gap-6">
+            {/* Donut Chart */}
+            <div className="relative flex-shrink-0">
+              <ResponsiveContainer width={240} height={240}>
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    dataKey="count"
+                    nameKey="stage"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={68}
+                    outerRadius={108}
+                    paddingAngle={3}
+                    stroke="transparent"
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    labelStyle={chartTooltipLabelStyle}
+                    itemStyle={chartTooltipItemStyle}
+                    formatter={(value: number, name: string, props: any) => [
+                      `${value} (${props.payload.percentage.toFixed(0)}%)`,
+                      'Deals',
+                    ]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
 
-          <div className="mt-4 flex flex-wrap gap-3 justify-center">
-            {stageData.map((stage) => (
-              <div
-                key={stage.stage}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-sm"
-              >
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
-                <span>{stage.stage}:</span>
-                <span className="font-semibold">{stage.count}</span>
-                <span className="text-muted-foreground">({stage.percentage.toFixed(0)}%)</span>
+              {/* Centre label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-bold text-foreground">{totalSales}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">Total</span>
               </div>
-            ))}
+            </div>
+
+            {/* Legend / breakdown list */}
+            <div className="flex flex-col gap-2.5 flex-1 w-full">
+              {stageData.map((stage) => (
+                <div key={stage.stage} className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} />
+                  <span className="text-sm flex-1 truncate">{stage.stage}</span>
+                  <span className="font-semibold text-sm">{stage.count}</span>
+                  <span className="text-muted-foreground text-sm w-12 text-right">
+                    {stage.percentage.toFixed(0)}%
+                  </span>
+                  {/* Mini progress bar */}
+                  <div className="w-20 bg-white/10 rounded-full h-1.5 flex-shrink-0">
+                    <div
+                      className="h-1.5 rounded-full transition-all duration-700"
+                      style={{ width: `${stage.percentage}%`, backgroundColor: stage.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </>
       )}
