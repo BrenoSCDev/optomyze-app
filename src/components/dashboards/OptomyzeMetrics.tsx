@@ -682,7 +682,7 @@ const DateRangeSelector = ({ value, onChange }: { value: DateRange; onChange: (v
 const TabButton = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
   <button
     onClick={onClick}
-    className={`relative px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+    className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
       active
         ? 'text-foreground bg-white/10 shadow-sm'
         : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
@@ -692,7 +692,7 @@ const TabButton = ({ active, onClick, children }: { active: boolean; onClick: ()
     {active && (
       <motion.div
         layoutId="tab-indicator"
-        className="absolute inset-0 rounded-lg border border-primary/30 bg-primary/5"
+        className="absolute inset-0 rounded-md border border-primary/30 bg-primary/5"
         transition={{ type: 'spring', stiffness: 500, damping: 40 }}
       />
     )}
@@ -820,16 +820,16 @@ const OptomyzeMetrics = () => {
       </div>
 
       {/* ── Tab Navigation ── */}
-      <div className="flex items-center gap-1 p-1 bg-white/5 rounded-xl border border-white/10 w-fit">
+      <div className="flex items-center gap-0.5 p-0.5 bg-white/5 rounded-lg border border-white/10 w-fit">
         <TabButton active={activeTab === 'periodic'} onClick={() => setActiveTab('periodic')}>
-          <span className="relative z-10 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
+          <span className="relative z-10 flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3" />
             Periodic Performance
           </span>
         </TabButton>
         <TabButton active={activeTab === 'monthly'} onClick={() => setActiveTab('monthly')}>
-          <span className="relative z-10 flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+          <span className="relative z-10 flex items-center gap-1.5">
+            <Calendar className="w-3 h-3" />
             Monthly Charts
           </span>
         </TabButton>
