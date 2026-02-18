@@ -704,33 +704,84 @@ const TabButton = ({ active, onClick, children }: { active: boolean; onClick: ()
 const OptomyzeMetrics = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [metricsData, setMetricsData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
+
+  // Separate data caches per tab
+  const [periodicData,      setPeriodicData]      = useState<any>(null);
+  const [monthlyChartsData, setMonthlyChartsData] = useState<any>(null);
+
+  // Per-tab loading / error states
+  const [periodicLoading, setPeriodicLoading] = useState(false);
+  const [monthlyLoading,  setMonthlyLoading]  = useState(false);
+  const [periodicError,   setPeriodicError]   = useState<any>(null);
+  const [monthlyError,    setMonthlyError]    = useState<any>(null);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'periodic' | 'monthly'>('periodic');
 
-  // Date range state (for Periodic Performance tab)
+  // Date range state (shared across tabs, reset cache on change)
   const [dateRange, setDateRange] = useState<DateRange>('7d');
 
   const isErpModule = user?.company?.product_module === 'ERP';
 
-  const fetchMetricsData = async () => {
+  // ── Fetch Periodic Performance ──────────────────────────────────────────────
+  const fetchPeriodicData = async (force = false) => {
+    if (periodicData && !force) return; // use cache
     try {
-      setLoading(true);
-      setError(null);
+      setPeriodicLoading(true);
+      setPeriodicError(null);
       const response = await api.get('/api/metrics/leads-breakdown');
-      setMetricsData(response.data);
+      setPeriodicData(response.data);
     } catch (err: any) {
-      setError(err);
-      console.error('Error fetching metrics:', err);
+      setPeriodicError(err);
+      console.error('Error fetching periodic metrics:', err);
     } finally {
-      setLoading(false);
+      setPeriodicLoading(false);
     }
   };
 
-  useEffect(() => { fetchMetricsData(); }, []);
+  // ── Fetch Monthly Charts ────────────────────────────────────────────────────
+  const fetchMonthlyData = async (force = false) => {
+    if (monthlyChartsData && !force) return; // use cache
+    try {
+      setMonthlyLoading(true);
+      setMonthlyError(null);
+      const response = await api.get('/api/metrics/monthly-charts');
+      setMonthlyChartsData(response.data);
+    } catch (err: any) {
+      setMonthlyError(err);
+      console.error('Error fetching monthly metrics:', err);
+    } finally {
+      setMonthlyLoading(false);
+    }
+  };
+
+  // ── Initial load based on active tab ───────────────────────────────────────
+  useEffect(() => {
+    if (activeTab === 'periodic') {
+      fetchPeriodicData();
+    } else {
+      fetchMonthlyData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // ── Bust cache when date range changes ─────────────────────────────────────
+  useEffect(() => {
+    setPeriodicData(null);
+    setMonthlyChartsData(null);
+    if (activeTab === 'periodic') {
+      fetchPeriodicData(true);
+    } else {
+      fetchMonthlyData(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
+
+  // Convenience aliases — periodic tab uses periodicData, monthly tab uses monthlyChartsData
+  const metricsData      = activeTab === 'periodic' ? periodicData      : monthlyChartsData;
+  const loading          = activeTab === 'periodic' ? periodicLoading   : monthlyLoading;
+  const error            = activeTab === 'periodic' ? periodicError     : monthlyError;
+  const fetchMetricsData = () => activeTab === 'periodic' ? fetchPeriodicData(true) : fetchMonthlyData(true);
 
   const getTrendData = (performanceData: any) => {
     if (!performanceData) return { value: '0%', isPositive: false };
