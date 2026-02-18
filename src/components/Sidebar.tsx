@@ -598,7 +598,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
         </div>
 
         {/* AI Agents Section */}
-        <div>
+        {/* <div>
           <button
             onClick={() => toggleSection('aiAgents')}
             className={`nav-item w-full ${!effectivelyCollapsed ? 'justify-between' : 'justify-center'}`}
@@ -654,7 +654,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange }: Side
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </div> */}
 
         {/* API Section */}
         <div>
