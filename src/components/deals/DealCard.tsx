@@ -20,6 +20,7 @@ import {
   Package,
   CircleDot,
   GitBranch,
+  Tag,
 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,11 +29,12 @@ interface DealCardProps {
   deal: any;
   isDragging?: boolean;
   onDealClick?: (dealId: string) => void;
+  onTagClick?: (deal: any) => void;
   showProducts?: boolean;
   showCharges?: boolean;
 }
 
-const DealCard = ({ deal, isDragging, onDealClick, showProducts = true, showCharges = true }: DealCardProps) => {
+const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = true, showCharges = true }: DealCardProps) => {
   const { t } = useLanguage();
   const {
     attributes,
@@ -230,12 +232,42 @@ const DealCard = ({ deal, isDragging, onDealClick, showProducts = true, showChar
             <span>{deal.created_at ? new Date(deal.created_at).toLocaleDateString() : '—'}</span>
           </div>
 
-          {deal.user && (
-            <div className="flex items-center gap-1">
-              <User className="h-2.5 w-2.5 text-deal/60" />
-              <span className="text-[10px] text-muted-foreground">{deal.user.name}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5">
+            {/* Tags display */}
+            {deal.tags && deal.tags.length > 0 && (
+              <div className="flex items-center gap-1">
+                {deal.tags.slice(0, 2).map((tag: any, i: number) => (
+                  <span key={i} className="text-[9px] px-1.5 py-0.5 rounded-full bg-deal/15 text-deal border border-deal/20">
+                    {typeof tag === 'string' ? tag : tag.name}
+                  </span>
+                ))}
+                {deal.tags.length > 2 && (
+                  <span className="text-[9px] text-muted-foreground">+{deal.tags.length - 2}</span>
+                )}
+              </div>
+            )}
+
+            {/* Tag button */}
+            {onTagClick && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTagClick(deal);
+                }}
+                className="p-1 rounded-md bg-white/5 hover:bg-deal/20 border border-white/10 hover:border-deal/50 transition-all duration-200 group"
+                title="Manage tags"
+              >
+                <Tag className="h-2.5 w-2.5 text-muted-foreground group-hover:text-deal transition-colors" />
+              </button>
+            )}
+
+            {deal.user && (
+              <div className="flex items-center gap-1">
+                <User className="h-2.5 w-2.5 text-deal/60" />
+                <span className="text-[10px] text-muted-foreground">{deal.user.name}</span>
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </div>

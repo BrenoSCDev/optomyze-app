@@ -54,5 +54,18 @@ export const dealFunnelService = {
       console.error('Error creating deal:', error);
       throw error;
     }
+  },
+
+  /**
+   * Update tags on a deal
+   */
+  async updateDealTags(dealId: string | number, tags: { id: number; name: string }[]) {
+    try {
+      const response = await api.put(`/api/sales/${dealId}/tags`, { tags });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating deal tags:', error);
+      throw error;
+    }
   }
 };

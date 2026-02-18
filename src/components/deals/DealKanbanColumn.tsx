@@ -17,13 +17,14 @@ interface DealKanbanColumnProps {
   index: number;
   onAddDeal: (columnId: string) => void;
   onDealClick?: (dealId: string) => void;
+  onTagClick?: (deal: any) => void;
   activeId?: string | null;
   overId?: string | null;
   showProducts?: boolean;
   showCharges?: boolean;
 }
 
-const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
+const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
@@ -111,6 +112,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, activeId, ove
                 deal={deal}
                 isDragging={activeId === deal.id}
                 onDealClick={onDealClick}
+                onTagClick={onTagClick}
                 showProducts={showProducts}
                 showCharges={showCharges}
               />
