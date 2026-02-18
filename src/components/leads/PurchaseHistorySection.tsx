@@ -417,7 +417,10 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               )}
               {sale.funnel && (
                 <button
-                  onClick={() => navigate(`/deals/${sale.funnel!.id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/deals/${sale.funnel!.id}`);
+                  }}
                   className="text-xs text-primary flex items-center gap-1 transition-colors cursor-pointer underline hover:text-primary/80"
                   title={`Go to funnel: ${sale.funnel.name}`}
                 >
