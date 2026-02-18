@@ -35,6 +35,7 @@ import ManageUsers from '@/components/users/ManageUsers';
 import { ManageTeams } from '@/components/teams';
 import { ManageRoles } from '@/components/roles';
 import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
+import OptomyzeInbox from '@/components/inbox/OptomyzeInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 import ManageProducts from '@/components/products/ManageProducts';
 import CrmPanel from '@/components/settings/CrmPanel';
@@ -153,6 +154,8 @@ const Index = () => {
       // Chat sections
       case 'whatsapp-inbox':
         return <WhatsAppInbox />;
+      case 'optomyze-inbox':
+        return <OptomyzeInbox />;
       
       // Calendars sections
       case 'optomyze-calendar':
