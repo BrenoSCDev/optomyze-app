@@ -16,13 +16,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   TrendingUp, Users, UserX, DollarSign, Target, Percent, Trophy, UserCheck,
-  AlertCircle, Filter, BarChart3, Calendar, TrendingDown,
+  AlertCircle, Filter, BarChart3, Calendar, TrendingDown, GripVertical,
 } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/services/api';
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { useDashboardLayout } from '@/hooks/useDashboardLayout';
+import DashboardGridToolbar from '@/components/dashboards/DashboardGridToolbar';
+import DashboardWidget from '@/components/dashboards/DashboardWidget';
 
 // ============= CONSTANTS =============
 
@@ -829,6 +837,34 @@ const OptomyzeMetrics = () => {
 
   const isErpModule = user?.company?.product_module === 'ERP';
 
+  // ── Customizable layout ─────────────────────────────────────────────────────
+  const {
+    gridColumns, widgets, setGridColumns, reorderWidgets,
+    toggleWidgetVisibility, setWidgetSpan, resetLayout,
+  } = useDashboardLayout();
+  const [editMode, setEditMode] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const currentIds = widgets.filter(w => w.visible).map(w => w.id);
+    const oldIndex = currentIds.indexOf(String(active.id));
+    const newIndex = currentIds.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newOrder = [...currentIds];
+    newOrder.splice(oldIndex, 1);
+    newOrder.splice(newIndex, 0, String(active.id));
+    // Re-add hidden widgets at their original positions
+    const allIds = widgets.map(w => w.id);
+    const hiddenIds = allIds.filter(id => !newOrder.includes(id));
+    reorderWidgets([...newOrder, ...hiddenIds]);
+  }, [widgets, reorderWidgets]);
+
   // ── Fetch Periodic Performance ──────────────────────────────────────────────
   const fetchPeriodicData = async (force = false) => {
     if (periodicData && !force) return; // use cache
@@ -1022,6 +1058,49 @@ const OptomyzeMetrics = () => {
   const kpiData     = getKPIData();
   const monthlyData = getMonthlyData();
 
+  // ── Visible widgets for customizable grid ─────────────────────────────────
+  const visibleWidgets = useMemo(() => {
+    const erpHidden = isErpModule ? ['deals-stages', 'estimated-vs-closed'] : [];
+    return widgets.filter(w => w.visible && !erpHidden.includes(w.id));
+  }, [widgets, isErpModule]);
+
+  const renderWidget = useCallback((widgetId: string) => {
+    switch (widgetId) {
+      case 'kpi-row-1':
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            {periodicLoading
+              ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={i} />)
+              : kpiData.row1.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
+            }
+          </div>
+        );
+      case 'kpi-row-2':
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            {periodicLoading
+              ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={`d${i}`} />)
+              : kpiData.row2.map((kpi, i) => <KPICard key={i} {...kpi} delay={i + 5} />)
+            }
+          </div>
+        );
+      case 'leads-by-funnel':
+        return <LeadsByStageChart funnelsData={getFunnelsData()} isLoading={loading} />;
+      case 'deals-stages':
+        return <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />;
+      case 'lead-breakdown':
+        return <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />;
+      case 'estimated-vs-closed':
+        return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />;
+      case 'products-sales':
+        return <ProductsSalesRevenueChart isLoading={periodicLoading} />;
+      case 'agents-sales':
+        return <AgentsSalesRevenueChart isLoading={periodicLoading} />;
+      default:
+        return null;
+    }
+  }, [periodicData, periodicLoading, loading, kpiData]);
+
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
 
@@ -1065,48 +1144,57 @@ const OptomyzeMetrics = () => {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
           >
-            {/* Date Range Filter */}
+            {/* Date Range Filter + Grid Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs sm:text-sm text-muted-foreground">Showing data for:</span>
                 <span className="text-xs sm:text-sm font-medium text-foreground">{selectedRangeLabel}</span>
               </div>
-              <DateRangeSelector value={dateRange} onChange={setDateRange} />
+              <div className="flex items-center gap-3">
+                <DashboardGridToolbar
+                  gridColumns={gridColumns}
+                  widgets={widgets}
+                  editMode={editMode}
+                  onSetGridColumns={setGridColumns}
+                  onToggleEditMode={() => setEditMode(prev => !prev)}
+                  onToggleVisibility={toggleWidgetVisibility}
+                  onResetLayout={resetLayout}
+                  isErpModule={isErpModule}
+                />
+                <DateRangeSelector value={dateRange} onChange={setDateRange} />
+              </div>
             </div>
 
-            {/* KPI Row 1 — Leads */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-              {periodicLoading
-                ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={i} />)
-                : kpiData.row1.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
-              }
-            </div>
+            {editMode && (
+              <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm text-muted-foreground">
+                <GripVertical className="w-4 h-4 text-primary" />
+                <span>Drag widgets to reorder. Hover over a widget for expand/download options. Click the grid icon again to exit.</span>
+              </div>
+            )}
 
-            {/* KPI Row 2 — Deals */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-              {periodicLoading
-                ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={`d${i}`} />)
-                : kpiData.row2.map((kpi, i) => <KPICard key={i} {...kpi} delay={i + 5} />)
-              }
-            </div>
-
-            {/* Row 1: Leads by Funnel & Deals Stages */}
-            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
-              <LeadsByStageChart funnelsData={getFunnelsData()} isLoading={loading} />
-              {!isErpModule && <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />}
-            </div>
-
-            {/* Row 2: Lead Breakdown Funnel & Estimated vs Closed */}
-            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
-              <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />
-              {!isErpModule && <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />}
-            </div>
-
-            {/* Row 3: Products Sales x Revenue & Agents Sales x Revenue */}
-            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
-              <ProductsSalesRevenueChart isLoading={periodicLoading} />
-              <AgentsSalesRevenueChart isLoading={periodicLoading} />
-            </div>
+            {/* Customizable DnD Grid */}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={visibleWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
+                <div className={`grid gap-4 sm:gap-6 ${
+                  gridColumns === 1 ? 'grid-cols-1' :
+                  gridColumns === 2 ? 'grid-cols-1 xl:grid-cols-2' :
+                  'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+                }`}>
+                  {visibleWidgets.map(widget => (
+                    <DashboardWidget
+                      key={widget.id}
+                      id={widget.id}
+                      colSpan={widget.colSpan}
+                      maxSpan={gridColumns}
+                      editMode={editMode}
+                      onSetSpan={setWidgetSpan}
+                    >
+                      {renderWidget(widget.id)}
+                    </DashboardWidget>
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </motion.div>
         )}
 
