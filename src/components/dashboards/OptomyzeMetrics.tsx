@@ -614,7 +614,7 @@ const DealsStagesDistributionChart = ({
 
 // ============= LEAD BREAKDOWN FUNNEL (Visual Funnel) =============
 
-const FUNNEL_COLORS = ['#EC4899', '#818CF8', '#10B981', '#F59E0B', '#6366F1'];
+const FUNNEL_COLORS = ['#7C3AED', '#6366F1', '#4F8FF5', '#3B82F6'];
 
 const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const { t } = useLanguage();
@@ -629,7 +629,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
     { name: t('metrics.converted'), value: stats.converted_leads, color: FUNNEL_COLORS[3] },
   ];
 
-  const maxValue = funnelSteps[0].value || 1;
+  const totalSteps = funnelSteps.length;
 
   return (
     <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -637,10 +637,10 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
 
       <div className="flex flex-col items-center gap-0 py-4">
         {funnelSteps.map((step, index) => {
-          const widthPercent = Math.max(20, (step.value / maxValue) * 100);
-          const nextWidthPercent = index < funnelSteps.length - 1
-            ? Math.max(20, (funnelSteps[index + 1].value / maxValue) * 100)
-            : widthPercent * 0.6;
+          // Always narrow from 100% down to ~25% regardless of values
+          const topWidth = 100 - (index / totalSteps) * 75;
+          const bottomWidth = 100 - ((index + 1) / totalSteps) * 75;
+          const maxValue = funnelSteps[0].value || 1;
 
           return (
             <motion.div
@@ -652,21 +652,21 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
               transition={{ delay: index * 0.1 }}
             >
               <svg
-                viewBox="0 0 400 60"
+                viewBox="0 0 400 64"
                 className="w-full"
                 preserveAspectRatio="none"
                 style={{ display: 'block', marginBottom: -1 }}
               >
                 <polygon
-                  points={`${200 - widthPercent * 2},0 ${200 + widthPercent * 2},0 ${200 + nextWidthPercent * 2},60 ${200 - nextWidthPercent * 2},60`}
+                  points={`${200 - topWidth * 2},0 ${200 + topWidth * 2},0 ${200 + bottomWidth * 2},64 ${200 - bottomWidth * 2},64`}
                   fill={step.color}
-                  opacity={0.85}
-                  className="transition-opacity group-hover:opacity-100"
+                  opacity={0.7}
+                  className="transition-opacity duration-200 group-hover:opacity-90"
                 />
-                <text x="200" y="28" textAnchor="middle" fill="white" fontSize="13" fontWeight="600">
+                <text x="200" y="30" textAnchor="middle" fill="rgba(255,255,255,0.95)" fontSize="12" fontWeight="600">
                   {step.name}
                 </text>
-                <text x="200" y="46" textAnchor="middle" fill="white" fontSize="12" opacity={0.85}>
+                <text x="200" y="48" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="11">
                   {step.value} ({(step.value / maxValue * 100).toFixed(0)}%)
                 </text>
               </svg>
@@ -675,10 +675,10 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
         })}
       </div>
 
-      <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
         <div className="flex items-center justify-between">
-          <span className="text-primary">{t('metrics.overall-conversion-rate')}</span>
-          <span className="text-2xl font-bold text-primary">{data.data.conversion_rate?.toFixed(2) || '0.00'}%</span>
+          <span className="text-muted-foreground">{t('metrics.overall-conversion-rate')}</span>
+          <span className="text-2xl font-bold text-foreground">{data.data.conversion_rate?.toFixed(2) || '0.00'}%</span>
         </div>
       </div>
     </motion.div>
