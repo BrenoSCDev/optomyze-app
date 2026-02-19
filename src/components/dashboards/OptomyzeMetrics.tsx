@@ -9,7 +9,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend,
-  BarChart, Bar, Cell, ComposedChart, PieChart, Pie,
+  BarChart, Bar, Cell, ComposedChart, PieChart, Pie, Line,
 } from 'recharts';
 import KPICard from '@/components/KPICard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -612,7 +612,9 @@ const DealsStagesDistributionChart = ({
   );
 };
 
-// ============= LEAD BREAKDOWN FUNNEL =============
+// ============= LEAD BREAKDOWN FUNNEL (Visual Funnel) =============
+
+const FUNNEL_COLORS = ['#EC4899', '#818CF8', '#10B981', '#F59E0B', '#6366F1'];
 
 const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const { t } = useLanguage();
@@ -620,41 +622,145 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   if (!data?.data?.lead_statistics) return null;
 
   const stats = data.data.lead_statistics;
-  const funnelData = [
-    { name: t('metrics.total-leads-summary'),  value: stats.total_leads,    color: '#8B5CF6' },
-    { name: t('metrics.in-pipeline'),           value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0), color: '#8B5CF6' },
-    { name: t('metrics.in-service'),            value: stats.in_service,     color: '#8B5CF6' },
-    { name: t('metrics.converted'),             value: stats.converted_leads, color: '#10B981' },
+  const funnelSteps = [
+    { name: t('metrics.total-leads-summary'), value: stats.total_leads, color: FUNNEL_COLORS[0] },
+    { name: t('metrics.in-pipeline'), value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0), color: FUNNEL_COLORS[1] },
+    { name: t('metrics.in-service'), value: stats.in_service, color: FUNNEL_COLORS[2] },
+    { name: t('metrics.converted'), value: stats.converted_leads, color: FUNNEL_COLORS[3] },
   ];
 
+  const maxValue = funnelSteps[0].value || 1;
+
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
+    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-pipeline-breakdown')}</h3>
-      <div className="space-y-4">
-        {funnelData.map((item) => {
-          const percentage = funnelData[0].value > 0 ? (item.value / funnelData[0].value) * 100 : 0;
+
+      <div className="flex flex-col items-center gap-0 py-4">
+        {funnelSteps.map((step, index) => {
+          const widthPercent = Math.max(20, (step.value / maxValue) * 100);
+          const nextWidthPercent = index < funnelSteps.length - 1
+            ? Math.max(20, (funnelSteps[index + 1].value / maxValue) * 100)
+            : widthPercent * 0.6;
+
           return (
-            <div key={item.name} className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">{item.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold">{item.value}</span>
-                  <span className="text-sm text-muted-foreground">({percentage.toFixed(1)}%)</span>
-                </div>
-              </div>
-              <div className="w-full bg-muted rounded-full h-3">
-                <div className="h-3 rounded-full transition-all duration-1000 ease-out" style={{ width: `${percentage}%`, backgroundColor: item.color }} />
-              </div>
-            </div>
+            <motion.div
+              key={step.name}
+              className="relative group"
+              style={{ width: '100%', maxWidth: 420 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <svg
+                viewBox="0 0 400 60"
+                className="w-full"
+                preserveAspectRatio="none"
+                style={{ display: 'block', marginBottom: -1 }}
+              >
+                <polygon
+                  points={`${200 - widthPercent * 2},0 ${200 + widthPercent * 2},0 ${200 + nextWidthPercent * 2},60 ${200 - nextWidthPercent * 2},60`}
+                  fill={step.color}
+                  opacity={0.85}
+                  className="transition-opacity group-hover:opacity-100"
+                />
+                <text x="200" y="28" textAnchor="middle" fill="white" fontSize="13" fontWeight="600">
+                  {step.name}
+                </text>
+                <text x="200" y="46" textAnchor="middle" fill="white" fontSize="12" opacity={0.85}>
+                  {step.value} ({(step.value / maxValue * 100).toFixed(0)}%)
+                </text>
+              </svg>
+            </motion.div>
           );
         })}
       </div>
-      <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+
+      <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
         <div className="flex items-center justify-between">
           <span className="text-primary">{t('metrics.overall-conversion-rate')}</span>
           <span className="text-2xl font-bold text-primary">{data.data.conversion_rate?.toFixed(2) || '0.00'}%</span>
         </div>
       </div>
+    </motion.div>
+  );
+};
+
+// ============= PRODUCTS SALES x REVENUE CHART (Mock) =============
+
+const MOCK_PRODUCTS_DATA = [
+  { name: 'Product A', sales: 45, revenue: 12500 },
+  { name: 'Product B', sales: 38, revenue: 9800 },
+  { name: 'Product C', sales: 29, revenue: 15200 },
+  { name: 'Product D', sales: 22, revenue: 7600 },
+  { name: 'Product E', sales: 18, revenue: 11000 },
+  { name: 'Product F', sales: 12, revenue: 4300 },
+];
+
+const ProductsSalesRevenueChart = ({ isLoading }: { isLoading: boolean }) => {
+  if (isLoading) return <SkeletonChart />;
+
+  return (
+    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+        <BarChart3 className="w-5 h-5 text-primary" /> Products: Sales x Revenue
+      </h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={MOCK_PRODUCTS_DATA}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+          <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
+            formatter={(value: number, name: string) => [
+              name === 'revenue' ? `$${value.toLocaleString()}` : value,
+              name === 'revenue' ? 'Revenue' : 'Sales',
+            ]}
+          />
+          <Legend />
+          <Bar yAxisId="left" dataKey="sales" name="Sales" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </motion.div>
+  );
+};
+
+// ============= AGENTS SALES x REVENUE CHART (Mock) =============
+
+const MOCK_AGENTS_DATA = [
+  { name: 'John S.', sales: 32, revenue: 18500 },
+  { name: 'Maria L.', sales: 28, revenue: 14200 },
+  { name: 'Carlos R.', sales: 24, revenue: 12800 },
+  { name: 'Ana P.', sales: 19, revenue: 9600 },
+  { name: 'Pedro M.', sales: 15, revenue: 7300 },
+  { name: 'Laura F.', sales: 11, revenue: 5100 },
+];
+
+const AgentsSalesRevenueChart = ({ isLoading }: { isLoading: boolean }) => {
+  if (isLoading) return <SkeletonChart />;
+
+  return (
+    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+        <Users className="w-5 h-5 text-primary" /> Agents: Sales x Revenue
+      </h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={MOCK_AGENTS_DATA}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+          <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
+            formatter={(value: number, name: string) => [
+              name === 'revenue' ? `$${value.toLocaleString()}` : value,
+              name === 'revenue' ? 'Revenue' : 'Sales',
+            ]}
+          />
+          <Legend />
+          <Bar yAxisId="left" dataKey="sales" name="Sales" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
+        </ComposedChart>
+      </ResponsiveContainer>
     </motion.div>
   );
 };
@@ -984,16 +1090,22 @@ const OptomyzeMetrics = () => {
               }
             </div>
 
-            {/* Deals Status & Lead Breakdown */}
-            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
-              {!isErpModule && <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />}
-              <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />
-            </div>
-
-            {/* Leads by Stage & Pipeline Value */}
+            {/* Row 1: Leads by Funnel & Deals Stages */}
             <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
               <LeadsByStageChart funnelsData={getFunnelsData()} isLoading={loading} />
+              {!isErpModule && <DealsStagesDistributionChart dealsFunnelData={getDealsByFunnelStage()} isLoading={loading} />}
+            </div>
+
+            {/* Row 2: Lead Breakdown Funnel & Estimated vs Closed */}
+            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
+              <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />
               {!isErpModule && <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />}
+            </div>
+
+            {/* Row 3: Products Sales x Revenue & Agents Sales x Revenue */}
+            <div className={`grid grid-cols-1 ${!isErpModule ? 'xl:grid-cols-2' : ''} gap-6`}>
+              <ProductsSalesRevenueChart isLoading={periodicLoading} />
+              <AgentsSalesRevenueChart isLoading={periodicLoading} />
             </div>
           </motion.div>
         )}
