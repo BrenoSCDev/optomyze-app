@@ -13,7 +13,7 @@
 @layer base {
   /* ===== LIGHT MODE (default) ===== */
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 96%;
     --foreground: 0 0% 6%;
 
     --card: 0 0% 100%;
@@ -25,11 +25,11 @@
     --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 94%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 0 0% 91%;
+    --secondary-foreground: 0 0% 12%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 38%;
 
     --accent: 271 91% 55%;
     --accent-foreground: 0 0% 98%;
@@ -37,20 +37,20 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 90%;
+    --border: 0 0% 82%;
+    --input: 0 0% 86%;
     --ring: 271 81% 56%;
 
     --radius: 0.75rem;
 
     /* Glassmorphism */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-border: 0 0% 0% / 0.08;
-    --glass-hover: 0 0% 96% / 0.9;
+    --glass-bg: 0 0% 100% / 0.85;
+    --glass-border: 0 0% 0% / 0.12;
+    --glass-hover: 0 0% 94% / 0.95;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
-    --gradient-dark: linear-gradient(135deg, hsl(0 0% 97%), hsl(0 0% 94%));
+    --gradient-dark: linear-gradient(135deg, hsl(0 0% 95%), hsl(0 0% 92%));
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.6), hsl(0 0% 96% / 0.3));
 
     /* Glow Effects */
