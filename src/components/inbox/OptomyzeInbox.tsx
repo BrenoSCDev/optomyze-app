@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Hash, RefreshCw } from 'lucide-react';
+import { RefreshCw, ChevronRight, MessageSquare, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
 import {
@@ -251,29 +252,52 @@ const OptomyzeInbox: React.FC = () => {
     setSelectedConversation(prev => prev?.id === convId ? null : prev);
   }, []);
 
+  const { t } = useLanguage();
+  const totalConversations = conversations.length;
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
-      {/* Top header bar */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-border/40 bg-background/60 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
+      {/* Enhanced header */}
+      <div className="flex items-center gap-4 px-5 py-3.5 border-b border-border/40 bg-card/80 shrink-0">
+        {/* Icon */}
+        <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
           <img src={optoIcon} alt="Optomyze" className="w-5 h-5" />
         </div>
-        <div>
-          <h1 className="text-sm font-semibold text-foreground">Optomyze Inbox</h1>
-          <p className="text-xs text-muted-foreground">Internal team messaging</p>
+
+        {/* Title + breadcrumbs */}
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <h1 className="text-sm font-semibold text-foreground leading-tight">Optomyze Inbox</h1>
+          <nav className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Home className="w-3 h-3 shrink-0" />
+            <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
+            <span>{t('nav.support') || 'Communication'}</span>
+            <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
+            <span className="text-foreground/80 font-medium truncate">Inbox</span>
+          </nav>
         </div>
-        <div className="ml-auto flex items-center gap-3">
+
+        {/* Right actions */}
+        <div className="ml-auto flex items-center gap-2.5">
+          {/* Conversation count */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/30">
+            <MessageSquare className="w-3 h-3 text-muted-foreground" />
+            <span className="text-[11px] font-medium text-muted-foreground tabular-nums">{totalConversations}</span>
+          </div>
+
+          {/* Refresh */}
           <button
             onClick={() => loadInboxData(false)}
             disabled={isRefreshing}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors disabled:opacity-40"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border/30 transition-all disabled:opacity-40"
             title="Refresh inbox"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs text-muted-foreground">Live</span>
+
+          {/* Live indicator */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_1px] shadow-emerald-500/40" />
+            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Live</span>
           </div>
         </div>
       </div>
