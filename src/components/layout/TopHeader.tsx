@@ -515,7 +515,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       )}
 
       {/* Right Section */}
-      <div className="flex items-center gap-1 shrink-0" ref={!headerNavMode ? searchContainerRef : undefined}>
+      <div className="flex items-center gap-1 shrink-0 ml-auto" ref={!headerNavMode ? searchContainerRef : undefined}>
 
         {/* Mobile Search */}
         <div className="md:hidden relative">
