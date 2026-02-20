@@ -216,18 +216,18 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       </AnimatePresence>
 
     <motion.div
-      className={`fixed left-0 top-0 h-screen bg-background/80 backdrop-blur-md border-r border-white/10 z-40 transition-all duration-300 rounded-none
+      className={`fixed left-0 top-0 h-screen z-40 transition-all duration-300 rounded-none
         md:translate-x-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         ${effectivelyCollapsed ? 'md:w-16' : 'md:w-64'}
         w-72
       `}
+      style={{ background: 'hsl(0 0% 7%)', borderRight: '1px solid hsl(0 0% 12%)' }}
       initial={false}
       animate={{ width: effectivelyCollapsed ? 64 : 256 }}
-      style={{ width: undefined }}
     >
       {/* Header - matches TopHeader height (h-16 = 64px) */}
-      <div className="flex items-center justify-between px-4 h-16 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 h-16 border-b" style={{ borderColor: 'hsl(0 0% 12%)' }}>
         <AnimatePresence>
           {!effectivelyCollapsed && (
             <motion.div
@@ -247,7 +247,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border hidden md:flex"
+          className="text-muted-foreground hover:text-foreground hover:bg-white/5 hidden md:flex"
         >
           {effectivelyCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </Button>
@@ -264,7 +264,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2 overflow-y-auto flex-1 pb-8" style={{ maxHeight: 'calc(100vh - 64px)' }} onMouseEnter={() => isCollapsed && setIsHovered(true)} onMouseLeave={() => isCollapsed && setIsHovered(false)}>
+      <nav className="p-3 space-y-1 overflow-y-auto flex-1 pb-8 scrollbar-dark" style={{ maxHeight: 'calc(100vh - 64px)' }} onMouseEnter={() => isCollapsed && setIsHovered(true)} onMouseLeave={() => isCollapsed && setIsHovered(false)}>
         {/* Dashboard Section */}
         <div>
           <button
