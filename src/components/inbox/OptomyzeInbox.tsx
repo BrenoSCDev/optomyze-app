@@ -51,20 +51,19 @@ const OptomyzeInbox: React.FC = () => {
 
   useEffect(() => { loadInboxData(true); }, []);
 
-  // ─── Real-time: company channel (group.created) ─────────────────────────
+  // ─── Real-time: company channel ──────────────────────────────────────────
   useEffect(() => {
     const echo = getEcho();
     if (!echo || !user?.company_id) return;
 
     const companyChannel = echo.private(`company.${user.company_id}`);
 
+    // Group created
     companyChannel.listen('.group.created', (payload: any) => {
       if (!payload?.id) return;
-      // Only add if the authenticated user is in participants
       const isParticipant = payload.participants?.some((p: any) => p.id === user.id);
       if (!isParticipant) return;
 
-      // Construct conversation object from payload
       const newConv: ChatConversation = {
         id: payload.id,
         type: 'group',
@@ -76,6 +75,7 @@ const OptomyzeInbox: React.FC = () => {
           email: p.email ?? '',
           role: p.role ?? '',
           profile_pic_url: p.profile_pic_url ?? null,
+          conversation_role: p.conversation_role ?? 'member',
         })),
         last_message: null,
         last_message_at: null,
@@ -85,6 +85,56 @@ const OptomyzeInbox: React.FC = () => {
       setConversations(prev => {
         if (prev.some(c => c.id === newConv.id)) return prev;
         return [newConv, ...prev];
+      });
+    });
+
+    // Group deleted
+    companyChannel.listen('.group.deleted', (payload: any) => {
+      if (!payload?.conversation_id) return;
+      setConversations(prev => prev.filter(c => c.id !== payload.conversation_id));
+      setSelectedConversation(prev => {
+        if (prev?.id === payload.conversation_id) return null;
+        return prev;
+      });
+    });
+
+    // Group members added
+    companyChannel.listen('.group.members.added', (payload: any) => {
+      if (!payload?.conversation_id) return;
+
+      // If user was just added to this group, add it to conversation list
+      const isNewMember = payload.new_member_ids?.includes(user.id);
+
+      setConversations(prev => {
+        const idx = prev.findIndex(c => c.id === payload.conversation_id);
+        if (idx !== -1) {
+          // Update existing conversation's participants
+          const updated = { ...prev[idx], participants: payload.participants ?? prev[idx].participants };
+          return [...prev.slice(0, idx), updated, ...prev.slice(idx + 1)];
+        }
+        if (isNewMember) {
+          // New group for this user
+          const newConv: ChatConversation = {
+            id: payload.conversation_id,
+            type: 'group',
+            name: payload.name,
+            cover_image_url: payload.cover_image_url ?? null,
+            participants: payload.participants ?? [],
+            last_message: null,
+            last_message_at: null,
+            created_at: new Date().toISOString(),
+          };
+          return [newConv, ...prev];
+        }
+        return prev;
+      });
+
+      // Also update selected conversation if it matches
+      setSelectedConversation(prev => {
+        if (prev?.id === payload.conversation_id && payload.participants) {
+          return { ...prev, participants: payload.participants };
+        }
+        return prev;
       });
     });
 
@@ -188,6 +238,16 @@ const OptomyzeInbox: React.FC = () => {
     updateConversationWithMessage(msg);
   }, [updateConversationWithMessage]);
 
+  const handleConversationUpdated = useCallback((conv: ChatConversation) => {
+    setConversations(prev => prev.map(c => c.id === conv.id ? conv : c));
+    setSelectedConversation(prev => prev?.id === conv.id ? conv : prev);
+  }, []);
+
+  const handleConversationDeleted = useCallback((convId: number) => {
+    setConversations(prev => prev.filter(c => c.id !== convId));
+    setSelectedConversation(prev => prev?.id === convId ? null : prev);
+  }, []);
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
       {/* Top header bar */}
@@ -237,7 +297,10 @@ const OptomyzeInbox: React.FC = () => {
           <div className="flex-1 overflow-hidden">
             <MessageThread
               conversation={selectedConversation}
+              contacts={contacts}
               onMessageSent={handleMessageSent}
+              onConversationUpdated={handleConversationUpdated}
+              onConversationDeleted={handleConversationDeleted}
             />
           </div>
         </div>
@@ -277,9 +340,12 @@ const OptomyzeInbox: React.FC = () => {
               >
                 <MessageThread
                   conversation={selectedConversation}
+                  contacts={contacts}
                   onBack={() => setMobileView('list')}
                   showBackButton
                   onMessageSent={handleMessageSent}
+                  onConversationUpdated={handleConversationUpdated}
+                  onConversationDeleted={handleConversationDeleted}
                 />
               </motion.div>
             )}

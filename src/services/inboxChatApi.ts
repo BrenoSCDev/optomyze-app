@@ -14,6 +14,7 @@ export interface ChatParticipant {
   email: string;
   role: string;
   profile_pic_url: string | null;
+  conversation_role?: 'admin' | 'member';
 }
 
 export interface ChatMessage {
@@ -117,5 +118,21 @@ export async function deleteMessages(messageIds: number[]): Promise<{ deleted_id
   const res = await api.delete('/api/chat/messages', {
     data: { message_ids: messageIds },
   });
+  return res.data.data;
+}
+
+// ─── GROUP MANAGEMENT ────────────────────────────────────────────────────────
+
+export async function deleteGroup(conversationId: number): Promise<void> {
+  await api.delete(`/api/chat/group/${conversationId}`);
+}
+
+export async function addGroupMembers(conversationId: number, userIds: number[]): Promise<ChatConversation> {
+  const res = await api.post(`/api/chat/group/${conversationId}/members`, { users: userIds });
+  return res.data.data;
+}
+
+export async function promoteToAdmin(conversationId: number, userId: number): Promise<ChatConversation> {
+  const res = await api.post(`/api/chat/group/${conversationId}/admins`, { user_id: userId });
   return res.data.data;
 }
