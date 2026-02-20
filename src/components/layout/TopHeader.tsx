@@ -73,7 +73,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const { t } = useLanguage();
   const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
   const headerLogo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
 
   useEffect(() => {
@@ -611,17 +611,29 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               <DropdownMenuLabel className="p-0 text-sm font-semibold">
                 {t('header.notifications') || 'Notifications'}
               </DropdownMenuLabel>
-              {unreadCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-primary hover:text-primary/80"
-                  onClick={(e) => { e.preventDefault(); markAllAsRead(); }}
-                >
-                  <Check className="h-3 w-3 mr-1" />
-                  {t('header.mark-all-read') || 'Mark all read'}
-                </Button>
-              )}
+              <div className="flex items-center gap-1">
+                {notifications.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-destructive hover:text-destructive/80"
+                    onClick={(e) => { e.preventDefault(); clearNotifications(); }}
+                  >
+                    {t('header.clear') || 'Clear'}
+                  </Button>
+                )}
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-primary hover:text-primary/80"
+                    onClick={(e) => { e.preventDefault(); markAllAsRead(); }}
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    {t('header.mark-all-read') || 'Mark all read'}
+                  </Button>
+                )}
+              </div>
             </div>
             <DropdownMenuSeparator />
             <div className="max-h-72 overflow-y-auto">
@@ -639,7 +651,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   >
                     <div className="flex items-start gap-3 w-full">
                       <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notif.read ? 'bg-transparent' : 'bg-primary'}`} />
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {(() => {
                           const pic = notif.type === 'lead_created' ? notif.creator.profile_pic
                             : notif.type === 'group_created' ? notif.creatorPic
@@ -649,11 +661,16 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                             : notif.type === 'group_created' ? notif.creatorName
                             : notif.type === 'private_message' ? notif.senderName
                             : '';
-                          const avatarUrl = pic && (pic.startsWith('http') ? pic : getStorageUrl(pic));
+                          // lead_created pics use storage path, chat pics are already relative/absolute URLs
+                          const avatarUrl = pic
+                            ? notif.type === 'lead_created'
+                              ? getStorageUrl(pic)
+                              : pic.startsWith('http') ? pic : `${import.meta.env.VITE_API_BASE_URL || ''}/${pic.replace(/^\//, '')}`
+                            : null;
                           return avatarUrl ? (
-                            <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />
+                            <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-primary font-semibold text-xs">{name.charAt(0).toUpperCase()}</span>
+                            <span className="text-primary font-semibold text-xs">{name?.charAt(0).toUpperCase()}</span>
                           );
                         })()}
                       </div>
