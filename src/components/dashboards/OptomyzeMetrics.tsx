@@ -1015,9 +1015,7 @@ const OptomyzeMetrics = () => {
       {
         title: 'Revenue',
         value: dealStats?.revenue != null
-          ? (dealStats.revenue >= 1000
-            ? `$${(dealStats.revenue / 1000).toFixed(1)}k`
-            : `$${Number(dealStats.revenue).toLocaleString()}`)
+          ? `$${Number(dealStats.revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : '—',
         trend: { value: '+0%', isPositive: true },
         icon: <DollarSign className="h-5 w-5 text-primary" />,
