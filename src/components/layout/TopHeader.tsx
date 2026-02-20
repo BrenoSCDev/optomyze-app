@@ -29,7 +29,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useNotifications } from '@/contexts/NotificationContext';
+import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
@@ -155,11 +155,15 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     };
   }, []);
 
-  const handleNotificationClick = (notif: typeof notifications[0]) => {
+  const handleNotificationClick = (notif: AppNotification) => {
     markAsRead(notif.id);
     setNotificationDropdownOpen(false);
-    setSelectedLeadId(String(notif.lead.id));
-    setIsLeadModalOpen(true);
+    if (notif.type === 'lead_created') {
+      setSelectedLeadId(String(notif.lead.id));
+      setIsLeadModalOpen(true);
+    } else if (notif.type === 'private_message') {
+      navigate('/?section=optomyze-inbox');
+    }
   };
 
   const formatNotificationTime = (timestamp: string) => {
@@ -636,11 +640,22 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                     <div className="flex items-start gap-3 w-full">
                       <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notif.read ? 'bg-transparent' : 'bg-primary'}`} />
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        {notif.creator.profile_pic ? (
-                          <img src={getStorageUrl(notif.creator.profile_pic)} alt={notif.creator.name} className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <span className="text-primary font-semibold text-xs">{notif.creator.name.charAt(0).toUpperCase()}</span>
-                        )}
+                        {(() => {
+                          const pic = notif.type === 'lead_created' ? notif.creator.profile_pic
+                            : notif.type === 'group_created' ? notif.creatorPic
+                            : notif.type === 'private_message' ? notif.senderPic
+                            : null;
+                          const name = notif.type === 'lead_created' ? notif.creator.name
+                            : notif.type === 'group_created' ? notif.creatorName
+                            : notif.type === 'private_message' ? notif.senderName
+                            : '';
+                          const avatarUrl = pic && (pic.startsWith('http') ? pic : getStorageUrl(pic));
+                          return avatarUrl ? (
+                            <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />
+                          ) : (
+                            <span className="text-primary font-semibold text-xs">{name.charAt(0).toUpperCase()}</span>
+                          );
+                        })()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm leading-tight ${notif.read ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>

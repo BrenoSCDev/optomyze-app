@@ -178,13 +178,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   // ─── Select mode handlers ────────────────────────────────────────────
   const toggleSelectMessage = useCallback((id: number) => {
+    // Only allow selecting own messages
+    const msg = messages.find(m => m.id === id);
+    if (!msg || msg.sender.id !== currentUserId) return;
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  }, []);
+  }, [messages, currentUserId]);
 
   const handleDeleteSelected = useCallback(async () => {
     if (selectedIds.size === 0 || isDeleting) return;
