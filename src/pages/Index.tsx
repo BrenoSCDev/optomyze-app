@@ -21,7 +21,7 @@ import MetaAds from '@/components/dashboards/MetaAds';
 import GoogleAds from '@/components/dashboards/GoogleAds';
 import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
 import TagsDashboard from '@/components/dashboards/TagsDashboard';
-import LanguagesDashboard from '@/components/dashboards/LanguagesDashboard';
+import PreferencesPanel from '@/components/settings/PreferencesPanel';
 import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
 import LeadsManagement from '@/components/leads/LeadsManagement';
 import IntegrationsApps from '@/components/integrations/IntegrationsApps';
@@ -111,8 +111,8 @@ const Index = () => {
       // Settings sections
       case 'crm-panel':
         return <CrmPanel />;
-      case 'languages':
-        return <LanguagesDashboard />; // Language selection interface
+      case 'preferences':
+        return <PreferencesPanel />; // User preferences panel
       case 'funnels':
         return <FunnelsDashboard />; // Funnels management interface
       case 'tags':
