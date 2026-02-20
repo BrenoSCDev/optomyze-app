@@ -25,7 +25,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isOwn, showSender, showDaySeparator,
 }) => {
   const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
+  const getFileUrl = (url: string) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `${baseUrl}/${url.replace(/^\//, '')}`;
+  };
   return (
     <>
       {showDaySeparator && (
@@ -69,15 +74,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {message.type === 'image' && message.file_url && (
               <img
-                src={message.file_url}
+                src={getFileUrl(message.file_url)}
                 alt="Image"
                 className="rounded-lg max-w-full max-h-60 object-cover cursor-pointer"
-                onClick={() => window.open(message.file_url!, '_blank')}
+                onClick={() => window.open(getFileUrl(message.file_url!), '_blank')}
               />
             )}
 
             {message.type === 'audio' && message.file_url && (
-              <audio controls src={message.file_url} className="max-w-[240px]" />
+              <audio controls src={getFileUrl(message.file_url)} className="max-w-[240px]" />
             )}
           </div>
 
