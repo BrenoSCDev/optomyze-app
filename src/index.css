@@ -149,57 +149,77 @@
   /* Midnight Pulse (default - purple) */
   [data-theme="midnight_pulse"] {
     --accent: 271 91% 55%;
+    --accent-foreground: 0 0% 98%;
     --ring: 271 81% 56%;
     --glow-primary: 0 0 20px hsl(271 81% 56% / 0.15);
     --glow-accent: 0 0 30px hsl(271 91% 65% / 0.2);
     --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+    --sidebar-item-active: 271 81% 56% / 0.1;
+    --sidebar-text-active: 271 81% 56%;
   }
   .dark[data-theme="midnight_pulse"] {
     --accent: 271 91% 65%;
     --glow-primary: 0 0 20px hsl(271 81% 56% / 0.3);
     --glow-accent: 0 0 30px hsl(271 91% 65% / 0.4);
+    --sidebar-item-active: 271 91% 65% / 0.12;
+    --sidebar-text-active: 271 91% 75%;
   }
 
   /* Emerald Strike (green) */
   [data-theme="emerald_strike"] {
     --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
     --ring: 142 76% 36%;
     --glow-primary: 0 0 20px hsl(142 76% 36% / 0.15);
     --glow-accent: 0 0 30px hsl(142 71% 45% / 0.2);
     --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 71% 50%));
+    --sidebar-item-active: 142 76% 36% / 0.1;
+    --sidebar-text-active: 142 76% 36%;
   }
   .dark[data-theme="emerald_strike"] {
     --accent: 142 71% 45%;
     --glow-primary: 0 0 20px hsl(142 76% 36% / 0.3);
     --glow-accent: 0 0 30px hsl(142 71% 45% / 0.4);
+    --sidebar-item-active: 142 71% 45% / 0.12;
+    --sidebar-text-active: 142 71% 55%;
   }
 
   /* Crimson Edge (red) */
   [data-theme="crimson_edge"] {
     --accent: 0 84% 50%;
+    --accent-foreground: 0 0% 98%;
     --ring: 0 84% 50%;
     --glow-primary: 0 0 20px hsl(0 84% 50% / 0.15);
     --glow-accent: 0 0 30px hsl(0 72% 51% / 0.2);
     --gradient-primary: linear-gradient(135deg, hsl(0 84% 50%), hsl(0 72% 58%));
+    --sidebar-item-active: 0 84% 50% / 0.1;
+    --sidebar-text-active: 0 84% 50%;
   }
   .dark[data-theme="crimson_edge"] {
     --accent: 0 72% 51%;
     --glow-primary: 0 0 20px hsl(0 84% 50% / 0.3);
     --glow-accent: 0 0 30px hsl(0 72% 51% / 0.4);
+    --sidebar-item-active: 0 72% 51% / 0.12;
+    --sidebar-text-active: 0 72% 60%;
   }
 
   /* Ocean Flow (blue) */
   [data-theme="ocean_flow"] {
     --accent: 217 91% 50%;
+    --accent-foreground: 0 0% 98%;
     --ring: 217 91% 50%;
     --glow-primary: 0 0 20px hsl(217 91% 50% / 0.15);
     --glow-accent: 0 0 30px hsl(199 89% 48% / 0.2);
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(199 89% 55%));
+    --sidebar-item-active: 217 91% 50% / 0.1;
+    --sidebar-text-active: 217 91% 50%;
   }
   .dark[data-theme="ocean_flow"] {
     --accent: 217 91% 60%;
     --glow-primary: 0 0 20px hsl(217 91% 60% / 0.3);
     --glow-accent: 0 0 30px hsl(199 89% 58% / 0.4);
+    --sidebar-item-active: 217 91% 60% / 0.12;
+    --sidebar-text-active: 217 91% 70%;
   }
 }
 
@@ -313,9 +333,10 @@
   }
   
   .nav-item-sub.active {
-    color: hsl(var(--sidebar-text-active));
+    color: hsl(var(--accent));
     background: hsl(var(--sidebar-item-active));
     opacity: 1;
+    font-weight: 600;
   }
   
   .nav-item:hover {
@@ -326,6 +347,7 @@
   .nav-item.active {
     color: hsl(var(--sidebar-text-active));
     background: hsl(var(--sidebar-item-active));
+    font-weight: 600;
   }
 
   /* KPI Card */
@@ -335,7 +357,7 @@
   }
   
   .kpi-value {
-    @apply text-3xl font-bold bg-gradient-to-r from-foreground to-accent bg-clip-text text-transparent;
+    @apply text-3xl font-bold text-accent;
   }
   
   .kpi-trend {
