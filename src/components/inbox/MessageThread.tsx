@@ -112,11 +112,18 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     const channelName = `conversation.${conversation.id}`;
     const channel = echo.private(channelName);
 
-    channel.listen('.message.sent', (payload: ChatMessage) => {
+    channel.listen('.message.sent', (payload: any) => {
+      // payload may be the message directly or wrapped
+      const msg: ChatMessage = payload?.id ? payload : payload?.message;
+      if (!msg?.id) return;
       // Deduplicate by id
-      if (messageIdsRef.current.has(payload.id)) return;
-      messageIdsRef.current.add(payload.id);
-      setMessages(prev => [...prev, payload]);
+      if (messageIdsRef.current.has(msg.id)) return;
+      messageIdsRef.current.add(msg.id);
+      setMessages(prev => {
+        // Double-check against current state to avoid duplicates
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
     });
 
     return () => {
