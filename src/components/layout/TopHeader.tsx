@@ -28,11 +28,14 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
+import optomyzeLogoLight from '@/assets/optomyze-light.png';
 import OptoIcon from '@/assets/opto-icon.png';
+import OptoIconLight from '@/assets/opto-icon-light.png';
 import { getEcho } from '@/services/echo';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { FaWhatsapp } from 'react-icons/fa6';
@@ -69,7 +72,9 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const { user, funnels, logout } = useAuth();
   const { t } = useLanguage();
   const { menuOrder } = useMenuOrder();
+  const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const headerLogo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -326,12 +331,12 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
 
         {/* Logo: always show in header mode, only show when sidebar collapsed otherwise */}
         {headerNavMode ? (
-          <img src={optomyzeLogo} alt="Optomyze" className="h-6 hidden md:block" />
+          <img src={headerLogo} alt="Optomyze" className="h-6 hidden md:block" />
         ) : (
           <AnimatePresence>
             {sidebarCollapsed && (
               <motion.img
-                src={optomyzeLogo}
+                src={headerLogo}
                 alt="Optomyze"
                 className="h-6 hidden md:block"
                 initial={{ opacity: 0, x: -10 }}
