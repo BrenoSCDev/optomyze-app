@@ -142,7 +142,9 @@ const OptomyzeInbox: React.FC = () => {
     });
 
     return () => {
-      echo.leave(`company.${user.company_id}`);
+      companyChannel.stopListening('.group.created');
+      companyChannel.stopListening('.group.deleted');
+      companyChannel.stopListening('.group.members.added');
     };
   }, [user?.company_id, user?.id]);
 
@@ -182,7 +184,7 @@ const OptomyzeInbox: React.FC = () => {
     });
 
     return () => {
-      echo.leave(`chat-notifications.${user.id}`);
+      notifChannel.stopListening('.private.message.notification');
     };
   }, [user?.id, toast]);
 
