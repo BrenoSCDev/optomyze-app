@@ -62,7 +62,37 @@ export interface ChatMessageNotification {
   read: boolean;
 }
 
-export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification;
+export interface LeadTransactionNotification {
+  id: string;
+  type: 'lead_transaction';
+  message: string;
+  transaction: {
+    id: number;
+    txType: string;
+    action: string;
+    description: string;
+    source: string;
+    is_important: boolean;
+    lead: { id: number; first_name: string; last_name: string };
+    user: { id: number; name: string; profile_pic_url?: string } | null;
+    created_at: string;
+  };
+  timestamp: string;
+  read: boolean;
+}
+
+export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification;
+
+// Global event emitter for lead transactions (used by activity dashboards)
+type LeadTransactionListener = (payload: LeadTransactionNotification['transaction']) => void;
+const leadTransactionListeners = new Set<LeadTransactionListener>();
+export const onLeadTransaction = (listener: LeadTransactionListener) => {
+  leadTransactionListeners.add(listener);
+  return () => { leadTransactionListeners.delete(listener); };
+};
+const emitLeadTransaction = (payload: LeadTransactionNotification['transaction']) => {
+  leadTransactionListeners.forEach(fn => fn(payload));
+};
 
 interface NotificationContextType {
   notifications: AppNotification[];
@@ -111,7 +141,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [markAsRead]);
 
   // Add a new notification - STABLE callback
-  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'>) => {
+  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'>) => {
     const notification = { ...data, read: false } as AppNotification;
 
     setNotifications(prev => {
@@ -147,6 +177,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         },
         duration: 5000,
       });
+    } else if (data.type === 'lead_transaction') {
+      // Only toast for important events
+      if (data.transaction.is_important) {
+        const actor = data.transaction.user?.name ?? (data.transaction.source === 'automation' ? 'Automation' : 'System');
+        toast.success(actor, {
+          description: data.transaction.description,
+          duration: 4000,
+        });
+      }
     }
   }, []);
 
@@ -174,6 +213,37 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     channel.listen('.lead.created', (data: Omit<LeadNotification, 'read'>) => {
       console.log('🔔 Received lead.created event:', data);
       addNotification(data);
+    });
+
+    // Lead transaction (stage change, assignment, note, etc.)
+    channel.listen('.lead.transaction', (payload: any) => {
+      console.log('🔔 Received lead.transaction event:', payload);
+
+      const txPayload = {
+        id: payload.id,
+        txType: payload.type,
+        action: payload.action,
+        description: payload.description,
+        source: payload.source,
+        is_important: payload.is_important,
+        lead: payload.lead,
+        user: payload.user,
+        created_at: payload.created_at,
+      };
+
+      // Emit to any listening activity dashboards
+      emitLeadTransaction(txPayload);
+
+      // Only notify other users' actions (skip own actions)
+      if (payload.user?.id === user.id) return;
+
+      addNotification({
+        id: `lead_tx_${payload.id}_${Date.now()}`,
+        type: 'lead_transaction',
+        message: payload.description,
+        transaction: txPayload,
+        timestamp: payload.created_at ?? new Date().toISOString(),
+      });
     });
 
     // Group created
