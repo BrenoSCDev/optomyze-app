@@ -14,7 +14,7 @@ export interface WidgetLayout {
   visible: boolean;
 }
 
-export type GridColumns = 1 | 2 | 3;
+export type GridColumns = 1 | 2;
 
 export interface DashboardLayoutState {
   gridColumns: GridColumns;

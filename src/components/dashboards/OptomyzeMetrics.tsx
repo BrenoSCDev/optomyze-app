@@ -1176,9 +1176,7 @@ const OptomyzeMetrics = () => {
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={visibleWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
                 <div className={`grid gap-4 sm:gap-6 ${
-                  gridColumns === 1 ? 'grid-cols-1' :
-                  gridColumns === 2 ? 'grid-cols-1 xl:grid-cols-2' :
-                  'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+                  gridColumns === 1 ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2'
                 }`}>
                   {visibleWidgets.map(widget => (
                     <DashboardWidget

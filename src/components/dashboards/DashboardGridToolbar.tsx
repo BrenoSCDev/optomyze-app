@@ -11,7 +11,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutGrid, Columns2, Columns3, Square, Settings2, RotateCcw, Eye, EyeOff, GripVertical,
+  LayoutGrid, Columns2, Square, Settings2, RotateCcw, Eye, EyeOff, GripVertical,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,6 @@ interface DashboardGridToolbarProps {
 const GRID_OPTIONS: { value: GridColumns; label: string; icon: React.ReactNode }[] = [
   { value: 1, label: '1 Column', icon: <Square className="w-4 h-4" /> },
   { value: 2, label: '2 Columns', icon: <Columns2 className="w-4 h-4" /> },
-  { value: 3, label: '3 Columns', icon: <Columns3 className="w-4 h-4" /> },
 ];
 
 const DashboardGridToolbar = ({
