@@ -46,18 +46,31 @@ export interface ActivityTask {
   assignee: ActivityUser | null;
 }
 
-export interface LeadActivityResponse {
+export interface TransactionsResponse {
   transactions: ActivityTransaction[];
+}
+
+export interface TasksResponse {
   tasks: ActivityTask[];
 }
 
 export const leadActivityApi = {
-  fetchActivity: async (): Promise<LeadActivityResponse> => {
+  fetchTransactions: async (): Promise<TransactionsResponse> => {
     try {
-      const response = await api.get('/api/leads-activity');
+      const response = await api.get('/api/leads-activity/transactions');
       return response.data;
     } catch (error) {
-      console.error('Error fetching lead activity:', error);
+      console.error('Error fetching lead transactions:', error);
+      throw error;
+    }
+  },
+
+  fetchTasks: async (): Promise<TasksResponse> => {
+    try {
+      const response = await api.get('/api/leads-activity/tasks');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching lead tasks:', error);
       throw error;
     }
   },
