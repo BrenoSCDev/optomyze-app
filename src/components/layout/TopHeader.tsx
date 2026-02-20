@@ -604,7 +604,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-80 glass-card backdrop-blur-md bg-background/95 border border-white/20 max-h-96 overflow-hidden"
+            className="w-96 glass-card backdrop-blur-md bg-background/95 border border-white/20 max-h-96 overflow-hidden"
             sideOffset={8}
           >
             <div className="flex items-center justify-between px-3 py-2">
@@ -619,7 +619,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                     className="h-7 text-xs text-destructive hover:text-destructive/80"
                     onClick={(e) => { e.preventDefault(); clearNotifications(); }}
                   >
-                    {t('header.clear') || 'Clear'}
+                    {t('header.clear')}
                   </Button>
                 )}
                 {unreadCount > 0 && (
