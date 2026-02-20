@@ -81,7 +81,31 @@ export interface LeadTransactionNotification {
   read: boolean;
 }
 
-export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification;
+export interface DealTransactionNotification {
+  id: string;
+  type: 'deal_transaction';
+  message: string;
+  transaction: {
+    id: number;
+    txType: string;
+    action: string;
+    description: string;
+    source: string;
+    deal: {
+      id: number;
+      name: string;
+      total: number;
+      status: string;
+      lead: { id: number; first_name: string; last_name: string } | null;
+    };
+    user: { id: number; name: string; profile_pic_url?: string } | null;
+    created_at: string;
+  };
+  timestamp: string;
+  read: boolean;
+}
+
+export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification | DealTransactionNotification;
 
 // Global event emitter for lead transactions (used by activity dashboards)
 type LeadTransactionListener = (payload: LeadTransactionNotification['transaction']) => void;
@@ -92,6 +116,17 @@ export const onLeadTransaction = (listener: LeadTransactionListener) => {
 };
 const emitLeadTransaction = (payload: LeadTransactionNotification['transaction']) => {
   leadTransactionListeners.forEach(fn => fn(payload));
+};
+
+// Global event emitter for deal transactions (used by deal activity dashboard)
+type DealTransactionListener = (payload: DealTransactionNotification['transaction']) => void;
+const dealTransactionListeners = new Set<DealTransactionListener>();
+export const onDealTransaction = (listener: DealTransactionListener) => {
+  dealTransactionListeners.add(listener);
+  return () => { dealTransactionListeners.delete(listener); };
+};
+const emitDealTransaction = (payload: DealTransactionNotification['transaction']) => {
+  dealTransactionListeners.forEach(fn => fn(payload));
 };
 
 interface NotificationContextType {
@@ -141,7 +176,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [markAsRead]);
 
   // Add a new notification - STABLE callback
-  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'>) => {
+  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'> | Omit<DealTransactionNotification, 'read'>) => {
     const notification = { ...data, read: false } as AppNotification;
 
     setNotifications(prev => {
@@ -184,6 +219,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         toast.success(actor, {
           description: data.transaction.description,
           duration: 4000,
+        });
+      }
+    } else if (data.type === 'deal_transaction') {
+      const isWonLost = ['won', 'lost'].includes(data.transaction.action);
+      if (isWonLost) {
+        const actor = data.transaction.user?.name ?? (data.transaction.source === 'automation' ? 'Automation' : 'System');
+        const variant = data.transaction.action === 'won' ? 'success' : 'error';
+        const toastFn = variant === 'success' ? toast.success : toast.error;
+        toastFn(actor, {
+          description: data.transaction.description,
+          duration: 5000,
         });
       }
     }
@@ -240,6 +286,36 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       addNotification({
         id: `lead_tx_${payload.id}_${Date.now()}`,
         type: 'lead_transaction',
+        message: payload.description,
+        transaction: txPayload,
+        timestamp: payload.created_at ?? new Date().toISOString(),
+      });
+    });
+
+    // Deal transaction (stage change, won/lost, creation, deletion, etc.)
+    channel.listen('.deal.transaction', (payload: any) => {
+      console.log('🔔 Received deal.transaction event:', payload);
+
+      const txPayload = {
+        id: payload.id,
+        txType: payload.type,
+        action: payload.action,
+        description: payload.description,
+        source: payload.source,
+        deal: payload.deal,
+        user: payload.user,
+        created_at: payload.created_at,
+      };
+
+      // Emit to any listening deal activity dashboards
+      emitDealTransaction(txPayload);
+
+      // Only notify other users' actions (skip own actions)
+      if (payload.user?.id === user.id) return;
+
+      addNotification({
+        id: `deal_tx_${payload.id}_${Date.now()}`,
+        type: 'deal_transaction',
         message: payload.description,
         transaction: txPayload,
         timestamp: payload.created_at ?? new Date().toISOString(),

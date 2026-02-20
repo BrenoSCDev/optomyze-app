@@ -12,6 +12,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { dealActivityApi, type DealActivityTransaction } from '@/services/dealActivityApi';
+import { onDealTransaction } from '@/contexts/NotificationContext';
 
 // ─── KPI Card ───
 const KPICard: React.FC<{
@@ -98,6 +99,47 @@ const DealActivityDashboard: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  // Real-time: prepend incoming deal transactions
+  useEffect(() => {
+    return onDealTransaction((payload) => {
+      const mapped: DealActivityTransaction = {
+        id: payload.id,
+        sale_id: payload.deal.id,
+        company_id: 0,
+        user_id: payload.user?.id ?? 0,
+        type: payload.txType,
+        action: payload.action,
+        description: payload.description,
+        source: payload.source,
+        created_at: payload.created_at,
+        updated_at: payload.created_at,
+        sale: {
+          id: payload.deal.id,
+          lead_id: payload.deal.lead?.id ?? 0,
+          user_id: payload.user?.id ?? 0,
+          name: payload.deal.name,
+          total: String(payload.deal.total ?? '0'),
+          created_at: payload.created_at,
+          charges_total: 0,
+          final_total: payload.deal.total ?? 0,
+          lead: payload.deal.lead ? {
+            id: payload.deal.lead.id,
+            first_name: payload.deal.lead.first_name,
+            last_name: payload.deal.lead.last_name,
+            email: '',
+            phone: '',
+          } : null as any,
+          charges: [],
+        },
+        user: payload.user ? { id: payload.user.id, name: payload.user.name, email: '' } : null,
+      };
+      setTransactions(prev => {
+        if (prev.some(t => t.id === mapped.id)) return prev;
+        return [mapped, ...prev];
+      });
+    });
   }, []);
 
   const txTypeKPIs = useMemo(() => {
