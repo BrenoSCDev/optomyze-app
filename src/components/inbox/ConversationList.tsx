@@ -3,6 +3,7 @@ import {
   Search, Plus, Users, MessageSquare, UserCheck, Hash,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 import { ChatConversation, ChatContact } from '@/services/inboxChatApi';
 
 type Tab = 'all' | 'contacts' | 'groups';
@@ -51,6 +52,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
   conversations, contacts, selectedConversation,
   onSelectConversation, onContactClick, onOpenCreateGroup, isLoading,
 }) => {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
 
@@ -97,9 +100,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
       );
     }
 
-    // Private: try to find the other participant's profile pic
-    // We don't have currentUserId here so just use first participant with a pic or initials
-    const otherParticipant = conv.participants.find(p => p.profile_pic_url);
+    // Private: find the OTHER participant's profile pic (exclude current user)
+    const otherParticipant = conv.participants.find(p => p.id !== currentUserId && p.profile_pic_url);
     const picUrl = otherParticipant ? getAvatarUrl(otherParticipant.profile_pic_url) : null;
 
     if (picUrl) {

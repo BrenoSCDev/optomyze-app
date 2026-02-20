@@ -288,12 +288,24 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             <div className="w-9 h-9 rounded-full overflow-hidden border border-accent/30">
               <img src={coverUrl} alt={conversation.name} className="w-full h-full object-cover" />
             </div>
-          ) : (
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
-              ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
-              {isGroup ? <Hash className="w-4 h-4" /> : initials}
-            </div>
-          )}
+          ) : (() => {
+            const otherPic = !isGroup
+              ? getAvatarUrl(conversation.participants.find(p => p.id !== currentUserId)?.profile_pic_url)
+              : null;
+            if (otherPic) {
+              return (
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-primary/30">
+                  <img src={otherPic} alt={conversation.name} className="w-full h-full object-cover" />
+                </div>
+              );
+            }
+            return (
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
+                ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
+                {isGroup ? <Hash className="w-4 h-4" /> : initials}
+              </div>
+            );
+          })()}
         </div>
 
         <div className="flex-1 min-w-0">
