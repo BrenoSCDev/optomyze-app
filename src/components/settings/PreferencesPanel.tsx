@@ -10,11 +10,11 @@ import {
 } from '@/components/ui/select';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useMenuOrder, DEFAULT_MENU_ORDER } from '@/contexts/MenuOrderContext';
-import { useTheme, THEME_PRESETS, ThemeName } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
-  Moon, Sun, Globe, GripVertical, PanelLeft, PanelTop, Search, Volume2, Info, X, RotateCcw, Palette, Check,
+  Moon, Sun, Globe, GripVertical, PanelLeft, PanelTop, Search, Volume2, Info, X, RotateCcw,
   BarChart3, Users, Settings as SettingsIcon, PieChart, Plug, Database, Building, MessageCircle,
   CalendarDays, Package, Headphones
 } from 'lucide-react';
@@ -100,30 +100,11 @@ const SortableMenuItem: React.FC<{ id: string; label: string; icon: React.ReactN
   );
 };
 
-// Theme preview card colors
-const THEME_PREVIEW_COLORS: Record<ThemeName, { dark: { bg: string; card: string; accent: string }; light: { bg: string; card: string; accent: string } }> = {
-  midnight_pulse: {
-    dark: { bg: '#0a0a0a', card: '#1a1a1a', accent: '#a855f7' },
-    light: { bg: '#f5f5f5', card: '#ffffff', accent: '#9333ea' },
-  },
-  emerald_strike: {
-    dark: { bg: '#0a0a0a', card: '#1a1a1a', accent: '#22c55e' },
-    light: { bg: '#f5f5f5', card: '#ffffff', accent: '#16a34a' },
-  },
-  crimson_edge: {
-    dark: { bg: '#0a0a0a', card: '#1a1a1a', accent: '#ef4444' },
-    light: { bg: '#f5f5f5', card: '#ffffff', accent: '#dc2626' },
-  },
-  ocean_flow: {
-    dark: { bg: '#0a0a0a', card: '#1a1a1a', accent: '#3b82f6' },
-    light: { bg: '#f5f5f5', card: '#ffffff', accent: '#2563eb' },
-  },
-};
 
 const PreferencesPanel: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
   const { menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner, navLayout, setNavLayout } = useMenuOrder();
-  const { mode, theme, setMode, setTheme } = useTheme();
+  const { mode, setMode } = useTheme();
   const { user } = useAuth();
   const [searchBehavior, setSearchBehavior] = useState('leads');
   const [selectedSound, setSelectedSound] = useState('default');
@@ -237,79 +218,8 @@ const PreferencesPanel: React.FC = () => {
             </div>
           </SettingRow>
 
-          <Divider />
 
-          {/* 2. Theme Selection */}
-          <div className="px-4 sm:px-6 py-5">
-            <div className="flex items-start gap-3 mb-4">
-              <Palette className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Theme</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Choose a color theme for the CRM</p>
-              </div>
-            </div>
-            <div className="ml-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {(Object.keys(THEME_PRESETS) as ThemeName[]).map((themeKey) => {
-                const preset = THEME_PRESETS[themeKey];
-                const colors = THEME_PREVIEW_COLORS[themeKey];
-                const preview = isDark ? colors.dark : colors.light;
-                const isSelected = theme === themeKey;
 
-                return (
-                  <button
-                    key={themeKey}
-                    onClick={() => {
-                      setTheme(themeKey);
-                      toast.success(`Theme changed to ${preset.label}`);
-                    }}
-                    className={`relative rounded-xl border-2 p-3 transition-all duration-200 text-left group ${
-                      isSelected
-                        ? 'border-accent shadow-md shadow-accent/20'
-                        : 'border-border/60 hover:border-border'
-                    }`}
-                  >
-                    {/* Selected checkmark */}
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-accent flex items-center justify-center">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
-                    )}
-
-                    {/* Preview mockup */}
-                    <div
-                      className="rounded-lg overflow-hidden mb-3 border border-border/30"
-                      style={{ background: preview.bg }}
-                    >
-                      <div className="h-2.5 flex items-center gap-1 px-2" style={{ background: preview.card, borderBottom: `1px solid ${preview.bg}` }}>
-                        <div className="w-1 h-1 rounded-full" style={{ background: preview.accent }} />
-                        <div className="w-1 h-1 rounded-full opacity-50" style={{ background: preview.accent }} />
-                      </div>
-                      <div className="p-2 space-y-1.5">
-                        <div className="h-1.5 w-3/4 rounded-full" style={{ background: preview.accent, opacity: 0.8 }} />
-                        <div className="flex gap-1">
-                          <div className="h-3 flex-1 rounded" style={{ background: preview.card }} />
-                          <div className="h-3 flex-1 rounded" style={{ background: preview.card }} />
-                        </div>
-                        <div className="h-1 w-1/2 rounded-full" style={{ background: preview.accent, opacity: 0.4 }} />
-                      </div>
-                    </div>
-
-                    {/* Label */}
-                    <p className="text-xs font-medium text-foreground">{preset.label}</p>
-                    <p className="text-[10px] text-muted-foreground">{preset.description}</p>
-
-                    {/* Accent color dot */}
-                    <div className="flex gap-1.5 mt-2">
-                      <div className="w-3 h-3 rounded-full border border-border/40" style={{ background: preview.accent }} />
-                      <div className="w-3 h-3 rounded-full border border-border/40" style={{ background: preview.accent, opacity: 0.4 }} />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <Divider />
 
           {/* 3. Language Selection */}
           <SettingRow

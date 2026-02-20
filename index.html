@@ -9,17 +9,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-      // Prevent flash of wrong theme on load
+      // Prevent flash of wrong mode on load
       (function() {
         try {
           var stored = JSON.parse(localStorage.getItem('crm_appearance') || '{}');
-          if (stored.mode === 'dark') document.documentElement.classList.add('dark');
-          if (stored.theme) document.documentElement.setAttribute('data-theme', stored.theme);
-          else document.documentElement.setAttribute('data-theme', 'midnight_pulse');
-          if (!stored.mode) document.documentElement.classList.add('dark');
+          if (stored.mode === 'dark' || !stored.mode) document.documentElement.classList.add('dark');
         } catch(e) {
           document.documentElement.classList.add('dark');
-          document.documentElement.setAttribute('data-theme', 'midnight_pulse');
         }
       })();
     </script>
