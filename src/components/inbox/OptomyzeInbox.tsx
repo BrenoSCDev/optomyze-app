@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Hash } from 'lucide-react';
+import { Hash, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
@@ -24,6 +24,7 @@ const OptomyzeInbox: React.FC = () => {
   const [mobileView, setMobileView] = useState<MobileView>('list');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Keep a ref so WebSocket callbacks can access latest conversations
   const conversationsRef = useRef(conversations);
@@ -31,23 +32,24 @@ const OptomyzeInbox: React.FC = () => {
   const selectedRef = useRef(selectedConversation);
   selectedRef.current = selectedConversation;
 
-  // ─── Load data on mount ─────────────────────────────────────────────────
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setIsLoading(true);
-        const [convs, conts] = await Promise.all([fetchConversations(), fetchContacts()]);
-        setConversations(convs);
-        setContacts(conts);
-      } catch (err) {
-        console.error('Failed to load inbox data:', err);
-        toast({ title: 'Error', description: 'Failed to load inbox conversations.', variant: 'destructive' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, []);
+  // ─── Load data ───────────────────────────────────────────────────────────
+  const loadInboxData = useCallback(async (showFullLoader = true) => {
+    try {
+      if (showFullLoader) setIsLoading(true);
+      else setIsRefreshing(true);
+      const [convs, conts] = await Promise.all([fetchConversations(), fetchContacts()]);
+      setConversations(convs);
+      setContacts(conts);
+    } catch (err) {
+      console.error('Failed to load inbox data:', err);
+      toast({ title: 'Error', description: 'Failed to load inbox conversations.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [toast]);
+
+  useEffect(() => { loadInboxData(true); }, []);
 
   // ─── Helpers ────────────────────────────────────────────────────────────
 
@@ -117,9 +119,19 @@ const OptomyzeInbox: React.FC = () => {
           <h1 className="text-sm font-semibold text-foreground">Optomyze Inbox</h1>
           <p className="text-xs text-muted-foreground">Internal team messaging</p>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs text-muted-foreground">Live</span>
+        <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={() => loadInboxData(false)}
+            disabled={isRefreshing}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors disabled:opacity-40"
+            title="Refresh inbox"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs text-muted-foreground">Live</span>
+          </div>
         </div>
       </div>
 
