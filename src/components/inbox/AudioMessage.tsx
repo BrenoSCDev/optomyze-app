@@ -1,24 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Play, Pause, Volume2 } from 'lucide-react';
 
 interface AudioMessagePlayerProps {
+  src?: string;
   duration: string;
   isOwn: boolean;
 }
 
-const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ duration, isOwn }) => {
+const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ src, duration, isOwn }) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [elapsed, setElapsed] = useState('0:00');
-
-  // Parse duration string "M:SS" to seconds
-  const parseDuration = (d: string): number => {
-    const parts = d.split(':');
-    if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-    return 0;
-  };
-
-  const totalSeconds = parseDuration(duration);
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -26,23 +19,37 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ duration, isOwn
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const togglePlay = () => {
-    setIsPlaying(p => !p);
-    if (!isPlaying) {
-      let prog = progress;
-      const interval = setInterval(() => {
-        prog += 2;
-        setProgress(prog);
-        setElapsed(formatTime((prog / 100) * totalSeconds));
-        if (prog >= 100) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          setProgress(0);
-          setElapsed('0:00');
-        }
-      }, (totalSeconds * 10) || 80);
+  useEffect(() => {
+    if (!src) return;
+    const audio = new Audio(src);
+    audioRef.current = audio;
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+        setElapsed(formatTime(audio.currentTime));
+      }
+    });
+    audio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setProgress(0);
+      setElapsed('0:00');
+    });
+
+    return () => { audio.pause(); audio.src = ''; };
+  }, [src]);
+
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().catch(() => {});
+      setIsPlaying(true);
     }
-  };
+  }, [isPlaying]);
 
   return (
     <div className={`flex items-center gap-2.5 min-w-[200px] rounded-full px-3 py-2
@@ -68,7 +75,6 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ duration, isOwn
         {elapsed} / {duration}
       </span>
 
-      {/* Progress bar */}
       <div className={`flex-1 h-1 rounded-full overflow-hidden min-w-[40px]
         ${isOwn ? 'bg-primary-foreground/20' : 'bg-muted-foreground/20'}`}
       >

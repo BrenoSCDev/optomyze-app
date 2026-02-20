@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChatMessage } from '@/services/inboxChatApi';
 import { Check } from 'lucide-react';
+import AudioMessagePlayer from './AudioMessage';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -118,7 +119,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
 
             {message.type === 'audio' && message.file_url && (
-              <audio controls src={getFileUrl(message.file_url)} className="max-w-[240px]" />
+              <AudioMessagePlayer
+                src={getFileUrl(message.file_url)}
+                duration={message.body || '0:00'}
+                isOwn={isOwn}
+              />
             )}
           </div>
 
