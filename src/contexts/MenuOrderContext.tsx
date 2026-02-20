@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const STORAGE_KEY = 'crm_menu_order';
 const BANNER_DISMISSED_KEY = 'crm_preferences_banner_dismissed';
+const NAV_LAYOUT_KEY = 'crm_nav_layout';
+
+export type NavLayout = 'sidebar' | 'header';
 
 // These are the reorderable top-level sidebar section IDs
 export const DEFAULT_MENU_ORDER = [
@@ -30,6 +33,8 @@ interface MenuOrderContextType {
   resetToDefault: () => void;
   bannerDismissed: boolean;
   dismissBanner: () => void;
+  navLayout: NavLayout;
+  setNavLayout: (layout: NavLayout) => void;
 }
 
 const MenuOrderContext = createContext<MenuOrderContextType | undefined>(undefined);
@@ -40,10 +45,8 @@ export const MenuOrderProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed: MenuOrderState = JSON.parse(stored);
-        // Merge: keep stored order but ensure all defaults exist and remove stale ones
         const validIds = new Set(DEFAULT_MENU_ORDER);
         const ordered = parsed.order.filter(id => validIds.has(id));
-        // Add any new sections that weren't in storage
         DEFAULT_MENU_ORDER.forEach(id => {
           if (!ordered.includes(id)) ordered.push(id);
         });
@@ -61,6 +64,14 @@ export const MenuOrderProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  const [navLayout, setNavLayoutState] = useState<NavLayout>(() => {
+    try {
+      const stored = localStorage.getItem(NAV_LAYOUT_KEY);
+      if (stored === 'header' || stored === 'sidebar') return stored;
+    } catch { }
+    return 'sidebar';
+  });
+
   const setMenuOrder = useCallback((order: string[]) => {
     setMenuOrderState(order);
     const state: MenuOrderState = { order, lastUpdated: Date.now() };
@@ -76,8 +87,13 @@ export const MenuOrderProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem(BANNER_DISMISSED_KEY, 'true');
   }, []);
 
+  const setNavLayout = useCallback((layout: NavLayout) => {
+    setNavLayoutState(layout);
+    localStorage.setItem(NAV_LAYOUT_KEY, layout);
+  }, []);
+
   return (
-    <MenuOrderContext.Provider value={{ menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner }}>
+    <MenuOrderContext.Provider value={{ menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner, navLayout, setNavLayout }}>
       {children}
     </MenuOrderContext.Provider>
   );
