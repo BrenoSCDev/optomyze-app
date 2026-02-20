@@ -40,6 +40,13 @@ function getLastMessagePreview(conv: ChatConversation): string {
   return m.body ?? '';
 }
 
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  return `${baseUrl}/${url.replace(/^\//, '')}`;
+}
+
 const ConversationList: React.FC<ConversationListProps> = ({
   conversations, contacts, selectedConversation,
   onSelectConversation, onContactClick, onOpenCreateGroup, isLoading,
@@ -68,6 +75,63 @@ const ConversationList: React.FC<ConversationListProps> = ({
     { id: 'contacts', label: 'Contacts' },
     { id: 'groups',   label: 'Groups' },
   ];
+
+  // Render avatar for a conversation
+  const renderConversationAvatar = (conv: ChatConversation) => {
+    const isGroup = conv.type === 'group';
+    const coverUrl = getAvatarUrl(conv.cover_image_url);
+
+    if (isGroup && coverUrl) {
+      return (
+        <div className="w-10 h-10 rounded-full overflow-hidden border border-accent/30 shrink-0">
+          <img src={coverUrl} alt={conv.name} className="w-full h-full object-cover" />
+        </div>
+      );
+    }
+
+    if (isGroup) {
+      return (
+        <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-semibold text-sm shrink-0">
+          <Hash className="w-4 h-4" />
+        </div>
+      );
+    }
+
+    // Private: try to find the other participant's profile pic
+    // We don't have currentUserId here so just use first participant with a pic or initials
+    const otherParticipant = conv.participants.find(p => p.profile_pic_url);
+    const picUrl = otherParticipant ? getAvatarUrl(otherParticipant.profile_pic_url) : null;
+
+    if (picUrl) {
+      return (
+        <div className="w-10 h-10 rounded-full overflow-hidden border border-primary/30 shrink-0">
+          <img src={picUrl} alt={conv.name} className="w-full h-full object-cover" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
+        {getInitials(conv.name)}
+      </div>
+    );
+  };
+
+  const renderContactAvatar = (contact: ChatContact) => {
+    const picUrl = getAvatarUrl(contact.profile_pic_url);
+    if (picUrl) {
+      return (
+        <div className="w-10 h-10 rounded-full overflow-hidden border border-primary/30 shrink-0">
+          <img src={picUrl} alt={contact.name} className="w-full h-full object-cover" />
+        </div>
+      );
+    }
+    return (
+      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
+        {getInitials(contact.name)}
+      </div>
+    );
+  };
 
   return (
     <div className="h-full flex flex-col bg-background/50">
@@ -130,10 +194,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
             {tab === 'all' && (
               <motion.div key="all" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
                 {filteredConversations.map(conv => {
-                  const initials = getInitials(conv.name);
                   const preview  = getLastMessagePreview(conv);
                   const time     = conv.last_message_at ? formatMessageTime(conv.last_message_at) : '';
-                  const isGroup  = conv.type === 'group';
                   const selected = selectedConversation?.id === conv.id;
 
                   return (
@@ -144,10 +206,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                         ${selected ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-muted/30'}`}
                     >
                       <div className="relative shrink-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
-                          ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
-                          {isGroup ? <Hash className="w-4 h-4" /> : initials}
-                        </div>
+                        {renderConversationAvatar(conv)}
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -182,9 +241,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left"
                   >
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary">
-                        {getInitials(contact.name)}
-                      </div>
+                      {renderContactAvatar(contact)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
@@ -217,7 +274,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 </div>
 
                 {filteredGroups.map(conv => {
-                  const initials = getInitials(conv.name);
                   const memberCount = conv.participants.length;
                   const selected = selectedConversation?.id === conv.id;
 
@@ -228,9 +284,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                       className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left
                         ${selected ? 'bg-primary/10 border-l-2 border-l-primary' : ''}`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-semibold text-sm shrink-0">
-                        {initials}
-                      </div>
+                      {renderConversationAvatar(conv)}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{conv.name}</p>
                         <p className="text-xs text-muted-foreground">{memberCount} members</p>

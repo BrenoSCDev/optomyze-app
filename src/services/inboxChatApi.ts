@@ -5,6 +5,7 @@ import api from './api';
 export interface ChatSender {
   id: number;
   name: string;
+  profile_pic_url: string | null;
 }
 
 export interface ChatParticipant {
@@ -12,6 +13,7 @@ export interface ChatParticipant {
   name: string;
   email: string;
   role: string;
+  profile_pic_url: string | null;
 }
 
 export interface ChatMessage {
@@ -28,6 +30,7 @@ export interface ChatConversation {
   id: number;
   type: 'private' | 'group';
   name: string;
+  cover_image_url: string | null;
   participants: ChatParticipant[];
   last_message: ChatMessage | null;
   last_message_at: string | null;
@@ -39,6 +42,7 @@ export interface ChatContact {
   name: string;
   email: string;
   role: string;
+  profile_pic_url: string | null;
 }
 
 export interface MessagesMeta {
@@ -65,7 +69,21 @@ export async function openPrivateConversation(userId: number): Promise<ChatConve
   return res.data.data;
 }
 
-export async function createGroupConversation(name: string, userIds: number[]): Promise<ChatConversation> {
+export async function createGroupConversation(
+  name: string,
+  userIds: number[],
+  coverImage?: File
+): Promise<ChatConversation> {
+  if (coverImage) {
+    const formData = new FormData();
+    formData.append('name', name);
+    userIds.forEach(id => formData.append('users[]', String(id)));
+    formData.append('cover_image', coverImage);
+    const res = await api.post('/api/chat/group', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.data;
+  }
   const res = await api.post('/api/chat/group', { name, users: userIds });
   return res.data.data;
 }
@@ -91,6 +109,13 @@ export async function sendFileMessage(conversationId: number, type: 'image' | 'a
   formData.append('file', file);
   const res = await api.post('/api/chat/messages', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data.data;
+}
+
+export async function deleteMessages(messageIds: number[]): Promise<{ deleted_ids: number[] }> {
+  const res = await api.delete('/api/chat/messages', {
+    data: { message_ids: messageIds },
   });
   return res.data.data;
 }
