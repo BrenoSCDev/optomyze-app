@@ -225,7 +225,10 @@ const OptomyzeInbox: React.FC = () => {
   const handleCreateGroup = useCallback(async (name: string, memberIds: number[], coverImage?: File) => {
     try {
       const conv = await createGroupConversation(name, memberIds, coverImage);
-      setConversations(prev => [conv, ...prev]);
+      setConversations(prev => {
+        if (prev.some(c => c.id === conv.id)) return prev;
+        return [conv, ...prev];
+      });
       setSelectedConversation(conv);
       setMobileView('thread');
     } catch (err: any) {
