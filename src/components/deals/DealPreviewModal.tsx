@@ -13,7 +13,7 @@ import {
   DollarSign, Package, TrendingUp, TrendingDown,
   FileText, Upload, Download, Eye, Trash2, File,
   CircleDot, GitBranch, Clock, AlertCircle,
-  PlusCircle, ArrowRightLeft, Activity,
+  PlusCircle, ArrowRightLeft, Activity, RefreshCw, XCircle, Trophy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -517,8 +517,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 const iconMap: Record<string, { icon: React.ReactNode; color: string }> = {
                                   creation: { icon: <PlusCircle className="h-3.5 w-3.5" />, color: 'text-emerald-400' },
                                   stage_change: { icon: <ArrowRightLeft className="h-3.5 w-3.5" />, color: 'text-sky-400' },
+                                  updated: { icon: <RefreshCw className="h-3.5 w-3.5" />, color: 'text-cyan-400' },
+                                  closed: { icon: <Trophy className="h-3.5 w-3.5" />, color: 'text-purple-400' },
+                                  lost: { icon: <XCircle className="h-3.5 w-3.5" />, color: 'text-red-400' },
                                 };
-                                const { icon, color } = iconMap[tx.type] || { icon: <Activity className="h-3.5 w-3.5" />, color: 'text-deal' };
+                                // Override for won/lost actions
+                                let resolved = iconMap[tx.type] || { icon: <Activity className="h-3.5 w-3.5" />, color: 'text-deal' };
+                                if (tx.action === 'won') resolved = { icon: <Trophy className="h-3.5 w-3.5" />, color: 'text-emerald-400' };
+                                if (tx.action === 'lost') resolved = { icon: <XCircle className="h-3.5 w-3.5" />, color: 'text-red-400' };
+                                const { icon, color } = resolved;
 
                                 return (
                                   <div key={tx.id} className="flex gap-3">

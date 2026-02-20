@@ -44,7 +44,8 @@ import {
   TicketPlus,
   MessageSquareText,
   Building,
-  PieChart
+  PieChart,
+  Handshake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -564,6 +565,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
                 >
                   <ClipboardList size={14} />
                   <span>{t('reports.lead-activity')}</span>
+                </button>
+                <button
+                  onClick={() => handleSectionNavigation('deal-activity')}
+                  className={`nav-item-sub w-full ${activeSection === 'deal-activity' ? 'active' : ''}`}
+                >
+                  <Handshake size={14} />
+                  <span>{t('reports.deal-activity')}</span>
                 </button>
                 <button
                   onClick={() => handleSectionNavigation('report-tasks')}
