@@ -11,9 +11,11 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ src, duration, 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [elapsed, setElapsed] = useState('0:00');
+  const [currentTime, setCurrentTime] = useState('0:00');
+  const [totalDuration, setTotalDuration] = useState(duration);
 
   const formatTime = (sec: number) => {
+    if (!isFinite(sec) || sec < 0) return '0:00';
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
@@ -24,16 +26,21 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ src, duration, 
     const audio = new Audio(src);
     audioRef.current = audio;
 
+    audio.addEventListener('loadedmetadata', () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setTotalDuration(formatTime(audio.duration));
+      }
+    });
     audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
+      if (audio.duration && isFinite(audio.duration)) {
         setProgress((audio.currentTime / audio.duration) * 100);
-        setElapsed(formatTime(audio.currentTime));
+        setCurrentTime(formatTime(audio.currentTime));
       }
     });
     audio.addEventListener('ended', () => {
       setIsPlaying(false);
       setProgress(0);
-      setElapsed('0:00');
+      setCurrentTime('0:00');
     });
 
     return () => { audio.pause(); audio.src = ''; };
@@ -52,41 +59,40 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ src, duration, 
   }, [isPlaying]);
 
   return (
-    <div className={`flex items-center gap-2.5 min-w-[200px] rounded-full px-3 py-2
-      ${isOwn ? 'bg-primary-foreground/10' : 'bg-muted/60'}`}
-    >
+    <div className="flex items-center gap-2 min-w-[220px]">
       <button
         onClick={togglePlay}
-        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
+        className={`w-7 h-7 flex items-center justify-center shrink-0 rounded-full transition-colors
           ${isOwn
-            ? 'text-primary-foreground hover:bg-primary-foreground/15'
-            : 'text-foreground hover:bg-muted-foreground/15'
+            ? 'text-primary-foreground/90 hover:text-primary-foreground'
+            : 'text-foreground/80 hover:text-foreground'
           }`}
       >
         {isPlaying
-          ? <Pause className="w-4 h-4" />
-          : <Play className="w-4 h-4 ml-0.5" />
+          ? <Pause className="w-4 h-4" fill="currentColor" />
+          : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
         }
       </button>
 
-      <span className={`text-xs font-mono tabular-nums whitespace-nowrap
-        ${isOwn ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}
+      <span className={`text-[11px] font-mono tabular-nums whitespace-nowrap select-none
+        ${isOwn ? 'text-primary-foreground/75' : 'text-muted-foreground'}`}
       >
-        {elapsed} / {duration}
+        {currentTime} / {totalDuration}
       </span>
 
-      <div className={`flex-1 h-1 rounded-full overflow-hidden min-w-[40px]
-        ${isOwn ? 'bg-primary-foreground/20' : 'bg-muted-foreground/20'}`}
+      {/* Progress bar */}
+      <div className={`flex-1 h-[3px] rounded-full overflow-hidden min-w-[50px]
+        ${isOwn ? 'bg-primary-foreground/25' : 'bg-muted-foreground/25'}`}
       >
         <div
-          className={`h-full rounded-full transition-all duration-100
-            ${isOwn ? 'bg-primary-foreground' : 'bg-foreground'}`}
+          className={`h-full rounded-full transition-[width] duration-150 ease-linear
+            ${isOwn ? 'bg-primary-foreground/80' : 'bg-foreground/70'}`}
           style={{ width: `${progress}%` }}
         />
       </div>
 
       <Volume2 className={`w-4 h-4 shrink-0
-        ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+        ${isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground/60'}`}
       />
     </div>
   );

@@ -99,7 +99,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
           {/* Bubble */}
           <div
-            className={`relative rounded-2xl px-4 py-2.5 shadow-sm text-sm leading-relaxed
+            className={`relative rounded-2xl shadow-sm text-sm leading-relaxed
+              ${message.type === 'audio' ? 'px-1.5 py-1.5' : 'px-4 py-2.5'}
               ${isOwn
                 ? 'bg-primary text-primary-foreground rounded-br-sm'
                 : 'bg-card border border-border/50 text-foreground rounded-bl-sm'
@@ -127,7 +128,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </div>
 
-          <span className={`text-[10px] text-muted-foreground mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ${isOwn ? 'text-right' : 'text-left'}`}>
+          <span className={`text-[10px] text-muted-foreground mt-1 px-1 ${message.type === 'audio' ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-150 ${isOwn ? 'text-right' : 'text-left'}`}>
             {time}
           </span>
         </div>
