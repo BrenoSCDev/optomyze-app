@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { getEcho } from '@/services/echo';
 import {
-  InboxConversation, InboxMessage,
-  MOCK_MESSAGES, MOCK_CURRENT_USER_ID,
-  getConversationDisplayName, getConversationInitials, getConversationStatus,
-  getUserById, getGroupById,
-  formatDaySeparator,
-} from '@/data/mockInboxData';
+  ChatConversation, ChatMessage, MessagesMeta,
+  fetchMessages, sendTextMessage, sendFileMessage,
+} from '@/services/inboxChatApi';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import {
@@ -15,44 +14,178 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface MessageThreadProps {
-  conversation: InboxConversation | null;
+  conversation: ChatConversation | null;
   onBack?: () => void;
   showBackButton?: boolean;
+  onMessageSent?: (msg: ChatMessage) => void;
 }
 
-const statusColor = (s: string | null) => {
-  if (s === 'online') return 'bg-green-500';
-  if (s === 'away')   return 'bg-yellow-500';
-  return 'bg-muted-foreground';
-};
+function getInitials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
 
-const statusLabel = (s: string | null) => {
-  if (s === 'online') return 'Online';
-  if (s === 'away')   return 'Away';
-  if (s === 'offline') {
-    const otherId = ''; // derived below
-    return 'Offline';
-  }
-  return null;
-};
+function formatDaySeparator(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return 'Today';
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
 
 const MessageThread: React.FC<MessageThreadProps> = ({
-  conversation,
-  onBack,
-  showBackButton = false,
+  conversation, onBack, showBackButton = false, onMessageSent,
 }) => {
-  const [messages, setMessages] = useState<InboxMessage[]>([]);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const currentUserId = user?.id;
 
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [meta, setMeta] = useState<MessagesMeta | null>(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const messageIdsRef = useRef<Set<number>>(new Set());
+
+  // ─── Load messages for selected conversation ──────────────────────────
   useEffect(() => {
-    if (!conversation) { setMessages([]); return; }
-    setMessages(MOCK_MESSAGES[conversation.id] ?? []);
+    if (!conversation) {
+      setMessages([]);
+      setMeta(null);
+      messageIdsRef.current.clear();
+      return;
+    }
+
+    let cancelled = false;
+    const load = async () => {
+      setIsLoadingMessages(true);
+      setMessages([]);
+      messageIdsRef.current.clear();
+      try {
+        // First fetch page=1 to get meta, then fetch last_page
+        const firstFetch = await fetchMessages(conversation.id, 1);
+        const lastPage = firstFetch.meta.last_page;
+        if (cancelled) return;
+
+        if (lastPage <= 1) {
+          // Only one page
+          const ids = new Set(firstFetch.data.map(m => m.id));
+          messageIdsRef.current = ids;
+          setMessages(firstFetch.data);
+          setMeta(firstFetch.meta);
+        } else {
+          // Fetch the last page for most recent messages
+          const lastFetch = await fetchMessages(conversation.id, lastPage);
+          if (cancelled) return;
+          const ids = new Set(lastFetch.data.map(m => m.id));
+          messageIdsRef.current = ids;
+          setMessages(lastFetch.data);
+          setMeta(lastFetch.meta);
+        }
+      } catch (err) {
+        console.error('Failed to load messages:', err);
+        toast({ title: 'Error', description: 'Failed to load messages.', variant: 'destructive' });
+      } finally {
+        if (!cancelled) setIsLoadingMessages(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [conversation?.id]);
 
+  // Scroll to bottom on initial load or new messages
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!isLoadingMessages && messages.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isLoadingMessages, messages.length]);
 
+  // ─── WebSocket subscription ───────────────────────────────────────────
+  useEffect(() => {
+    if (!conversation) return;
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channelName = `conversation.${conversation.id}`;
+    const channel = echo.private(channelName);
+
+    channel.listen('.message.sent', (payload: ChatMessage) => {
+      // Deduplicate by id
+      if (messageIdsRef.current.has(payload.id)) return;
+      messageIdsRef.current.add(payload.id);
+      setMessages(prev => [...prev, payload]);
+    });
+
+    return () => {
+      echo.leave(channelName);
+    };
+  }, [conversation?.id]);
+
+  // ─── Load older messages on scroll to top ─────────────────────────────
+  const handleScroll = useCallback(async () => {
+    const el = scrollContainerRef.current;
+    if (!el || !meta || !conversation) return;
+    if (el.scrollTop > 50) return; // not at top
+    if (isLoadingMore) return;
+
+    // Pages are ASC, page 1 = oldest. We loaded last_page first.
+    // To load older, we go current_page - 1
+    const prevPage = meta.current_page - 1;
+    if (prevPage < 1) return;
+
+    setIsLoadingMore(true);
+    const prevScrollHeight = el.scrollHeight;
+    try {
+      const res = await fetchMessages(conversation.id, prevPage);
+      const newMsgs = res.data.filter(m => !messageIdsRef.current.has(m.id));
+      newMsgs.forEach(m => messageIdsRef.current.add(m.id));
+      setMessages(prev => [...newMsgs, ...prev]);
+      setMeta(res.meta);
+      // Preserve scroll position
+      requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight - prevScrollHeight;
+      });
+    } catch (err) {
+      console.error('Failed to load older messages:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [meta, conversation?.id, isLoadingMore]);
+
+  // ─── Send handlers ───────────────────────────────────────────────────
+  const handleSend = useCallback(async (content: string) => {
+    if (!conversation || isSending) return;
+    setIsSending(true);
+    try {
+      const msg = await sendTextMessage(conversation.id, content);
+      messageIdsRef.current.add(msg.id);
+      setMessages(prev => [...prev, msg]);
+      onMessageSent?.(msg);
+    } catch (err) {
+      console.error('Failed to send message:', err);
+      toast({ title: 'Error', description: 'Failed to send message.', variant: 'destructive' });
+    } finally {
+      setIsSending(false);
+    }
+  }, [conversation?.id, isSending, onMessageSent, toast]);
+
+  const handleSendFile = useCallback(async (file: File, type: 'image' | 'audio') => {
+    if (!conversation) return;
+    try {
+      const msg = await sendFileMessage(conversation.id, type, file);
+      messageIdsRef.current.add(msg.id);
+      setMessages(prev => [...prev, msg]);
+      onMessageSent?.(msg);
+    } catch (err) {
+      console.error('Failed to send file:', err);
+      toast({ title: 'Error', description: 'Failed to send file.', variant: 'destructive' });
+    }
+  }, [conversation?.id, onMessageSent, toast]);
+
+  // ─── Render empty state ───────────────────────────────────────────────
   if (!conversation) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-3">
@@ -67,32 +200,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     );
   }
 
-  const name     = getConversationDisplayName(conversation, MOCK_CURRENT_USER_ID);
-  const initials = getConversationInitials(conversation, MOCK_CURRENT_USER_ID);
-  const status   = getConversationStatus(conversation, MOCK_CURRENT_USER_ID);
-  const isGroup  = conversation.type === 'group';
-  const group    = isGroup && conversation.group_id ? getGroupById(conversation.group_id) : null;
+  const isGroup = conversation.type === 'group';
+  const initials = getInitials(conversation.name);
 
-  const handleSend = (content: string) => {
-    const newMsg: InboxMessage = {
-      id: `new_${Date.now()}`,
-      conversation_id: conversation.id,
-      sender_id: MOCK_CURRENT_USER_ID,
-      type: 'text',
-      content,
-      created_at: new Date().toISOString(),
-      read_by: [MOCK_CURRENT_USER_ID],
-    };
-    setMessages(prev => [...prev, newMsg]);
-  };
-
-  // Build message list with day-separator logic
-  const rendered: Array<{ msg: InboxMessage; showSeparator: boolean; showSender: boolean }> = [];
+  // Build rendered messages with day separators
+  const rendered: Array<{ msg: ChatMessage; showSeparator: boolean; showSender: boolean }> = [];
   messages.forEach((msg, i) => {
     const prev = messages[i - 1];
     const showSeparator = !prev ||
       new Date(msg.created_at).toDateString() !== new Date(prev.created_at).toDateString();
-    const showSender = isGroup && (!prev || prev.sender_id !== msg.sender_id || showSeparator);
+    const showSender = isGroup && (!prev || prev.sender.id !== msg.sender.id || showSeparator);
     rendered.push({ msg, showSeparator, showSender });
   });
 
@@ -111,20 +228,17 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
             {isGroup ? <Hash className="w-4 h-4" /> : initials}
           </div>
-          {status && (
-            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-background ${statusColor(status)}`} />
-          )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-foreground truncate">{name}</p>
-          {isGroup && group ? (
-            <p className="text-xs text-muted-foreground">{group.member_ids.length} members</p>
-          ) : status ? (
-            <p className={`text-xs font-medium ${status === 'online' ? 'text-green-500' : status === 'away' ? 'text-yellow-500' : 'text-muted-foreground'}`}>
-              {status === 'online' ? 'Online' : status === 'away' ? 'Away' : 'Offline'}
+          <p className="font-semibold text-sm text-foreground truncate">{conversation.name}</p>
+          {isGroup ? (
+            <p className="text-xs text-muted-foreground">{conversation.participants.length} members</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {conversation.participants.find(p => p.id !== currentUserId)?.role ?? ''}
             </p>
-          ) : null}
+          )}
         </div>
 
         <DropdownMenu>
@@ -148,31 +262,50 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        {rendered.map(({ msg, showSeparator, showSender }) => {
-          const isOwn   = msg.sender_id === MOCK_CURRENT_USER_ID;
-          const sender  = getUserById(msg.sender_id);
-          return (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              isOwn={isOwn}
-              sender={sender}
-              showSender={showSender}
-              showDaySeparator={showSeparator}
-            />
-          );
-        })}
-        {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-            No messages yet. Say hello!
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+      >
+        {isLoadingMore && (
+          <div className="flex justify-center py-2">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
           </div>
+        )}
+
+        {isLoadingMessages ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <p className="text-xs">Loading messages...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {rendered.map(({ msg, showSeparator, showSender }) => {
+              const isOwn = msg.sender.id === currentUserId;
+              return (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isOwn={isOwn}
+                  showSender={showSender}
+                  showDaySeparator={showSeparator}
+                />
+              );
+            })}
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                No messages yet. Say hello!
+              </div>
+            )}
+          </>
         )}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <MessageInput onSend={handleSend} />
+      <MessageInput onSend={handleSend} onSendFile={handleSendFile} disabled={isSending} />
     </div>
   );
 };

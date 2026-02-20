@@ -1,22 +1,28 @@
 import React from 'react';
-import { InboxMessage, InboxUser, formatDaySeparator } from '@/data/mockInboxData';
-import AudioMessagePlayer from './AudioMessage';
-import FileMessageCard from './FileMessage';
+import { ChatMessage } from '@/services/inboxChatApi';
 
 interface MessageBubbleProps {
-  message: InboxMessage;
+  message: ChatMessage;
   isOwn: boolean;
-  sender: InboxUser | undefined;
   showSender: boolean;
   showDaySeparator: boolean;
 }
 
+function formatDaySeparator(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return 'Today';
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function getInitials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
 const MessageBubble: React.FC<MessageBubbleProps> = ({
-  message,
-  isOwn,
-  sender,
-  showSender,
-  showDaySeparator,
+  message, isOwn, showSender, showDaySeparator,
 }) => {
   const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -37,15 +43,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {!isOwn && (
           <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mb-1">
             <span className="text-[10px] font-semibold text-primary">
-              {sender?.initials ?? '?'}
+              {getInitials(message.sender.name)}
             </span>
           </div>
         )}
 
         <div className={`flex flex-col max-w-[65%] ${isOwn ? 'items-end' : 'items-start'}`}>
-          {showSender && !isOwn && sender && (
+          {showSender && !isOwn && (
             <span className="text-[11px] text-muted-foreground mb-1 ml-1 font-medium">
-              {sender.name}
+              {message.sender.name}
             </span>
           )}
 
@@ -57,21 +63,21 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 : 'bg-card border border-border/50 text-foreground rounded-bl-sm'
               }`}
           >
-            {message.type === 'text' && (
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+            {message.type === 'text' && message.body && (
+              <p className="whitespace-pre-wrap break-words">{message.body}</p>
             )}
 
-            {message.type === 'audio' && (
-              <AudioMessagePlayer duration={message.audio_duration ?? '0:00'} isOwn={isOwn} />
-            )}
-
-            {message.type === 'file' && (
-              <FileMessageCard
-                fileName={message.file_name ?? 'File'}
-                fileSize={message.file_size ?? ''}
-                fileMime={message.file_mime ?? ''}
-                isOwn={isOwn}
+            {message.type === 'image' && message.file_url && (
+              <img
+                src={message.file_url}
+                alt="Image"
+                className="rounded-lg max-w-full max-h-60 object-cover cursor-pointer"
+                onClick={() => window.open(message.file_url!, '_blank')}
               />
+            )}
+
+            {message.type === 'audio' && message.file_url && (
+              <audio controls src={message.file_url} className="max-w-[240px]" />
             )}
           </div>
 
