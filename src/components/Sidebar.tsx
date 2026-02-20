@@ -321,7 +321,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <img src={logo} alt="Optomyze" className="h-8 " />
+              <img src={logo} alt="Optomyze" className="h-7 max-h-7 object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
