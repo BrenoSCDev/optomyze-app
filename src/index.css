@@ -281,7 +281,6 @@
   .kpi-value {
     @apply text-3xl font-bold bg-gradient-to-r from-foreground to-accent bg-clip-text text-transparent;
   }
-  }
   
   .kpi-trend {
     @apply text-sm font-medium;
