@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Search, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -39,17 +40,17 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCr
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-full max-w-md"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -140,7 +141,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCr
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
