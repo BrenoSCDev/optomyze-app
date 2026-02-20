@@ -5,8 +5,8 @@
  * Uses the same layout as Index but renders DealsManagement.
  */
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
@@ -19,7 +19,18 @@ const DealFunnel = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeSection, setActiveSection] = useState('deals');
   const { funnelId } = useParams();
+  const navigate = useNavigate();
   const { navLayout } = useMenuOrder();
+
+  const handleSectionChange = useCallback((section: string) => {
+    setMobileSidebarOpen(false);
+    // If navigating away from deals, go to Index
+    if (section !== 'deals') {
+      navigate(`/?section=${section}`);
+      return;
+    }
+    setActiveSection(section);
+  }, [navigate]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -42,7 +53,7 @@ const DealFunnel = () => {
         sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection={activeSection}
-        onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+        onSectionChange={handleSectionChange}
         headerNavMode={useHeaderLayout}
       />
 
@@ -52,7 +63,7 @@ const DealFunnel = () => {
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             activeSection={activeSection}
-            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+            onSectionChange={handleSectionChange}
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
@@ -63,7 +74,7 @@ const DealFunnel = () => {
             isCollapsed={false}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             activeSection={activeSection}
-            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+            onSectionChange={handleSectionChange}
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
