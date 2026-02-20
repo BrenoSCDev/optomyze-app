@@ -63,9 +63,11 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group/widget transition-all duration-200 ${
+      className={`relative group/widget transition-all duration-200 overflow-visible ${
         isDragging ? 'z-50 opacity-70 scale-[1.02]' : ''
-      } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl' : ''}`}
+      } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl' : ''} ${
+        !id.startsWith('kpi-') ? 'min-h-[420px]' : ''
+      }`}
       {...attributes}
     >
       {/* Edit mode overlay controls */}
@@ -84,7 +86,7 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
       {/* Hover controls (non-edit mode) */}
       {!editMode && (
         <TooltipProvider>
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/widget:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-3 right-3 z-30 flex items-center gap-1 opacity-0 group-hover/widget:opacity-100 transition-opacity duration-200">
             {maxSpan > 1 && (
               <Tooltip>
                 <TooltipTrigger asChild>
