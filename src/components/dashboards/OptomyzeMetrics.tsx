@@ -47,16 +47,17 @@ const MONTH_NAMES: Record<string, string> = {
 
 // ============= DATE RANGE OPTIONS =============
 
-type DateRange = 'today' | '7d' | '14d' | '30d' | '60d' | '90d' | 'all';
+type DateRange = 'today' | 'yesterday' | '7_days' | '30_days' | '60_days' | '90_days' | '120_days' | 'full';
 
 const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: '7d',   label: 'Last 7 Days' },
-  { value: '14d',  label: 'Last 14 Days' },
-  { value: '30d',  label: 'Last 30 Days' },
-  { value: '60d',  label: 'Last 60 Days' },
-  { value: '90d',  label: 'Last 90 Days' },
-  { value: 'all',  label: 'Complete Period' },
+  { value: 'today',     label: 'Today' },
+  { value: 'yesterday', label: 'Yesterday' },
+  { value: '7_days',    label: 'Last 7 Days' },
+  { value: '30_days',   label: 'Last 30 Days' },
+  { value: '60_days',   label: 'Last 60 Days' },
+  { value: '90_days',   label: 'Last 90 Days' },
+  { value: '120_days',  label: 'Last 120 Days' },
+  { value: 'full',      label: 'Full Period' },
 ];
 
 // ============= SKELETON COMPONENTS =============
@@ -833,7 +834,7 @@ const OptomyzeMetrics = () => {
   const [activeTab, setActiveTab] = useState<'periodic' | 'monthly'>('periodic');
 
   // Date range state (shared across tabs, reset cache on change)
-  const [dateRange, setDateRange] = useState<DateRange>('7d');
+  const [dateRange, setDateRange] = useState<DateRange>('30_days');
 
   const isErpModule = user?.company?.product_module === 'ERP';
 
@@ -871,7 +872,7 @@ const OptomyzeMetrics = () => {
     try {
       setPeriodicLoading(true);
       setPeriodicError(null);
-      const response = await api.get('/api/metrics/leads-breakdown');
+      const response = await api.get('/api/metrics/leads-breakdown', { params: { period: dateRange } });
       setPeriodicData(response.data);
     } catch (err: any) {
       setPeriodicError(err);
@@ -1007,15 +1008,17 @@ const OptomyzeMetrics = () => {
       },
       {
         title: 'Deal Conversion Rate',
-        value: dealStats?.conversion_rate != null ? `${dealStats.conversion_rate.toFixed(2)}%` : '—',
+        value: dealStats?.conversion_rate != null ? `${Number(dealStats.conversion_rate).toFixed(2)}%` : '—',
         trend: { value: '+0%', isPositive: true },
         icon: <Target className="h-5 w-5 text-primary" />,
       },
       {
         title: 'Revenue',
-        value: totalAnnualRevenue >= 1000
-          ? `$${(totalAnnualRevenue / 1000).toFixed(1)}k`
-          : `$${totalAnnualRevenue.toLocaleString()}`,
+        value: dealStats?.revenue != null
+          ? (dealStats.revenue >= 1000
+            ? `$${(dealStats.revenue / 1000).toFixed(1)}k`
+            : `$${Number(dealStats.revenue).toLocaleString()}`)
+          : '—',
         trend: { value: '+0%', isPositive: true },
         icon: <DollarSign className="h-5 w-5 text-primary" />,
       },
@@ -1038,7 +1041,7 @@ const OptomyzeMetrics = () => {
   const getPipelineData      = () => periodicData?.data?.estimated_vs_closed_value?.funnels || null;
   const getDealsByFunnelStage = (): DealsByFunnelStage | null => periodicData?.data?.deals_by_funnel_stage || null;
 
-  const selectedRangeLabel = DATE_RANGE_OPTIONS.find(o => o.value === dateRange)?.label || 'Last 7 Days';
+  const selectedRangeLabel = DATE_RANGE_OPTIONS.find(o => o.value === dateRange)?.label || 'Last 30 Days';
 
   if (error) {
     return (
