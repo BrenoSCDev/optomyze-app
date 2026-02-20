@@ -1008,7 +1008,7 @@ const OptomyzeMetrics = () => {
       },
       {
         title: 'Deal Conversion Rate',
-        value: dealStats?.conversion_rate != null ? `${Number(dealStats.conversion_rate).toFixed(2)}%` : '—',
+        value: dealStats?.deal_conversion_rate != null ? `${Number(dealStats.deal_conversion_rate).toFixed(1)}%` : '0%',
         trend: { value: '+0%', isPositive: true },
         icon: <Target className="h-5 w-5 text-primary" />,
       },
