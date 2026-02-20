@@ -1,11 +1,15 @@
 import React from 'react';
 import { ChatMessage } from '@/services/inboxChatApi';
+import { Check } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   isOwn: boolean;
   showSender: boolean;
   showDaySeparator: boolean;
+  selectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: number) => void;
 }
 
 function formatDaySeparator(iso: string): string {
@@ -21,8 +25,16 @@ function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function getAvatarUrl(profilePicUrl: string | null | undefined): string | null {
+  if (!profilePicUrl) return null;
+  if (profilePicUrl.startsWith('http://') || profilePicUrl.startsWith('https://')) return profilePicUrl;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  return `${baseUrl}/${profilePicUrl.replace(/^\//, '')}`;
+}
+
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isOwn, showSender, showDaySeparator,
+  selectMode = false, isSelected = false, onToggleSelect,
 }) => {
   const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
@@ -31,6 +43,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     return `${baseUrl}/${url.replace(/^\//, '')}`;
   };
+
+  const avatarUrl = getAvatarUrl(message.sender.profile_pic_url);
+
+  const handleClick = () => {
+    if (selectMode && onToggleSelect) {
+      onToggleSelect(message.id);
+    }
+  };
+
   return (
     <>
       {showDaySeparator && (
@@ -43,13 +64,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         </div>
       )}
 
-      <div className={`flex items-end gap-2 group ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div
+        className={`flex items-end gap-2 group ${isOwn ? 'flex-row-reverse' : 'flex-row'} ${selectMode ? 'cursor-pointer' : ''} ${isSelected ? 'bg-primary/5 rounded-lg -mx-1 px-1' : ''}`}
+        onClick={handleClick}
+      >
+        {/* Select checkbox */}
+        {selectMode && (
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mb-1 transition-colors
+            ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
+            {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+          </div>
+        )}
+
         {/* Avatar */}
         {!isOwn && (
-          <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mb-1">
-            <span className="text-[10px] font-semibold text-primary">
-              {getInitials(message.sender.name)}
-            </span>
+          <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mb-1 overflow-hidden">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={message.sender.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[10px] font-semibold text-primary">
+                {getInitials(message.sender.name)}
+              </span>
+            )}
           </div>
         )}
 
@@ -77,7 +113,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 src={getFileUrl(message.file_url)}
                 alt="Image"
                 className="rounded-lg max-w-full max-h-60 object-cover cursor-pointer"
-                onClick={() => window.open(getFileUrl(message.file_url!), '_blank')}
+                onClick={(e) => { if (!selectMode) { e.stopPropagation(); window.open(getFileUrl(message.file_url!), '_blank'); } }}
               />
             )}
 

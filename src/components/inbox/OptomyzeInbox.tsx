@@ -51,6 +51,88 @@ const OptomyzeInbox: React.FC = () => {
 
   useEffect(() => { loadInboxData(true); }, []);
 
+  // ─── Real-time: company channel (group.created) ─────────────────────────
+  useEffect(() => {
+    const echo = getEcho();
+    if (!echo || !user?.company_id) return;
+
+    const companyChannel = echo.private(`company.${user.company_id}`);
+
+    companyChannel.listen('.group.created', (payload: any) => {
+      if (!payload?.id) return;
+      // Only add if the authenticated user is in participants
+      const isParticipant = payload.participants?.some((p: any) => p.id === user.id);
+      if (!isParticipant) return;
+
+      // Construct conversation object from payload
+      const newConv: ChatConversation = {
+        id: payload.id,
+        type: 'group',
+        name: payload.name,
+        cover_image_url: payload.cover_image_url ?? null,
+        participants: payload.participants.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          email: p.email ?? '',
+          role: p.role ?? '',
+          profile_pic_url: p.profile_pic_url ?? null,
+        })),
+        last_message: null,
+        last_message_at: null,
+        created_at: payload.created_at,
+      };
+
+      setConversations(prev => {
+        if (prev.some(c => c.id === newConv.id)) return prev;
+        return [newConv, ...prev];
+      });
+    });
+
+    return () => {
+      echo.leave(`company.${user.company_id}`);
+    };
+  }, [user?.company_id, user?.id]);
+
+  // ─── Real-time: private message notifications ───────────────────────────
+  useEffect(() => {
+    const echo = getEcho();
+    if (!echo || !user?.id) return;
+
+    const notifChannel = echo.private(`chat-notifications.${user.id}`);
+
+    notifChannel.listen('.private.message.notification', (payload: any) => {
+      if (!payload?.conversation_id) return;
+
+      // Skip if the user is currently viewing this conversation
+      if (selectedRef.current?.id === payload.conversation_id) return;
+
+      // Show toast notification
+      const senderName = payload.sender?.name ?? 'Someone';
+      const preview = payload.preview ?? 'New message';
+
+      toast({
+        title: senderName,
+        description: preview,
+      });
+
+      // Update conversation list: move to top with preview
+      setConversations(prev => {
+        const idx = prev.findIndex(c => c.id === payload.conversation_id);
+        if (idx === -1) return prev;
+        const updated = {
+          ...prev[idx],
+          last_message_at: payload.created_at ?? new Date().toISOString(),
+        };
+        const rest = prev.filter((_, i) => i !== idx);
+        return [updated, ...rest];
+      });
+    });
+
+    return () => {
+      echo.leave(`chat-notifications.${user.id}`);
+    };
+  }, [user?.id, toast]);
+
   // ─── Helpers ────────────────────────────────────────────────────────────
 
   const updateConversationWithMessage = useCallback((msg: ChatMessage) => {
@@ -61,7 +143,6 @@ const OptomyzeInbox: React.FC = () => {
       const rest = prev.filter((_, i) => i !== idx);
       return [updated, ...rest];
     });
-    // Also update selectedConversation if it's the same
     setSelectedConversation(prev => {
       if (prev && prev.id === msg.conversation_id) {
         return { ...prev, last_message: msg, last_message_at: msg.created_at };
@@ -78,7 +159,6 @@ const OptomyzeInbox: React.FC = () => {
   const handleContactClick = useCallback(async (contact: ChatContact) => {
     try {
       const conv = await openPrivateConversation(contact.id);
-      // Add or update in conversations list
       setConversations(prev => {
         const exists = prev.find(c => c.id === conv.id);
         if (exists) return prev;
@@ -92,9 +172,9 @@ const OptomyzeInbox: React.FC = () => {
     }
   }, [toast]);
 
-  const handleCreateGroup = useCallback(async (name: string, memberIds: number[]) => {
+  const handleCreateGroup = useCallback(async (name: string, memberIds: number[], coverImage?: File) => {
     try {
-      const conv = await createGroupConversation(name, memberIds);
+      const conv = await createGroupConversation(name, memberIds, coverImage);
       setConversations(prev => [conv, ...prev]);
       setSelectedConversation(conv);
       setMobileView('thread');

@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2 } from 'lucide-react';
+import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
 import {
   ChatConversation, ChatMessage, MessagesMeta,
-  fetchMessages, sendTextMessage, sendFileMessage,
+  fetchMessages, sendTextMessage, sendFileMessage, deleteMessages,
 } from '@/services/inboxChatApi';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -24,13 +24,11 @@ function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function formatDaySeparator(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  if (d.toDateString() === now.toDateString()) return 'Today';
-  const y = new Date(now); y.setDate(now.getDate() - 1);
-  if (d.toDateString() === y.toDateString()) return 'Yesterday';
-  return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  return `${baseUrl}/${url.replace(/^\//, '')}`;
 }
 
 const MessageThread: React.FC<MessageThreadProps> = ({
@@ -46,9 +44,20 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
+  // Select mode state
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messageIdsRef = useRef<Set<number>>(new Set());
+
+  // Reset select mode when conversation changes
+  useEffect(() => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }, [conversation?.id]);
 
   // ─── Load messages for selected conversation ──────────────────────────
   useEffect(() => {
@@ -65,19 +74,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       setMessages([]);
       messageIdsRef.current.clear();
       try {
-        // First fetch page=1 to get meta, then fetch last_page
         const firstFetch = await fetchMessages(conversation.id, 1);
         const lastPage = firstFetch.meta.last_page;
         if (cancelled) return;
 
         if (lastPage <= 1) {
-          // Only one page
           const ids = new Set(firstFetch.data.map(m => m.id));
           messageIdsRef.current = ids;
           setMessages(firstFetch.data);
           setMeta(firstFetch.meta);
         } else {
-          // Fetch the last page for most recent messages
           const lastFetch = await fetchMessages(conversation.id, lastPage);
           if (cancelled) return;
           const ids = new Set(lastFetch.data.map(m => m.id));
@@ -113,16 +119,27 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     const channel = echo.private(channelName);
 
     channel.listen('.message.sent', (payload: any) => {
-      // payload may be the message directly or wrapped
       const msg: ChatMessage = payload?.id ? payload : payload?.message;
       if (!msg?.id) return;
-      // Deduplicate by id
       if (messageIdsRef.current.has(msg.id)) return;
       messageIdsRef.current.add(msg.id);
       setMessages(prev => {
-        // Double-check against current state to avoid duplicates
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
+      });
+    });
+
+    // Listen for deleted messages
+    channel.listen('.messages.deleted', (payload: any) => {
+      const deletedIds: number[] = payload?.deleted_message_ids ?? [];
+      if (deletedIds.length === 0) return;
+      const deletedSet = new Set(deletedIds);
+      deletedIds.forEach(id => messageIdsRef.current.delete(id));
+      setMessages(prev => prev.filter(m => !deletedSet.has(m.id)));
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        deletedIds.forEach(id => next.delete(id));
+        return next;
       });
     });
 
@@ -135,11 +152,9 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const handleScroll = useCallback(async () => {
     const el = scrollContainerRef.current;
     if (!el || !meta || !conversation) return;
-    if (el.scrollTop > 50) return; // not at top
+    if (el.scrollTop > 50) return;
     if (isLoadingMore) return;
 
-    // Pages are ASC, page 1 = oldest. We loaded last_page first.
-    // To load older, we go current_page - 1
     const prevPage = meta.current_page - 1;
     if (prevPage < 1) return;
 
@@ -151,7 +166,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       newMsgs.forEach(m => messageIdsRef.current.add(m.id));
       setMessages(prev => [...newMsgs, ...prev]);
       setMeta(res.meta);
-      // Preserve scroll position
       requestAnimationFrame(() => {
         el.scrollTop = el.scrollHeight - prevScrollHeight;
       });
@@ -162,6 +176,38 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     }
   }, [meta, conversation?.id, isLoadingMore]);
 
+  // ─── Select mode handlers ────────────────────────────────────────────
+  const toggleSelectMessage = useCallback((id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleDeleteSelected = useCallback(async () => {
+    if (selectedIds.size === 0 || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const result = await deleteMessages(Array.from(selectedIds));
+      const deletedSet = new Set(result.deleted_ids);
+      // Remove deleted messages from state
+      result.deleted_ids.forEach(id => messageIdsRef.current.delete(id));
+      setMessages(prev => prev.filter(m => !deletedSet.has(m.id)));
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      if (result.deleted_ids.length > 0) {
+        toast({ title: 'Messages deleted', description: `${result.deleted_ids.length} message(s) deleted.` });
+      }
+    } catch (err) {
+      console.error('Failed to delete messages:', err);
+      toast({ title: 'Error', description: 'Failed to delete messages.', variant: 'destructive' });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [selectedIds, isDeleting, toast]);
+
   // ─── Send handlers ───────────────────────────────────────────────────
   const handleSend = useCallback(async (content: string) => {
     if (!conversation || isSending) return;
@@ -169,7 +215,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     try {
       const msg = await sendTextMessage(conversation.id, content);
       messageIdsRef.current.add(msg.id);
-      // Guard against WS event that may have arrived before POST resolved
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;
         return [...prev, msg];
@@ -216,6 +261,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   const isGroup = conversation.type === 'group';
   const initials = getInitials(conversation.name);
+  const coverUrl = getAvatarUrl(conversation.cover_image_url);
 
   // Build rendered messages with day separators
   const rendered: Array<{ msg: ChatMessage; showSeparator: boolean; showSender: boolean }> = [];
@@ -238,10 +284,16 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         )}
 
         <div className="relative">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
-            ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
-            {isGroup ? <Hash className="w-4 h-4" /> : initials}
-          </div>
+          {isGroup && coverUrl ? (
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-accent/30">
+              <img src={coverUrl} alt={conversation.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
+              ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
+              {isGroup ? <Hash className="w-4 h-4" /> : initials}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -254,6 +306,19 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             </p>
           )}
         </div>
+
+        {/* Select mode toggle */}
+        <button
+          onClick={() => {
+            setSelectMode(prev => !prev);
+            setSelectedIds(new Set());
+          }}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors
+            ${selectMode ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
+          title={selectMode ? 'Exit select mode' : 'Select messages'}
+        >
+          <CheckSquare className="w-4 h-4" />
+        </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -274,6 +339,31 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Select mode action bar */}
+      {selectMode && (
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-border/40 bg-primary/5 shrink-0">
+          <span className="text-xs text-muted-foreground flex-1">
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : 'Tap messages to select'}
+          </span>
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              disabled={isDeleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:opacity-40 transition-colors"
+            >
+              {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+              Delete
+            </button>
+          )}
+          <button
+            onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Messages area */}
       <div
@@ -305,6 +395,9 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                   isOwn={isOwn}
                   showSender={showSender}
                   showDaySeparator={showSeparator}
+                  selectMode={selectMode}
+                  isSelected={selectedIds.has(msg.id)}
+                  onToggleSelect={toggleSelectMessage}
                 />
               );
             })}
