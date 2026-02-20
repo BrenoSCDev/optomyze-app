@@ -41,6 +41,7 @@ import ManageProducts from '@/components/products/ManageProducts';
 import CrmPanel from '@/components/settings/CrmPanel';
 import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
 import LeadActivityDashboard from '@/components/reports/LeadActivityDashboard';
+import TasksDashboard from '@/components/reports/TasksDashboard';
 import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
 import OptusChat from '@/components/support/OptusChat';
 import OpenTicket from '@/components/support/OpenTicket';
@@ -119,6 +120,8 @@ const Index = () => {
         return <ManageLeadCompanies />; // Lead company management
       case 'lead-activity':
         return <LeadActivityDashboard />;
+      case 'report-tasks':
+        return <TasksDashboard />;
       case 'general':
       case 'users':
       case 'api-keys':

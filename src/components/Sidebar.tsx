@@ -40,6 +40,7 @@ import {
   Headphones,
   FileStack,
   ClipboardList,
+  ListTodo,
   TicketPlus,
   MessageSquareText,
   Building,
@@ -563,6 +564,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
                 >
                   <ClipboardList size={14} />
                   <span>{t('reports.lead-activity')}</span>
+                </button>
+                <button
+                  onClick={() => handleSectionNavigation('report-tasks')}
+                  className={`nav-item-sub w-full ${activeSection === 'report-tasks' ? 'active' : ''}`}
+                >
+                  <ListTodo size={14} />
+                  <span>{t('reports.tasks')}</span>
                 </button>
               </motion.div>
             )}

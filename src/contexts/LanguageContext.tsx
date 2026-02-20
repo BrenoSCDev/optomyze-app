@@ -45,6 +45,7 @@ const translations = {
     'nav.support': 'Support',
     'nav.reports': 'Reports',
     'reports.lead-activity': 'Lead Activity',
+    'reports.tasks': 'Tasks',
     
     // Lead Activity Dashboard
     'lead-activity.title': 'Lead Activity',
@@ -2269,6 +2270,7 @@ const translations = {
     'nav.support': 'Suporte',
     'nav.reports': 'Relatórios',
     'reports.lead-activity': 'Atividade de Leads',
+    'reports.tasks': 'Tarefas',
     
     'lead-activity.title': 'Atividade de Leads',
     'lead-activity.subtitle': 'Visão centralizada de todas as tarefas e transações de leads',
@@ -4463,6 +4465,7 @@ const translations = {
     'nav.support': 'Support',
     'nav.reports': 'Berichte',
     'reports.lead-activity': 'Lead-Aktivität',
+    'reports.tasks': 'Aufgaben',
     
     'lead-activity.title': 'Lead-Aktivität',
     'lead-activity.subtitle': 'Zentralisierte Ansicht aller Lead-Aufgaben und Transaktionen',
@@ -6493,6 +6496,7 @@ const translations = {
     'nav.support': 'Soporte',
     'nav.reports': 'Informes',
     'reports.lead-activity': 'Actividad de Leads',
+    'reports.tasks': 'Tareas',
     
     'lead-activity.title': 'Actividad de Leads',
     'lead-activity.subtitle': 'Vista centralizada de todas las tareas y transacciones de leads',
