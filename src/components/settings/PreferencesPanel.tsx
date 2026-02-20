@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
+import SEARCH_TARGETS, { SearchTargetId, getDefaultSearchTarget, setDefaultSearchTarget } from '@/lib/searchConfig';
 import { useMenuOrder, DEFAULT_MENU_ORDER } from '@/contexts/MenuOrderContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -112,7 +113,7 @@ const PreferencesPanel: React.FC = () => {
   const { menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner, navLayout, setNavLayout } = useMenuOrder();
   const { mode, setMode } = useTheme();
   const { user } = useAuth();
-  const [searchBehavior, setSearchBehavior] = useState('leads');
+  const [searchTarget, setSearchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
   const [selectedSound, setSelectedSound] = useState<NotificationSoundId>(getSelectedSound);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
@@ -354,24 +355,44 @@ const PreferencesPanel: React.FC = () => {
           )}
 
           {/* 6. Header Search Behavior */}
-          <SettingRow
-            icon={<Search className="h-4 w-4 text-muted-foreground" />}
-            title="Default Search Target"
-            description="Choose what the header search bar queries by default"
-          >
-            <Select value={searchBehavior} onValueChange={setSearchBehavior}>
-              <SelectTrigger className="w-[140px] h-9 bg-input/50 border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="leads">Leads</SelectItem>
-                <SelectItem value="deals">Deals</SelectItem>
-                <SelectItem value="tasks">Tasks</SelectItem>
-                <SelectItem value="products">Products</SelectItem>
-                <SelectItem value="users">Users</SelectItem>
-              </SelectContent>
-            </Select>
-          </SettingRow>
+          <div className="px-4 sm:px-6 py-5">
+            <div className="flex items-start gap-3 mb-4">
+              <Search className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Default Search Target</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Choose what the header search bar queries by default</p>
+              </div>
+            </div>
+            <div className="ml-7 grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {(Object.keys(SEARCH_TARGETS) as SearchTargetId[]).map((targetId) => {
+                const config = SEARCH_TARGETS[targetId];
+                const Icon = config.icon;
+                const isSelected = searchTarget === targetId;
+                return (
+                  <button
+                    key={targetId}
+                    onClick={() => {
+                      setSearchTarget(targetId);
+                      setDefaultSearchTarget(targetId);
+                      toast.success(`Search target set to ${config.labelKey}`);
+                    }}
+                    className={`
+                      flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-all duration-200 cursor-pointer
+                      ${isSelected
+                        ? 'border-accent bg-accent/10 shadow-sm shadow-accent/10'
+                        : 'border-border/40 hover:border-border/80 hover:bg-muted/50'
+                      }
+                    `}
+                  >
+                    <Icon className={`h-4 w-4 transition-colors ${isSelected ? 'text-accent' : 'text-muted-foreground'}`} />
+                    <span className={`text-xs font-medium transition-colors ${isSelected ? 'text-accent' : 'text-muted-foreground'}`}>
+                      {config.labelKey}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <Divider />
 
