@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { getEcho } from '@/services/echo';
+import { playNotificationSound } from '@/lib/notificationSounds';
 
 // ─── Notification types ──────────────────────────────────────────────────────
 
@@ -84,25 +85,19 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Play notification sound
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audio = new Audio('/sounds/notification.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(err => console.log('🔔 Could not play notification sound:', err));
-    } catch (err) {
-      console.log('🔔 Error creating audio:', err);
-    }
+  // Play notification sound - reads preference from localStorage
+  const playSound = useCallback(() => {
+    playNotificationSound();
   }, []);
 
   // Use refs to store latest callbacks for stable event handlers
   const navigateRef = useRef(navigate);
-  const playNotificationSoundRef = useRef(playNotificationSound);
+  const playSoundRef = useRef(playSound);
 
   useEffect(() => {
     navigateRef.current = navigate;
-    playNotificationSoundRef.current = playNotificationSound;
-  }, [navigate, playNotificationSound]);
+    playSoundRef.current = playSound;
+  }, [navigate, playSound]);
 
   const markAsRead = useCallback((notificationId: string) => {
     setNotifications(prev =>
@@ -124,7 +119,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       return [notification, ...prev].slice(0, 50);
     });
 
-    playNotificationSoundRef.current();
+    playSoundRef.current();
 
     if (data.type === 'lead_created') {
       toast.success(data.message, {
