@@ -95,7 +95,8 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Paginat
 // Get single product by ID
 export const getProduct = async (id: number): Promise<Product> => {
   const response = await api.get(`/api/products/get/${id}`);
-  return response.data.data || response.data;
+  const raw = response.data;
+  return raw.product || raw.data || raw;
 };
 
 // Create a new product
