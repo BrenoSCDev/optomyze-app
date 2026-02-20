@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   TrendingUp, Users, UserX, DollarSign, Target, Percent, Trophy, UserCheck,
-  AlertCircle, Filter, BarChart3, Calendar, TrendingDown, GripVertical,
+  AlertCircle, Filter, BarChart3, Calendar, TrendingDown, GripVertical, RefreshCw,
 } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -1154,6 +1154,14 @@ const OptomyzeMetrics = () => {
                 <span className="text-xs sm:text-sm font-medium text-foreground">{selectedRangeLabel}</span>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  title="Refresh data"
+                  onClick={fetchMetricsData}
+                  disabled={loading}
+                  className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
                 <DashboardGridToolbar
                   gridColumns={gridColumns}
                   widgets={widgets}
