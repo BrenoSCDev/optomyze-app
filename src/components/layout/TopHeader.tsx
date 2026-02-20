@@ -680,7 +680,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                     </div>
                   )}
                 </div>
-                <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>
+                {!headerNavMode && <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>}
                 <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
               </Button>
             </DropdownMenuTrigger>
