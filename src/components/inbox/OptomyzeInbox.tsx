@@ -13,6 +13,8 @@ import ConversationList from './ConversationList';
 import MessageThread from './MessageThread';
 import CreateGroupModal from './CreateGroupModal';
 import optoIcon from '@/assets/opto-icon.png';
+import optoIconLight from '@/assets/opto-icon-light.png';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type MobileView = 'list' | 'thread';
 
@@ -253,7 +255,9 @@ const OptomyzeInbox: React.FC = () => {
   }, []);
 
   const { t } = useLanguage();
+  const { mode } = useTheme();
   const totalConversations = conversations.length;
+  const currentIcon = mode === 'dark' ? optoIcon : optoIconLight;
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
@@ -261,7 +265,7 @@ const OptomyzeInbox: React.FC = () => {
       <div className="flex items-center gap-4 px-5 py-3.5 border-b border-border/40 bg-card/80 shrink-0">
         {/* Icon */}
         <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
-          <img src={optoIcon} alt="Optomyze" className="w-5 h-5" />
+          <img src={currentIcon} alt="Optomyze" className="w-5 h-5" />
         </div>
 
         {/* Title + breadcrumbs */}
