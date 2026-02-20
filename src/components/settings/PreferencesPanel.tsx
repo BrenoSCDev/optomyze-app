@@ -81,7 +81,7 @@ const PreferencesPanel: React.FC = () => {
 
   return (
     <div className="min-h-screen p-4 sm:p-6">
-      <div className="max-w-2xl mx-auto space-y-2">
+      <div className="max-w-4xl mx-auto space-y-2">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-foreground">Preferences</h1>
@@ -114,14 +114,7 @@ const PreferencesPanel: React.FC = () => {
           >
             <Select value={language} onValueChange={handleLanguageChange}>
               <SelectTrigger className="w-[180px] h-9 bg-input/50 border-border/60">
-                <div className="flex items-center gap-2">
-                  <img
-                    src={languages.find(l => l.code === language)?.flag}
-                    alt=""
-                    className="h-4 w-4 rounded-sm object-cover"
-                  />
-                  <SelectValue />
-                </div>
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {languages.map((lang) => (
