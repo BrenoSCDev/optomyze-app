@@ -1,8 +1,12 @@
 /**
  * NOTIFICATION CONTEXT
  * 
- * Manages real-time notifications for lead creation events
- * Subscribes to company-specific WebSocket channels
+ * Manages real-time notifications for:
+ * - Lead creation events
+ * - Chat: new group created
+ * - Chat: private message received
+ * 
+ * Subscribes to company-specific and user-specific WebSocket channels
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
@@ -11,7 +15,8 @@ import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { getEcho } from '@/services/echo';
 
-// TypeScript interfaces
+// ─── Notification types ──────────────────────────────────────────────────────
+
 export interface LeadNotification {
   id: string;
   type: 'lead_created';
@@ -33,8 +38,33 @@ export interface LeadNotification {
   read: boolean;
 }
 
+export interface ChatGroupNotification {
+  id: string;
+  type: 'group_created';
+  message: string;
+  groupName: string;
+  creatorName: string;
+  creatorPic: string | null;
+  timestamp: string;
+  read: boolean;
+}
+
+export interface ChatMessageNotification {
+  id: string;
+  type: 'private_message';
+  message: string;
+  conversationId: number;
+  senderName: string;
+  senderPic: string | null;
+  preview: string;
+  timestamp: string;
+  read: boolean;
+}
+
+export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification;
+
 interface NotificationContextType {
-  notifications: LeadNotification[];
+  notifications: AppNotification[];
   unreadCount: number;
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
@@ -48,11 +78,10 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [notifications, setNotifications] = useState<LeadNotification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Calculate unread count
   const unreadCount = notifications.filter(n => !n.read).length;
 
   // Play notification sound
@@ -69,103 +98,142 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Use refs to store latest callbacks for stable event handlers
   const navigateRef = useRef(navigate);
   const playNotificationSoundRef = useRef(playNotificationSound);
-  
-  // Keep refs updated
+
   useEffect(() => {
     navigateRef.current = navigate;
     playNotificationSoundRef.current = playNotificationSound;
   }, [navigate, playNotificationSound]);
 
-  // Mark a single notification as read - defined BEFORE addNotification since it's used there
   const markAsRead = useCallback((notificationId: string) => {
     setNotifications(prev =>
-      prev.map(n =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
   }, []);
 
-  // Ref for markAsRead to use in toast callback without causing re-renders
   const markAsReadRef = useRef(markAsRead);
   useEffect(() => {
     markAsReadRef.current = markAsRead;
   }, [markAsRead]);
 
-  // Add a new notification - STABLE callback (no deps that change on route)
-  const addNotification = useCallback((data: Omit<LeadNotification, 'read'>) => {
-    const notification: LeadNotification = { ...data, read: false };
-    
+  // Add a new notification - STABLE callback
+  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'>) => {
+    const notification = { ...data, read: false } as AppNotification;
+
     setNotifications(prev => {
-      // Prevent duplicates
-      if (prev.some(n => n.id === notification.id)) {
-        return prev;
-      }
-      // Add new notification at the beginning, keep max 50
+      if (prev.some(n => n.id === notification.id)) return prev;
       return [notification, ...prev].slice(0, 50);
     });
 
-    // Play notification sound
     playNotificationSoundRef.current();
 
-    // Show toast notification
-    toast.success(data.message, {
-      description: 'Click to view lead details',
-      action: {
-        label: 'View',
-        onClick: () => {
-          markAsReadRef.current(notification.id);
-          navigateRef.current(`/leads/${data.lead.funnel_id}/lead/${data.lead.id}`);
+    if (data.type === 'lead_created') {
+      toast.success(data.message, {
+        description: 'Click to view lead details',
+        action: {
+          label: 'View',
+          onClick: () => {
+            markAsReadRef.current(notification.id);
+            navigateRef.current(`/leads/${data.lead.funnel_id}/lead/${data.lead.id}`);
+          },
         },
-      },
-      duration: 5000,
-    });
-  }, []); // Empty deps = stable callback, uses refs for dynamic values
-
-  // Mark all notifications as read
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, read: true }))
-    );
+        duration: 5000,
+      });
+    } else if (data.type === 'group_created') {
+      toast.success(data.message, { duration: 4000 });
+    } else if (data.type === 'private_message') {
+      toast.success(data.senderName, {
+        description: data.preview,
+        action: {
+          label: 'Open',
+          onClick: () => {
+            markAsReadRef.current(notification.id);
+            navigateRef.current('/?section=optomyze-inbox');
+          },
+        },
+        duration: 5000,
+      });
+    }
   }, []);
 
-  // Clear all notifications
+  const markAllAsRead = useCallback(() => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  }, []);
+
   const clearNotifications = useCallback(() => {
     setNotifications([]);
   }, []);
 
-  // Subscribe to WebSocket channel when user is authenticated
-  // IMPORTANT: Only depends on company_id, NOT on callbacks (they're stable via refs)
+  // ─── WebSocket subscriptions ───────────────────────────────────────────
+
+  // Company channel: lead.created + group.created
   useEffect(() => {
-    if (!user?.company_id) {
-      console.log('🔔 No company_id, skipping WebSocket subscription');
-      return;
-    }
-
+    if (!user?.company_id) return;
     const echo = getEcho();
-    if (!echo) {
-      console.log('🔔 Echo not initialized, skipping WebSocket subscription');
-      return;
-    }
+    if (!echo) return;
 
-    console.log(`🔔 Subscribing to channel: company.${user.company_id}`);
+    const channelName = `company.${user.company_id}`;
+    console.log(`🔔 Subscribing to channel: ${channelName}`);
+    const channel = echo.private(channelName);
 
-    // Subscribe to private channel
-    const channel = echo.private(`company.${user.company_id}`);
-
-    // Listen for lead.created events (note the dot prefix for Laravel Echo)
+    // Lead created
     channel.listen('.lead.created', (data: Omit<LeadNotification, 'read'>) => {
       console.log('🔔 Received lead.created event:', data);
       addNotification(data);
     });
 
-    console.log('🔔 Subscribed to channel successfully');
+    // Group created
+    channel.listen('.group.created', (payload: any) => {
+      console.log('🔔 Received group.created event:', payload);
+      // Only notify if the current user is in the participants list
+      const isParticipant = payload?.participants?.some((p: any) => p.id === user.id);
+      if (!isParticipant) return;
 
-    // Cleanup - only on logout or company change, NOT on route navigation
+      addNotification({
+        id: `group_created_${payload.id}_${Date.now()}`,
+        type: 'group_created',
+        message: `New group "${payload.name}" created`,
+        groupName: payload.name,
+        creatorName: payload.participants?.find((p: any) => p.id === payload.created_by)?.name ?? 'Someone',
+        creatorPic: payload.participants?.find((p: any) => p.id === payload.created_by)?.profile_pic_url ?? null,
+        timestamp: payload.created_at ?? new Date().toISOString(),
+      });
+    });
+
     return () => {
-      console.log(`🔔 Leaving channel: company.${user.company_id}`);
-      echo.leave(`company.${user.company_id}`);
+      console.log(`🔔 Leaving channel: ${channelName}`);
+      echo.leave(channelName);
     };
-  }, [user?.company_id, addNotification]); // addNotification is now stable (only depends on markAsRead which is stable)
+  }, [user?.company_id, user?.id, addNotification]);
+
+  // User personal channel: private message notifications
+  useEffect(() => {
+    if (!user?.id) return;
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channelName = `chat-notifications.${user.id}`;
+    console.log(`🔔 Subscribing to channel: ${channelName}`);
+    const channel = echo.private(channelName);
+
+    channel.listen('.private.message.notification', (payload: any) => {
+      console.log('🔔 Received private.message.notification event:', payload);
+      addNotification({
+        id: `pm_${payload.conversation_id}_${Date.now()}`,
+        type: 'private_message',
+        message: `${payload.sender?.name}: ${payload.preview}`,
+        conversationId: payload.conversation_id,
+        senderName: payload.sender?.name ?? 'Unknown',
+        senderPic: payload.sender?.profile_pic_url ?? null,
+        preview: payload.preview ?? '',
+        timestamp: payload.created_at ?? new Date().toISOString(),
+      });
+    });
+
+    return () => {
+      console.log(`🔔 Leaving channel: ${channelName}`);
+      echo.leave(channelName);
+    };
+  }, [user?.id, addNotification]);
 
   const value: NotificationContextType = {
     notifications,
