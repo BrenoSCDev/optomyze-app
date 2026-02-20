@@ -299,12 +299,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
         ${effectivelyCollapsed ? 'md:w-16' : 'md:w-64'}
         w-72
       `}
-      style={{ background: 'hsl(0 0% 7%)', borderRight: '1px solid hsl(0 0% 12%)' }}
+      style={{ background: 'hsl(var(--sidebar-bg))', borderRight: '1px solid hsl(var(--sidebar-border))' }}
       initial={false}
       animate={{ width: effectivelyCollapsed ? 64 : 256 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 h-16 border-b" style={{ borderColor: 'hsl(0 0% 12%)' }}>
+      <div className="flex items-center justify-between px-4 h-16 border-b" style={{ borderColor: 'hsl(var(--sidebar-border))' }}>
         <AnimatePresence>
           {!effectivelyCollapsed && (
             <motion.div

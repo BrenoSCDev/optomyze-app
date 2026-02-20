@@ -5,22 +5,84 @@
 /**
  * OPTOMYZE CRM DESIGN SYSTEM
  * 
- * A comprehensive design system featuring:
- * - Glassmorphism aesthetic with backdrop blur effects
- * - Dark theme with selective purple accents for highlights
- * - Semantic color tokens for consistent theming
- * - Advanced hover states and micro-interactions
- * - Responsive grid systems and typography
- * 
- * Color Philosophy:
- * - White as primary for text and main UI elements
- * - Purple reserved for accents, glows, and special highlights
- * - Glass effects for depth and modern aesthetic
- * - Smooth transitions for professional feel
+ * Supports dark/light mode and multiple theme presets.
+ * Theme accents are controlled via [data-theme] attribute.
+ * Mode is controlled via .dark class on <html>.
  */
 
 @layer base {
+  /* ===== LIGHT MODE (default) ===== */
   :root {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 6%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 6%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 271 91% 55%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 90%;
+    --ring: 271 81% 56%;
+
+    --radius: 0.75rem;
+
+    /* Glassmorphism */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 0% / 0.08;
+    --glass-hover: 0 0% 96% / 0.9;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+    --gradient-dark: linear-gradient(135deg, hsl(0 0% 97%), hsl(0 0% 94%));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.6), hsl(0 0% 96% / 0.3));
+
+    /* Glow Effects */
+    --glow-primary: 0 0 20px hsl(271 81% 56% / 0.15);
+    --glow-accent: 0 0 30px hsl(271 91% 65% / 0.2);
+
+    /* Deal Accent */
+    --deal-accent: 199 89% 48%;
+    --deal-accent-foreground: 0 0% 98%;
+    --deal-glow: 0 0 20px hsl(199 89% 48% / 0.15);
+    --deal-glow-accent: 0 0 30px hsl(199 89% 48% / 0.2);
+    --gradient-deal: linear-gradient(135deg, hsl(199 89% 42%), hsl(199 89% 55%));
+    --deal-glass-bg: 199 30% 97% / 0.7;
+    --deal-glass-border: 199 30% 0% / 0.08;
+    --deal-glass-hover: 199 20% 94% / 0.9;
+
+    /* Sidebar */
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-item-hover: 0 0% 0% / 0.04;
+    --sidebar-item-active: 0 0% 0% / 0.07;
+    --sidebar-text: 0 0% 40%;
+    --sidebar-text-hover: 0 0% 15%;
+    --sidebar-text-active: 0 0% 8%;
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* ===== DARK MODE ===== */
+  .dark {
     --background: 0 0% 3%;
     --foreground: 0 0% 98%;
 
@@ -49,23 +111,21 @@
     --input: 0 0% 12%;
     --ring: 271 81% 56%;
 
-    --radius: 0.75rem;
-
-    /* Glassmorphism Design Tokens */
+    /* Glassmorphism */
     --glass-bg: 0 0% 8% / 0.6;
     --glass-border: 0 0% 20% / 0.3;
     --glass-hover: 0 0% 12% / 0.8;
-    
-    /* Purple Gradients */
+
+    /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 3%), hsl(0 0% 8%));
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 8% / 0.4), hsl(0 0% 12% / 0.2));
-    
+
     /* Glow Effects */
     --glow-primary: 0 0 20px hsl(271 81% 56% / 0.3);
     --glow-accent: 0 0 30px hsl(271 91% 65% / 0.4);
-    
-    /* Deal Accent Tokens (Light Blue) */
+
+    /* Deal Accent */
     --deal-accent: 199 89% 58%;
     --deal-accent-foreground: 0 0% 98%;
     --deal-glow: 0 0 20px hsl(199 89% 58% / 0.3);
@@ -75,9 +135,71 @@
     --deal-glass-border: 199 30% 20% / 0.3;
     --deal-glass-hover: 199 20% 12% / 0.8;
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Sidebar */
+    --sidebar-bg: 0 0% 7%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-item-hover: 0 0% 100% / 0.06;
+    --sidebar-item-active: 0 0% 100% / 0.1;
+    --sidebar-text: 0 0% 65%;
+    --sidebar-text-hover: 0 0% 90%;
+    --sidebar-text-active: 0 0% 95%;
+  }
+
+  /* ===== THEME ACCENTS ===== */
+  /* Midnight Pulse (default - purple) */
+  [data-theme="midnight_pulse"] {
+    --accent: 271 91% 55%;
+    --ring: 271 81% 56%;
+    --glow-primary: 0 0 20px hsl(271 81% 56% / 0.15);
+    --glow-accent: 0 0 30px hsl(271 91% 65% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+  }
+  .dark[data-theme="midnight_pulse"] {
+    --accent: 271 91% 65%;
+    --glow-primary: 0 0 20px hsl(271 81% 56% / 0.3);
+    --glow-accent: 0 0 30px hsl(271 91% 65% / 0.4);
+  }
+
+  /* Emerald Strike (green) */
+  [data-theme="emerald_strike"] {
+    --accent: 142 76% 36%;
+    --ring: 142 76% 36%;
+    --glow-primary: 0 0 20px hsl(142 76% 36% / 0.15);
+    --glow-accent: 0 0 30px hsl(142 71% 45% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 71% 50%));
+  }
+  .dark[data-theme="emerald_strike"] {
+    --accent: 142 71% 45%;
+    --glow-primary: 0 0 20px hsl(142 76% 36% / 0.3);
+    --glow-accent: 0 0 30px hsl(142 71% 45% / 0.4);
+  }
+
+  /* Crimson Edge (red) */
+  [data-theme="crimson_edge"] {
+    --accent: 0 84% 50%;
+    --ring: 0 84% 50%;
+    --glow-primary: 0 0 20px hsl(0 84% 50% / 0.15);
+    --glow-accent: 0 0 30px hsl(0 72% 51% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(0 84% 50%), hsl(0 72% 58%));
+  }
+  .dark[data-theme="crimson_edge"] {
+    --accent: 0 72% 51%;
+    --glow-primary: 0 0 20px hsl(0 84% 50% / 0.3);
+    --glow-accent: 0 0 30px hsl(0 72% 51% / 0.4);
+  }
+
+  /* Ocean Flow (blue) */
+  [data-theme="ocean_flow"] {
+    --accent: 217 91% 50%;
+    --ring: 217 91% 50%;
+    --glow-primary: 0 0 20px hsl(217 91% 50% / 0.15);
+    --glow-accent: 0 0 30px hsl(199 89% 48% / 0.2);
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 50%), hsl(199 89% 55%));
+  }
+  .dark[data-theme="ocean_flow"] {
+    --accent: 217 91% 60%;
+    --glow-primary: 0 0 20px hsl(217 91% 60% / 0.3);
+    --glow-accent: 0 0 30px hsl(199 89% 58% / 0.4);
   }
 }
 
@@ -96,7 +218,7 @@
   /* Custom Scrollbar Styling */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(271 81% 56% / 0.5) hsl(0 0% 100% / 0.05);
+    scrollbar-color: hsl(var(--accent) / 0.5) hsl(0 0% 100% / 0.05);
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -109,18 +231,18 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(271 81% 56% / 0.5);
+    background: hsl(var(--accent) / 0.5);
     border-radius: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: hsl(271 81% 56% / 0.7);
+    background: hsl(var(--accent) / 0.7);
   }
 
   /* Dark Slick Scrollbar - for chat and content areas */
   .scrollbar-dark {
     scrollbar-width: thin;
-    scrollbar-color: hsl(0 0% 30%) hsl(0 0% 10%);
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
 
   .scrollbar-dark::-webkit-scrollbar {
@@ -128,179 +250,146 @@
   }
 
   .scrollbar-dark::-webkit-scrollbar-track {
-    background: hsl(0 0% 10%);
+    background: transparent;
     border-radius: 3px;
   }
 
   .scrollbar-dark::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, hsl(0 0% 35%), hsl(0 0% 25%));
+    background: hsl(var(--muted-foreground) / 0.2);
     border-radius: 3px;
     transition: background 0.2s ease;
   }
 
   .scrollbar-dark::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, hsl(0 0% 45%), hsl(0 0% 35%));
+    background: hsl(var(--muted-foreground) / 0.4);
   }
 }
 
 @layer components {
-  /* GLASSMORPHISM COMPONENT LIBRARY
-     Reusable component classes that implement the glass aesthetic */
-  /* Base glass card with backdrop blur and semi-transparent background */
+  /* Base glass card */
   .glass-card {
-    @apply backdrop-blur-md bg-card/60 border border-white/10 rounded-xl shadow-2xl;
+    @apply backdrop-blur-md rounded-xl shadow-2xl;
     background: hsl(var(--glass-bg));
     border: 1px solid hsl(var(--glass-border));
     transition: var(--transition-smooth);
   }
   
-  /* Enhanced hover state with scale transform and white glow */
   .glass-card:hover {
     @apply transform scale-[1.02];
     background: hsl(var(--glass-hover));
-    box-shadow: 0 0 20px hsl(0 0% 100% / 0.2);
-    border-color: hsl(var(--accent) / 0.4);
+    box-shadow: 0 0 20px hsl(var(--accent) / 0.1);
+    border-color: hsl(var(--accent) / 0.3);
   }
 
-  /* NEON BORDER EFFECTS - Used for interactive elements like buttons */
+  /* Neon border effects */
   .neon-border {
-    @apply border border-primary/30 rounded-lg;
-    box-shadow: 0 0 10px hsl(var(--primary) / 0.2),
-                inset 0 0 10px hsl(var(--primary) / 0.1);
+    @apply border border-accent/30 rounded-lg;
+    box-shadow: 0 0 10px hsl(var(--accent) / 0.2),
+                inset 0 0 10px hsl(var(--accent) / 0.1);
   }
   
-  /* Enhanced neon effect on hover with white glow */
   .neon-border:hover {
-    @apply border-primary/60;
-    box-shadow: 0 0 15px hsl(0 0% 100% / 0.3),
-                inset 0 0 20px hsl(var(--primary) / 0.2);
+    @apply border-accent/60;
+    box-shadow: 0 0 15px hsl(var(--accent) / 0.3),
+                inset 0 0 20px hsl(var(--accent) / 0.2);
   }
 
-  /* NAVIGATION ITEM STYLES - Clean modern dark sidebar */
+  /* Navigation item styles */
   .nav-item {
     @apply relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200;
-    color: hsl(0 0% 65%);
+    color: hsl(var(--sidebar-text));
   }
   
-  /* Submenu items - smaller text */
   .nav-item-sub {
     @apply relative flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200;
-    color: hsl(0 0% 55%);
+    color: hsl(var(--sidebar-text));
+    opacity: 0.85;
   }
   
   .nav-item-sub:hover {
-    color: hsl(0 0% 90%);
-    background: hsl(0 0% 100% / 0.06);
+    color: hsl(var(--sidebar-text-hover));
+    background: hsl(var(--sidebar-item-hover));
+    opacity: 1;
   }
   
   .nav-item-sub.active {
-    color: hsl(0 0% 95%);
-    background: hsl(0 0% 100% / 0.1);
+    color: hsl(var(--sidebar-text-active));
+    background: hsl(var(--sidebar-item-active));
+    opacity: 1;
   }
   
-  /* Hover state - clean, no glow */
   .nav-item:hover {
-    color: hsl(0 0% 90%);
-    background: hsl(0 0% 100% / 0.06);
+    color: hsl(var(--sidebar-text-hover));
+    background: hsl(var(--sidebar-item-hover));
   }
   
-  /* Active state - subtle highlight */
   .nav-item.active {
-    color: hsl(0 0% 95%);
-    background: hsl(0 0% 100% / 0.08);
+    color: hsl(var(--sidebar-text-active));
+    background: hsl(var(--sidebar-item-active));
   }
 
-  /* KPI CARD COMPONENT STYLES - Specialized glass cards for metrics display */
+  /* KPI Card */
   .kpi-card {
     @apply glass-card p-6 hover:scale-105;
-    transition: var(--transition-bounce); /* Bouncy animation for engaging interaction */
+    transition: var(--transition-bounce);
   }
   
-  /* Large metric values with gradient text effect */
   .kpi-value {
-    @apply text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply text-3xl font-bold bg-gradient-to-r from-foreground to-accent bg-clip-text text-transparent;
   }
   
-  /* Trend indicators with appropriate sizing */
   .kpi-trend {
     @apply text-sm font-medium;
   }
   
-  /* Color coding for positive trends (green) */
   .kpi-trend.positive {
-    @apply text-green-400;
+    @apply text-green-500;
   }
   
-  /* Color coding for negative trends (red) */
   .kpi-trend.negative {
-    @apply text-red-400;
+    @apply text-red-500;
   }
 
-  /* CHART CONTAINER STYLES - Consistent styling for all chart components */
+  /* Chart container */
   .chart-container {
     @apply glass-card p-6;
     background: hsl(var(--glass-bg));
   }
   
-  /* FLOATING ANIMATION - Subtle hover effect for cards */
+  /* Floating animation */
   .floating {
     animation: float 3s ease-in-out infinite;
   }
   
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); } /* Gentle 5px float */
+    50% { transform: translateY(-5px); }
   }
   
-  /* PULSE GLOW ANIMATION - Attention-grabbing effect for important elements */
+  /* Pulse glow animation */
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
   
   @keyframes pulse-glow {
     0%, 100% { 
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+      box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
     }
     50% { 
-      box-shadow: 0 0 30px hsl(271 91% 65% / 0.4); /* Purple accent glow at peak */
+      box-shadow: 0 0 30px hsl(var(--accent) / 0.5);
     }
   }
 
-  /* CUSTOM SCROLLBAR STYLES - Dark Theme */
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(0 0% 30%) hsl(0 0% 10%);
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: hsl(0 0% 10%);
-    border-radius: 4px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(0 0% 30%);
-    border-radius: 4px;
-    border: 2px solid hsl(0 0% 10%);
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(0 0% 40%);
-  }
-
+  /* Additional scrollbar variants */
   .scrollbar-track-transparent::-webkit-scrollbar-track {
     background: transparent;
   }
 
   .scrollbar-thumb-white\/20::-webkit-scrollbar-thumb {
-    background-color: hsl(0 0% 100% / 0.2);
+    background-color: hsl(var(--muted-foreground) / 0.2);
   }
 
-  /* DEAL GLASS CARD - Teal-tinted glassmorphism for deal funnels */
+  /* Deal glass card */
   .deal-glass-card {
     @apply backdrop-blur-md rounded-xl shadow-2xl;
     background: hsl(var(--deal-glass-bg));
@@ -311,14 +400,14 @@
   .deal-glass-card:hover {
     @apply transform scale-[1.02];
     background: hsl(var(--deal-glass-hover));
-    box-shadow: 0 0 20px hsl(199 89% 58% / 0.15);
+    box-shadow: 0 0 20px hsl(var(--deal-accent) / 0.15);
     border-color: hsl(var(--deal-accent) / 0.4);
   }
 
-  /* Deal Scrollbar Styling */
+  /* Deal Scrollbar */
   .scrollbar-deal {
     scrollbar-width: thin;
-    scrollbar-color: hsl(199 89% 58% / 0.5) hsl(0 0% 100% / 0.05);
+    scrollbar-color: hsl(var(--deal-accent) / 0.5) hsl(0 0% 100% / 0.05);
   }
 
   .scrollbar-deal::-webkit-scrollbar {
@@ -332,11 +421,11 @@
   }
 
   .scrollbar-deal::-webkit-scrollbar-thumb {
-    background: hsl(199 89% 58% / 0.5);
+    background: hsl(var(--deal-accent) / 0.5);
     border-radius: 4px;
   }
 
   .scrollbar-deal::-webkit-scrollbar-thumb:hover {
-    background: hsl(199 89% 58% / 0.7);
+    background: hsl(var(--deal-accent) / 0.7);
   }
 }
