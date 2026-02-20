@@ -9,7 +9,6 @@
  */
 
 import { useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Maximize2, Minimize2, Download } from 'lucide-react';
@@ -33,10 +32,12 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id, disabled: !editMode });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition: transition ?? undefined,
     gridColumn: `span ${Math.min(colSpan, maxSpan)} / span ${Math.min(colSpan, maxSpan)}`,
+    zIndex: isDragging ? 100 : undefined,
+    position: 'relative',
   };
 
   const handleDownload = useCallback(async () => {
@@ -63,19 +64,17 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group/widget transition-all duration-200 overflow-visible ${
-        isDragging ? 'z-50 opacity-70 scale-[1.02]' : ''
-      } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl' : ''} ${
+      className={`relative group/widget transition-shadow duration-150 ${
+        isDragging ? 'opacity-40' : ''
+      } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl cursor-grab active:cursor-grabbing' : ''} ${
         !id.startsWith('kpi-') ? 'min-h-[420px]' : ''
       }`}
       {...attributes}
+      {...(editMode ? listeners : {})}
     >
-      {/* Edit mode overlay controls */}
+      {/* Edit mode drag label */}
       {editMode && (
-        <div
-          className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-2 py-1 bg-card/90 backdrop-blur-sm border border-border rounded-full shadow-lg cursor-grab active:cursor-grabbing"
-          {...listeners}
-        >
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-2 py-1 bg-card/90 backdrop-blur-sm border border-border rounded-full shadow-lg pointer-events-none">
           <GripVertical className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground font-medium select-none">
             {WIDGET_LABELS[id] || id}
