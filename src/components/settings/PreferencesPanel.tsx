@@ -101,10 +101,9 @@ const SortableMenuItem: React.FC<{ id: string; label: string; icon: React.ReactN
 
 const PreferencesPanel: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
-  const { menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner } = useMenuOrder();
+  const { menuOrder, setMenuOrder, resetToDefault, bannerDismissed, dismissBanner, navLayout, setNavLayout } = useMenuOrder();
   const { user } = useAuth();
   const [darkMode, setDarkMode] = useState(true);
-  const [navLayout, setNavLayout] = useState<'sidebar' | 'header'>('sidebar');
   const [searchBehavior, setSearchBehavior] = useState('leads');
   const [selectedSound, setSelectedSound] = useState('default');
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -307,7 +306,7 @@ const PreferencesPanel: React.FC = () => {
               >
                 <div className="flex rounded-lg border border-border/60 overflow-hidden">
                   <button
-                    onClick={() => setNavLayout('sidebar')}
+                    onClick={() => { setNavLayout('sidebar'); toast.success('Navigation switched to sidebar'); }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
                       navLayout === 'sidebar'
                         ? 'bg-accent/15 text-accent'
@@ -318,7 +317,7 @@ const PreferencesPanel: React.FC = () => {
                     Sidebar
                   </button>
                   <button
-                    onClick={() => setNavLayout('header')}
+                    onClick={() => { setNavLayout('header'); toast.success('Navigation switched to header'); }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-border/60 ${
                       navLayout === 'header'
                         ? 'bg-accent/15 text-accent'

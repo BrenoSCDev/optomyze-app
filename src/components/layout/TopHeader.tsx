@@ -3,14 +3,17 @@
  * 
  * A fixed top header with:
  * - Left: Logo/App name
- * - Center: Global search bar with lead quick search
+ * - Center: Global search bar with lead quick search (+ nav items in header mode)
  * - Right: Notification bell + User menu
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu } from 'lucide-react';
+import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu,
+  BarChart3, Users, Settings, Database, Plug, MessageCircle, CalendarDays, Package,
+  Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus
+} from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,18 +27,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
 import { searchLeads, LeadSearchResult } from '@/services/leadSearchApi';
 import optomyzeLogo from '@/assets/optomyze.png';
+import OptoIcon from '@/assets/opto-icon.png';
 import { getEcho } from '@/services/echo';
+import { IoFunnelOutline } from 'react-icons/io5';
+import { FaWhatsapp } from 'react-icons/fa6';
+import { SiGoogleanalytics, SiGoogleads } from 'react-icons/si';
+import { FaMeta } from 'react-icons/fa6';
+import { RiAppsFill } from 'react-icons/ri';
+import { BsDatabaseFillGear } from 'react-icons/bs';
+import { VscSettings } from 'react-icons/vsc';
+import { MdBusinessCenter, MdCurrencyExchange } from 'react-icons/md';
 
 interface TopHeaderProps {
   sidebarCollapsed: boolean;
   onMobileMenuToggle?: () => void;
+  activeSection?: string;
+  onSectionChange?: (section: string) => void;
+  headerNavMode?: boolean;
 }
 
-const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => {
+const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSectionChange, headerNavMode = false }: TopHeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -50,25 +66,23 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const { user, logout } = useAuth();
+  const { user, funnels, logout } = useAuth();
   const { t } = useLanguage();
+  const { menuOrder } = useMenuOrder();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
-  // Track mobile breakpoint reactively
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Debounced search function
   const performSearch = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSearchResults([]);
       setShowResults(false);
       return;
     }
-
     setIsSearching(true);
     try {
       const results = await searchLeads(query);
@@ -82,26 +96,17 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     }
   }, []);
 
-  // Handle search input change with debounce
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-    
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (value.length < 3) {
       setSearchResults([]);
       setShowResults(false);
       return;
     }
-
-    debounceRef.current = setTimeout(() => {
-      performSearch(value);
-    }, 400);
+    debounceRef.current = setTimeout(() => performSearch(value), 400);
   };
 
-  // Handle lead selection - open preview modal
   const handleLeadSelect = (lead: LeadSearchResult) => {
     setShowResults(false);
     setSearchQuery('');
@@ -110,7 +115,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     setIsLeadModalOpen(true);
   };
 
-  // Handle keyboard events
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setShowResults(false);
@@ -118,56 +122,34 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
         setShowResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Cleanup debounce on unmount
   useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, []);
 
   useEffect(() => {
     const echo = getEcho();
-    if (!echo) {
-      console.log('🔌 Echo not initialized, skipping connection status binding');
-      return;
-    }
-
+    if (!echo) return;
     const connector = echo.connector as { pusher?: { connection?: { bind: (event: string, callback: () => void) => void; unbind: (event: string, callback: () => void) => void } } };
-    
-    const handleConnected = () => {
-      console.log('Connected to WebSocket');
-      setConnected(true);
-    };
-    
-    const handleDisconnected = () => {
-      console.log('Disconnected from WebSocket');
-      setConnected(false);
-    };
-
+    const handleConnected = () => setConnected(true);
+    const handleDisconnected = () => setConnected(false);
     connector.pusher?.connection?.bind('connected', handleConnected);
     connector.pusher?.connection?.bind('disconnected', handleDisconnected);
-
     return () => {
       connector.pusher?.connection?.unbind('connected', handleConnected);
       connector.pusher?.connection?.unbind('disconnected', handleDisconnected);
     };
   }, []);
 
-  // Handle notification click - open preview modal
   const handleNotificationClick = (notif: typeof notifications[0]) => {
     markAsRead(notif.id);
     setNotificationDropdownOpen(false);
@@ -175,7 +157,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     setIsLeadModalOpen(true);
   };
 
-  // Format notification timestamp
   const formatNotificationTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -183,7 +164,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 1) return t('header.time.just-now');
     if (diffMins < 60) return t('header.time.minutes-ago').replace('{count}', String(diffMins));
     if (diffHours < 24) return t('header.time.hours-ago').replace('{count}', String(diffHours));
@@ -191,19 +171,149 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
     return date.toLocaleDateString();
   };
 
+  const handleNavClick = (sectionId: string) => {
+    if (onSectionChange) {
+      onSectionChange(sectionId);
+    } else {
+      navigate(`/?section=${sectionId}`);
+    }
+  };
+
+  // Build header nav items with submenus
+  const leadsItems = funnels?.filter(f => f.is_active && f.type === 'sale').map(f => ({
+    id: f.id.toString(), label: f.name, path: `/leads/${f.id}`
+  })) || [];
+
+  const dealsItems = funnels?.filter(f => f.is_active && f.type === 'deal').map(f => ({
+    id: f.id.toString(), label: f.name, path: `/deals/${f.id}`
+  })) || [];
+
+  // Section config for header nav dropdowns
+  const sectionConfig: Record<string, {
+    icon: React.ReactNode;
+    labelKey: string;
+    children: { id: string; label: string; path?: string }[];
+  }> = useMemo(() => ({
+    dashboard: {
+      icon: <BarChart3 className="h-3.5 w-3.5" />,
+      labelKey: 'nav.dashboard',
+      children: [
+        { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics') },
+        { id: 'plan-usage', label: t('dashboard.plan-usage') },
+        { id: 'meta-ads', label: t('dashboard.meta-ads') },
+        { id: 'google-ads', label: t('dashboard.google-ads') },
+        { id: 'google-analytics', label: t('dashboard.google-analytics') },
+      ],
+    },
+    leads: {
+      icon: <Users className="h-3.5 w-3.5" />,
+      labelKey: 'nav.leads',
+      children: leadsItems,
+    },
+    deals: {
+      icon: <MdCurrencyExchange className="h-3.5 w-3.5" />,
+      labelKey: 'nav.deals',
+      children: dealsItems,
+    },
+    settings: {
+      icon: <Settings className="h-3.5 w-3.5" />,
+      labelKey: 'nav.settings',
+      children: [
+        { id: 'crm-panel', label: t('nav.crm-panel') },
+        { id: 'funnels', label: t('nav.funnels') },
+        { id: 'companies', label: t('nav.companies') },
+        { id: 'tags', label: t('nav.tags') },
+        { id: 'preferences', label: t('nav.preferences') },
+      ],
+    },
+    reports: {
+      icon: <PieChart className="h-3.5 w-3.5" />,
+      labelKey: 'nav.reports',
+      children: [
+        { id: 'lead-activity', label: t('reports.lead-activity') },
+        { id: 'deal-activity', label: t('reports.deal-activity') },
+        { id: 'report-tasks', label: t('reports.tasks') },
+      ],
+    },
+    integrations: {
+      icon: <Plug className="h-3.5 w-3.5" />,
+      labelKey: 'nav.integrations',
+      children: [
+        { id: 'integrations', label: 'Apps' },
+        { id: 'integration-panel', label: t('integrations.panel.menu-title') },
+      ],
+    },
+    api: {
+      icon: <Database className="h-3.5 w-3.5" />,
+      labelKey: 'nav.api',
+      children: [
+        { id: 'api-tokens', label: 'API Tokens' },
+        { id: 'api-setup', label: 'API Setup' },
+        { id: 'api-playground', label: t('api.playground.title') },
+      ],
+    },
+    organization: {
+      icon: <Building className="h-3.5 w-3.5" />,
+      labelKey: 'nav.organization',
+      children: [
+        { id: 'manage-users', label: t('organization.users') },
+        { id: 'manage-teams', label: t('organization.teams') },
+        { id: 'manage-roles', label: t('organization.roles') },
+      ],
+    },
+    chat: {
+      icon: <MessageCircle className="h-3.5 w-3.5" />,
+      labelKey: 'nav.chat',
+      children: [
+        { id: 'whatsapp-inbox', label: 'WhatsApp Inbox' },
+        { id: 'optomyze-inbox', label: 'Optomyze Inbox' },
+      ],
+    },
+    calendars: {
+      icon: <CalendarDays className="h-3.5 w-3.5" />,
+      labelKey: 'nav.calendars',
+      children: [
+        { id: 'optomyze-calendar', label: t('calendar.optomyze.title') },
+      ],
+    },
+    products: {
+      icon: <Package className="h-3.5 w-3.5" />,
+      labelKey: 'nav.products',
+      children: [
+        { id: 'manage-products', label: t('products.manage') },
+      ],
+    },
+    support: {
+      icon: <Headphones className="h-3.5 w-3.5" />,
+      labelKey: 'nav.support',
+      children: [
+        { id: 'open-ticket', label: t('support.open-ticket') },
+        { id: 'talk-to-optus', label: t('support.talk-to-optus') },
+      ],
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [t, funnels]);
+
+  // Check if a section contains the active item
+  const sectionContainsActive = (sectionId: string) => {
+    const config = sectionConfig[sectionId];
+    if (!config) return false;
+    return config.children.some(c => c.id === activeSection);
+  };
+
   return (
     <>
     <motion.header
-      className="fixed top-0 left-0 w-full z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6 rounded-none"
+      className="fixed top-0 left-0 w-full z-50 h-16 bg-background/80 backdrop-blur-md border-b border-white/10 flex items-center px-4 sm:px-6 rounded-none"
       initial={false}
       animate={{ 
-        left: isMobile ? 0 : (sidebarCollapsed ? 64 : 256),
-        width: isMobile ? '100%' : (sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)')
+        left: headerNavMode ? 0 : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256)),
+        width: headerNavMode ? '100%' : (isMobile ? '100%' : (sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)'))
       }}
       transition={{ duration: 0.3 }}
     >
       {/* Left Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 shrink-0">
         {/* Mobile hamburger */}
         <Button
           variant="ghost"
@@ -214,88 +324,200 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
           <Menu className="h-5 w-5" />
         </Button>
 
-        <AnimatePresence>
-          {sidebarCollapsed && (
-            <motion.img
-              src={optomyzeLogo}
-              alt="Optomyze"
-              className="h-6 hidden md:block"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-            />
-          )}
-        </AnimatePresence>
+        {/* Logo: always show in header mode, only show when sidebar collapsed otherwise */}
+        {headerNavMode ? (
+          <img src={optomyzeLogo} alt="Optomyze" className="h-6 hidden md:block" />
+        ) : (
+          <AnimatePresence>
+            {sidebarCollapsed && (
+              <motion.img
+                src={optomyzeLogo}
+                alt="Optomyze"
+                className="h-6 hidden md:block"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+              />
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
-      {/* Center Section - Desktop Search Bar only */}
-      <div className="flex-1 flex justify-center max-w-xl mx-4">
-        <div ref={searchContainerRef} className="hidden md:flex relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-          {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-          )}
-          <Input
-            type="text"
-            placeholder={t('header.search-placeholder')}
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
-            className="w-full pl-10 pr-10 bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
-          />
-          
-          {/* Search Results Dropdown */}
-          <AnimatePresence>
-            {showResults && searchResults.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
-              >
-                {searchResults.map((lead) => (
-                  <button
-                    key={lead.id}
-                    onClick={() => handleLeadSelect(lead)}
-                    className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+      {/* Header Navigation Bar (only in header mode on desktop) */}
+      {headerNavMode && !isMobile && (
+        <nav className="hidden md:flex items-center gap-0.5 ml-4 overflow-x-auto scrollbar-thin flex-1 min-w-0">
+          {menuOrder.map((sectionId) => {
+            const config = sectionConfig[sectionId];
+            if (!config) return null;
+            // Role gating
+            if (sectionId === 'organization' && user?.role === 'agent') return null;
+
+            const isActive = sectionContainsActive(sectionId);
+            const hasChildren = config.children.length > 0;
+
+            if (hasChildren) {
+              return (
+                <DropdownMenu key={sectionId}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                        isActive
+                          ? 'text-foreground bg-white/[0.08]'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      {config.icon}
+                      <span>{t(config.labelKey)}</span>
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    sideOffset={8}
+                    className="min-w-[160px] bg-background/95 backdrop-blur-md border border-white/20"
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-primary font-semibold text-sm">
-                        {lead.first_name.charAt(0).toUpperCase()}
+                    {config.children.map((child) => (
+                      <DropdownMenuItem
+                        key={child.id}
+                        className={`cursor-pointer text-xs ${
+                          activeSection === child.id ? 'bg-white/[0.08] text-foreground' : ''
+                        }`}
+                        onClick={() => {
+                          if (child.path) {
+                            navigate(child.path);
+                          } else {
+                            handleNavClick(child.id);
+                          }
+                        }}
+                      >
+                        {child.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            }
+            return null;
+          })}
+        </nav>
+      )}
+
+      {/* Center Section - Search Bar (only when NOT in header mode, or on smaller screens) */}
+      {!headerNavMode && (
+        <div className="flex-1 flex justify-center max-w-xl mx-4">
+          <div ref={searchContainerRef} className="hidden md:flex relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+            {isSearching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+            )}
+            <Input
+              type="text"
+              placeholder={t('header.search-placeholder')}
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
+              className="w-full pl-10 pr-10 bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
+            />
+            
+            <AnimatePresence>
+              {showResults && searchResults.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
+                >
+                  {searchResults.map((lead) => (
+                    <button
+                      key={lead.id}
+                      onClick={() => handleLeadSelect(lead)}
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary font-semibold text-sm">
+                          {lead.first_name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {lead.first_name} {lead.last_name}
                       </span>
-                    </div>
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {lead.first_name} {lead.last_name}
-                    </span>
-                  </button>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* No results message */}
-          <AnimatePresence>
-            {showResults && searchResults.length === 0 && searchQuery.length >= 3 && !isSearching && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 p-4"
-              >
-                <p className="text-sm text-muted-foreground text-center">
-                  {t('header.no-results')}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <AnimatePresence>
+              {showResults && searchResults.length === 0 && searchQuery.length >= 3 && !isSearching && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 p-4"
+                >
+                  <p className="text-sm text-muted-foreground text-center">
+                    {t('header.no-results')}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Right Section - Search (mobile) + Notifications + User Menu */}
-      <div className="flex items-center gap-1" ref={searchContainerRef}>
+      {/* In header mode, add a compact search */}
+      {headerNavMode && (
+        <div className="hidden md:flex items-center ml-auto mr-2">
+          <div ref={searchContainerRef} className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground z-10" />
+            {isSearching && (
+              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground animate-spin" />
+            )}
+            <Input
+              type="text"
+              placeholder={t('header.search-placeholder')}
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
+              className="w-48 h-8 pl-8 pr-8 text-xs bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
+            />
+            <AnimatePresence>
+              {showResults && searchResults.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full right-0 mt-2 w-72 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
+                >
+                  {searchResults.map((lead) => (
+                    <button
+                      key={lead.id}
+                      onClick={() => handleLeadSelect(lead)}
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary font-semibold text-xs">
+                          {lead.first_name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-foreground truncate">
+                        {lead.first_name} {lead.last_name}
+                      </span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
 
-        {/* Mobile Search - icon that expands into an overlay input */}
+      {/* Right Section */}
+      <div className="flex items-center gap-1 shrink-0" ref={!headerNavMode ? searchContainerRef : undefined}>
+
+        {/* Mobile Search */}
         <div className="md:hidden relative">
           <AnimatePresence>
             {searchExpanded ? (
@@ -325,7 +547,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
                   {t('common.cancel') || 'Cancel'}
                 </Button>
 
-                {/* Mobile Search Results */}
                 {showResults && searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-0 bg-background border-b border-white/20 shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
                     {searchResults.map((lead) => (
@@ -360,14 +581,10 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
           </AnimatePresence>
         </div>
 
-        {/* Notification Bell with Dropdown */}
+        {/* Notification Bell */}
         <DropdownMenu open={notificationDropdownOpen} onOpenChange={setNotificationDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative text-muted-foreground hover:text-primary hover:bg-primary/10"
-            >
+            <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary hover:bg-primary/10">
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
@@ -390,10 +607,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs text-primary hover:text-primary/80"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    markAllAsRead();
-                  }}
+                  onClick={(e) => { e.preventDefault(); markAllAsRead(); }}
                 >
                   <Check className="h-3 w-3 mr-1" />
                   {t('header.mark-all-read') || 'Mark all read'}
@@ -401,62 +615,39 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
               )}
             </div>
             <DropdownMenuSeparator />
-            
             <div className="max-h-72 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center">
                   <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                  <p className="text-sm text-muted-foreground">
-                    {t('header.no-notifications') || 'No notifications yet'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t('header.no-notifications') || 'No notifications yet'}</p>
                 </div>
               ) : (
                 notifications.slice(0, 10).map((notif) => (
                   <DropdownMenuItem
                     key={notif.id}
-                    className={`px-3 py-3 cursor-pointer focus:bg-primary/10 ${
-                      !notif.read ? 'bg-primary/5' : ''
-                    }`}
+                    className={`px-3 py-3 cursor-pointer focus:bg-primary/10 ${!notif.read ? 'bg-primary/5' : ''}`}
                     onClick={() => handleNotificationClick(notif)}
                   >
                     <div className="flex items-start gap-3 w-full">
-                      {/* Unread indicator */}
-                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                        notif.read ? 'bg-transparent' : 'bg-primary'
-                      }`} />
-                      
-                      {/* Creator avatar */}
+                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notif.read ? 'bg-transparent' : 'bg-primary'}`} />
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                         {notif.creator.profile_pic ? (
-                          <img
-                            src={getStorageUrl(notif.creator.profile_pic)}
-                            alt={notif.creator.name}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
+                          <img src={getStorageUrl(notif.creator.profile_pic)} alt={notif.creator.name} className="w-8 h-8 rounded-full object-cover" />
                         ) : (
-                          <span className="text-primary font-semibold text-xs">
-                            {notif.creator.name.charAt(0).toUpperCase()}
-                          </span>
+                          <span className="text-primary font-semibold text-xs">{notif.creator.name.charAt(0).toUpperCase()}</span>
                         )}
                       </div>
-                      
-                      {/* Notification content */}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm leading-tight ${
-                          notif.read ? 'text-muted-foreground' : 'text-foreground font-medium'
-                        }`}>
+                        <p className={`text-sm leading-tight ${notif.read ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                           {notif.message}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatNotificationTime(notif.timestamp)}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{formatNotificationTime(notif.timestamp)}</p>
                       </div>
                     </div>
                   </DropdownMenuItem>
                 ))
               )}
             </div>
-            
             {notifications.length > 10 && (
               <>
                 <DropdownMenuSeparator />
@@ -465,10 +656,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
                     variant="ghost"
                     size="sm"
                     className="w-full text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setNotificationDropdownOpen(false);
-                      // Navigate to notifications page if you have one
-                    }}
+                    onClick={() => setNotificationDropdownOpen(false)}
                   >
                     {t('header.view-all-notifications') || 'View all notifications'}
                   </Button>
@@ -482,54 +670,28 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
         {user && (
           <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 px-2 py-1.5 h-auto hover:bg-primary/10"
-              >
-                {/* Avatar */}
+              <Button variant="ghost" className="flex items-center gap-2 px-2 py-1.5 h-auto hover:bg-primary/10">
                 <div className="flex-shrink-0">
                   {user.profile_pic ? (
-                    <img
-                      src={getStorageUrl(user.profile_pic)}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover border border-white/20"
-                    />
+                    <img src={getStorageUrl(user.profile_pic)} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-white/20">
-                      <span className="text-primary font-semibold text-sm">
-                        {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                      </span>
+                      <span className="text-primary font-semibold text-sm">{user.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
                     </div>
                   )}
                 </div>
-
-                {/* Name - hidden on mobile */}
-                <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">
-                  {user.name}
-                </span>
-
-                <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform duration-200 hidden sm:block ${
-                    userDropdownOpen ? 'rotate-180' : ''
-                  }`}
-                />
+                <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20"
-              sideOffset={8}
-            >
+            <DropdownMenuContent align="end" className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20" sideOffset={8}>
               <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
                 <Link to="/profile" className="flex items-center w-full">
                   <UserCircle className="h-4 w-4 mr-2" />
                   {t('header.my-profile')}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer hover:bg-white hover:text-black"
-                onClick={logout}
-              >
+              <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black" onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 {t('nav.logout')}
               </DropdownMenuItem>
@@ -539,7 +701,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle }: TopHeaderProps) => 
       </div>
     </motion.header>
 
-    {/* Lead Preview Modal - opened from search or notifications */}
     <LeadPreviewModal
       isOpen={isLeadModalOpen}
       onClose={() => { setIsLeadModalOpen(false); setSelectedLeadId(null); }}
