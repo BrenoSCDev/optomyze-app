@@ -1,23 +1,31 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X } from 'lucide-react';
+import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
 import {
-  ChatConversation, ChatMessage, MessagesMeta,
-  fetchMessages, sendTextMessage, sendFileMessage, deleteMessages,
+  ChatConversation, ChatContact, ChatMessage, MessagesMeta,
+  fetchMessages, sendTextMessage, sendFileMessage, deleteMessages, deleteGroup,
 } from '@/services/inboxChatApi';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import GroupManagementPanel from './GroupManagementPanel';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface MessageThreadProps {
   conversation: ChatConversation | null;
+  contacts?: ChatContact[];
   onBack?: () => void;
   showBackButton?: boolean;
   onMessageSent?: (msg: ChatMessage) => void;
+  onConversationUpdated?: (conv: ChatConversation) => void;
+  onConversationDeleted?: (convId: number) => void;
 }
 
 function getInitials(name: string): string {
@@ -32,7 +40,8 @@ function getAvatarUrl(url: string | null | undefined): string | null {
 }
 
 const MessageThread: React.FC<MessageThreadProps> = ({
-  conversation, onBack, showBackButton = false, onMessageSent,
+  conversation, contacts = [], onBack, showBackButton = false, onMessageSent,
+  onConversationUpdated, onConversationDeleted,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -49,14 +58,20 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Group management state
+  const [showGroupPanel, setShowGroupPanel] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingGroup, setIsDeletingGroup] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messageIdsRef = useRef<Set<number>>(new Set());
 
-  // Reset select mode when conversation changes
+  // Reset state when conversation changes
   useEffect(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
+    setShowGroupPanel(false);
   }, [conversation?.id]);
 
   // ─── Load messages for selected conversation ──────────────────────────
@@ -247,7 +262,22 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     }
   }, [conversation?.id, onMessageSent, toast]);
 
-  // ─── Render empty state ───────────────────────────────────────────────
+  // ─── Delete group handler ─────────────────────────────────────────────
+  const handleDeleteGroup = useCallback(async () => {
+    if (!conversation || isDeletingGroup) return;
+    setIsDeletingGroup(true);
+    try {
+      await deleteGroup(conversation.id);
+      setShowDeleteConfirm(false);
+      onConversationDeleted?.(conversation.id);
+      toast({ title: 'Group deleted', description: `"${conversation.name}" has been deleted.` });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err?.response?.data?.message || 'Failed to delete group.', variant: 'destructive' });
+    } finally {
+      setIsDeletingGroup(false);
+    }
+  }, [conversation?.id, conversation?.name, isDeletingGroup, onConversationDeleted, toast]);
+
   if (!conversation) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-3">
@@ -265,6 +295,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const isGroup = conversation.type === 'group';
   const initials = getInitials(conversation.name);
   const coverUrl = getAvatarUrl(conversation.cover_image_url);
+  const meParticipant = conversation.participants.find(p => p.id === currentUserId);
+  const isGroupAdmin = isGroup && meParticipant?.conversation_role === 'admin';
 
   // Build rendered messages with day separators
   const rendered: Array<{ msg: ChatMessage; showSeparator: boolean; showSender: boolean }> = [];
@@ -322,6 +354,18 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           )}
         </div>
 
+        {/* Group members button */}
+        {isGroup && (
+          <button
+            onClick={() => setShowGroupPanel(prev => !prev)}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors
+              ${showGroupPanel ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
+            title="Group members"
+          >
+            <Users className="w-4 h-4" />
+          </button>
+        )}
+
         {/* Select mode toggle */}
         <button
           onClick={() => {
@@ -348,9 +392,17 @@ const MessageThread: React.FC<MessageThreadProps> = ({
             <DropdownMenuItem className="gap-2 text-xs cursor-pointer">
               <Archive className="w-3.5 h-3.5" /> Archive
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-xs text-destructive cursor-pointer">
-              <Trash2 className="w-3.5 h-3.5" /> Delete
-            </DropdownMenuItem>
+            {isGroupAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="gap-2 text-xs text-destructive cursor-pointer"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Group
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -380,54 +432,94 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         </div>
       )}
 
-      {/* Messages area */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
-      >
-        {isLoadingMore && (
-          <div className="flex justify-center py-2">
-            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {isLoadingMessages ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <p className="text-xs">Loading messages...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {rendered.map(({ msg, showSeparator, showSender }) => {
-              const isOwn = msg.sender.id === currentUserId;
-              return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={isOwn}
-                  showSender={showSender}
-                  showDaySeparator={showSeparator}
-                  selectMode={selectMode}
-                  isSelected={selectedIds.has(msg.id)}
-                  onToggleSelect={toggleSelectMessage}
-                />
-              );
-            })}
-            {messages.length === 0 && (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                No messages yet. Say hello!
+      {/* Content area with optional group panel */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Messages area */}
+        <div className={`flex-1 flex flex-col overflow-hidden ${showGroupPanel && isGroup ? 'border-r border-border/40' : ''}`}>
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+          >
+            {isLoadingMore && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
               </div>
             )}
-          </>
+
+            {isLoadingMessages ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <p className="text-xs">Loading messages...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {rendered.map(({ msg, showSeparator, showSender }) => {
+                  const isOwn = msg.sender.id === currentUserId;
+                  return (
+                    <MessageBubble
+                      key={msg.id}
+                      message={msg}
+                      isOwn={isOwn}
+                      showSender={showSender}
+                      showDaySeparator={showSeparator}
+                      selectMode={selectMode}
+                      isSelected={selectedIds.has(msg.id)}
+                      onToggleSelect={toggleSelectMessage}
+                    />
+                  );
+                })}
+                {messages.length === 0 && (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    No messages yet. Say hello!
+                  </div>
+                )}
+              </>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          {/* Input */}
+          <MessageInput onSend={handleSend} onSendFile={handleSendFile} disabled={isSending} />
+        </div>
+
+        {/* Group management panel */}
+        {showGroupPanel && isGroup && (
+          <div className="w-64 lg:w-72 shrink-0 overflow-hidden">
+            <GroupManagementPanel
+              conversation={conversation}
+              contacts={contacts}
+              onClose={() => setShowGroupPanel(false)}
+              onConversationUpdated={(conv) => onConversationUpdated?.(conv)}
+            />
+          </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <MessageInput onSend={handleSend} onSendFile={handleSendFile} disabled={isSending} />
+      {/* Delete group confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Group</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{conversation.name}"? This action cannot be undone and all messages will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingGroup}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteGroup}
+              disabled={isDeletingGroup}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingGroup ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
