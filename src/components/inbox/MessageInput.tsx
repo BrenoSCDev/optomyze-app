@@ -1,15 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Mic, X, Smile } from 'lucide-react';
+import { Send, Paperclip, Mic, X, Image as ImageIcon } from 'lucide-react';
 
 interface MessageInputProps {
   onSend: (content: string) => void;
+  onSendFile?: (file: File, type: 'image' | 'audio') => void;
   disabled?: boolean;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled = false }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSend, onSendFile, disabled = false }) => {
   const [value, setValue] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -33,7 +38,44 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled = false })
     }
   };
 
-  const toggleRecording = () => setIsRecording(r => !r);
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onSendFile) {
+      onSendFile(file, 'image');
+    }
+    e.target.value = '';
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      // Stop recording
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          if (audioChunksRef.current.length > 0 && onSendFile) {
+            const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+            onSendFile(file, 'audio');
+          }
+        };
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error('Failed to start recording:', err);
+      }
+    }
+  };
 
   return (
     <div className="border-t border-border/40 bg-background/60 backdrop-blur-sm px-4 py-3">
@@ -47,11 +89,15 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, disabled = false })
         </div>
       )}
 
+      {/* Hidden file inputs */}
+      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+
       <div className="flex items-end gap-2">
-        {/* File attachment */}
+        {/* Image attachment */}
         <button
+          onClick={() => imageInputRef.current?.click()}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 mb-1"
-          title="Attach file"
+          title="Send image"
         >
           <Paperclip className="w-4 h-4" />
         </button>

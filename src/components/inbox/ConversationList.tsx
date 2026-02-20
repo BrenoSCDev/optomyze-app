@@ -1,71 +1,72 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Search, Plus, Users, MessageSquare, UserCheck,
-  ChevronDown, Hash
+  Search, Plus, Users, MessageSquare, UserCheck, Hash,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  MOCK_CONVERSATIONS, MOCK_GROUPS, MOCK_USERS, MOCK_CURRENT_USER_ID,
-  InboxConversation, InboxGroup, InboxUser,
-  getConversationDisplayName, getConversationInitials, getConversationStatus,
-  formatMessageTime, getLastMessagePreview, getUserById, getGroupById,
-} from '@/data/mockInboxData';
+import { ChatConversation, ChatContact } from '@/services/inboxChatApi';
 
 type Tab = 'all' | 'contacts' | 'groups';
 
 interface ConversationListProps {
-  selectedConversation: InboxConversation | null;
-  onSelectConversation: (conv: InboxConversation) => void;
+  conversations: ChatConversation[];
+  contacts: ChatContact[];
+  selectedConversation: ChatConversation | null;
+  onSelectConversation: (conv: ChatConversation) => void;
+  onContactClick: (contact: ChatContact) => void;
   onOpenCreateGroup: () => void;
+  isLoading?: boolean;
 }
 
-const statusColor = (status: string | null) => {
-  if (status === 'online') return 'bg-green-500';
-  if (status === 'away')   return 'bg-yellow-500';
-  return 'bg-muted-foreground';
-};
+function getInitials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function formatMessageTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === y.toDateString();
+  if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isYesterday) return 'Yesterday';
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function getLastMessagePreview(conv: ChatConversation): string {
+  if (!conv.last_message) return 'No messages yet';
+  const m = conv.last_message;
+  if (m.type === 'image') return '📷 Image';
+  if (m.type === 'audio') return '🎵 Audio';
+  return m.body ?? '';
+}
 
 const ConversationList: React.FC<ConversationListProps> = ({
-  selectedConversation,
-  onSelectConversation,
-  onOpenCreateGroup,
+  conversations, contacts, selectedConversation,
+  onSelectConversation, onContactClick, onOpenCreateGroup, isLoading,
 }) => {
   const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
 
-  const totalUnread = MOCK_CONVERSATIONS.reduce((sum, c) => sum + c.unread_count, 0);
+  const lowerSearch = search.toLowerCase();
 
-  // All tab: sorted by last_message time
-  const filteredConversations = MOCK_CONVERSATIONS
-    .filter(c => {
-      const name = getConversationDisplayName(c, MOCK_CURRENT_USER_ID);
-      return name.toLowerCase().includes(search.toLowerCase());
-    })
+  const filteredConversations = conversations
+    .filter(c => c.name.toLowerCase().includes(lowerSearch))
     .sort((a, b) => {
-      const ta = a.last_message?.created_at ?? a.created_at;
-      const tb = b.last_message?.created_at ?? b.created_at;
+      const ta = a.last_message_at ?? a.created_at;
+      const tb = b.last_message_at ?? b.created_at;
       return new Date(tb).getTime() - new Date(ta).getTime();
     });
 
-  const filteredContacts = MOCK_USERS
-    .filter(u => u.id !== MOCK_CURRENT_USER_ID)
-    .filter(u =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.role.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      const order = { online: 0, away: 1, offline: 2 };
-      return (order[a.status] ?? 2) - (order[b.status] ?? 2);
-    });
+  const filteredContacts = contacts
+    .filter(c => c.name.toLowerCase().includes(lowerSearch) || c.role.toLowerCase().includes(lowerSearch))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-  const filteredGroups = MOCK_GROUPS.filter(g =>
-    g.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredGroups = filteredConversations.filter(c => c.type === 'group');
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: 'all',      label: 'All',      count: totalUnread },
-    { id: 'contacts', label: 'Contacts', count: 0 },
-    { id: 'groups',   label: 'Groups',   count: 0 },
+    { id: 'all',      label: 'All' },
+    { id: 'contacts', label: 'Contacts' },
+    { id: 'groups',   label: 'Groups' },
   ];
 
   return (
@@ -102,17 +103,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors relative flex items-center justify-center gap-1.5
-              ${tab === t.id
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-              }`}
+              ${tab === t.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
           >
             {t.label}
-            {(t.count ?? 0) > 0 && (
-              <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                {t.count}
-              </span>
-            )}
             {tab === t.id && (
               <motion.div
                 layoutId="tab-underline"
@@ -125,184 +118,137 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        <AnimatePresence mode="wait">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-3" />
+            <p className="text-xs">Loading conversations...</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
 
-          {/* ALL TAB */}
-          {tab === 'all' && (
-            <motion.div
-              key="all"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {filteredConversations.map(conv => {
-                const name     = getConversationDisplayName(conv, MOCK_CURRENT_USER_ID);
-                const initials = getConversationInitials(conv, MOCK_CURRENT_USER_ID);
-                const status   = getConversationStatus(conv, MOCK_CURRENT_USER_ID);
-                const preview  = getLastMessagePreview(conv.last_message);
-                const time     = conv.last_message ? formatMessageTime(conv.last_message.created_at) : '';
-                const isGroup  = conv.type === 'group';
-                const selected = selectedConversation?.id === conv.id;
+            {/* ALL TAB */}
+            {tab === 'all' && (
+              <motion.div key="all" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                {filteredConversations.map(conv => {
+                  const initials = getInitials(conv.name);
+                  const preview  = getLastMessagePreview(conv);
+                  const time     = conv.last_message_at ? formatMessageTime(conv.last_message_at) : '';
+                  const isGroup  = conv.type === 'group';
+                  const selected = selectedConversation?.id === conv.id;
 
-                return (
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => onSelectConversation(conv)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 transition-colors border-b border-border/20 text-left
+                        ${selected ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-muted/30'}`}
+                    >
+                      <div className="relative shrink-0">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
+                          ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
+                          {isGroup ? <Hash className="w-4 h-4" /> : initials}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-sm font-medium truncate text-foreground/80">{conv.name}</span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{time}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs truncate text-muted-foreground">{preview}</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {filteredConversations.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
+                    <p className="text-xs">No conversations found</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* CONTACTS TAB */}
+            {tab === 'contacts' && (
+              <motion.div key="contacts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                {filteredContacts.map(contact => (
                   <button
-                    key={conv.id}
-                    onClick={() => onSelectConversation(conv)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors border-b border-border/20 text-left
-                      ${selected
-                        ? 'bg-primary/10 border-l-2 border-l-primary'
-                        : 'hover:bg-muted/30'
-                      }`}
+                    key={contact.id}
+                    onClick={() => onContactClick(contact)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left"
                   >
-                    {/* Avatar */}
                     <div className="relative shrink-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
-                        ${isGroup
-                          ? 'bg-accent/20 border border-accent/30 text-accent'
-                          : 'bg-primary/20 border border-primary/30 text-primary'
-                        }`}>
-                        {isGroup ? <Hash className="w-4 h-4" /> : initials}
+                      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary">
+                        {getInitials(contact.name)}
                       </div>
-                      {status && (
-                        <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-background ${statusColor(status)}`} />
-                      )}
                     </div>
-
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className={`text-sm font-medium truncate ${conv.unread_count > 0 ? 'text-foreground' : 'text-foreground/80'}`}>
-                          {name}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{time}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs truncate ${conv.unread_count > 0 ? 'text-foreground/70 font-medium' : 'text-muted-foreground'}`}>
-                          {preview}
-                        </span>
-                        {conv.unread_count > 0 && (
-                          <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 ml-2 shrink-0">
-                            {conv.unread_count}
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                      <p className="text-xs text-muted-foreground">{contact.role} &bull; {contact.email}</p>
                     </div>
+                    <UserCheck className="w-3.5 h-3.5 text-muted-foreground/50" />
                   </button>
-                );
-              })}
+                ))}
 
-              {filteredConversations.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <MessageSquare className="w-8 h-8 mb-2 opacity-40" />
-                  <p className="text-xs">No conversations found</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* CONTACTS TAB */}
-          {tab === 'contacts' && (
-            <motion.div
-              key="contacts"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {filteredContacts.map(user => (
-                <button
-                  key={user.id}
-                  onClick={() => {
-                    // Find existing DM or create one
-                    const existing = MOCK_CONVERSATIONS.find(
-                      c => c.type === 'direct' && c.participant_ids.includes(user.id)
-                    );
-                    if (existing) {
-                      onSelectConversation(existing);
-                      setTab('all');
-                    }
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left"
-                >
-                  <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary">
-                      {user.initials}
-                    </div>
-                    <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-background ${statusColor(user.status)}`} />
+                {filteredContacts.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Users className="w-8 h-8 mb-2 opacity-40" />
+                    <p className="text-xs">No contacts found</p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.role} &bull; {user.status === 'online' ? 'Online' : user.last_seen ?? 'Offline'}</p>
-                  </div>
-                  <UserCheck className="w-3.5 h-3.5 text-muted-foreground/50" />
-                </button>
-              ))}
+                )}
+              </motion.div>
+            )}
 
-              {filteredContacts.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Users className="w-8 h-8 mb-2 opacity-40" />
-                  <p className="text-xs">No contacts found</p>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* GROUPS TAB */}
-          {tab === 'groups' && (
-            <motion.div
-              key="groups"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <div className="px-4 py-2">
-                <button
-                  onClick={onOpenCreateGroup}
-                  className="w-full flex items-center gap-2 py-2.5 px-3 rounded-lg border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-colors text-xs font-medium"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create New Group
-                </button>
-              </div>
-
-              {filteredGroups.map(group => {
-                const conv = MOCK_CONVERSATIONS.find(c => c.group_id === group.id);
-                const memberCount = group.member_ids.length;
-                const initials = group.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
-                return (
+            {/* GROUPS TAB */}
+            {tab === 'groups' && (
+              <motion.div key="groups" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                <div className="px-4 py-2">
                   <button
-                    key={group.id}
-                    onClick={() => conv && onSelectConversation(conv)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left
-                      ${selectedConversation?.group_id === group.id ? 'bg-primary/10 border-l-2 border-l-primary' : ''}`}
+                    onClick={onOpenCreateGroup}
+                    className="w-full flex items-center gap-2 py-2.5 px-3 rounded-lg border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-colors text-xs font-medium"
                   >
-                    <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-semibold text-sm shrink-0">
-                      {initials}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
-                      <p className="text-xs text-muted-foreground">{memberCount} members</p>
-                    </div>
-                    {conv && conv.unread_count > 0 && (
-                      <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
-                        {conv.unread_count}
-                      </span>
-                    )}
+                    <Plus className="w-3.5 h-3.5" />
+                    Create New Group
                   </button>
-                );
-              })}
-
-              {filteredGroups.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Users className="w-8 h-8 mb-2 opacity-40" />
-                  <p className="text-xs">No groups found</p>
                 </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+                {filteredGroups.map(conv => {
+                  const initials = getInitials(conv.name);
+                  const memberCount = conv.participants.length;
+                  const selected = selectedConversation?.id === conv.id;
+
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => onSelectConversation(conv)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors border-b border-border/20 text-left
+                        ${selected ? 'bg-primary/10 border-l-2 border-l-primary' : ''}`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-semibold text-sm shrink-0">
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{conv.name}</p>
+                        <p className="text-xs text-muted-foreground">{memberCount} members</p>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {filteredGroups.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Users className="w-8 h-8 mb-2 opacity-40" />
+                    <p className="text-xs">No groups found</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
