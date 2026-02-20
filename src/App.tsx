@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { MenuOrderProvider } from "./contexts/MenuOrderContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { WhatsAppProvider } from "./contexts/WhatsAppContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -22,6 +23,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <LanguageProvider>
+        <MenuOrderProvider>
         <BrowserRouter>
           <NotificationProvider>
             <WhatsAppProvider>
@@ -94,6 +96,7 @@ const App = () => (
             </WhatsAppProvider>
           </NotificationProvider>
         </BrowserRouter>
+        </MenuOrderProvider>
       </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
