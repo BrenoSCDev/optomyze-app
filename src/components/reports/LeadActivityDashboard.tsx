@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { onLeadTransaction } from '@/contexts/NotificationContext';
 import {
   Activity,
   PlusCircle,
@@ -92,6 +93,34 @@ const LeadActivityDashboard: React.FC = () => {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  // Real-time: prepend incoming lead transactions
+  useEffect(() => {
+    return onLeadTransaction((tx) => {
+      const mapped: ActivityTransaction = {
+        id: tx.id,
+        lead_id: tx.lead.id,
+        user_id: tx.user?.id ?? null,
+        type: tx.txType,
+        source: tx.source,
+        action: tx.action,
+        description: tx.description,
+        created_at: tx.created_at,
+        lead: {
+          id: tx.lead.id,
+          first_name: tx.lead.first_name,
+          last_name: tx.lead.last_name,
+          email: '',
+          company_id: 0,
+        },
+        user: tx.user ? { id: tx.user.id, name: tx.user.name, email: '' } : null,
+      };
+      setTransactions(prev => {
+        if (prev.some(t => t.id === mapped.id)) return prev;
+        return [mapped, ...prev];
+      });
+    });
   }, []);
 
   const txTypeKPIs = useMemo(() => {
