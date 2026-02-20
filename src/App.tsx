@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { MenuOrderProvider } from "./contexts/MenuOrderContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { WhatsAppProvider } from "./contexts/WhatsAppContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -23,6 +24,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <LanguageProvider>
+        <ThemeProvider>
         <MenuOrderProvider>
         <BrowserRouter>
           <NotificationProvider>
@@ -97,6 +99,7 @@ const App = () => (
           </NotificationProvider>
         </BrowserRouter>
         </MenuOrderProvider>
+        </ThemeProvider>
       </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
