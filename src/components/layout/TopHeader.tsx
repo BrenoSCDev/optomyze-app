@@ -67,7 +67,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [searchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
+  const [searchTarget, setSearchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, funnels, logout } = useAuth();
@@ -81,6 +81,20 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Re-read search target whenever the window regains focus (user may have changed it in Preferences)
+  useEffect(() => {
+    const sync = () => setSearchTarget(getDefaultSearchTarget());
+    window.addEventListener('focus', sync);
+    window.addEventListener('storage', sync);
+    // Also poll periodically for same-tab changes
+    const interval = setInterval(sync, 2000);
+    return () => {
+      window.removeEventListener('focus', sync);
+      window.removeEventListener('storage', sync);
+      clearInterval(interval);
+    };
   }, []);
 
   const currentSearchConfig = SEARCH_TARGETS[searchTarget];
@@ -442,7 +456,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             )}
             <Input
               type="text"
-              placeholder={t('header.search-placeholder')}
+              placeholder={`Search ${currentSearchConfig.labelKey}...`}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -515,7 +529,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             )}
             <Input
               type="text"
-              placeholder={t('header.search-placeholder')}
+              placeholder={`Search ${currentSearchConfig.labelKey}...`}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -578,7 +592,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                 <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <Input
                   type="text"
-                  placeholder={t('header.search-placeholder')}
+                  placeholder={`Search ${currentSearchConfig.labelKey}...`}
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onKeyDown={handleKeyDown}
