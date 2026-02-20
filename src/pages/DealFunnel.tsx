@@ -5,17 +5,29 @@
  * Uses the same layout as Index but renders DealsManagement.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import DealsManagement from '@/components/deals/DealsManagement';
+import { useMenuOrder } from '@/contexts/MenuOrderContext';
 
 const DealFunnel = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeSection, setActiveSection] = useState('deals');
   const { funnelId } = useParams();
+  const { navLayout } = useMenuOrder();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const useHeaderLayout = navLayout === 'header' && !isMobile;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -26,22 +38,47 @@ const DealFunnel = () => {
         </div>
       </div>
 
-      <TopHeader sidebarCollapsed={sidebarCollapsed} />
+      <TopHeader
+        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        onMobileMenuToggle={() => setMobileSidebarOpen(true)}
+        activeSection={activeSection}
+        onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+        headerNavMode={useHeaderLayout}
+      />
 
       <div className="relative z-10 flex pt-16">
-        <Sidebar
-          isCollapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
+        {!useHeaderLayout && (
+          <Sidebar
+            isCollapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection={activeSection}
+            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        {useHeaderLayout && isMobile && (
+          <Sidebar
+            isCollapsed={false}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection={activeSection}
+            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
 
         <motion.main
-          className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
+          className="flex-1 transition-all duration-300"
           initial={false}
-          animate={{ marginLeft: sidebarCollapsed ? 64 : 256 }}
+          animate={{
+            marginLeft: useHeaderLayout
+              ? 0
+              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+          }}
         >
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             <motion.div
               key={funnelId}
               initial={{ opacity: 0, y: 20 }}
