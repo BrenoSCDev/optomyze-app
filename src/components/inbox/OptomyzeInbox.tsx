@@ -270,9 +270,9 @@ const OptomyzeInbox: React.FC = () => {
           <nav className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Home className="w-3 h-3 shrink-0" />
             <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
-            <span>{t('nav.support') || 'Communication'}</span>
+            <span>Inboxes</span>
             <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
-            <span className="text-foreground/80 font-medium truncate">Inbox</span>
+            <span className="text-foreground/80 font-medium truncate">Optomyze Inbox</span>
           </nav>
         </div>
 
