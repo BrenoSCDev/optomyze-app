@@ -271,7 +271,7 @@ const TasksDashboard: React.FC = () => {
           <ListTodo className="w-6 h-6 text-accent" />
           {t('reports.tasks')}
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('lead-activity.subtitle')}</p>
+        <p className="text-sm text-muted-foreground mt-1">{t('tasks.dashboard.subtitle')}</p>
       </div>
 
       <div>
