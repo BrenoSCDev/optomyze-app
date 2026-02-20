@@ -169,7 +169,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     try {
       const msg = await sendTextMessage(conversation.id, content);
       messageIdsRef.current.add(msg.id);
-      setMessages(prev => [...prev, msg]);
+      // Guard against WS event that may have arrived before POST resolved
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
       onMessageSent?.(msg);
     } catch (err) {
       console.error('Failed to send message:', err);
@@ -184,7 +188,10 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     try {
       const msg = await sendFileMessage(conversation.id, type, file);
       messageIdsRef.current.add(msg.id);
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
       onMessageSent?.(msg);
     } catch (err) {
       console.error('Failed to send file:', err);
