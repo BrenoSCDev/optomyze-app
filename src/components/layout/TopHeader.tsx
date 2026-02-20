@@ -15,6 +15,9 @@ import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu,
   Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus
 } from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import DealPreviewModal from '@/components/deals/DealPreviewModal';
+import ProductFormModal from '@/components/products/ProductFormModal';
+import { getProduct, type Product } from '@/services/productApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -66,6 +69,10 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const [showResults, setShowResults] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [isDealModalOpen, setIsDealModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [searchTarget, setSearchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -140,11 +147,17 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         setIsLeadModalOpen(true);
         break;
       case 'deals':
-        navigate(`/?section=deals`);
+        setSelectedDealId(String(result.id));
+        setIsDealModalOpen(true);
         break;
       case 'products':
-        // Navigate to products section
-        navigate(`/?section=manage-products`);
+        // Fetch full product and open edit modal
+        getProduct(result.id).then((product) => {
+          setSelectedProduct(product);
+          setIsProductModalOpen(true);
+        }).catch(() => {
+          navigate(`/?section=manage-products`);
+        });
         break;
       case 'tasks':
         console.log('Task selected:', result);
@@ -804,6 +817,19 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       isOpen={isLeadModalOpen}
       onClose={() => { setIsLeadModalOpen(false); setSelectedLeadId(null); }}
       leadId={selectedLeadId}
+    />
+
+    <DealPreviewModal
+      isOpen={isDealModalOpen}
+      onClose={() => { setIsDealModalOpen(false); setSelectedDealId(null); }}
+      dealId={selectedDealId}
+    />
+
+    <ProductFormModal
+      isOpen={isProductModalOpen}
+      onClose={() => { setIsProductModalOpen(false); setSelectedProduct(null); }}
+      product={selectedProduct}
+      onSuccess={() => {}}
     />
     </>
   );
