@@ -45,8 +45,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useMenuOrder } from '../contexts/MenuOrderContext';
+import { useTheme } from '../contexts/ThemeContext';
 import optomyzeLogo from '@/assets/optomyze.png';
+import optomyzeLogoLight from '@/assets/optomyze-light.png';
 import OptoIcon from '@/assets/opto-icon.png';
+import OptoIconLight from '@/assets/opto-icon-light.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta, FaWhatsapp } from "react-icons/fa6";
 import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
@@ -75,8 +78,12 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   const { funnels, user } = useAuth();
   const { t } = useLanguage();
   const { menuOrder } = useMenuOrder();
+  const { mode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const logo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
+  const icon = mode === 'dark' ? OptoIcon : OptoIconLight;
 
   const handleSectionNavigation = (sectionId: string) => {
     if (sectionId === 'leads') {
@@ -88,8 +95,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   // Dashboard submenu items
   const dashboardItems = [
-    { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={OptoIcon} alt="Meta" className="h-4 w-4" /> },
-    { id: 'plan-usage', label: t('dashboard.plan-usage'), icon: () => <img src={OptoIcon} alt="Plan Usage" className="h-4 w-4" /> },
+    { id: 'optomyze-metrics', label: t('dashboard.optomyze-metrics'), icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'plan-usage', label: t('dashboard.plan-usage'), icon: () => <img src={icon} alt="Plan Usage" className="h-4 w-4" /> },
     { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> },
     { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <SiGoogleads size={16}/> },
     { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> },
@@ -114,7 +121,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     }));
 
   const settingsItems = [
-    { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={OptoIcon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
+    { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={icon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
     { id: 'funnels', label: t('nav.funnels'), icon: () => <IoFunnelOutline />, restrictedFor: ['agent'] },
     { id: 'companies', label: t('nav.companies'), icon: () => <MdBusinessCenter size={16}/>, restrictedFor: ['agent'] },
     { id: 'tags', label: t('nav.tags'), icon: () => <Tag size={13}/>, restrictedFor: ['agent'] },
@@ -128,7 +135,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   const aiAgentsItems = [
     { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
-    { id: 'optomyze-agents', label: t('agents.optomyze.menu-title'), icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'optomyze-agents', label: t('agents.optomyze.menu-title'), icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const apiItems = [
@@ -145,11 +152,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   const chatItems = [
     { id: 'whatsapp-inbox',    label: 'WhatsApp Inbox',    icon: () => <FaWhatsapp size={18}/> },
-    { id: 'optomyze-inbox',    label: 'Optomyze Inbox',    icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'optomyze-inbox',    label: 'Optomyze Inbox',    icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const calendarsItems = [
-    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={OptoIcon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'optomyze-calendar', label: t('calendar.optomyze.title'), icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const isErpModule = user?.company?.product_module === 'ERP';
@@ -314,7 +321,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <img src={optomyzeLogo} alt="Optomyze" className="h-8 " />
+              <img src={logo} alt="Optomyze" className="h-8 " />
             </motion.div>
           )}
         </AnimatePresence>
