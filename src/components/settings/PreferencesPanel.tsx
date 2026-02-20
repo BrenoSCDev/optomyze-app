@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import {
   Moon, Sun, Globe, GripVertical, PanelLeft, PanelTop, Search, Volume2, Info, X, RotateCcw,
   BarChart3, Users, Settings as SettingsIcon, PieChart, Plug, Database, Building, MessageCircle,
-  CalendarDays, Package, Headphones
+  CalendarDays, Package, Headphones, Play, VolumeX
 } from 'lucide-react';
 import { MdCurrencyExchange } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,7 +43,13 @@ import Brasil from '@/assets/brasil.png';
 import Spain from '@/assets/spain.png';
 import Germany from '@/assets/germany.png';
 import USA from '@/assets/eua.png';
-
+import {
+  NOTIFICATION_SOUNDS,
+  NotificationSoundId,
+  getSelectedSound,
+  setSelectedSound as persistSound,
+  previewSound,
+} from '@/lib/notificationSounds';
 // Section metadata for display in the reorder list
 const SECTION_META: Record<string, { icon: React.ReactNode; labelKey: string }> = {
   dashboard: { icon: <BarChart3 className="h-4 w-4" />, labelKey: 'nav.dashboard' },
@@ -107,7 +113,7 @@ const PreferencesPanel: React.FC = () => {
   const { mode, setMode } = useTheme();
   const { user } = useAuth();
   const [searchBehavior, setSearchBehavior] = useState('leads');
-  const [selectedSound, setSelectedSound] = useState('default');
+  const [selectedSound, setSelectedSound] = useState<NotificationSoundId>(getSelectedSound);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -127,14 +133,21 @@ const PreferencesPanel: React.FC = () => {
     { code: 'es' as Language, name: 'Español', flag: Spain, nativeName: 'Español' },
   ];
 
-  const soundOptions = [
-    { id: 'default', label: 'Default Chime' },
-    { id: 'soft-bell', label: 'Soft Bell' },
-    { id: 'digital-pop', label: 'Digital Pop' },
-    { id: 'subtle-ping', label: 'Subtle Ping' },
-    { id: 'none', label: 'No Sound' },
-  ];
+  const handleSoundChange = useCallback((id: string) => {
+    const soundId = id as NotificationSoundId;
+    setSelectedSound(soundId);
+    persistSound(soundId);
+    if (soundId !== 'none') {
+      previewSound(soundId);
+    }
+    toast.success('Notification sound updated');
+  }, []);
 
+  const handlePreviewSound = useCallback((e: React.MouseEvent, id: NotificationSoundId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    previewSound(id);
+  }, []);
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage as Language);
     const selectedLang = languages.find(l => l.code === newLanguage);
@@ -372,17 +385,33 @@ const PreferencesPanel: React.FC = () => {
               </div>
             </div>
             <div className="ml-7">
-              <RadioGroup value={selectedSound} onValueChange={setSelectedSound} className="space-y-1">
-                {soundOptions.map((sound) => (
+              <RadioGroup value={selectedSound} onValueChange={handleSoundChange} className="space-y-1">
+                {NOTIFICATION_SOUNDS.map((sound) => (
                   <label
                     key={sound.id}
                     className={`
-                      flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors
+                      flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors group
                       ${selectedSound === sound.id ? 'bg-accent/10' : 'hover:bg-muted/50'}
                     `}
                   >
                     <RadioGroupItem value={sound.id} id={sound.id} />
-                    <span className="text-sm text-foreground/80">{sound.label}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-foreground/80">{sound.label}</span>
+                      <p className="text-[11px] text-muted-foreground">{sound.description}</p>
+                    </div>
+                    {sound.id !== 'none' && (
+                      <button
+                        type="button"
+                        onClick={(e) => handlePreviewSound(e, sound.id)}
+                        className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 shrink-0"
+                        title={`Preview ${sound.label}`}
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {sound.id === 'none' && (
+                      <VolumeX className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                    )}
                   </label>
                 ))}
               </RadioGroup>
