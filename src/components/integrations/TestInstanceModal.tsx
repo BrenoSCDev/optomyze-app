@@ -29,12 +29,14 @@ interface TestInstanceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   instance: WhatsAppInstance | null;
+  onStatusChange?: (instanceId: number, status: string) => void;
 }
 
 const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
   open,
   onOpenChange,
-  instance
+  instance,
+  onStatusChange
 }) => {
   const { t } = useLanguage();
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -56,12 +58,17 @@ const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
     setSuccess(false);
 
     try {
-      await api.post(`/api/integrations/whatsapp-evo-instances/send-message/${instance.id}`, {
+      const response = await api.post(`/api/integrations/whatsapp-evo-instances/send-message/${instance.id}`, {
         number: phoneNumber.trim(),
         text: message.trim()
       });
 
       setSuccess(true);
+
+      if (response.data?.status === 'connected' && onStatusChange) {
+        onStatusChange(instance.id, 'connected');
+      }
+
       toast({
         title: t('integrations.panel.test.success-title'),
         description: t('integrations.panel.test.success-description'),

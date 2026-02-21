@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Store, Trash2, QrCode, Key } from 'lucide-react';
+import { ChevronRight, Plus, Store, Trash2, QrCode, Key, Unplug } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
@@ -138,6 +138,36 @@ const IntegrationPanel: React.FC = () => {
     setCredentialsModalOpen(true);
   };
 
+  const handleStatusChange = (instanceId: number, status: string) => {
+    setIntegrations(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        wpp_evo_instances: (prev.wpp_evo_instances || []).map(inst =>
+          inst.id === instanceId ? { ...inst, status } : inst
+        )
+      };
+    });
+  };
+
+  const handleDisconnect = async (instance: WhatsAppInstance) => {
+    try {
+      await api.post(`/api/integrations/whatsapp-evo-instances/disconnect/${instance.id}`);
+      handleStatusChange(instance.id, 'disconnected');
+      toast({
+        title: t('integrations.panel.disconnect.success-title'),
+        description: t('integrations.panel.disconnect.success-description'),
+      });
+    } catch (error) {
+      console.error('Error disconnecting instance:', error);
+      toast({
+        title: t('integrations.panel.disconnect.error-title'),
+        description: t('integrations.panel.disconnect.error-description'),
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
     const selectedFunnel = funnels.find(f => f.id === funnelId);
     setIntegrations(prev => {
@@ -229,7 +259,10 @@ const IntegrationPanel: React.FC = () => {
                                   {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                                  <Badge variant="secondary" className="text-xs">
+                                  <Badge 
+                                    variant="secondary" 
+                                    className={`text-xs ${instance.status === 'connected' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : ''}`}
+                                  >
                                     {instance.status || 'created'}
                                   </Badge>
                                   {instance.funnel && (
@@ -278,6 +311,17 @@ const IntegrationPanel: React.FC = () => {
                                 <Key className="w-4 h-4 mr-1" />
                                 {t('integrations.panel.credentials.button')}
                               </Button>
+                              {instance.status === 'connected' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="flex-1 text-orange-600 hover:text-orange-600 hover:bg-orange-500/10 border-orange-500/30"
+                                  onClick={() => handleDisconnect(instance)}
+                                >
+                                  <Unplug className="w-4 h-4 mr-1" />
+                                  {t('integrations.panel.disconnect.button')}
+                                </Button>
+                              )}
                               <Button 
                                 variant="outline" 
                                 size="sm" 
@@ -333,6 +377,7 @@ const IntegrationPanel: React.FC = () => {
         open={testModalOpen}
         onOpenChange={setTestModalOpen}
         instance={selectedInstance}
+        onStatusChange={handleStatusChange}
       />
       
       <DeleteInstanceModal
