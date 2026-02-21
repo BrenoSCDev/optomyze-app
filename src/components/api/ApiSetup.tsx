@@ -25,9 +25,10 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getEndpointCategories, EndpointDefinition, EndpointParam } from './apiEndpointData';
 
 // Parameter Row Component
-const ParameterRow = ({ name, type, required, description }) => {
+const ParameterRow = ({ name, type, required, description, constraints }: EndpointParam & { constraints?: string }) => {
   const { t } = useLanguage();
   
   return (
@@ -41,6 +42,11 @@ const ParameterRow = ({ name, type, required, description }) => {
               {t('api.required')}
             </span>
           )}
+          {constraints && (
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+              {constraints}
+            </span>
+          )}
         </div>
         <p className="text-muted-foreground text-xs">{description}</p>
       </div>
@@ -49,20 +55,36 @@ const ParameterRow = ({ name, type, required, description }) => {
 };
 
 // API Endpoint Card Component
-const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
+const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
+  endpoint: EndpointDefinition;
+  apiToken: string;
+  isSelected: boolean;
+  onToggle: () => void;
+}) => {
   const { t } = useLanguage();
   const [requestBody, setRequestBody] = useState('');
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [pathParamValues, setPathParamValues] = useState<Record<string, string>>({});
 
-  const getMethodColor = (method) => {
-    const colors = {
+  const getMethodColor = (method: string) => {
+    const colors: Record<string, string> = {
       GET: 'bg-blue-600 text-blue-100',
       POST: 'bg-green-600 text-green-100',
       PUT: 'bg-yellow-600 text-yellow-100',
       DELETE: 'bg-red-600 text-red-100'
     };
     return colors[method] || 'bg-secondary text-secondary-foreground';
+  };
+
+  const buildUrl = () => {
+    let path = endpoint.path;
+    if (endpoint.pathParams) {
+      for (const param of endpoint.pathParams) {
+        path = path.replace(`{${param.name}}`, pathParamValues[param.name] || `{${param.name}}`);
+      }
+    }
+    return path;
   };
 
   const executeRequest = async () => {
@@ -74,14 +96,15 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
     setLoading(true);
     try {
       let body = null;
-      if (endpoint.method !== 'GET' && requestBody) {
+      if (endpoint.method !== 'GET' && endpoint.method !== 'DELETE' && requestBody) {
         body = JSON.parse(requestBody);
       }
 
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
-      const response = await axios({
+      const url = buildUrl();
+      const resp = await axios({
         method: endpoint.method.toLowerCase(),
-        url: `${API_BASE_URL}/api/v1${endpoint.path}`,
+        url: `${API_BASE_URL}/api/v1${url}`,
         headers: {
           'Authorization': `Bearer ${apiToken}`,
           'Content-Type': 'application/json'
@@ -90,12 +113,12 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
       });
 
       setResponse({
-        status: response.status,
-        data: response.data,
-        headers: response.headers
+        status: resp.status,
+        data: resp.data,
+        headers: resp.headers
       });
 
-    } catch (error) {
+    } catch (error: any) {
       setResponse({
         status: error.response?.status || 0,
         data: error.response?.data || { error: error.message },
@@ -105,6 +128,8 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
       setLoading(false);
     }
   };
+
+  const hasBody = endpoint.method === 'POST' || endpoint.method === 'PUT';
 
   return (
     <Card className="glass-card overflow-hidden">
@@ -134,8 +159,48 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
             <p className="text-muted-foreground">{endpoint.description}</p>
           </div>
 
+          {/* Path Parameters */}
+          {endpoint.pathParams && endpoint.pathParams.length > 0 && (
+            <div>
+              <h4 className="text-foreground font-semibold mb-2">{t('api.path-parameters')}</h4>
+              <Card className="bg-muted/30">
+                <CardContent className="p-4 space-y-2 text-sm">
+                  {endpoint.pathParams.map((p) => (
+                    <div key={p.name} className="space-y-2">
+                      <ParameterRow {...p} />
+                      <input
+                        type="text"
+                        placeholder={`Enter ${p.name}...`}
+                        value={pathParamValues[p.name] || ''}
+                        onChange={(e) => setPathParamValues(prev => ({ ...prev, [p.name]: e.target.value }))}
+                        className="w-full max-w-xs px-3 py-1.5 rounded-lg bg-background border border-border text-foreground placeholder-muted-foreground text-sm focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Query Parameters */}
+          {endpoint.queryParams && endpoint.queryParams.length > 0 && (
+            <div>
+              <h4 className="text-foreground font-semibold mb-2">{t('api.query-parameters')}</h4>
+              <Card className="bg-muted/30">
+                <CardContent className="p-4">
+                  <h5 className="text-primary font-medium mb-3">{t('api.available-parameters')}</h5>
+                  <div className="space-y-2 text-sm">
+                    {endpoint.queryParams.map((p) => (
+                      <ParameterRow key={p.name} {...p} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Request Body (for POST/PUT) */}
-          {endpoint.method !== 'GET' && (
+          {hasBody && endpoint.bodyParams && (
             <div>
               <h4 className="text-foreground font-semibold mb-2">{t('api.request-body')}</h4>
               <div className="space-y-4">
@@ -144,60 +209,63 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
                   <CardContent className="p-4">
                     <h5 className="text-primary font-medium mb-3">{t('api.available-parameters')}</h5>
                     <div className="space-y-2 text-sm">
-                      <ParameterRow name="funnel_id" type="integer" required={true} description={t('api.params.funnel-id')} />
-                      <ParameterRow name="first_name" type="string" required={false} description={t('api.params.first-name')} />
-                      <ParameterRow name="last_name" type="string" required={false} description={t('api.params.last-name')} />
-                      <ParameterRow name="email" type="string" required={false} description={t('api.params.email')} />
-                      <ParameterRow name="phone" type="string" required={false} description={t('api.params.phone')} />
-                      <ParameterRow name="ddi" type="string" required={false} description={t('api.params.ddi')} />
-                      <ParameterRow name="source_platform" type="string" required={false} description={t('api.params.source-platform')} />
-                      <ParameterRow name="source_type" type="string" required={false} description={t('api.params.source-type')} />
-                      <ParameterRow name="status" type="enum" required={false} description={t('api.params.status')} />
-                      <ParameterRow name="priority" type="enum" required={false} description={t('api.params.priority')} />
-                      <ParameterRow name="estimated_value" type="number" required={false} description={t('api.params.estimated-value')} />
-                      <ParameterRow name="currency" type="string" required={false} description={t('api.params.currency')} />
-                      <ParameterRow name="ai_score" type="number" required={false} description={t('api.params.ai-score')} />
-                      <ParameterRow name="tags" type="array" required={false} description={t('api.params.tags')} />
-                      <ParameterRow name="custom_fields" type="object" required={false} description={t('api.params.custom-fields')} />
-                      <ParameterRow name="notes" type="string" required={false} description={t('api.params.notes')} />
-                      <ParameterRow name="sync_enabled" type="boolean" required={false} description={t('api.params.sync-enabled')} />
+                      {endpoint.bodyParams.map((p) => (
+                        <ParameterRow key={p.name} {...p} />
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Example Request */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h5 className="text-foreground font-medium">{t('api.example-request')}</h5>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRequestBody(JSON.stringify({
-                        "funnel_id": 1,
-                        "first_name": "John",
-                        "last_name": "Doe",
-                        "email": "john.doe@example.com",
-                        "phone": "+1-555-123-4567",
-                        "ddi": "+1",
-                        "source_platform": "website",
-                        "status": "new",
-                        "priority": "medium",
-                        "estimated_value": 5000,
-                        "currency": "USD",
-                        "ai_score": 75.5,
-                        "sync_enabled": true
-                      }, null, 2))}
-                    >
-                      {t('api.use-example')}
-                    </Button>
+                {endpoint.exampleBody && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-foreground font-medium">{t('api.example-request')}</h5>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setRequestBody(JSON.stringify(endpoint.exampleBody, null, 2))}
+                      >
+                        {t('api.use-example')}
+                      </Button>
+                    </div>
+                    <textarea
+                      value={requestBody}
+                      onChange={(e) => setRequestBody(e.target.value)}
+                      placeholder={t('api.json-placeholder')}
+                      className="w-full h-64 p-4 rounded-lg bg-muted/50 border border-border text-foreground font-mono text-sm focus:border-primary focus:outline-none resize-none"
+                    />
                   </div>
-                  <textarea
-                    value={requestBody}
-                    onChange={(e) => setRequestBody(e.target.value)}
-                    placeholder={t('api.json-placeholder')}
-                    className="w-full h-64 p-4 rounded-lg bg-muted/50 border border-border text-foreground font-mono text-sm focus:border-primary focus:outline-none resize-none"
-                  />
-                </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Example Responses (static documentation) */}
+          {endpoint.exampleResponses && endpoint.exampleResponses.length > 0 && (
+            <div>
+              <h4 className="text-foreground font-semibold mb-2">{t('api.example-response')}</h4>
+              <div className="space-y-3">
+                {endpoint.exampleResponses.map((er, idx) => (
+                  <Card key={idx} className="bg-muted/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className={`px-3 py-1 rounded text-sm font-medium ${
+                          er.status >= 200 && er.status < 300
+                            ? 'bg-green-600 text-green-100'
+                            : er.status >= 400 && er.status < 500
+                            ? 'bg-red-600 text-red-100'
+                            : 'bg-yellow-600 text-yellow-100'
+                        }`}>
+                          {er.label}
+                        </span>
+                      </div>
+                      <pre className="text-sm text-foreground overflow-x-auto">
+                        {JSON.stringify(er.body, null, 2)}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           )}
@@ -238,7 +306,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
             )}
           </div>
 
-          {/* Response */}
+          {/* Live Response */}
           {response && (
             <div>
               <h4 className="text-foreground font-semibold mb-2">{t('api.response')}</h4>
@@ -272,29 +340,16 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }) => {
 
 const ApiSetup = () => {
   const { t } = useLanguage();
-  const [selectedEndpoint, setSelectedEndpoint] = useState(null);
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [apiToken, setApiToken] = useState('');
   
-  const endpoints = [
-    {
-      category: t('api.leads'),
-      endpoints: [
-        {
-          id: 'create-lead',
-          method: 'POST',
-          path: '/leads',
-          summary: t('api.create-lead-summary'),
-          description: t('api.create-lead-description')
-        }
-      ]
-    }
-  ];
+  const categories = getEndpointCategories(t);
 
   // Get API base URL from environment variables
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
   const API_FULL_URL = `${API_BASE_URL}/api/v1`;
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
@@ -401,11 +456,11 @@ const ApiSetup = () => {
         transition={{ delay: 0.2 }}
         className="space-y-6"
       >
-        {endpoints.map((category) => (
-          <div key={category.category} className="space-y-4">
+        {categories.map((category) => (
+          <div key={category.categoryKey} className="space-y-4">
             <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Code className="h-6 w-6 text-primary" />
-              {category.category}
+              {category.categoryKey}
             </h2>
             
             {category.endpoints.map((endpoint) => (
