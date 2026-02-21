@@ -102,6 +102,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
 
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost';
       const url = buildUrl();
+      const scrollY = window.scrollY;
       const resp = await axios({
         method: endpoint.method.toLowerCase(),
         url: `${API_BASE_URL}/api/v1${url}`,
@@ -126,6 +127,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
       });
     } finally {
       setLoading(false);
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     }
   };
 
@@ -325,7 +327,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
                     </span>
                   </div>
                   
-                  <pre className="text-sm text-foreground overflow-x-auto">
+                  <pre className="text-sm text-foreground overflow-auto max-h-96">
                     {JSON.stringify(response.data, null, 2)}
                   </pre>
                 </CardContent>
