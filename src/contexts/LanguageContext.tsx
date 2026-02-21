@@ -1258,6 +1258,13 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instance Deleted',
     'integrations.panel.delete.success-description': 'The WhatsApp instance has been deleted successfully.',
     
+    // Disconnect Instance
+    'integrations.panel.disconnect.button': 'Disconnect',
+    'integrations.panel.disconnect.success-title': 'Instance Disconnected',
+    'integrations.panel.disconnect.success-description': 'The WhatsApp instance has been disconnected successfully.',
+    'integrations.panel.disconnect.error-title': 'Disconnection Failed',
+    'integrations.panel.disconnect.error-description': 'Could not disconnect the instance. Please try again.',
+
     // Funnel Selection Modal
     'integrations.panel.funnel.title': 'Associate Funnel',
     'integrations.panel.funnel.description': 'Link this WhatsApp instance to a CRM funnel for automatic lead creation.',
@@ -3677,6 +3684,13 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instância Excluída',
     'integrations.panel.delete.success-description': 'A instância do WhatsApp foi excluída com sucesso.',
     
+    // Disconnect Instance
+    'integrations.panel.disconnect.button': 'Desconectar',
+    'integrations.panel.disconnect.success-title': 'Instância Desconectada',
+    'integrations.panel.disconnect.success-description': 'A instância do WhatsApp foi desconectada com sucesso.',
+    'integrations.panel.disconnect.error-title': 'Falha ao Desconectar',
+    'integrations.panel.disconnect.error-description': 'Não foi possível desconectar a instância. Tente novamente.',
+
     // Funnel Selection Modal
     'integrations.panel.funnel.title': 'Associar Funil',
     'integrations.panel.funnel.description': 'Vincule esta instância do WhatsApp a um funil do CRM para criação automática de leads.',
@@ -5914,6 +5928,13 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instanz Gelöscht',
     'integrations.panel.delete.success-description': 'Die WhatsApp-Instanz wurde erfolgreich gelöscht.',
     
+    // Disconnect Instance
+    'integrations.panel.disconnect.button': 'Trennen',
+    'integrations.panel.disconnect.success-title': 'Instanz Getrennt',
+    'integrations.panel.disconnect.success-description': 'Die WhatsApp-Instanz wurde erfolgreich getrennt.',
+    'integrations.panel.disconnect.error-title': 'Trennung Fehlgeschlagen',
+    'integrations.panel.disconnect.error-description': 'Die Instanz konnte nicht getrennt werden. Bitte versuchen Sie es erneut.',
+
     // Funnel Selection Modal
     'integrations.panel.funnel.title': 'Funnel Zuordnen',
     'integrations.panel.funnel.description': 'Verknüpfen Sie diese WhatsApp-Instanz mit einem CRM-Funnel für automatische Lead-Erstellung.',
@@ -8167,6 +8188,13 @@ const translations = {
     'integrations.panel.delete.success-title': 'Instancia Eliminada',
     'integrations.panel.delete.success-description': 'La instancia de WhatsApp ha sido eliminada con éxito.',
     
+    // Disconnect Instance
+    'integrations.panel.disconnect.button': 'Desconectar',
+    'integrations.panel.disconnect.success-title': 'Instancia Desconectada',
+    'integrations.panel.disconnect.success-description': 'La instancia de WhatsApp ha sido desconectada con éxito.',
+    'integrations.panel.disconnect.error-title': 'Error al Desconectar',
+    'integrations.panel.disconnect.error-description': 'No se pudo desconectar la instancia. Inténtelo de nuevo.',
+
     // Funnel Selection Modal
     'integrations.panel.funnel.title': 'Asociar Embudo',
     'integrations.panel.funnel.description': 'Vincule esta instancia de WhatsApp a un embudo del CRM para la creación automática de leads.',
