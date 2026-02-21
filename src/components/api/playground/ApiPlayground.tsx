@@ -319,17 +319,6 @@ const ApiPlayground: React.FC = () => {
           <LocalStorageTooltip />
         </div>
         <div className="flex items-center gap-2">
-          <Select value={environment} onValueChange={(v) => setEnvironment(v as Environment)}>
-            <SelectTrigger className="w-36 h-9">
-              <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dev">{t('api.playground.env.development')}</SelectItem>
-              <SelectItem value="staging">{t('api.playground.env.staging')}</SelectItem>
-              <SelectItem value="production">{t('api.playground.env.production')}</SelectItem>
-            </SelectContent>
-          </Select>
           <Button
             variant="ghost"
             size="icon"
@@ -383,11 +372,9 @@ const ApiPlayground: React.FC = () => {
                     value={currentRequest.url}
                     onChange={(e) => updateRequest('url', e.target.value)}
                     placeholder={t('api.playground.url-placeholder')}
-                    className="h-10 font-mono text-sm pr-24"
+                    className="h-10 font-mono text-sm"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <CrmVariablesPopover onInsert={handleInsertVariable} />
-                  </div>
+                
                 </div>
 
                 {/* Send Button */}
@@ -513,13 +500,9 @@ const ApiPlayground: React.FC = () => {
             <Card className="glass-card border-border/50 h-[calc(100vh-12rem)] overflow-hidden">
               <HistoryPanel
                 history={history}
-                collections={collections}
                 onSelectRequest={handleSelectRequest}
                 onDuplicateRequest={handleDuplicateRequest}
                 onClearHistory={handleClearHistory}
-                onCreateCollection={handleCreateCollection}
-                onAddToCollection={handleAddToCollection}
-                onDeleteCollection={handleDeleteCollection}
               />
             </Card>
           </motion.div>
