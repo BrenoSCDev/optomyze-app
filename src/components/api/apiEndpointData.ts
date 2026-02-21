@@ -4,6 +4,14 @@
  * parameters (query/path/body), example request/response data.
  */
 
+import { getSalesEndpoints } from './endpoints/salesEndpoints';
+import { getProductsEndpoints } from './endpoints/productsEndpoints';
+import { getEventsEndpoints } from './endpoints/eventsEndpoints';
+import { getUsersEndpoints } from './endpoints/usersEndpoints';
+import { getTeamsEndpoints } from './endpoints/teamsEndpoints';
+import { getLeadCompaniesEndpoints } from './endpoints/leadCompaniesEndpoints';
+import { getFunnelsEndpoints } from './endpoints/funnelsEndpoints';
+import { getStagesEndpoints } from './endpoints/stagesEndpoints';
 export interface EndpointParam {
   name: string;
   type: string;
@@ -277,5 +285,13 @@ export const getEndpointCategories = (t: (key: string) => string): EndpointCateg
         ]
       },
     ]
-  }
+  },
+  getSalesEndpoints(t),
+  getProductsEndpoints(t),
+  getEventsEndpoints(t),
+  getUsersEndpoints(t),
+  getTeamsEndpoints(t),
+  getLeadCompaniesEndpoints(t),
+  getFunnelsEndpoints(t),
+  getStagesEndpoints(t),
 ];
