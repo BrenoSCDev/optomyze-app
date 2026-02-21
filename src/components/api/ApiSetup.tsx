@@ -327,7 +327,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
                     </span>
                   </div>
                   
-                  <pre className="text-sm text-foreground overflow-auto max-h-96">
+                  <pre className="text-sm text-foreground overflow-auto max-h-96 scrollbar-dark">
                     {JSON.stringify(response.data, null, 2)}
                   </pre>
                 </CardContent>
