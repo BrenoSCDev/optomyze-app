@@ -135,7 +135,7 @@ const APIEndpointCard = ({ endpoint, apiToken, isSelected, onToggle }: {
     <Card className="glass-card overflow-hidden">
       {/* Endpoint Header */}
       <div 
-        className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+        className="p-3 cursor-pointer hover:bg-accent/30 transition-colors"
         onClick={onToggle}
       >
         <div className="flex items-center justify-between">
