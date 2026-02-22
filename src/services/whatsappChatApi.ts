@@ -18,6 +18,7 @@ export const fetchWhatsAppChats = async (): Promise<WhatsAppChatResponse> => {
 export interface SendMessagePayload {
   lead_id: number;
   text: string;
+  message_mode?: 'external' | 'internal';
 }
 
 export interface SentMessageData {
@@ -30,6 +31,9 @@ export interface SentMessageData {
   sent_at: string;
   updated_at: string;
   created_at: string;
+  user_id?: number | null;
+  message_mode?: 'external' | 'internal';
+  user?: { id: number; name: string } | null;
 }
 
 export interface SendMessageResponse {
@@ -48,5 +52,13 @@ export const sendWhatsAppMessage = async (
     `/api/integrations/whatsapp-evo-chat/message/${instanceId}`,
     payload
   );
+  return response.data;
+};
+
+/**
+ * Clear all messages from a chat
+ */
+export const clearWhatsAppChatMessages = async (chatId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/api/integrations/whatsapp-evo-chats/${chatId}/clear-messages`);
   return response.data;
 };
