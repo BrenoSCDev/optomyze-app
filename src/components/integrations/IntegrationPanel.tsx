@@ -66,6 +66,11 @@ const IntegrationPanel: React.FC = () => {
   const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
 
+  // Always derive fresh instance data from integrations state
+  const freshSelectedInstance = selectedInstance
+    ? integrations?.wpp_evo_instances?.find(i => i.id === selectedInstance.id) || selectedInstance
+    : null;
+
   useEffect(() => {
     fetchAvailableIntegrations();
   }, []);
@@ -378,27 +383,27 @@ const IntegrationPanel: React.FC = () => {
       <TestInstanceModal
         open={testModalOpen}
         onOpenChange={setTestModalOpen}
-        instance={selectedInstance}
+        instance={freshSelectedInstance}
         onStatusChange={handleStatusChange}
       />
       
       <DeleteInstanceModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
-        instance={selectedInstance}
+        instance={freshSelectedInstance}
         onInstanceDeleted={handleInstanceDeleted}
       />
       
       <QRCodeModal
         open={qrCodeModalOpen}
         onOpenChange={setQrCodeModalOpen}
-        instance={selectedInstance}
+        instance={freshSelectedInstance}
       />
 
       <FunnelSelectionModal
         open={funnelModalOpen}
         onOpenChange={setFunnelModalOpen}
-        instance={selectedInstance}
+        instance={freshSelectedInstance}
         funnels={funnels}
         onFunnelUpdated={handleFunnelUpdated}
       />
@@ -406,7 +411,7 @@ const IntegrationPanel: React.FC = () => {
       <CredentialsModal
         open={credentialsModalOpen}
         onOpenChange={setCredentialsModalOpen}
-        instance={selectedInstance}
+        instance={freshSelectedInstance}
       />
     </div>
   );
