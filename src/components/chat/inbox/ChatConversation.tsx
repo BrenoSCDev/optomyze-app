@@ -19,6 +19,7 @@ import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
 import AudioPlayer from './AudioPlayer';
+import DocumentMessage from './DocumentMessage';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 
 interface ChatConversationProps {
@@ -270,7 +271,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
                                         message.type === 'image' ? "p-1" : 
                                         message.type === 'audio' ? "px-2 py-1.5" :
-                                        message.type === 'location' ? "p-2" : "p-3",
+                                        message.type === 'location' ? "p-2" :
+                                        message.type === 'document' ? "p-2" : "p-3",
                                         message.direction === 'outgoing'
                                           ? "bg-green-500 text-white rounded-br-none"
                                           : "bg-card border border-border/50 rounded-bl-none"
@@ -370,6 +372,34 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                           </a>
                                           <div className={cn(
                                             "flex items-center gap-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : message.type === 'document' && message.media_url ? (
+                                        <div className="space-y-1">
+                                          <DocumentMessage
+                                            fileName={message.text || 'Document'}
+                                            fileUrl={getStorageUrl(message.media_url) || ''}
+                                            mimeType={message.media_mime}
+                                            fileSize={message.media_size}
+                                            isOutgoing={message.direction === 'outgoing'}
+                                          />
+                                          <div className={cn(
+                                            "flex items-center gap-1 px-1",
                                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
                                           )}>
                                             <span className={cn(

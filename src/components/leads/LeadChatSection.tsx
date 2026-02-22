@@ -20,6 +20,7 @@ import { getStorageUrl } from '@/lib/constants';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
 import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
+import DocumentMessage from '@/components/chat/inbox/DocumentMessage';
 // Types matching the backend response
 export interface LeadWhatsAppMessage {
   id: number;
@@ -309,7 +310,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
                         message.type === 'image' ? "p-1" : 
                         message.type === 'audio' ? "px-2 py-1.5" :
-                        message.type === 'location' ? "p-2" : "p-3",
+                        message.type === 'location' ? "p-2" :
+                        message.type === 'document' ? "p-2" : "p-3",
                         message.direction === 'outgoing'
                           ? "bg-green-600 text-white rounded-br-none"
                           : "bg-white/10 border border-white/10 text-white rounded-bl-none"
@@ -409,6 +411,34 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           </a>
                           <div className={cn(
                             "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'document' && message.media_url ? (
+                        <div className="space-y-1">
+                          <DocumentMessage
+                            fileName={message.text || 'Document'}
+                            fileUrl={getStorageUrl(message.media_url) || ''}
+                            mimeType={message.media_mime}
+                            fileSize={message.media_size}
+                            isOutgoing={message.direction === 'outgoing'}
+                          />
+                          <div className={cn(
+                            "flex items-center gap-1 px-1",
                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
                           )}>
                             <span className={cn(

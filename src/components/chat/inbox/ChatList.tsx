@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Clock, Image as ImageIcon, Mic, MapPin } from 'lucide-react';
+import { MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,7 +37,7 @@ const ChatList: React.FC<ChatListProps> = ({
     return chat.phone_number;
   };
 
-  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image' | 'audio' | 'location'; text: string; imageUrl?: string } => {
+  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document'; text: string; imageUrl?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage.type === 'image') {
@@ -57,6 +57,12 @@ const ChatList: React.FC<ChatListProps> = ({
         return {
           type: 'location',
           text: t('chat.inbox.location') || 'Location'
+        };
+      }
+      if (lastMessage.type === 'document') {
+        return {
+          type: 'document',
+          text: lastMessage.text || t('chat.inbox.document') || 'Document'
         };
       }
       return { type: 'text', text: lastMessage.text || '' };
@@ -187,6 +193,16 @@ const ChatList: React.FC<ChatListProps> = ({
                       return (
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm text-muted-foreground truncate">
+                            {lastMsg.text}
+                          </span>
+                        </div>
+                      );
+                    }
+                    if (lastMsg.type === 'document') {
+                      return (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm text-muted-foreground truncate">
                             {lastMsg.text}
                           </span>
