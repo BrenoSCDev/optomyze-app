@@ -323,7 +323,7 @@ const FunnelManagersQueueSection = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto scrollbar-dark">
           <DialogHeader>
             <DialogTitle>{editingQueue ? t('queues.edit-queue') : t('queues.new-queue')}</DialogTitle>
           </DialogHeader>
@@ -353,7 +353,7 @@ const FunnelManagersQueueSection = () => {
                   placeholder={t('queues.search-users')}
                 />
                 {userSearch && availableUsersForSearch.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto rounded-md border bg-popover shadow-md">
+                  <div className="absolute z-10 w-full mt-1 max-h-40 overflow-y-auto scrollbar-dark rounded-md border bg-popover shadow-md">
                     {availableUsersForSearch.slice(0, 8).map(user => (
                       <button
                         key={user.id}
@@ -395,7 +395,7 @@ const FunnelManagersQueueSection = () => {
             {/* Funnels */}
             <div className="grid gap-2">
               <Label>{t('queues.funnels')}</Label>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto border rounded-lg p-2">
+              <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-dark border rounded-lg p-2">
                 {allFunnels.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-2">{t('queues.no-funnels')}</p>
                 ) : (
