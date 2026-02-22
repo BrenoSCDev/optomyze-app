@@ -4,7 +4,7 @@
  * Modal for testing WhatsApp Evolution API instances
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -43,6 +43,11 @@ const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [localStatus, setLocalStatus] = useState(instance?.status || 'created');
+
+  useEffect(() => {
+    setLocalStatus(instance?.status || 'created');
+  }, [instance?.status]);
 
   const handleClose = () => {
     setPhoneNumber('');
@@ -63,7 +68,9 @@ const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
         text: message.trim()
       });
 
+      const newStatus = response.data?.status || instance.status;
       setSuccess(true);
+      setLocalStatus(newStatus);
 
       if (response.data?.status === 'connected' && onStatusChange) {
         onStatusChange(instance.id, 'connected');
@@ -110,8 +117,11 @@ const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
                 <p className="text-sm text-muted-foreground">{t('integrations.panel.test.instance-name')}</p>
                 <p className="font-medium">{instance.instance_name}</p>
               </div>
-              <Badge variant="secondary">
-                {instance.status || 'created'}
+              <Badge 
+                variant="secondary"
+                className={localStatus === 'connected' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : ''}
+              >
+                {localStatus}
               </Badge>
             </div>
           </div>
