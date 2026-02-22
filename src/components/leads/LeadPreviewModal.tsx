@@ -12,7 +12,7 @@ import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
   AlertCircle, ArrowRightLeft, UserCheck, Trash2,
   MoreVertical, Building2, ShoppingBag, Activity,
-  ArrowRight, RefreshCw, FileText, ArrowLeft, ChevronRight, PlusCircle, PackageCheck, ListTodo,
+  ArrowRight, RefreshCw, FileText, ArrowLeft, ChevronRight, PlusCircle, PackageCheck, ListTodo, XCircle,
 } from 'lucide-react';
 import { VscSourceControl } from 'react-icons/vsc';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -536,6 +536,7 @@ const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
       product_update: <PackageCheck className="w-4 h-4" />,
       task: <ListTodo className="w-4 h-4" />,
       whatsapp_chat: <FaWhatsapp className="w-4 h-4" />,
+      lost: <XCircle className="w-4 h-4" />,
     };
     return icons[type] || <Activity className="w-4 h-4" />;
   };
@@ -544,7 +545,7 @@ const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
       stage_change: 'bg-blue-600', status_change: 'bg-yellow-600',
       note_added: 'bg-green-600', contact_attempt: 'bg-purple-600', email_sent: 'bg-orange-600',
       creation: 'bg-emerald-600', product_update: 'bg-cyan-600', task: 'bg-indigo-600',
-      whatsapp_chat: 'bg-green-600',
+      whatsapp_chat: 'bg-green-600', lost: 'bg-red-600',
     };
     return colors[type] || 'bg-muted';
   };
