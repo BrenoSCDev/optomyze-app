@@ -7,7 +7,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, Send, Loader2, X } from 'lucide-react';
+import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,8 @@ export interface LeadWhatsAppMessage {
   media_url?: string | null;
   media_mime?: string | null;
   media_size?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
   status: string;
   sent_at: string;
   created_at: string;
@@ -306,7 +308,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                       className={cn(
                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
                         message.type === 'image' ? "p-1" : 
-                        message.type === 'audio' ? "px-2 py-1.5" : "p-3",
+                        message.type === 'audio' ? "px-2 py-1.5" :
+                        message.type === 'location' ? "p-2" : "p-3",
                         message.direction === 'outgoing'
                           ? "bg-green-600 text-white rounded-br-none"
                           : "bg-white/10 border border-white/10 text-white rounded-bl-none"
@@ -360,6 +363,50 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                               {message.text}
                             </p>
                           )}
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'location' && (message as any).latitude != null && (message as any).longitude != null ? (
+                        <div className="space-y-1.5">
+                          <div className="rounded-md overflow-hidden">
+                            <iframe
+                              src={`https://maps.google.com/maps?q=${(message as any).latitude},${(message as any).longitude}&z=15&output=embed`}
+                              width="240"
+                              height="160"
+                              className="border-0 w-full"
+                              loading="lazy"
+                              allowFullScreen={false}
+                            />
+                          </div>
+                          <a
+                            href={`https://maps.google.com/?q=${(message as any).latitude},${(message as any).longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              "flex items-center gap-1.5 text-xs font-medium hover:underline",
+                              message.direction === 'outgoing' ? "text-green-200" : "text-primary"
+                            )}
+                          >
+                            <MapPin className="h-3 w-3" />
+                            Open in Maps
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
                           <div className={cn(
                             "flex items-center gap-1",
                             message.direction === 'outgoing' ? "justify-end" : "justify-start"

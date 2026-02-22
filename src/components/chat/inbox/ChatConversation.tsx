@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -269,7 +269,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                       className={cn(
                                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
                                         message.type === 'image' ? "p-1" : 
-                                        message.type === 'audio' ? "px-2 py-1.5" : "p-3",
+                                        message.type === 'audio' ? "px-2 py-1.5" :
+                                        message.type === 'location' ? "p-2" : "p-3",
                                         message.direction === 'outgoing'
                                           ? "bg-green-500 text-white rounded-br-none"
                                           : "bg-card border border-border/50 rounded-bl-none"
@@ -323,6 +324,50 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                               {message.text}
                                             </p>
                                           )}
+                                          <div className={cn(
+                                            "flex items-center gap-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : message.type === 'location' && message.latitude != null && message.longitude != null ? (
+                                        <div className="space-y-1.5">
+                                          <div className="rounded-md overflow-hidden">
+                                            <iframe
+                                              src={`https://maps.google.com/maps?q=${message.latitude},${message.longitude}&z=15&output=embed`}
+                                              width="240"
+                                              height="160"
+                                              className="border-0 w-full"
+                                              loading="lazy"
+                                              allowFullScreen={false}
+                                            />
+                                          </div>
+                                          <a
+                                            href={`https://maps.google.com/?q=${message.latitude},${message.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={cn(
+                                              "flex items-center gap-1.5 text-xs font-medium hover:underline",
+                                              message.direction === 'outgoing' ? "text-green-100" : "text-primary"
+                                            )}
+                                          >
+                                            <MapPin className="h-3 w-3" />
+                                            Open in Maps
+                                            <ExternalLink className="h-3 w-3" />
+                                          </a>
                                           <div className={cn(
                                             "flex items-center gap-1",
                                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
