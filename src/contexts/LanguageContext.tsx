@@ -647,6 +647,8 @@ const translations = {
     'leads.lost-reason.skip': 'Skip',
     'leads.lost-reason.recorded': 'Lost reason recorded successfully',
     'leads.lost-reason.error': 'Failed to record lost reason',
+    'leads.entry-requirements.title': 'Cannot move lead to {stage}',
+    'common.ok': 'OK',
 
     // Notification Settings
     'settings.notifications.load-error': 'Failed to load notification settings',
@@ -3174,6 +3176,8 @@ const translations = {
     'leads.lost-reason.skip': 'Pular',
     'leads.lost-reason.recorded': 'Motivo de perda registrado com sucesso',
     'leads.lost-reason.error': 'Erro ao registrar motivo de perda',
+    'leads.entry-requirements.title': 'Não é possível mover o lead para {stage}',
+    'common.ok': 'OK',
 
     // Notification Settings
     'settings.notifications.load-error': 'Falha ao carregar configurações de notificação',
@@ -5564,6 +5568,8 @@ const translations = {
     'leads.lost-reason.skip': 'Überspringen',
     'leads.lost-reason.recorded': 'Verlustgrund erfolgreich erfasst',
     'leads.lost-reason.error': 'Fehler beim Erfassen des Verlustgrunds',
+    'leads.entry-requirements.title': 'Lead kann nicht nach {stage} verschoben werden',
+    'common.ok': 'OK',
 
     // Notification Settings
     'settings.notifications.load-error': 'Benachrichtigungseinstellungen konnten nicht geladen werden',
@@ -7891,6 +7897,8 @@ const translations = {
     'leads.lost-reason.skip': 'Omitir',
     'leads.lost-reason.recorded': 'Motivo de pérdida registrado exitosamente',
     'leads.lost-reason.error': 'Error al registrar motivo de pérdida',
+    'leads.entry-requirements.title': 'No se puede mover el lead a {stage}',
+    'common.ok': 'OK',
 
     // Notification Settings
     'settings.notifications.load-error': 'Error al cargar configuraciones de notificación',

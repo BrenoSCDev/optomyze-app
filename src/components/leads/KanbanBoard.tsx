@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { List } from 'lucide-react';
+import { List, AlertTriangle } from 'lucide-react';
 import { TbLayoutKanbanFilled } from "react-icons/tb";
 import FunnelTableView from './FunnelTableView';
 import { useNavigate } from 'react-router-dom';
@@ -94,6 +94,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
   const [lostReasonLeadId, setLostReasonLeadId] = useState<string | null>(null);
+  const [entryErrors, setEntryErrors] = useState<{ stageName: string; errors: Array<{ field: string; message: string }> } | null>(null);
   
   // View mode state (persisted in localStorage)
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
@@ -408,51 +409,37 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
     // Get the lead value for updating stage estimated values
     const leadValue = leadToMove.value || 0;
+    const targetColumn = columns.find(col => col.id === newStageId);
+    const targetStageName = targetColumn?.title || 'this stage';
 
     console.log('[DnD] Moving lead', { leadId, from: oldStageId, to: newStageId, value: leadValue });
 
-    // Optimistic update - add to top of target column and update estimated values
-    setColumns(prevColumns => {
-      return prevColumns.map(col => {
-        if (col.id === oldStageId) {
-          return {
-            ...col,
-            leads: col.leads.filter(lead => lead.id !== leadId),
-            valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
-          };
-        }
-        if (col.id === newStageId) {
-          return {
-            ...col,
-            leads: [{ ...leadToMove, stage: newStageId }, ...col.leads],
-            valueEstimated: (col.valueEstimated || 0) + leadValue
-          };
-        }
-        return col;
-      });
-    });
-
     try {
-      // Make API call
+      // Call API first — NO optimistic update
       const response = await leadService.moveLeadToStage(leadId, newStageId);
       
-      // Update with API response data
+      // Success — now update columns
       setColumns(prevColumns => {
         return prevColumns.map(col => {
-          if (col.id === newStageId) {
+          if (col.id === oldStageId) {
             return {
               ...col,
-              leads: col.leads.map(lead => 
-                lead.id === leadId 
-                  ? {
-                      ...lead,
-                      ...response.data,
-                      id: response.data.id.toString(),
-                      name: `${response.data.first_name} ${response.data.last_name || ''}`,
-                      stage: response.data.stage_id.toString()
-                    }
-                  : lead
-              )
+              leads: col.leads.filter(lead => lead.id !== leadId),
+              valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
+            };
+          }
+          if (col.id === newStageId) {
+            const updatedLead = {
+              ...leadToMove,
+              ...response.data,
+              id: response.data.id.toString(),
+              name: `${response.data.first_name} ${response.data.last_name || ''}`,
+              stage: response.data.stage_id.toString()
+            };
+            return {
+              ...col,
+              leads: [updatedLead, ...col.leads],
+              valueEstimated: (col.valueEstimated || 0) + leadValue
             };
           }
           return col;
@@ -470,31 +457,19 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       if (onUpdateLeadStage) {
         onUpdateLeadStage(leadId, newStageId, oldStageId);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[DnD] Error moving lead:', error);
       
-      // Revert optimistic update
-      setColumns(prevColumns => {
-        return prevColumns.map(col => {
-          if (col.id === newStageId) {
-            return {
-              ...col,
-              leads: col.leads.filter(lead => lead.id !== leadId),
-              valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
-            };
-          }
-          if (col.id === oldStageId) {
-            return {
-              ...col,
-              leads: [...col.leads, leadToMove],
-              valueEstimated: (col.valueEstimated || 0) + leadValue
-            };
-          }
-          return col;
+      // Check for 422 entry requirement errors
+      const responseData = error?.response?.data;
+      if (error?.response?.status === 422 && responseData?.entry_requirement_errors?.length > 0) {
+        setEntryErrors({
+          stageName: targetStageName,
+          errors: responseData.entry_requirement_errors,
         });
-      });
-
-      toast.error('Failed to move lead. Please try again.');
+      } else {
+        toast.error('Failed to move lead. Please try again.');
+      }
     }
   }, [columns, onUpdateLeadStage]);
 
@@ -859,6 +834,36 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onClose={() => setLostReasonLeadId(null)}
         leadId={lostReasonLeadId || ''}
       />
+
+      {/* Entry Requirement Errors Modal */}
+      {entryErrors && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEntryErrors(null)} />
+          <div className="relative glass-card p-6 max-w-md w-full mx-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/20">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                {t('leads.entry-requirements.title').replace('{stage}', entryErrors.stageName)}
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {entryErrors.errors.map((err, i) => (
+                <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-foreground">{err.message}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setEntryErrors(null)} variant="outline">
+                {t('common.ok') || 'OK'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
