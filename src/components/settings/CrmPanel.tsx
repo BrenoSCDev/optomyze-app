@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, Clock, XCircle, ArrowRightLeft, CheckSquare, Mail, Users, BarChart3, Moon, FileText, Send, FileStack } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, XCircle, Mail, Users, BarChart3, Moon, FileStack } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,14 +28,11 @@ import AutomationsSection from './sales/AutomationsSection';
 import PermissionsSection from './sales/PermissionsSection';
 
 // Funnel Settings
-import FunnelStructureSection from './funnels/FunnelStructureSection';
 import FunnelTemplatesSection from './funnels/FunnelTemplatesSection';
 import StageEntryRulesSection from './funnels/StageEntryRulesSection';
-import AutomatedTransitionsSection from './funnels/AutomatedTransitionsSection';
 import StageActionsSection from './funnels/StageActionsSection';
-import InactivityRulesSection from './funnels/InactivityRulesSection';
+import FunnelManagersQueueSection from './funnels/FunnelManagersQueueSection';
 import LossHandlingSection from './funnels/LossHandlingSection';
-import ConversionSettingsSection from './funnels/ConversionSettingsSection';
 
 // Notification Settings
 import {
@@ -389,68 +386,29 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Automated Transitions */}
-              <AccordionItem value="transitions" className="border rounded-lg px-4 bg-background/50">
+              {/* Funnel Managers Queue */}
+              <AccordionItem value="managers-queue" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <ArrowRightLeft className="w-4 h-4 text-primary" />
+                      <Users className="w-4 h-4 text-primary" />
                     </div>
                     <span className="font-semibold text-foreground">
-                      {t('settings.funnels.auto-transitions')}
+                      {t('settings.funnels.managers-queue.title')}
                     </span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <AutomatedTransitionsSection
-                      transitions={funnelSettings.automatedTransitions}
-                      funnels={regularFunnels}
-                      onUpdate={(transitions) => updateFunnelSettings({ automatedTransitions: transitions })}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Inactivity Rules */}
-              <AccordionItem value="inactivity" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.funnels.inactivity-rules')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <InactivityRulesSection
-                      rules={funnelSettings.inactivityRules}
-                      onUpdate={(rules) => updateFunnelSettings({ inactivityRules: rules })}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Conversion Settings */}
-              <AccordionItem value="conversion" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <CheckSquare className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.funnels.conversion-settings')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <ConversionSettingsSection
-                      settings={funnelSettings.conversionSettings}
-                      onUpdate={(settings) => updateFunnelSettings({ conversionSettings: settings })}
+                    <FunnelManagersQueueSection
+                      settings={funnelSettings.managersQueue || {
+                        enabled: false,
+                        assignmentMode: 'round-robin',
+                        maxLeadsPerManager: 50,
+                        autoReassignOnInactivity: false,
+                        inactivityThresholdHours: 48,
+                      }}
+                      onUpdate={(settings) => updateFunnelSettings({ managersQueue: settings } as any)}
                     />
                   </div>
                 </AccordionContent>
@@ -599,26 +557,6 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="pricing-rules" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Tag className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.products.pricing-rules')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <PricingRulesSection 
-                      settings={settings.product_settings} 
-                      onUpdate={updateProductSettings} 
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
             </Accordion>
           </div>
         </TabsContent>
@@ -703,6 +641,27 @@ const CrmPanel = () => {
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
                     <DealRulesSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="pricing-rules" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.products.pricing-rules')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <PricingRulesSection 
+                      settings={settings.product_settings} 
+                      onUpdate={updateProductSettings} 
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

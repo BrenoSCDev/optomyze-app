@@ -137,6 +137,15 @@ export interface LossHandlingSettings {
   cooldownDays: number;
 }
 
+// Managers Queue Settings
+export interface ManagersQueueSettings {
+  enabled: boolean;
+  assignmentMode: 'round-robin' | 'least-loaded' | 'manual';
+  maxLeadsPerManager: number;
+  autoReassignOnInactivity: boolean;
+  inactivityThresholdHours: number;
+}
+
 // Complete Funnel Settings
 export interface FunnelSettings {
   funnels: Funnel[];
@@ -146,6 +155,7 @@ export interface FunnelSettings {
   leadAutomationRules: LeadAutomationRule[];
   conversionSettings: ConversionSettings;
   lossHandlingSettings: LossHandlingSettings;
+  managersQueue?: ManagersQueueSettings;
 }
 
 // Default empty stage entry rules

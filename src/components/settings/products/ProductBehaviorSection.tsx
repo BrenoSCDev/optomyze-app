@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductSettings, CURRENCIES } from '@/services/settingsApi';
+import { ProductSettings } from '@/services/settingsApi';
 
 interface Props {
   settings: ProductSettings;
@@ -28,57 +28,6 @@ const ProductBehaviorSection = ({ settings, onUpdate }: Props) => {
           <SelectContent>
             <SelectItem value="service">{t('settings.products.type-service')}</SelectItem>
             <SelectItem value="physical">{t('settings.products.type-physical')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Lock Product Type */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-          <Label>{t('settings.products.lock-type')}</Label>
-          <p className="text-sm text-muted-foreground">{t('settings.products.lock-type-desc')}</p>
-        </div>
-        <Switch 
-          checked={settings.lock_type} 
-          onCheckedChange={(checked) => onUpdate({ lock_type: checked })}
-        />
-      </div>
-
-      {/* Default Pricing Model */}
-      <div className="grid gap-2">
-        <Label>{t('settings.products.default-pricing-model')}</Label>
-        <Select 
-          value={settings.default_pricing_model} 
-          onValueChange={(value: 'fixed' | 'recurring' | 'hourly' | 'per-unit') => onUpdate({ default_pricing_model: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fixed">{t('settings.products.pricing-fixed')}</SelectItem>
-            <SelectItem value="recurring">{t('settings.products.pricing-recurring')}</SelectItem>
-            <SelectItem value="hourly">{t('settings.products.pricing-hourly')}</SelectItem>
-            <SelectItem value="per-unit">{t('settings.products.pricing-per-unit')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Default Currency */}
-      <div className="grid gap-2">
-        <Label>{t('settings.products.default-currency')}</Label>
-        <Select 
-          value={settings.default_currency} 
-          onValueChange={(value) => onUpdate({ default_currency: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CURRENCIES.map((currency) => (
-              <SelectItem key={currency.code} value={currency.code}>
-                {currency.symbol} {currency.code} - {currency.name}
-              </SelectItem>
-            ))}
           </SelectContent>
         </Select>
       </div>
