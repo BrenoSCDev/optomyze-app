@@ -347,12 +347,23 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
 
                       {/* Sender name for outgoing messages */}
                       {message.direction === 'outgoing' && (message as any).user?.name && (
-                        <p className={cn(
-                          "text-xs font-semibold mb-0.5",
-                          isInternalNote(message) ? "text-amber-300" : "text-green-200"
+                        <div className={cn(
+                          "flex items-center gap-1 mb-1 pb-1 border-b",
+                          isInternalNote(message) 
+                            ? "border-amber-500/30" 
+                            : "border-white/20"
                         )}>
-                          {(message as any).user.name}
-                        </p>
+                          <Phone className={cn(
+                            "h-3 w-3 shrink-0",
+                            isInternalNote(message) ? "text-amber-300" : "text-green-200"
+                          )} />
+                          <span className={cn(
+                            "text-xs font-semibold",
+                            isInternalNote(message) ? "text-amber-300" : "text-green-200"
+                          )}>
+                            {(message as any).user.name}
+                          </span>
+                        </div>
                       )}
 
                       {message.type === 'image' && message.media_url ? (
