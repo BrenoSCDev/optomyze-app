@@ -640,6 +640,14 @@ const translations = {
     'settings.funnels.lost-reasons.delete-confirm': 'Are you sure you want to delete this reason:',
     'settings.funnels.lost-reasons.click-to-edit': 'Click to edit',
 
+    // Lost Reason Modal
+    'leads.lost-reason.title': 'Why was this lead lost?',
+    'leads.lost-reason.description': 'Select a reason for losing this lead.',
+    'leads.lost-reason.select-placeholder': 'Select a reason...',
+    'leads.lost-reason.skip': 'Skip',
+    'leads.lost-reason.recorded': 'Lost reason recorded successfully',
+    'leads.lost-reason.error': 'Failed to record lost reason',
+
     // Notification Settings
     'settings.notifications.load-error': 'Failed to load notification settings',
     'settings.notifications.save-success': 'Notification settings saved successfully',
@@ -3158,6 +3166,14 @@ const translations = {
     'settings.funnels.lost-reasons.delete-confirm': 'Tem certeza que deseja excluir este motivo:',
     'settings.funnels.lost-reasons.click-to-edit': 'Clique para editar',
 
+    // Lost Reason Modal
+    'leads.lost-reason.title': 'Por que este lead foi perdido?',
+    'leads.lost-reason.description': 'Selecione um motivo para a perda deste lead.',
+    'leads.lost-reason.select-placeholder': 'Selecione um motivo...',
+    'leads.lost-reason.skip': 'Pular',
+    'leads.lost-reason.recorded': 'Motivo de perda registrado com sucesso',
+    'leads.lost-reason.error': 'Erro ao registrar motivo de perda',
+
     // Notification Settings
     'settings.notifications.load-error': 'Falha ao carregar configurações de notificação',
     'settings.notifications.save-success': 'Configurações de notificação salvas com sucesso',
@@ -5539,6 +5555,14 @@ const translations = {
     'settings.funnels.lost-reasons.delete-confirm': 'Möchten Sie diesen Grund wirklich löschen:',
     'settings.funnels.lost-reasons.click-to-edit': 'Zum Bearbeiten klicken',
 
+    // Lost Reason Modal
+    'leads.lost-reason.title': 'Warum wurde dieser Lead verloren?',
+    'leads.lost-reason.description': 'Wählen Sie einen Grund für den Verlust dieses Leads.',
+    'leads.lost-reason.select-placeholder': 'Grund auswählen...',
+    'leads.lost-reason.skip': 'Überspringen',
+    'leads.lost-reason.recorded': 'Verlustgrund erfolgreich erfasst',
+    'leads.lost-reason.error': 'Fehler beim Erfassen des Verlustgrunds',
+
     // Notification Settings
     'settings.notifications.load-error': 'Benachrichtigungseinstellungen konnten nicht geladen werden',
     'settings.notifications.save-success': 'Benachrichtigungseinstellungen erfolgreich gespeichert',
@@ -7856,6 +7880,14 @@ const translations = {
     'settings.funnels.lost-reasons.delete-title': 'Eliminar Motivo de Pérdida',
     'settings.funnels.lost-reasons.delete-confirm': 'Está seguro que desea eliminar este motivo:',
     'settings.funnels.lost-reasons.click-to-edit': 'Haga clic para editar',
+
+    // Lost Reason Modal
+    'leads.lost-reason.title': '¿Por qué se perdió este lead?',
+    'leads.lost-reason.description': 'Seleccione un motivo para la pérdida de este lead.',
+    'leads.lost-reason.select-placeholder': 'Seleccionar motivo...',
+    'leads.lost-reason.skip': 'Omitir',
+    'leads.lost-reason.recorded': 'Motivo de pérdida registrado exitosamente',
+    'leads.lost-reason.error': 'Error al registrar motivo de pérdida',
 
     // Notification Settings
     'settings.notifications.load-error': 'Error al cargar configuraciones de notificación',
