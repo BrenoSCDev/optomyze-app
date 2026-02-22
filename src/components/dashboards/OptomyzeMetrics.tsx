@@ -694,39 +694,58 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   );
 };
 
-// ============= PRODUCTS SALES x REVENUE CHART (Mock) =============
+// ============= PRODUCTS SALES x REVENUE CHART =============
 
-const MOCK_PRODUCTS_DATA = [
-  { name: 'Product A', sales: 45, revenue: 12500 },
-  { name: 'Product B', sales: 38, revenue: 9800 },
-  { name: 'Product C', sales: 29, revenue: 15200 },
-  { name: 'Product D', sales: 22, revenue: 7600 },
-  { name: 'Product E', sales: 18, revenue: 11000 },
-  { name: 'Product F', sales: 12, revenue: 4300 },
-];
+interface ProductPerformanceItem {
+  product_id: number | null;
+  product_name: string;
+  sales_count: number;
+  quantity_sold: number;
+  revenue: number;
+}
 
-const ProductsSalesRevenueChart = ({ isLoading }: { isLoading: boolean }) => {
+const ProductsSalesRevenueChart = ({ data, isLoading }: { data: ProductPerformanceItem[] | null; isLoading: boolean }) => {
   if (isLoading) return <SkeletonChart />;
+
+  if (!data || data.length === 0) {
+    return (
+      <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+          <BarChart3 className="w-5 h-5 text-primary" /> Product Performance
+        </h3>
+        <p className="text-muted-foreground text-center py-8">No products sold in this period</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-        <BarChart3 className="w-5 h-5 text-primary" /> Products: Sales x Revenue
+        <BarChart3 className="w-5 h-5 text-primary" /> Product Performance
       </h3>
       <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={MOCK_PRODUCTS_DATA}>
+        <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+          <XAxis dataKey="product_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-          <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
-            formatter={(value: number, name: string) => [
-              name === 'revenue' ? `$${value.toLocaleString()}` : value,
-              name === 'revenue' ? 'Revenue' : 'Sales',
-            ]}
+          <Tooltip
+            contentStyle={chartTooltipStyle}
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null;
+              const item = payload[0]?.payload as ProductPerformanceItem;
+              return (
+                <div style={chartTooltipStyle} className="p-3 shadow-lg">
+                  <p className="font-semibold mb-1">{label}</p>
+                  <p className="text-sm">Units Sold: <span className="font-medium">{item.quantity_sold}</span></p>
+                  <p className="text-sm">Revenue: <span className="font-medium">${item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
+                </div>
+              );
+            }}
           />
           <Legend />
-          <Bar yAxisId="left" dataKey="sales" name="Sales" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+          <Bar yAxisId="left" dataKey="quantity_sold" name="Units Sold" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
           <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
         </ComposedChart>
       </ResponsiveContainer>
@@ -734,39 +753,48 @@ const ProductsSalesRevenueChart = ({ isLoading }: { isLoading: boolean }) => {
   );
 };
 
-// ============= AGENTS SALES x REVENUE CHART (Mock) =============
+// ============= AGENTS SALES x REVENUE CHART =============
 
-const MOCK_AGENTS_DATA = [
-  { name: 'John S.', sales: 32, revenue: 18500 },
-  { name: 'Maria L.', sales: 28, revenue: 14200 },
-  { name: 'Carlos R.', sales: 24, revenue: 12800 },
-  { name: 'Ana P.', sales: 19, revenue: 9600 },
-  { name: 'Pedro M.', sales: 15, revenue: 7300 },
-  { name: 'Laura F.', sales: 11, revenue: 5100 },
-];
+interface AgentPerformanceItem {
+  user_id: number;
+  user_name: string;
+  sales_count: number;
+  revenue: number;
+}
 
-const AgentsSalesRevenueChart = ({ isLoading }: { isLoading: boolean }) => {
+const AgentsSalesRevenueChart = ({ data, isLoading }: { data: AgentPerformanceItem[] | null; isLoading: boolean }) => {
   if (isLoading) return <SkeletonChart />;
+
+  if (!data || data.length === 0) {
+    return (
+      <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
+          <Users className="w-5 h-5 text-primary" /> Agent Performance
+        </h3>
+        <p className="text-muted-foreground text-center py-8">No closed deals in this period</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-        <Users className="w-5 h-5 text-primary" /> Agents: Sales x Revenue
+        <Users className="w-5 h-5 text-primary" /> Agent Performance
       </h3>
       <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={MOCK_AGENTS_DATA}>
+        <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+          <XAxis dataKey="user_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
           <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
             formatter={(value: number, name: string) => [
-              name === 'revenue' ? `$${value.toLocaleString()}` : value,
-              name === 'revenue' ? 'Revenue' : 'Sales',
+              name === 'revenue' ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
+              name === 'revenue' ? 'Revenue' : 'Closed Deals',
             ]}
           />
           <Legend />
-          <Bar yAxisId="left" dataKey="sales" name="Sales" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+          <Bar yAxisId="left" dataKey="sales_count" name="Closed Deals" fill="#F59E0B" radius={[4, 4, 0, 0]} />
           <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
         </ComposedChart>
       </ResponsiveContainer>
@@ -1094,9 +1122,9 @@ const OptomyzeMetrics = () => {
       case 'estimated-vs-closed':
         return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />;
       case 'products-sales':
-        return <ProductsSalesRevenueChart isLoading={periodicLoading} />;
+        return <ProductsSalesRevenueChart data={periodicData?.data?.product_sales_performance ?? null} isLoading={periodicLoading} />;
       case 'agents-sales':
-        return <AgentsSalesRevenueChart isLoading={periodicLoading} />;
+        return <AgentsSalesRevenueChart data={periodicData?.data?.agent_sales_performance ?? null} isLoading={periodicLoading} />;
       default:
         return null;
     }
