@@ -4,12 +4,19 @@
  * Type definitions for WhatsApp Evolution API chat data
  */
 
+export interface WhatsAppMessageMetadata {
+  contact_name?: string;
+  contact_phone?: string;
+  vcard?: string;
+}
+
 export interface WhatsAppMessage {
   id: number;
   whatsapp_evo_chat_id: number;
   direction: 'incoming' | 'outgoing';
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact';
   text: string | null;
+  metadata?: WhatsAppMessageMetadata | null;
   media_url?: string | null;
   media_mime?: string | null;
   media_size?: number | null;

@@ -1975,6 +1975,15 @@ const translations = {
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Location',
     'chat.inbox.document': 'Document',
+    'chat.inbox.contact': 'Contact',
+    'chat.inbox.contact-start-chat': 'Start Chat',
+    'chat.inbox.contact-modal-description': 'Send a WhatsApp message to this contact',
+    'chat.inbox.contact-name': 'Name',
+    'chat.inbox.contact-phone': 'Phone',
+    'chat.inbox.contact-message-label': 'Message',
+    'chat.inbox.contact-message-placeholder': 'Type your opening message...',
+    'chat.inbox.contact-new-lead-notice': 'If this number doesn\'t exist in your CRM, a new lead will be automatically created.',
+    'chat.inbox.contact-send-message': 'Send Message',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -4401,6 +4410,15 @@ const translations = {
     'chat.inbox.audio': 'Áudio',
     'chat.inbox.location': 'Localização',
     'chat.inbox.document': 'Documento',
+    'chat.inbox.contact': 'Contato',
+    'chat.inbox.contact-start-chat': 'Iniciar Conversa',
+    'chat.inbox.contact-modal-description': 'Enviar uma mensagem WhatsApp para este contato',
+    'chat.inbox.contact-name': 'Nome',
+    'chat.inbox.contact-phone': 'Telefone',
+    'chat.inbox.contact-message-label': 'Mensagem',
+    'chat.inbox.contact-message-placeholder': 'Digite sua mensagem de abertura...',
+    'chat.inbox.contact-new-lead-notice': 'Se este número não existir no seu CRM, um novo lead será criado automaticamente.',
+    'chat.inbox.contact-send-message': 'Enviar Mensagem',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -6556,6 +6574,15 @@ const translations = {
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Standort',
     'chat.inbox.document': 'Dokument',
+    'chat.inbox.contact': 'Kontakt',
+    'chat.inbox.contact-start-chat': 'Chat starten',
+    'chat.inbox.contact-modal-description': 'Senden Sie eine WhatsApp-Nachricht an diesen Kontakt',
+    'chat.inbox.contact-name': 'Name',
+    'chat.inbox.contact-phone': 'Telefon',
+    'chat.inbox.contact-message-label': 'Nachricht',
+    'chat.inbox.contact-message-placeholder': 'Geben Sie Ihre Eröffnungsnachricht ein...',
+    'chat.inbox.contact-new-lead-notice': 'Wenn diese Nummer nicht in Ihrem CRM existiert, wird automatisch ein neuer Lead erstellt.',
+    'chat.inbox.contact-send-message': 'Nachricht senden',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -8818,6 +8845,15 @@ const translations = {
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Ubicación',
     'chat.inbox.document': 'Documento',
+    'chat.inbox.contact': 'Contacto',
+    'chat.inbox.contact-start-chat': 'Iniciar Chat',
+    'chat.inbox.contact-modal-description': 'Enviar un mensaje de WhatsApp a este contacto',
+    'chat.inbox.contact-name': 'Nombre',
+    'chat.inbox.contact-phone': 'Teléfono',
+    'chat.inbox.contact-message-label': 'Mensaje',
+    'chat.inbox.contact-message-placeholder': 'Escribe tu mensaje de apertura...',
+    'chat.inbox.contact-new-lead-notice': 'Si este número no existe en tu CRM, se creará un nuevo lead automáticamente.',
+    'chat.inbox.contact-send-message': 'Enviar Mensaje',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',

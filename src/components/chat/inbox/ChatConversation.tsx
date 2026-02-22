@@ -20,6 +20,7 @@ import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
+import ContactMessage from './ContactMessage';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 
 interface ChatConversationProps {
@@ -272,7 +273,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                         message.type === 'image' ? "p-1" : 
                                         message.type === 'audio' ? "px-2 py-1.5" :
                                         message.type === 'location' ? "p-2" :
-                                        message.type === 'document' ? "p-2" : "p-3",
+                                        message.type === 'document' ? "p-2" :
+                                        message.type === 'contact' ? "p-3" : "p-3",
                                         message.direction === 'outgoing'
                                           ? "bg-green-500 text-white rounded-br-none"
                                           : "bg-card border border-border/50 rounded-bl-none"
@@ -400,6 +402,33 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                           />
                                           <div className={cn(
                                             "flex items-center gap-1 px-1",
+                                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                                          )}>
+                                            <span className={cn(
+                                              "text-xs",
+                                              message.direction === 'outgoing' 
+                                                ? "text-green-100" 
+                                                : "text-muted-foreground"
+                                            )}>
+                                              {formatMessageTime(message.sent_at)}
+                                            </span>
+                                            {message.direction === 'outgoing' && message.status && (
+                                              <span className="text-xs text-green-100">
+                                                • {message.status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : message.type === 'contact' && message.metadata ? (
+                                        <div className="space-y-1">
+                                          <ContactMessage
+                                            contactName={message.metadata.contact_name || message.text || ''}
+                                            contactPhone={message.metadata.contact_phone || ''}
+                                            isOutgoing={message.direction === 'outgoing'}
+                                            instanceId={chat.whatsapp_instance_id}
+                                          />
+                                          <div className={cn(
+                                            "flex items-center gap-1",
                                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
                                           )}>
                                             <span className={cn(
