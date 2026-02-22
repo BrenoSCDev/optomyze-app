@@ -386,7 +386,7 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Funnel Managers Queue */}
+              {/* Lead Assignment Queues */}
               <AccordionItem value="managers-queue" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
@@ -400,16 +400,7 @@ const CrmPanel = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <FunnelManagersQueueSection
-                      settings={funnelSettings.managersQueue || {
-                        enabled: false,
-                        assignmentMode: 'round-robin',
-                        maxLeadsPerManager: 50,
-                        autoReassignOnInactivity: false,
-                        inactivityThresholdHours: 48,
-                      }}
-                      onUpdate={(settings) => updateFunnelSettings({ managersQueue: settings } as any)}
-                    />
+                    <FunnelManagersQueueSection />
                   </div>
                 </AccordionContent>
               </AccordionItem>
