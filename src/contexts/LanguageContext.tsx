@@ -1973,6 +1973,7 @@ const translations = {
     'chat.inbox.message-error-description': 'Unable to send your message. Please try again.',
     'chat.inbox.photo': 'Photo',
     'chat.inbox.audio': 'Audio',
+    'chat.inbox.location': 'Location',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -4397,6 +4398,7 @@ const translations = {
     'chat.inbox.message-error-description': 'Não foi possível enviar sua mensagem. Tente novamente.',
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Áudio',
+    'chat.inbox.location': 'Localização',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -6550,6 +6552,7 @@ const translations = {
     'chat.inbox.message-error-description': 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Audio',
+    'chat.inbox.location': 'Standort',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -8810,6 +8813,7 @@ const translations = {
     'chat.inbox.message-error-description': 'No se pudo enviar tu mensaje. Inténtalo de nuevo.',
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Audio',
+    'chat.inbox.location': 'Ubicación',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
