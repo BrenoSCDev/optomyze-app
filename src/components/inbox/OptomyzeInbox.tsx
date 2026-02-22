@@ -54,6 +54,18 @@ const OptomyzeInbox: React.FC = () => {
 
   useEffect(() => { loadInboxData(true); }, []);
 
+  // Close chat on Esc key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedConversation) {
+        setSelectedConversation(null);
+        setMobileView('list');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedConversation]);
+
   // ─── Real-time: company channel ──────────────────────────────────────────
   useEffect(() => {
     const echo = getEcho();

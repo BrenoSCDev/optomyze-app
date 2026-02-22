@@ -48,6 +48,18 @@ const WhatsAppInbox: React.FC = () => {
     loadChats();
   }, []);
 
+  // Close chat on Esc key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedChat) {
+        setSelectedChat(null);
+        setMobileView('list');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedChat, setSelectedChat]);
+
   const loadChats = async () => {
     setIsLoading(true);
     setError(null);
