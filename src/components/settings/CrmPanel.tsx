@@ -419,10 +419,7 @@ const CrmPanel = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <LossHandlingSection
-                      settings={funnelSettings.lossHandlingSettings}
-                      onUpdate={(settings) => updateFunnelSettings({ lossHandlingSettings: settings })}
-                    />
+                    <LossHandlingSection />
                   </div>
                 </AccordionContent>
               </AccordionItem>
