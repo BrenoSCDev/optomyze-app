@@ -266,7 +266,7 @@ const IntegrationPanel: React.FC = () => {
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
                                   <Badge 
                                     variant="secondary" 
-                                    className={`text-xs ${instance.status === 'connected' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : ''}`}
+                                    className={`text-xs ${instance.status === 'connected' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : instance.status === 'disconnected' ? 'bg-red-500/15 text-red-600 dark:text-red-400' : ''}`}
                                   >
                                     {instance.status || 'created'}
                                   </Badge>
