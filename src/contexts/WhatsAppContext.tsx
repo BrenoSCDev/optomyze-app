@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
 import { getEcho } from '@/services/echo';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
+import { playNotificationSound } from '@/lib/notificationSounds';
 
 // Broadcast event payload structure for optimized message-based updates
 interface MessageReceivedEvent {
@@ -40,15 +41,9 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  // Play notification sound for new messages - kept as stable ref
+  // Play notification sound for new messages - uses user's selected sound from preferences
   const playMessageSoundRef = useRef(() => {
-    try {
-      const audio = new Audio('/sounds/notification.mp3');
-      audio.volume = 0.3;
-      audio.play().catch(err => console.log('🔔 Could not play message sound:', err));
-    } catch (err) {
-      console.log('🔔 Error creating audio:', err);
-    }
+    playNotificationSound();
   });
 
   // OPTIMIZED: Handle individual message updates - STABLE callback (no deps that change on route)
