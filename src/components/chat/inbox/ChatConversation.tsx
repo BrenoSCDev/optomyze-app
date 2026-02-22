@@ -5,7 +5,6 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -20,6 +19,7 @@ import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
 import AudioPlayer from './AudioPlayer';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
@@ -46,7 +46,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-
+  const [leadPreviewOpen, setLeadPreviewOpen] = useState(false);
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -213,10 +213,10 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             <User className="h-5 w-5 text-green-600" />
           </div>
           <div className="flex-1 min-w-0">
-            {chat.lead?.id && chat.lead?.funnel_id ? (
-              <Link to={`/leads/${chat.lead.funnel_id}/lead/${chat.lead.id}`} className="font-semibold truncate hover:underline hover:text-primary transition-colors block">
+            {chat.lead?.id ? (
+              <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left">
                 {getLeadName()}
-              </Link>
+              </button>
             ) : (
               <h3 className="font-semibold truncate">{getLeadName()}</h3>
             )}
@@ -479,6 +479,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={leadPreviewOpen}
+        onClose={() => setLeadPreviewOpen(false)}
+        leadId={chat?.lead?.id ? String(chat.lead.id) : null}
+      />
     </div>
   );
 };
