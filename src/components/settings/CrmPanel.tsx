@@ -322,27 +322,6 @@ const CrmPanel = () => {
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Preview & Test */}
-                <AccordionItem value="preview" className="border rounded-lg px-4 bg-background/50">
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Send className="w-4 h-4 text-primary" />
-                      </div>
-                      <span className="font-semibold text-foreground">
-                        {t('settings.notifications.preview.title')}
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="py-4 px-2 border-t">
-                      <NotificationPreviewSection
-                        events={notificationSettings.events}
-                        enabledChannels={notificationSettings.channels}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
               </Accordion>
             )}
           </div>
