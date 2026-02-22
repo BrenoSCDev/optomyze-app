@@ -9,6 +9,7 @@ import {
   Handshake,
   ListTodo,
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { leadActivityApi, type ActivityTransaction } from '@/services/leadActivityApi';
@@ -44,6 +45,7 @@ const TransactionItem: React.FC<{ tx: ActivityTransaction; index: number }> = ({
       product_update: { icon: <PackageCheck className="w-3.5 h-3.5" />, color: 'bg-cyan-600' },
       stage_change: { icon: <ArrowRightLeft className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
       deal: { icon: <Handshake className="w-3.5 h-3.5" />, color: 'bg-purple-600' },
+      whatsapp_chat: { icon: <FaWhatsapp className="w-3.5 h-3.5" />, color: 'bg-green-600' },
     };
     return map[type] || { icon: <Activity className="w-3.5 h-3.5" />, color: 'bg-muted' };
   };
