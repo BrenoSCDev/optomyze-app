@@ -8,11 +8,13 @@ export interface WhatsAppMessage {
   id: number;
   whatsapp_evo_chat_id: number;
   direction: 'incoming' | 'outgoing';
-  type: 'text' | 'image' | 'audio' | 'video' | 'document';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location';
   text: string | null;
   media_url?: string | null;
   media_mime?: string | null;
   media_size?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
   status: string;
   sent_at: string;
 }
