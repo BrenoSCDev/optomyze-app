@@ -19,10 +19,16 @@ interface MessageReceivedEvent {
   timestamp: string;
 }
 
+interface ChatMessagesClearedEvent {
+  chat_id: number;
+  timestamp: string;
+}
+
 interface WhatsAppContextType {
   chats: WhatsAppChat[];
   setChats: React.Dispatch<React.SetStateAction<WhatsAppChat[]>>;
   handleNewMessage: (event: MessageReceivedEvent) => void;
+  handleChatCleared: (chatId: number) => void;
   selectedChat: WhatsAppChat | null;
   setSelectedChat: React.Dispatch<React.SetStateAction<WhatsAppChat | null>>;
   isLoading: boolean;
@@ -135,6 +141,20 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
     }
   }, []); // Empty deps = stable callback, uses refs for dynamic values
 
+  // Handle chat messages cleared event
+  const handleChatCleared = useCallback((chatId: number) => {
+    console.log('💬 Clearing messages for chat:', chatId);
+    setChats(prevChats => 
+      prevChats.map(c => c.id === chatId ? { ...c, messages: [] } : c)
+    );
+    setSelectedChat(prevSelected => {
+      if (prevSelected && prevSelected.id === chatId) {
+        return { ...prevSelected, messages: [] };
+      }
+      return prevSelected;
+    });
+  }, []);
+
   // Subscribe to WebSocket channel when user is authenticated
   // IMPORTANT: Only depends on company_id, NOT on callbacks (they're stable via refs)
   useEffect(() => {
@@ -162,20 +182,28 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
       handleNewMessage(event);
     });
 
+    // Listen for whatsapp.chat.messages.cleared events
+    channel.listen('.whatsapp.chat.messages.cleared', (event: ChatMessagesClearedEvent) => {
+      console.log('💬 Received whatsapp.chat.messages.cleared event:', event);
+      handleChatCleared(event.chat_id);
+    });
+
     console.log('💬 Subscribed to WhatsApp message channel successfully');
 
     // Cleanup - only on logout or company change, NOT on route navigation
     return () => {
       console.log(`💬 Unsubscribing WhatsApp listener from company.${companyId}`);
       channel.stopListening('.whatsapp.message.received');
+      channel.stopListening('.whatsapp.chat.messages.cleared');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
-  }, [user?.company_id, handleNewMessage]); // handleNewMessage is now stable (empty deps)
+  }, [user?.company_id, handleNewMessage, handleChatCleared]);
 
   const value: WhatsAppContextType = {
     chats,
     setChats,
     handleNewMessage,
+    handleChatCleared,
     selectedChat,
     setSelectedChat,
     isLoading,

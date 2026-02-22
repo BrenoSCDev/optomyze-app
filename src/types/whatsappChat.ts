@@ -10,6 +10,11 @@ export interface WhatsAppMessageMetadata {
   vcard?: string;
 }
 
+export interface WhatsAppMessageUser {
+  id: number;
+  name: string;
+}
+
 export interface WhatsAppMessage {
   id: number;
   whatsapp_evo_chat_id: number;
@@ -24,6 +29,9 @@ export interface WhatsAppMessage {
   longitude?: number | null;
   status: string;
   sent_at: string;
+  user_id?: number | null;
+  message_mode?: 'external' | 'internal';
+  user?: WhatsAppMessageUser | null;
 }
 
 export interface WhatsAppFunnel {

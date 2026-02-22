@@ -7,7 +7,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink } from 'lucide-react';
+import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink, StickyNote } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
 import DocumentMessage from '@/components/chat/inbox/DocumentMessage';
 import ContactMessage from '@/components/chat/inbox/ContactMessage';
+
 // Types matching the backend response
 export interface LeadWhatsAppMessage {
   id: number;
@@ -39,6 +40,9 @@ export interface LeadWhatsAppMessage {
   sent_at: string;
   created_at: string;
   updated_at: string;
+  user_id?: number | null;
+  message_mode?: 'external' | 'internal';
+  user?: { id: number; name: string } | null;
 }
 
 export interface LeadWhatsAppInstance {
@@ -66,6 +70,7 @@ interface PendingMessage {
   id: string;
   text: string;
   status: 'sending' | 'error';
+  messageMode: 'external' | 'internal';
 }
 
 interface LeadChatSectionProps {
@@ -86,19 +91,17 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
 
   // REAL-TIME: Merge initial messages with live WebSocket messages
   const chat = useMemo(() => {
     if (!initialChat) return null;
     
-    // Find matching chat in global context by chat ID
     const liveChat = chats.find(c => c.id === initialChat.id);
     
     if (liveChat && liveChat.messages?.length > 0) {
-      // Get IDs of messages we already have from initial fetch
       const initialMessageIds = new Set(initialChat.messages?.map(m => m.id) || []);
       
-      // Find only NEW messages from WebSocket that aren't in initial data
       const newMessages = liveChat.messages
         .filter(m => !initialMessageIds.has(m.id))
         .map(m => ({
@@ -114,14 +117,21 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
           sent_at: m.sent_at,
           created_at: m.sent_at,
           updated_at: m.sent_at,
+          user_id: m.user_id,
+          message_mode: m.message_mode,
+          user: m.user,
         })) as LeadWhatsAppMessage[];
       
-      // Merge: keep all initial messages + append new WebSocket messages
       return {
         ...initialChat,
         messages: [...(initialChat.messages || []), ...newMessages],
         last_message_at: liveChat.last_message_at,
       };
+    }
+    
+    // Handle cleared chat
+    if (liveChat && liveChat.messages?.length === 0 && initialChat.messages?.length > 0) {
+      return { ...initialChat, messages: [] };
     }
     
     return initialChat;
@@ -136,7 +146,6 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     }
   };
 
-  // Auto-scroll when chat loads, messages change (WebSocket), or pending messages update
   useEffect(() => {
     if (chat?.messages?.length || pendingMessages.length) {
       setTimeout(scrollToBottom, 100);
@@ -150,20 +159,21 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
 
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
+    const currentMode = messageMode;
     
     setMessageText('');
     setIsSending(true);
-    setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending' }]);
+    setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
       await sendWhatsAppMessage(chat.whatsapp_instance_id, {
         lead_id: leadId,
-        text
+        text,
+        message_mode: currentMode
       });
 
-      // Create the sent message object to add locally
       const sentMessage: LeadWhatsAppMessage = {
-        id: Date.now(), // Temporary ID
+        id: Date.now(),
         whatsapp_evo_chat_id: chat.id,
         direction: 'outgoing',
         type: 'text',
@@ -171,7 +181,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
         status: 'sent',
         sent_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        message_mode: currentMode,
       };
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
@@ -197,6 +208,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   const handleRetry = (pendingMessage: PendingMessage) => {
     setPendingMessages(prev => prev.filter(m => m.id !== pendingMessage.id));
     setMessageText(pendingMessage.text);
+    setMessageMode(pendingMessage.messageMode);
   };
 
   const formatMessageTime = (dateString: string): string => {
@@ -238,6 +250,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
 
     return groups;
   };
+
+  const isInternalNote = (message: LeadWhatsAppMessage) => message.message_mode === 'internal';
 
   // Empty state - no WhatsApp chat associated
   if (!chat) {
@@ -314,11 +328,33 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
                         message.type === 'contact' ? "p-3" : "p-3",
-                        message.direction === 'outgoing'
-                          ? "bg-green-600 text-white rounded-br-none"
-                          : "bg-white/10 border border-white/10 text-white rounded-bl-none"
+                        isInternalNote(message)
+                          ? "bg-amber-900/40 border border-amber-700 rounded-br-none"
+                          : message.direction === 'outgoing'
+                            ? "bg-green-600 text-white rounded-br-none"
+                            : "bg-white/10 border border-white/10 text-white rounded-bl-none"
                       )}
                     >
+                      {/* Internal note label */}
+                      {isInternalNote(message) && (
+                        <div className="flex items-center gap-1 mb-1">
+                          <StickyNote className="h-3 w-3 text-amber-400" />
+                          <span className="text-xs font-medium text-amber-400">
+                            {t('chat.inbox.internal-note')}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Sender name for outgoing messages */}
+                      {message.direction === 'outgoing' && (message as any).user?.name && (
+                        <p className={cn(
+                          "text-xs font-semibold mb-0.5",
+                          isInternalNote(message) ? "text-amber-300" : "text-green-200"
+                        )}>
+                          {(message as any).user.name}
+                        </p>
+                      )}
+
                       {message.type === 'image' && message.media_url ? (
                         <div className="space-y-1">
                           <button 
@@ -343,13 +379,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -373,13 +410,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -417,13 +455,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -437,7 +476,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             fileUrl={getStorageUrl(message.media_url) || ''}
                             mimeType={message.media_mime}
                             fileSize={message.media_size}
-                            isOutgoing={message.direction === 'outgoing'}
+                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
                           />
                           <div className={cn(
                             "flex items-center gap-1 px-1",
@@ -445,13 +484,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -463,7 +503,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           <ContactMessage
                             contactName={(message as any).metadata.contact_name || message.text || ''}
                             contactPhone={(message as any).metadata.contact_phone || ''}
-                            isOutgoing={message.direction === 'outgoing'}
+                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
                             instanceId={chat.whatsapp_instance_id}
                           />
                           <div className={cn(
@@ -472,13 +512,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -487,7 +528,10 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                         </div>
                       ) : (
                         <>
-                          <p className="text-sm whitespace-pre-wrap break-words">
+                          <p className={cn(
+                            "text-sm whitespace-pre-wrap break-words",
+                            isInternalNote(message) && "text-amber-100"
+                          )}>
                             {message.text}
                           </p>
                           <div className={cn(
@@ -496,13 +540,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           )}>
                             <span className={cn(
                               "text-xs",
+                              isInternalNote(message) ? "text-amber-400" :
                               message.direction === 'outgoing' 
                                 ? "text-green-200" 
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && (
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
                               <span className="text-xs text-green-200">
                                 • {message.status}
                               </span>
@@ -529,15 +574,31 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                     "max-w-[75%] rounded-lg p-3 shadow-sm rounded-br-none",
                     pending.status === 'error'
                       ? "bg-red-600/80 text-white"
-                      : "bg-green-600/70 text-white"
+                      : pending.messageMode === 'internal'
+                        ? "bg-amber-900/30 border border-amber-700"
+                        : "bg-green-600/70 text-white"
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">
+                  {pending.messageMode === 'internal' && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <StickyNote className="h-3 w-3 text-amber-400" />
+                      <span className="text-xs font-medium text-amber-400">
+                        {t('chat.inbox.internal-note')}
+                      </span>
+                    </div>
+                  )}
+                  <p className={cn(
+                    "text-sm whitespace-pre-wrap break-words",
+                    pending.messageMode === 'internal' ? "text-amber-100" : "text-white"
+                  )}>
                     {pending.text}
                   </p>
                   <div className="flex items-center gap-1 mt-1 justify-end">
                     {pending.status === 'sending' ? (
-                      <span className="text-xs text-green-200 flex items-center gap-1">
+                      <span className={cn(
+                        "text-xs flex items-center gap-1",
+                        pending.messageMode === 'internal' ? "text-amber-400" : "text-green-200"
+                      )}>
                         <Loader2 className="h-3 w-3 animate-spin" />
                         {t('chat.inbox.sending')}
                       </span>
@@ -565,21 +626,57 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="p-3 border-t border-white/10 bg-white/5">
+      <div className="p-3 border-t border-white/10 bg-white/5 space-y-2">
+        {/* Message mode toggle */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={messageMode === 'external' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageMode('external')}
+            className={cn(
+              "h-6 text-xs gap-1 rounded-full px-2",
+              messageMode === 'external' ? "bg-green-600 hover:bg-green-700 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <FaWhatsapp className="h-3 w-3" />
+            {t('chat.inbox.mode-external')}
+          </Button>
+          <Button
+            variant={messageMode === 'internal' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageMode('internal')}
+            className={cn(
+              "h-6 text-xs gap-1 rounded-full px-2",
+              messageMode === 'internal' ? "bg-amber-500 hover:bg-amber-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <StickyNote className="h-3 w-3" />
+            {t('chat.inbox.mode-internal')}
+          </Button>
+        </div>
+
         <div className="flex items-center gap-2">
           <Input
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('chat.inbox.type-message')}
+            placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
             disabled={isSending}
-            className="flex-1 bg-white/10 border-white/10 text-white placeholder:text-gray-500"
+            className={cn(
+              "flex-1 bg-white/10 border-white/10 text-white placeholder:text-gray-500",
+              messageMode === 'internal' && "border-amber-700"
+            )}
           />
           <Button
             onClick={handleSendMessage}
             disabled={!messageText.trim() || isSending}
             size="icon"
-            className="shrink-0 bg-green-600 hover:bg-green-700"
+            className={cn(
+              "shrink-0",
+              messageMode === 'internal'
+                ? "bg-amber-500 hover:bg-amber-600"
+                : "bg-green-600 hover:bg-green-700"
+            )}
           >
             {isSending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

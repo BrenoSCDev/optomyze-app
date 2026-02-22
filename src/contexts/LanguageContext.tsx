@@ -1997,6 +1997,14 @@ const translations = {
     'chat.inbox.contact-message-placeholder': 'Type your opening message...',
     'chat.inbox.contact-new-lead-notice': 'If this number doesn\'t exist in your CRM, a new lead will be automatically created.',
     'chat.inbox.contact-send-message': 'Send Message',
+    'chat.inbox.internal-note': 'Internal Note',
+    'chat.inbox.mode-external': 'WhatsApp',
+    'chat.inbox.mode-internal': 'Internal Note',
+    'chat.inbox.type-internal-note': 'Type an internal note...',
+    'chat.inbox.clear-messages': 'Clear Messages',
+    'chat.inbox.clear-messages-confirm': 'Are you sure you want to clear all messages from this chat? This action cannot be undone.',
+    'chat.inbox.clear-success': 'Chat messages cleared successfully',
+    'chat.inbox.clear-error': 'Failed to clear messages',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -4445,6 +4453,14 @@ const translations = {
     'chat.inbox.contact-message-placeholder': 'Digite sua mensagem de abertura...',
     'chat.inbox.contact-new-lead-notice': 'Se este número não existir no seu CRM, um novo lead será criado automaticamente.',
     'chat.inbox.contact-send-message': 'Enviar Mensagem',
+    'chat.inbox.internal-note': 'Nota Interna',
+    'chat.inbox.mode-external': 'WhatsApp',
+    'chat.inbox.mode-internal': 'Nota Interna',
+    'chat.inbox.type-internal-note': 'Digite uma nota interna...',
+    'chat.inbox.clear-messages': 'Limpar Mensagens',
+    'chat.inbox.clear-messages-confirm': 'Tem certeza que deseja limpar todas as mensagens deste chat? Esta ação não pode ser desfeita.',
+    'chat.inbox.clear-success': 'Mensagens do chat limpas com sucesso',
+    'chat.inbox.clear-error': 'Falha ao limpar mensagens',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -6622,6 +6638,14 @@ const translations = {
     'chat.inbox.contact-message-placeholder': 'Geben Sie Ihre Eröffnungsnachricht ein...',
     'chat.inbox.contact-new-lead-notice': 'Wenn diese Nummer nicht in Ihrem CRM existiert, wird automatisch ein neuer Lead erstellt.',
     'chat.inbox.contact-send-message': 'Nachricht senden',
+    'chat.inbox.internal-note': 'Interne Notiz',
+    'chat.inbox.mode-external': 'WhatsApp',
+    'chat.inbox.mode-internal': 'Interne Notiz',
+    'chat.inbox.type-internal-note': 'Interne Notiz eingeben...',
+    'chat.inbox.clear-messages': 'Nachrichten löschen',
+    'chat.inbox.clear-messages-confirm': 'Möchten Sie wirklich alle Nachrichten aus diesem Chat löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'chat.inbox.clear-success': 'Chat-Nachrichten erfolgreich gelöscht',
+    'chat.inbox.clear-error': 'Nachrichten konnten nicht gelöscht werden',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -8906,6 +8930,14 @@ const translations = {
     'chat.inbox.contact-message-placeholder': 'Escribe tu mensaje de apertura...',
     'chat.inbox.contact-new-lead-notice': 'Si este número no existe en tu CRM, se creará un nuevo lead automáticamente.',
     'chat.inbox.contact-send-message': 'Enviar Mensaje',
+    'chat.inbox.internal-note': 'Nota Interna',
+    'chat.inbox.mode-external': 'WhatsApp',
+    'chat.inbox.mode-internal': 'Nota Interna',
+    'chat.inbox.type-internal-note': 'Escribe una nota interna...',
+    'chat.inbox.clear-messages': 'Limpiar Mensajes',
+    'chat.inbox.clear-messages-confirm': '¿Estás seguro de que deseas eliminar todos los mensajes de este chat? Esta acción no se puede deshacer.',
+    'chat.inbox.clear-success': 'Mensajes del chat eliminados exitosamente',
+    'chat.inbox.clear-error': 'Error al limpiar mensajes',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
