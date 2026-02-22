@@ -157,7 +157,7 @@ const IntegrationPanel: React.FC = () => {
 
   const handleDisconnect = async (instance: WhatsAppInstance) => {
     try {
-      await api.post(`/api/whatsapp-evo-instances/disconnect/${instance.id}`);
+      await api.post(`/api/integrations/whatsapp-evo-instances/disconnect/${instance.id}`);
       handleStatusChange(instance.id, 'disconnected');
       toast({
         title: t('integrations.panel.disconnect.success-title'),
