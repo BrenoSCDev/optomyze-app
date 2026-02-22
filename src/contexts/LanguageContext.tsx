@@ -1974,6 +1974,7 @@ const translations = {
     'chat.inbox.photo': 'Photo',
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Location',
+    'chat.inbox.document': 'Document',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -4399,6 +4400,7 @@ const translations = {
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Áudio',
     'chat.inbox.location': 'Localização',
+    'chat.inbox.document': 'Documento',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -6553,6 +6555,7 @@ const translations = {
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Standort',
+    'chat.inbox.document': 'Dokument',
     
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -8814,6 +8817,7 @@ const translations = {
     'chat.inbox.photo': 'Foto',
     'chat.inbox.audio': 'Audio',
     'chat.inbox.location': 'Ubicación',
+    'chat.inbox.document': 'Documento',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
