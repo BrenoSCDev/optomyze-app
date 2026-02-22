@@ -68,6 +68,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 import LeadPreviewModal from './LeadPreviewModal';
+import LostReasonModal from './LostReasonModal';
 
 interface KanbanBoardProps {
   funnel: any;
@@ -92,6 +93,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  const [lostReasonLeadId, setLostReasonLeadId] = useState<string | null>(null);
   
   // View mode state (persisted in localStorage)
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
@@ -458,6 +460,11 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       });
 
       toast.success('Lead moved successfully');
+
+      // Check if we need to prompt for lost reason
+      if (response.prompt_lost_reason) {
+        setLostReasonLeadId(leadId);
+      }
       
       // Notify parent component
       if (onUpdateLeadStage) {
@@ -845,6 +852,12 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onClose={() => { setPreviewOpen(false); setPreviewLeadId(null); }}
         leadId={previewLeadId}
         onLeadDeleted={onRefresh}
+      />
+      {/* Lost Reason Modal */}
+      <LostReasonModal
+        isOpen={!!lostReasonLeadId}
+        onClose={() => setLostReasonLeadId(null)}
+        leadId={lostReasonLeadId || ''}
       />
     </div>
   );

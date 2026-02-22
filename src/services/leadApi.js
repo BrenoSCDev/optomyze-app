@@ -58,6 +58,19 @@ export const leadService = {
     }
   },
 
+  // Submit lost reason for a lead
+  async submitLostReason(leadId, lostReasonId) {
+    try {
+      const response = await api.post(`/api/leads/${leadId}/lost-reason`, {
+        lost_reason_id: lostReasonId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting lost reason:', error);
+      throw error;
+    }
+  },
+
   // Update lead tags
   async updateLeadTags(leadId, tags) {
     try {
