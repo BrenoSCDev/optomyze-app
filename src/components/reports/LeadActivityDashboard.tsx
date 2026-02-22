@@ -8,6 +8,7 @@ import {
   ArrowRightLeft,
   Handshake,
   ListTodo,
+  XCircle,
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,6 +47,7 @@ const TransactionItem: React.FC<{ tx: ActivityTransaction; index: number }> = ({
       stage_change: { icon: <ArrowRightLeft className="w-3.5 h-3.5" />, color: 'bg-amber-600' },
       deal: { icon: <Handshake className="w-3.5 h-3.5" />, color: 'bg-purple-600' },
       whatsapp_chat: { icon: <FaWhatsapp className="w-3.5 h-3.5" />, color: 'bg-green-600' },
+      lost: { icon: <XCircle className="w-3.5 h-3.5" />, color: 'bg-red-600' },
     };
     return map[type] || { icon: <Activity className="w-3.5 h-3.5" />, color: 'bg-muted' };
   };
