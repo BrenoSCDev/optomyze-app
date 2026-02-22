@@ -833,6 +833,7 @@ const translations = {
     'user.role': 'Role',
     
     // Common
+    'common.name': 'Name',
     'common.save': 'Save',
     'common.cancel': 'Cancel',
     'common.success': 'Success',
@@ -3302,6 +3303,7 @@ const translations = {
     'user.role': 'Função',
     
     // Common
+    'common.name': 'Nome',
     'common.save': 'Salvar',
     'common.cancel': 'Cancelar',
     'common.success': 'Sucesso',
@@ -5669,6 +5671,7 @@ const translations = {
     'user.role': 'Rolle',
     
     // Common
+    'common.name': 'Name',
     'common.save': 'Speichern',
     'common.cancel': 'Abbrechen',
     'common.success': 'Erfolg',
@@ -7952,6 +7955,7 @@ const translations = {
     'user.role': 'Rol',
     
     // Common
+    'common.name': 'Nombre',
     'common.save': 'Guardar',
     'common.cancel': 'Cancelar',
     'common.success': 'Éxito',
