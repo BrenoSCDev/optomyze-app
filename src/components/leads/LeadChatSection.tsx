@@ -21,6 +21,7 @@ import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
 import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
 import DocumentMessage from '@/components/chat/inbox/DocumentMessage';
+import ContactMessage from '@/components/chat/inbox/ContactMessage';
 // Types matching the backend response
 export interface LeadWhatsAppMessage {
   id: number;
@@ -311,7 +312,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                         message.type === 'image' ? "p-1" : 
                         message.type === 'audio' ? "px-2 py-1.5" :
                         message.type === 'location' ? "p-2" :
-                        message.type === 'document' ? "p-2" : "p-3",
+                        message.type === 'document' ? "p-2" :
+                        message.type === 'contact' ? "p-3" : "p-3",
                         message.direction === 'outgoing'
                           ? "bg-green-600 text-white rounded-br-none"
                           : "bg-white/10 border border-white/10 text-white rounded-bl-none"
@@ -439,6 +441,33 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                           />
                           <div className={cn(
                             "flex items-center gap-1 px-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' 
+                                ? "text-green-200" 
+                                : "text-gray-400"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && (
+                              <span className="text-xs text-green-200">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'contact' && (message as any).metadata ? (
+                        <div className="space-y-1">
+                          <ContactMessage
+                            contactName={(message as any).metadata.contact_name || message.text || ''}
+                            contactPhone={(message as any).metadata.contact_phone || ''}
+                            isOutgoing={message.direction === 'outgoing'}
+                            instanceId={chat.whatsapp_instance_id}
+                          />
+                          <div className={cn(
+                            "flex items-center gap-1",
                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
                           )}>
                             <span className={cn(

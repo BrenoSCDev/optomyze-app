@@ -122,6 +122,8 @@ export const WhatsAppProvider: React.FC<WhatsAppProviderProps> = ({ children }) 
         messagePreview = '📷 Image';
       } else if (message.type === 'audio') {
         messagePreview = '🎤 Voice message';
+      } else if (message.type === 'contact') {
+        messagePreview = '👤 Contact';
       }
 
       toast.info(`New message from ${leadName}`, {
