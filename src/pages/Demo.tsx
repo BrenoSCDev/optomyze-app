@@ -1,9 +1,25 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Sidebar from '@/components/Sidebar';
+import TopHeader from '@/components/layout/TopHeader';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import { mockPeriodicData, mockMonthlyChartsData } from '@/data/mockMetricsData';
-import OptoIcon from '@/assets/opto-icon.png';
+import { useMenuOrder } from '@/contexts/MenuOrderContext';
 
 const Demo = () => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { navLayout } = useMenuOrder();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const useHeaderLayout = navLayout === 'header' && !isMobile;
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-dark">
@@ -13,24 +29,64 @@ const Demo = () => {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-8">
-        {/* Demo banner */}
-        <motion.div
-          className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-3"
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <img src={OptoIcon} alt="Optomyze" className="h-6 w-6" />
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">Demo Mode</span> — This dashboard is populated with sample data for demonstration purposes.
-          </p>
-        </motion.div>
+      <TopHeader
+        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        onMobileMenuToggle={() => setMobileSidebarOpen(true)}
+        activeSection="optomyze-metrics"
+        onSectionChange={() => {}}
+        headerNavMode={useHeaderLayout}
+      />
 
-        <OptomyzeMetrics
-          demoMode
-          demoPeriodicData={mockPeriodicData}
-          demoMonthlyData={mockMonthlyChartsData}
-        />
+      <div className="relative z-10 flex pt-16">
+        {!useHeaderLayout && (
+          <Sidebar
+            isCollapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection="optomyze-metrics"
+            onSectionChange={() => {}}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        {useHeaderLayout && isMobile && (
+          <Sidebar
+            isCollapsed={false}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection="optomyze-metrics"
+            onSectionChange={() => {}}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        <motion.main
+          className="flex-1 transition-all duration-300"
+          initial={false}
+          animate={{
+            marginLeft: useHeaderLayout
+              ? 0
+              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+          }}
+        >
+          <div className="p-4 sm:p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="demo-metrics"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <OptomyzeMetrics
+                  demoMode
+                  demoPeriodicData={mockPeriodicData}
+                  demoMonthlyData={mockMonthlyChartsData}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </motion.main>
       </div>
     </div>
   );
