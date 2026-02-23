@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { funnelService } from '@/services/funnelApi';
 import { toast } from 'sonner';
+import { getMockSalesFunnelData } from '@/data/mockFunnelLeadsData';
 
 export const useFunnelData = (funnelId) => {
   const [funnelData, setFunnelData] = useState(null);
@@ -14,9 +15,11 @@ export const useFunnelData = (funnelId) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await funnelService.getFunnelData(id);
+
+      // TODO: restore API call later
+      // const data = await funnelService.getFunnelData(id);
+      const data = getMockSalesFunnelData(id);
       
-      // Extract tags from API response and store separately
       const tags = data?.tags || [];
       setAvailableTags(tags);
       setFunnelData(data);
@@ -24,7 +27,6 @@ export const useFunnelData = (funnelId) => {
       console.error('Failed to fetch funnel data:', err);
       setError(err);
       
-      // Show appropriate error message based on error type
       if (err.response?.status === 404) {
         toast.error('Funnel not found', {
           description: 'The requested funnel does not exist or you do not have access to it.'
