@@ -10,11 +10,14 @@ import {
   CalendarEvent
 } from '@/services/calendarApi';
 import { toast } from '@/hooks/use-toast';
+import { mockCalendarData } from '@/data/mockCrmData';
 
 export const useCalendarEvents = () => {
   return useQuery<CalendarEventsResponse>({
     queryKey: ['calendarEvents'],
-    queryFn: fetchCalendarEvents,
+    // TODO: restore API call later
+    // queryFn: fetchCalendarEvents,
+    queryFn: async () => mockCalendarData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };

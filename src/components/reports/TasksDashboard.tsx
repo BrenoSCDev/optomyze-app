@@ -200,12 +200,15 @@ const TasksDashboard: React.FC = () => {
   const validColumnsRef = useRef<Set<string>>(new Set(STATUSES));
 
   useEffect(() => {
-    leadActivityApi.fetchTasks()
-      .then((data) => {
-        setTasks(data.tasks);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    // TODO: restore API call later
+    // leadActivityApi.fetchTasks()
+    //   .then((data) => { setTasks(data.tasks); })
+    //   .catch(() => {})
+    //   .finally(() => setLoading(false));
+    import('@/data/mockCrmData').then(({ mockActivityTasks }) => {
+      setTasks(mockActivityTasks);
+      setLoading(false);
+    });
   }, []);
 
   const taskPriorityKPIs = useMemo(() => {
