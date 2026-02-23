@@ -68,17 +68,23 @@ interface GoogleAdsResponse {
 
 const COLORS = ['#8B5CF6', '#06B6D4', '#F59E0B', '#10B981', '#EF4444', '#EC4899'];
 
-const GoogleAds = () => {
+interface GoogleAdsProps {
+  demoMode?: boolean;
+  demoData?: CampaignData[];
+}
+
+const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!demoMode);
   const [error, setError] = useState<string | null>(null);
-  const [campaignsData, setCampaignsData] = useState<CampaignData[]>([]);
+  const [campaignsData, setCampaignsData] = useState<CampaignData[]>(demoMode && demoData ? demoData : []);
 
   useEffect(() => {
+    if (demoMode) return;
     fetchGoogleAdsData();
-  }, []);
+  }, [demoMode]);
 
   const fetchGoogleAdsData = async () => {
     try {
@@ -87,7 +93,6 @@ const GoogleAds = () => {
       const response = await api.get<GoogleAdsResponse>('/api/integrations/google-ads/fetch-google-data');
       
       if (response.data?.data?.results) {
-        // Filter out removed campaigns for cleaner display
         const activeCampaigns = response.data.data.results.filter(
           (campaign) => campaign.campaign.status !== 'REMOVED'
         );

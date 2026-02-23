@@ -3,8 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
+import PlanUsage from '@/components/dashboards/PlanUsage';
+import MetaAds from '@/components/dashboards/MetaAds';
+import GoogleAds from '@/components/dashboards/GoogleAds';
 import { mockPeriodicData, mockMonthlyChartsData } from '@/data/mockMetricsData';
+import { mockPlanUsageData } from '@/data/mockPlanUsageData';
+import { mockMetaAdsData } from '@/data/mockMetaAdsData';
+import { mockGoogleAdsData } from '@/data/mockGoogleAdsData';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { BarChart3, CreditCard, Activity } from 'lucide-react';
+import { FaMeta } from 'react-icons/fa6';
+import { SiGoogleads } from 'react-icons/si';
 
 const Demo = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -70,21 +80,84 @@ const Demo = () => {
           }}
         >
           <div className="p-4 sm:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key="demo-metrics"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <OptomyzeMetrics
-                  demoMode
-                  demoPeriodicData={mockPeriodicData}
-                  demoMonthlyData={mockMonthlyChartsData}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <Tabs defaultValue="metrics" className="w-full">
+              <TabsList className="mb-6 flex-wrap h-auto gap-1">
+                <TabsTrigger value="metrics" className="gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Optomyze Metrics</span>
+                  <span className="sm:hidden">Metrics</span>
+                </TabsTrigger>
+                <TabsTrigger value="plan-usage" className="gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Plan Usage</span>
+                  <span className="sm:hidden">Plan</span>
+                </TabsTrigger>
+                <TabsTrigger value="meta-ads" className="gap-2">
+                  <FaMeta className="h-4 w-4" />
+                  <span className="hidden sm:inline">Meta Ads</span>
+                  <span className="sm:hidden">Meta</span>
+                </TabsTrigger>
+                <TabsTrigger value="google-ads" className="gap-2">
+                  <SiGoogleads className="h-4 w-4" />
+                  <span className="hidden sm:inline">Google Ads</span>
+                  <span className="sm:hidden">Google</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <AnimatePresence mode="wait">
+                <TabsContent value="metrics">
+                  <motion.div
+                    key="demo-metrics"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <OptomyzeMetrics
+                      demoMode
+                      demoPeriodicData={mockPeriodicData}
+                      demoMonthlyData={mockMonthlyChartsData}
+                    />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="plan-usage">
+                  <motion.div
+                    key="demo-plan"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <PlanUsage demoMode demoData={mockPlanUsageData} />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="meta-ads">
+                  <motion.div
+                    key="demo-meta"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <MetaAds demoMode demoData={mockMetaAdsData} />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="google-ads">
+                  <motion.div
+                    key="demo-google"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <GoogleAds demoMode demoData={mockGoogleAdsData as any} />
+                  </motion.div>
+                </TabsContent>
+              </AnimatePresence>
+            </Tabs>
           </div>
         </motion.main>
       </div>
