@@ -112,7 +112,14 @@ export function getMockSalesFunnelData(funnelId: string) {
 // ─── Deal Funnel Mock ────────────────────────────────────────────
 
 function generateDeal(index: number, stageId: number) {
-  const lead = generateLead(index, stageId);
+  const name = names[index % names.length];
+  const [first, ...rest] = name.split(' ');
+  const last = rest.join(' ');
+  const company = companies[index % companies.length];
+  const assigned = assignedUsers[index % assignedUsers.length];
+  const numTags = (index % 3) + 1;
+  const dealTags = tagPool.slice(index % tagPool.length, (index % tagPool.length) + numTags);
+
   const dealNames = [
     'Annual SaaS License', 'Cloud Migration Project', 'Data Analytics Suite',
     'Enterprise Security Package', 'Digital Transformation', 'API Platform License',
@@ -120,17 +127,45 @@ function generateDeal(index: number, stageId: number) {
     'Infrastructure Upgrade', 'AI/ML Implementation', 'Staff Training Program',
   ];
 
+  const products = index % 3 === 0 ? [
+    { id: 1, name: 'Pro License', quantity: 1, unit_price: 5000, total: 5000 },
+    { id: 2, name: 'Support Plan', quantity: 1, unit_price: 2000, total: 2000 },
+  ] : index % 3 === 1 ? [
+    { id: 3, name: 'Enterprise Suite', quantity: 1, unit_price: 15000, total: 15000 },
+  ] : [];
+
+  const charges = index % 4 === 0 ? [
+    { id: 1, description: 'Setup fee', amount: 3000 },
+  ] : [];
+
+  const subtotal = products.reduce((s, p) => s + p.total, 0) || (25000 + index * 12000) % 200000 + 15000;
+  const chargesTotal = charges.reduce((s, c) => s + c.amount, 0);
+  const discountTotal = index % 5 === 0 ? subtotal * 0.1 : 0;
+  const finalTotal = subtotal + chargesTotal - discountTotal;
+
   return {
-    ...lead,
-    deal_name: dealNames[index % dealNames.length],
-    value_estimated: String((25000 + index * 12000) % 200000 + 15000),
-    products: index % 3 === 0 ? [
-      { id: 1, name: 'Pro License', quantity: 1, unit_price: 5000 },
-      { id: 2, name: 'Support Plan', quantity: 1, unit_price: 2000 },
-    ] : [],
-    charges: index % 4 === 0 ? [
-      { id: 1, description: 'Setup fee', amount: 3000 },
-    ] : [],
+    id: stageId * 1000 + index + 1,
+    name: dealNames[index % dealNames.length],
+    lead: {
+      id: stageId * 1000 + index + 500,
+      first_name: first,
+      last_name: last,
+      email: `${first.toLowerCase()}.${last.toLowerCase().replace(/ /g, '')}@${company.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+      phone: `+1 (${400 + index}) 555-${String(1000 + index).slice(-4)}`,
+    },
+    currency: 'USD',
+    subtotal: String(subtotal),
+    charges_total: chargesTotal,
+    discount_total: String(discountTotal),
+    final_total: finalTotal,
+    products,
+    charges,
+    tags: dealTags,
+    assigned_to: assigned.id,
+    assigned_user: assigned,
+    source_platform: sources[index % sources.length],
+    created_at: new Date(Date.now() - (index + 1) * 86400000 * 2).toISOString(),
+    updated_at: new Date(Date.now() - (index % 5) * 3600000).toISOString(),
   };
 }
 
@@ -153,7 +188,7 @@ export function getMockDealFunnelData(funnelId: string) {
       stages: stages.map(stage => ({
         ...stage,
         value_estimated: stage.dealCount * (20000 + Math.floor(Math.random() * 50000)),
-        active_leads: Array.from({ length: stage.dealCount }, (_, i) => generateDeal(i + stage.order * 10, stage.id)),
+        deals: Array.from({ length: stage.dealCount }, (_, i) => generateDeal(i + stage.order * 10, stage.id)),
       })),
     },
     tags: tagPool,
