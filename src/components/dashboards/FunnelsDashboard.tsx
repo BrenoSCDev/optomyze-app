@@ -86,8 +86,9 @@ const FunnelsDashboard = () => {
         { id: 8, company_id: 1, name: 'Renewal Pipeline', description: 'Contract renewals and retention deals', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-11-15T09:00:00Z', updated_at: '2026-02-21T13:00:00Z', deleted_at: null, nleads: 67 },
       ];
       setFunnels(demoFunnels);
-      const response = await api.get('/api/funnels');
-      if (response.data?.length) setFunnels(response.data);
+      // TODO: restore API call later
+      // const response = await api.get('/api/funnels');
+      // if (response.data?.length) setFunnels(response.data);
     } catch (error) {
       console.error('Error fetching funnels:', error);
       // Fallback to auth context funnels if API fails
