@@ -212,20 +212,29 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading }: MonthlyRevenueChartProp
   );
 };
 
-// ============= MONTHLY LEAD FLOW CHART =============
+// ============= MONTHLY LEAD FLOW CHART (Leads x Deals) =============
 
 const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; isLoading: boolean }) => {
   const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
+
+  const hasDeals = monthlyData.some((d: any) => d.deals != null);
+
   return (
     <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-      <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.monthly-lead-flow')}</h3>
+      <h3 className="text-xl font-semibold mb-6 text-center">
+        {hasDeals ? 'Leads x Deals per Month' : t('metrics.monthly-lead-flow')}
+      </h3>
       <ResponsiveContainer width="100%" height={350}>
         <AreaChart data={monthlyData}>
           <defs>
             <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="#8B5CF6" stopOpacity={0.8} />
               <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
+            </linearGradient>
+            <linearGradient id="dealsGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor="#10B981" stopOpacity={0.8} />
+              <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -236,35 +245,66 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
           <Area
             type="monotone"
             dataKey="leads"
+            name="Leads"
             stroke="#8B5CF6"
             strokeWidth={3}
             fill="url(#leadsGradient)"
             dot={false}
             activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
           />
+          {hasDeals && (
+            <Area
+              type="monotone"
+              dataKey="deals"
+              name="Deals"
+              stroke="#10B981"
+              strokeWidth={3}
+              fill="url(#dealsGradient)"
+              dot={false}
+              activeDot={{ r: 8, stroke: '#10B981', strokeWidth: 2 }}
+            />
+          )}
         </AreaChart>
       </ResponsiveContainer>
 
       {monthlyData.length > 0 && (
-        <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
+        <div className={`mt-6 grid gap-4 pt-4 border-t border-border ${hasDeals ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-400">
+            <p className="text-2xl font-bold text-[#8B5CF6]">
               {Math.max(...monthlyData.map((d: any) => d.leads))}
             </p>
-            <p className="text-sm text-muted-foreground">{t('metrics.peak-month')}</p>
+            <p className="text-sm text-muted-foreground">{t('metrics.peak-month')} (Leads)</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-blue-400">
               {Math.round(monthlyData.reduce((s: number, d: any) => s + d.leads, 0) / monthlyData.length)}
             </p>
-            <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')}</p>
+            <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')} (Leads)</p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-primary">
-              {monthlyData.reduce((s: number, d: any) => s + d.leads, 0)}
-            </p>
-            <p className="text-sm text-muted-foreground">{t('metrics.total-leads-summary')}</p>
-          </div>
+          {hasDeals && (
+            <>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-400">
+                  {Math.max(...monthlyData.map((d: any) => d.deals || 0))}
+                </p>
+                <p className="text-sm text-muted-foreground">{t('metrics.peak-month')} (Deals)</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-emerald-400">
+                  {Math.round(monthlyData.reduce((s: number, d: any) => s + (d.deals || 0), 0) / monthlyData.length)}
+                </p>
+                <p className="text-sm text-muted-foreground">{t('metrics.monthly-avg')} (Deals)</p>
+              </div>
+            </>
+          )}
+          {!hasDeals && (
+            <div className="text-center">
+              <p className="text-2xl font-bold text-primary">
+                {monthlyData.reduce((s: number, d: any) => s + d.leads, 0)}
+              </p>
+              <p className="text-sm text-muted-foreground">{t('metrics.total-leads-summary')}</p>
+            </div>
+          )}
         </div>
       )}
     </motion.div>
@@ -844,13 +884,19 @@ const TabButton = ({ active, onClick, children }: { active: boolean; onClick: ()
 
 // ============= MAIN COMPONENT =============
 
-const OptomyzeMetrics = () => {
+interface OptomyzeMetricsProps {
+  demoMode?: boolean;
+  demoPeriodicData?: any;
+  demoMonthlyData?: any;
+}
+
+const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }: OptomyzeMetricsProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
 
   // Separate data caches per tab
-  const [periodicData,      setPeriodicData]      = useState<any>(null);
-  const [monthlyChartsData, setMonthlyChartsData] = useState<any>(null);
+  const [periodicData,      setPeriodicData]      = useState<any>(demoMode ? demoPeriodicData : null);
+  const [monthlyChartsData, setMonthlyChartsData] = useState<any>(demoMode ? demoMonthlyData : null);
 
   // Per-tab loading / error states
   const [periodicLoading, setPeriodicLoading] = useState(false);
@@ -896,6 +942,7 @@ const OptomyzeMetrics = () => {
 
   // ── Fetch Periodic Performance ──────────────────────────────────────────────
   const fetchPeriodicData = async (force = false) => {
+    if (demoMode) return; // skip in demo mode
     if (periodicData && !force) return; // use cache
     try {
       setPeriodicLoading(true);
@@ -912,6 +959,7 @@ const OptomyzeMetrics = () => {
 
   // ── Fetch Monthly Charts ────────────────────────────────────────────────────
   const fetchMonthlyData = async (force = false) => {
+    if (demoMode) return; // skip in demo mode
     if (monthlyChartsData && !force) return; // use cache
     try {
       setMonthlyLoading(true);
@@ -938,6 +986,7 @@ const OptomyzeMetrics = () => {
 
   // ── Bust cache when date range changes ─────────────────────────────────────
   useEffect(() => {
+    if (demoMode) return;
     setPeriodicData(null);
     setMonthlyChartsData(null);
     if (activeTab === 'periodic') {
@@ -1057,7 +1106,11 @@ const OptomyzeMetrics = () => {
     // Monthly lead flow comes from the monthly-charts endpoint
     const source = monthlyChartsData ?? periodicData;
     if (!source?.data?.monthly_lead_data) return [];
-    return source.data.monthly_lead_data.map((item: any) => ({ name: item.month, leads: item.leads }));
+    return source.data.monthly_lead_data.map((item: any) => ({
+      name: item.month,
+      leads: item.leads,
+      ...(item.deals != null ? { deals: item.deals } : {}),
+    }));
   };
 
   // Monthly charts endpoint data
