@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
 import DealFunnel from "./pages/DealFunnel";
+import Demo from "./pages/Demo";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ const App = () => (
                      </ProtectedRoute>
                    } 
                  />
+                 <Route path="/demo" element={<Demo />} />
                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
