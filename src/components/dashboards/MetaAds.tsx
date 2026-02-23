@@ -53,17 +53,23 @@ interface MetaAdsResponse {
   };
 }
 
-const MetaAds = () => {
+interface MetaAdsProps {
+  demoMode?: boolean;
+  demoData?: MetaAdsCampaignData[];
+}
+
+const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [metaData, setMetaData] = useState<MetaAdsCampaignData[]>([]);
+  const [loading, setLoading] = useState(!demoMode);
+  const [metaData, setMetaData] = useState<MetaAdsCampaignData[]>(demoMode && demoData ? demoData : []);
   const [notConfigured, setNotConfigured] = useState(false);
   
   useEffect(() => {
+    if (demoMode) return;
     fetchMetaData();
-  }, []);
+  }, [demoMode]);
 
   const fetchMetaData = async () => {
     try {

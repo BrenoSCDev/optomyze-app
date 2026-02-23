@@ -192,12 +192,18 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const PlanUsage = () => {
+interface PlanUsageProps {
+  demoMode?: boolean;
+  demoData?: any;
+}
+
+const PlanUsage = ({ demoMode = false, demoData }: PlanUsageProps) => {
   const { t } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [planData, setPlanData] = useState<PlanUsageResponse | null>(null);
+  const [loading, setLoading] = useState(!demoMode);
+  const [planData, setPlanData] = useState<PlanUsageResponse | null>(demoMode ? demoData : null);
 
   useEffect(() => {
+    if (demoMode) return;
     const fetchPlanUsage = async () => {
       try {
         const response = await api.get('/api/metrics/plan-usage');
@@ -210,7 +216,7 @@ const PlanUsage = () => {
     };
 
     fetchPlanUsage();
-  }, []);
+  }, [demoMode]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -325,6 +331,33 @@ const PlanUsage = () => {
       isUnlimited: planData.messages.is_unlimited,
       percentage: planData.messages.percentage,
     },
+    ...((planData as any).teams ? [{
+      id: 'teams',
+      label: 'Teams',
+      current: (planData as any).teams.used,
+      limit: (planData as any).teams.limit,
+      icon: <Users className="h-5 w-5" />,
+      isUnlimited: (planData as any).teams.is_unlimited,
+      percentage: (planData as any).teams.percentage,
+    }] : []),
+    ...((planData as any).api_requests ? [{
+      id: 'api_requests',
+      label: 'API Requests',
+      current: (planData as any).api_requests.used,
+      limit: (planData as any).api_requests.limit,
+      icon: <Plug className="h-5 w-5" />,
+      isUnlimited: (planData as any).api_requests.is_unlimited,
+      percentage: (planData as any).api_requests.percentage,
+    }] : []),
+    ...((planData as any).api_tokens ? [{
+      id: 'api_tokens',
+      label: 'API Tokens',
+      current: (planData as any).api_tokens.used,
+      limit: (planData as any).api_tokens.limit,
+      icon: <Database className="h-5 w-5" />,
+      isUnlimited: (planData as any).api_tokens.is_unlimited,
+      percentage: (planData as any).api_tokens.percentage,
+    }] : []),
   ];
 
   const planName = planData.subscription_plan.charAt(0).toUpperCase() + planData.subscription_plan.slice(1);
