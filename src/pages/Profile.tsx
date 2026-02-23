@@ -386,50 +386,13 @@ const Profile = () => {
           <div>
         {/* Header with background image */}
         <div 
-          className="relative h-64 bg-cover bg-center bg-no-repeat"
+          className="relative h-48 sm:h-64 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${bgPicPreview || optomyzeLogo})`,
             backgroundColor: 'hsl(var(--muted))'
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          
-          {/* Profile picture positioned at bottom of header */}
-          <div className="absolute -bottom-16 left-8">
-            <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                <AvatarImage 
-                  src={profilePicPreview} 
-                  alt="Profile"
-                  className="object-cover"
-                />
-                <AvatarFallback className="text-2xl font-bold text-white">
-                  {getUserInitial()}
-                </AvatarFallback>
-              </Avatar>
-              {isEditing && (
-                <div className="absolute bottom-2 right-2 flex gap-1">
-                  <Button
-                    size="sm"
-                    className="rounded-full w-8 h-8 p-0"
-                    onClick={() => profilePicInputRef.current?.click()}
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                  {profilePicPreview && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="rounded-full w-8 h-8 p-0"
-                      onClick={handleRemoveProfilePic}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Edit background button */}
           {isEditing && (
@@ -471,8 +434,44 @@ const Profile = () => {
         </div>
 
         {/* Main content */}
-        <div className="px-8 pt-20 pb-8">
+        <div className="px-4 sm:px-8 pb-8">
           <div className="max-w-4xl mx-auto">
+            {/* Profile picture + user info - aligned with card */}
+            <div className="relative -mt-16 mb-6">
+              <div className="relative inline-block">
+                <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
+                  <AvatarImage 
+                    src={profilePicPreview} 
+                    alt="Profile"
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-2xl font-bold text-white">
+                    {getUserInitial()}
+                  </AvatarFallback>
+                </Avatar>
+                {isEditing && (
+                  <div className="absolute bottom-2 right-2 flex gap-1">
+                    <Button
+                      size="sm"
+                      className="rounded-full w-8 h-8 p-0"
+                      onClick={() => profilePicInputRef.current?.click()}
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                    {profilePicPreview && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="rounded-full w-8 h-8 p-0"
+                        onClick={handleRemoveProfilePic}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             {/* User info header */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
