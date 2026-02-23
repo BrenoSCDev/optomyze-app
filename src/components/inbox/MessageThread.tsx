@@ -89,23 +89,15 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       setMessages([]);
       messageIdsRef.current.clear();
       try {
-        const firstFetch = await fetchMessages(conversation.id, 1);
-        const lastPage = firstFetch.meta.last_page;
-        if (cancelled) return;
-
-        if (lastPage <= 1) {
-          const ids = new Set(firstFetch.data.map(m => m.id));
-          messageIdsRef.current = ids;
-          setMessages(firstFetch.data);
-          setMeta(firstFetch.meta);
-        } else {
-          const lastFetch = await fetchMessages(conversation.id, lastPage);
-          if (cancelled) return;
-          const ids = new Set(lastFetch.data.map(m => m.id));
-          messageIdsRef.current = ids;
-          setMessages(lastFetch.data);
-          setMeta(lastFetch.meta);
-        }
+        // TODO: restore API call later
+        // const firstFetch = await fetchMessages(conversation.id, 1);
+        // ... pagination logic ...
+        const { mockOptomyzeMessages } = await import('@/data/mockInboxChatsData');
+        const mockMsgs = mockOptomyzeMessages[conversation.id] || [];
+        const ids = new Set(mockMsgs.map(m => m.id));
+        messageIdsRef.current = ids;
+        setMessages(mockMsgs);
+        setMeta({ current_page: 1, last_page: 1, per_page: 50, total: mockMsgs.length });
       } catch (err) {
         console.error('Failed to load messages:', err);
         toast({ title: 'Error', description: 'Failed to load messages.', variant: 'destructive' });

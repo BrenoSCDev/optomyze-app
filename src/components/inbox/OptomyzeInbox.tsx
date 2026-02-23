@@ -40,9 +40,11 @@ const OptomyzeInbox: React.FC = () => {
     try {
       if (showFullLoader) setIsLoading(true);
       else setIsRefreshing(true);
-      const [convs, conts] = await Promise.all([fetchConversations(), fetchContacts()]);
-      setConversations(convs);
-      setContacts(conts);
+      // TODO: restore API call later
+      // const [convs, conts] = await Promise.all([fetchConversations(), fetchContacts()]);
+      const { mockOptomyzeConversations, mockOptomyzeContacts } = await import('@/data/mockInboxChatsData');
+      setConversations(mockOptomyzeConversations);
+      setContacts(mockOptomyzeContacts);
     } catch (err) {
       console.error('Failed to load inbox data:', err);
       toast({ title: 'Error', description: 'Failed to load inbox conversations.', variant: 'destructive' });
