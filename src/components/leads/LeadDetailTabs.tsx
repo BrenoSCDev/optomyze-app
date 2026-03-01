@@ -148,7 +148,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
       transition={{ delay: 0.1 }}
     >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-white/5 p-1 mb-6">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-6">
           <TabsTrigger 
             value="info" 
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
@@ -217,7 +217,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         {/* Lead Information Tab */}
         <TabsContent value="info" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <LeadInfoContent lead={lead} />
-          <div className="mt-6 pt-6 border-t border-white/10">
+          <div className="mt-6 pt-6 border-t border-border">
             <LeadContactContent lead={lead} />
           </div>
         </TabsContent>
@@ -277,8 +277,8 @@ const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string
       {icon}
     </div>
     <div>
-      <p className="text-gray-400 text-xs uppercase tracking-wide">{label}</p>
-      <p className="text-white font-medium">{value || notSet}</p>
+      <p className="text-muted-foreground text-xs uppercase tracking-wide">{label}</p>
+      <p className="text-foreground font-medium">{value || notSet}</p>
     </div>
   </div>
 );
@@ -297,7 +297,7 @@ const MetricCard = ({ label, value, icon, color }: { label: string; value: strin
         {icon}
         <span className="text-sm font-medium">{label}</span>
       </div>
-      <p className="text-lg font-bold text-white">{value}</p>
+      <p className="text-lg font-bold text-foreground">{value}</p>
     </div>
   );
 };
@@ -333,7 +333,7 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
     <div className="space-y-6">
       {/* General Information */}
       <div>
-        <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.general-information')}</h4>
+        <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.general-information')}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InfoItem label={t('lead-details.source-platform')} value={lead.source_platform} icon={<Globe className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
@@ -352,20 +352,20 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
 
       {/* Address Section */}
       {hasAddressData && (
-        <div className="pt-6 border-t border-white/10">
-          <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.address')}</h4>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5">
+        <div className="pt-6 border-t border-border">
+          <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.address')}</h4>
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
             <div className="p-2 rounded-lg bg-orange-500/20">
               <MapPin className="w-5 h-5 text-orange-400" />
             </div>
             <div className="flex-1">
               {lead.address_line_1 && (
-                <p className="text-white font-medium">{lead.address_line_1}</p>
+                <p className="text-foreground font-medium">{lead.address_line_1}</p>
               )}
               {lead.address_line_2 && (
-                <p className="text-gray-400 text-sm">{lead.address_line_2}</p>
+                <p className="text-muted-foreground text-sm">{lead.address_line_2}</p>
               )}
-              <p className="text-gray-400 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 {[
                   lead.neighborhood,
                   lead.city,
@@ -374,7 +374,7 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
                 ].filter(Boolean).join(', ')}
               </p>
               {lead.country && (
-                <p className="text-gray-400 text-sm">{lead.country}</p>
+                <p className="text-muted-foreground text-sm">{lead.country}</p>
               )}
             </div>
           </div>
@@ -383,15 +383,15 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
 
       {/* Notes */}
       {lead.notes && (
-        <div className="pt-6 border-t border-white/10">
-          <h4 className="text-white font-medium mb-2">{t('lead-details.notes')}</h4>
-          <p className="text-gray-400 text-sm leading-relaxed">{lead.notes}</p>
+        <div className="pt-6 border-t border-border">
+          <h4 className="text-foreground font-medium mb-2">{t('lead-details.notes')}</h4>
+          <p className="text-muted-foreground text-sm leading-relaxed">{lead.notes}</p>
         </div>
       )}
 
       {/* Metrics */}
-      <div className="pt-6 border-t border-white/10">
-        <h4 className="text-lg font-semibold text-white mb-4">{t('lead-details.performance-metrics')}</h4>
+      <div className="pt-6 border-t border-border">
+        <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.performance-metrics')}</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <MetricCard
             label={t('lead-details.ai-score')}
@@ -429,64 +429,64 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-blue-500/20">
             <Mail className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
-            <p className="text-white font-medium">{lead.email || t('lead-details.not-provided')}</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
+            <p className="text-foreground font-medium">{lead.email || t('lead-details.not-provided')}</p>
           </div>
         </div>
         {lead.email && (
           <button
             onClick={() => copyToClipboard(lead.email, t('lead-details.email'))}
-            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
             title={`${t('common.copy')} ${t('lead-details.email').toLowerCase()}`}
           >
-            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+            <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
           </button>
         )}
       </div>
       
-      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-green-500/20">
             <Phone className="w-5 h-5 text-green-400" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
-            <p className="text-white font-medium">{lead.ddi} {lead.phone}</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
+            <p className="text-foreground font-medium">{lead.ddi} {lead.phone}</p>
           </div>
         </div>
         {lead.phone && (
           <button
             onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, t('lead-details.phone'))}
-            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
             title={`${t('common.copy')} ${t('lead-details.phone').toLowerCase()}`}
           >
-            <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+            <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
           </button>
         )}
       </div>
       
-      <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-purple-500/20">
             <User className="w-5 h-5 text-purple-400" />
           </div>
           <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>
-            <p className="text-white font-medium">{lead.first_name} {lead.last_name}</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>
+            <p className="text-foreground font-medium">{lead.first_name} {lead.last_name}</p>
           </div>
         </div>
         <button
           onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
-          className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all"
+          className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
           title={`${t('common.copy')} ${t('lead-details.full-name').toLowerCase()}`}
         >
-          <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+          <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
         </button>
       </div>
     </div>

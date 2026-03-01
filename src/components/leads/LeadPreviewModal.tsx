@@ -407,7 +407,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                           transition={{ delay: 0.2 }}
                         >
                           <Tabs defaultValue="activity" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 bg-white/5 mb-4">
+                            <TabsList className="grid w-full grid-cols-2 bg-muted/50 mb-4">
                               <TabsTrigger value="activity" className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
                                 <Activity className="w-3.5 h-3.5 mr-1.5" />
                                 {t('lead-details.activity-timeline')}
@@ -567,10 +567,10 @@ const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
             <div className={`w-8 h-8 rounded-full ${getColor(tx.type)} flex items-center justify-center text-white`}>
               {getIcon(tx.type)}
             </div>
-            {i < transactions.length - 1 && <div className="w-px h-8 bg-white/10 mt-2" />}
+            {i < transactions.length - 1 && <div className="w-px h-8 bg-border mt-2" />}
           </div>
           <div className="flex-1 pb-4">
-            <div className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+            <div className="bg-muted/50 rounded-lg p-3 hover:bg-muted transition-colors">
               <div className="flex items-center justify-between mb-1">
                 <h4 className="text-foreground font-medium text-sm capitalize">{tx.type.replace('_', ' ')}</h4>
                 <span className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</span>
