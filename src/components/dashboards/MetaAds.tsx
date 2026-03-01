@@ -150,7 +150,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
       
       return acc;
     }, {} as Record<string, any>)
-  ).sort((a, b) => b.spend - a.spend).slice(0, 10);
+  ).map((c: any) => ({ ...c, spend: parseFloat(c.spend.toFixed(2)) })).sort((a: any, b: any) => b.spend - a.spend).slice(0, 10);
 
   // Group data by date for trend analysis
   const dailyTrend = Object.values(
@@ -165,7 +165,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
           conversions: 0,
         };
       }
-      acc[date].spend += parseFloat(item.spend || '0');
+      acc[date].spend = parseFloat((acc[date].spend + parseFloat(item.spend || '0')).toFixed(2));
       acc[date].clicks += parseInt(item.clicks || '0');
       acc[date].impressions += parseInt(item.impressions || '0');
       
@@ -329,6 +329,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Bar dataKey="spend" fill="#8B5CF6" name="Spend ($)" radius={[0, 4, 4, 0]} />
@@ -353,6 +354,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Bar dataKey="clicks" fill="#10B981" name="Clicks" radius={[4, 4, 0, 0]} />
@@ -380,6 +382,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Line
@@ -446,10 +449,11 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="date" stroke="#9CA3AF" fontSize={10} angle={-45} textAnchor="end" height={80} />
             <YAxis stroke="#9CA3AF" />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-              labelStyle={{ color: '#fff' }}
-            />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
+              />
             <Legend />
             <Line type="monotone" dataKey="clicks" stroke="#10B981" strokeWidth={2} name="Clicks" />
             <Line type="monotone" dataKey="impressions" stroke="#F59E0B" strokeWidth={2} name="Impressions" />
