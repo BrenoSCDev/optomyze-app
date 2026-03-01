@@ -146,8 +146,8 @@ const PurchaseHistorySection: React.FC<PurchaseHistorySectionProps> = ({
   if (sortedSales.length === 0) {
     return (
       <div className="text-center py-8">
-        <ShoppingBag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-400">{t('lead-details.no-purchases')}</p>
+        <ShoppingBag className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+        <p className="text-muted-foreground">{t('lead-details.no-purchases')}</p>
       </div>
     );
   }
@@ -387,7 +387,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
 
   return (
     <motion.div 
-      className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/10"
+      className="bg-muted/50 rounded-lg p-4 hover:bg-muted transition-colors border border-border"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -399,7 +399,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-white font-medium">
+              <span className="text-foreground font-medium">
                 {sale.name || `${t('lead-details.order')} #${sale.id}`}
               </span>
               {sale.stage && (
@@ -429,7 +429,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 {formatDate(sale.created_at)}
@@ -447,28 +447,28 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
 
       {/* Notes */}
       {sale.notes && (
-        <div className="mb-4 p-3 bg-white/5 rounded-lg">
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('lead-details.notes')}</p>
-          <p className="text-gray-300 text-sm">{sale.notes}</p>
+        <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{t('lead-details.notes')}</p>
+          <p className="text-foreground/70 text-sm">{sale.notes}</p>
         </div>
       )}
 
       {/* Financial Summary */}
-      <div className="mb-4 p-4 bg-white/5 rounded-lg space-y-2">
+      <div className="mb-4 p-4 bg-muted/50 rounded-lg space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">{t('lead-details.charges')}</span>
-          <span className="text-green-400 font-medium">+{formatCurrency(totalCharges, sale.currency)}</span>
+          <span className="text-muted-foreground">{t('lead-details.charges')}</span>
+          <span className="text-green-500 font-medium">+{formatCurrency(totalCharges, sale.currency)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">{t('lead-details.discounts')}</span>
-          <span className="text-red-400 font-medium">-{formatCurrency(totalDiscounts, sale.currency)}</span>
+          <span className="text-muted-foreground">{t('lead-details.discounts')}</span>
+          <span className="text-red-500 font-medium">-{formatCurrency(totalDiscounts, sale.currency)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400">{t('lead-details.subtotal')}</span>
-          <span className="text-white font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</span>
+          <span className="text-muted-foreground">{t('lead-details.subtotal')}</span>
+          <span className="text-foreground font-medium">{formatCurrency(sale.subtotal || 0, sale.currency)}</span>
         </div>
-        <div className="border-t border-white/10 pt-2 flex items-center justify-between">
-          <span className="text-gray-400 font-medium">{t('lead-details.total')}</span>
+        <div className="border-t border-border pt-2 flex items-center justify-between">
+          <span className="text-muted-foreground font-medium">{t('lead-details.total')}</span>
           <span className="text-lg font-bold text-primary">{formatCurrency(sale.final_total || 0, sale.currency)}</span>
         </div>
       </div>
@@ -476,17 +476,17 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       {/* Products Section */}
       <Collapsible open={productsOpen} onOpenChange={setProductsOpen}>
         <CollapsibleTrigger className="w-full">
-          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors">
-            <div className="flex items-center gap-2 text-gray-300">
+          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-2 text-foreground/70">
               <Package className="w-4 h-4" />
               <span className="text-sm font-medium">
                 {t('lead-details.products')} ({items.length})
               </span>
             </div>
             {productsOpen ? (
-              <ChevronUp className="w-4 h-4 text-gray-400" />
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             )}
           </div>
         </CollapsibleTrigger>
@@ -494,19 +494,19 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           <div className="mt-2 space-y-2">
             {items.length > 0 ? (
               items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                <div key={item.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
                   <div className="flex-1">
-                    <span className="text-white">{item.product_name || item.name || `Product #${item.product_id}`}</span>
+                    <span className="text-foreground">{item.product_name || item.name || `Product #${item.product_id}`}</span>
                   </div>
-                  <div className="flex items-center gap-4 text-gray-400">
+                  <div className="flex items-center gap-4 text-muted-foreground">
                     <span>x{item.quantity}</span>
                     <span>{formatCurrency(item.unit_price, sale.currency)}</span>
-                    <span className="text-white font-medium">{formatCurrency(item.total_price, sale.currency)}</span>
+                    <span className="text-foreground font-medium">{formatCurrency(item.total_price, sale.currency)}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400 text-sm p-2">{t('lead-details.no-products')}</p>
+              <p className="text-muted-foreground text-sm p-2">{t('lead-details.no-products')}</p>
             )}
           </div>
         </CollapsibleContent>
@@ -516,31 +516,31 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       {charges.length > 0 && (
         <Collapsible open={chargesOpen} onOpenChange={setChargesOpen}>
           <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors mt-2">
-              <div className="flex items-center gap-2 text-gray-300">
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors mt-2">
+              <div className="flex items-center gap-2 text-foreground/70">
                 <Receipt className="w-4 h-4" />
                 <span className="text-sm font-medium">
                   {t('lead-details.additional-charges')} ({charges.length})
                 </span>
               </div>
               {chargesOpen ? (
-                <ChevronUp className="w-4 h-4 text-gray-400" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="mt-2 space-y-2">
               {charges.map((charge) => (
-                <div key={charge.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                <div key={charge.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-white">{charge.name}</span>
-                    <Badge variant="outline" className="text-xs border-white/20 text-gray-400">
+                    <span className="text-foreground">{charge.name}</span>
+                    <Badge variant="outline" className="text-xs border-border text-muted-foreground">
                       {charge.type === 'percentage' ? `${charge.value}%` : t('lead-details.fixed')}
                     </Badge>
                   </div>
-                  <span className="text-white font-medium">{formatCurrency(charge.calculated_amount, sale.currency)}</span>
+                  <span className="text-foreground font-medium">{formatCurrency(charge.calculated_amount, sale.currency)}</span>
                 </div>
               ))}
             </div>
@@ -552,31 +552,31 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       {discounts.length > 0 && (
         <Collapsible open={discountsOpen} onOpenChange={setDiscountsOpen}>
           <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors mt-2">
-              <div className="flex items-center gap-2 text-gray-300">
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors mt-2">
+              <div className="flex items-center gap-2 text-foreground/70">
                 <Receipt className="w-4 h-4" />
                 <span className="text-sm font-medium">
                   {t('lead-details.discounts-section')} ({discounts.length})
                 </span>
               </div>
               {discountsOpen ? (
-                <ChevronUp className="w-4 h-4 text-gray-400" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
               )}
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="mt-2 space-y-2">
               {discounts.map((discount) => (
-                <div key={discount.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                <div key={discount.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-white">{discount.name}</span>
-                    <Badge variant="outline" className="text-xs border-white/20 text-gray-400">
+                    <span className="text-foreground">{discount.name}</span>
+                    <Badge variant="outline" className="text-xs border-border text-muted-foreground">
                       {discount.type === 'percentage' ? `${discount.value}%` : t('lead-details.fixed')}
                     </Badge>
                   </div>
-                  <span className="text-red-400 font-medium">-{formatCurrency(discount.calculated_amount, sale.currency)}</span>
+                  <span className="text-red-500 font-medium">-{formatCurrency(discount.calculated_amount, sale.currency)}</span>
                 </div>
               ))}
             </div>
@@ -585,9 +585,9 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       )}
 
       {/* Documents Section */}
-      <div className="mt-4 pt-4 border-t border-white/10">
+      <div className="mt-4 pt-4 border-t border-border">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-gray-300">
+          <div className="flex items-center gap-2 text-foreground/70">
             <FileText className="w-4 h-4" />
             <span className="text-sm font-medium">
               {t('lead-details.documents')} ({localDocs.length})
@@ -606,21 +606,21 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
         {localDocs.length > 0 ? (
           <div className="space-y-2">
             {localDocs.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group">
+              <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg text-sm group">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {getFileIcon(getDocPath(doc))}
-                  <span className="text-white truncate">{getDocName(doc)}</span>
+                  <span className="text-foreground truncate">{getDocName(doc)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   {doc.created_at && (
-                    <span className="text-xs text-gray-400 mr-2 hidden sm:inline">
+                    <span className="text-xs text-muted-foreground mr-2 hidden sm:inline">
                       {formatDate(doc.created_at)}
                     </span>
                   )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-gray-400 hover:text-primary hover:bg-primary/10"
+                    className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
                     onClick={() => handlePreviewDocument(doc)}
                     title={t('lead-details.preview-document')}
                   >
@@ -629,7 +629,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-gray-400 hover:text-destructive hover:bg-destructive/10"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     onClick={() => openDocumentDeleteDialog(doc)}
                     title={t('lead-details.delete-document')}
                   >
@@ -640,12 +640,12 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">{t('lead-details.no-documents-uploaded')}</p>
+          <p className="text-muted-foreground text-sm">{t('lead-details.no-documents-uploaded')}</p>
         )}
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/10 flex-wrap">
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border flex-wrap">
         {canUpdateStatus && (
           <>
             <Button 
