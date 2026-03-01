@@ -404,7 +404,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <SiGoogleads size={28}/>
-            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-foreground">
               {t('dashboard.title.google-ads')}
             </h1>
           </div>

@@ -19,6 +19,8 @@ import {
   AlertCircle, Filter, BarChart3, Calendar, TrendingDown, GripVertical, RefreshCw,
 } from 'lucide-react';
 import OptoIcon from '@/assets/opto-icon.png';
+import OptoIconLight from '@/assets/opto-icon-light.png';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -389,7 +391,7 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
 
       <div className="mt-4 flex flex-wrap gap-3 justify-center">
         {stageData.map((stage) => (
-          <div key={stage.stage} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-sm">
+          <div key={stage.stage} className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full text-sm">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: stage.color }} />
             <span>{stage.stage}:</span>
             <span className="font-semibold">{stage.count}</span>
@@ -460,7 +462,7 @@ const PipelineValueChart = ({ pipelineData, isLoading }: { pipelineData: Pipelin
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         {chartData.slice(0, 3).map((item) => (
-          <div key={item.funnel} className="p-4 bg-white/5 rounded-lg border border-white/10">
+          <div key={item.funnel} className="p-4 bg-muted/50 rounded-lg border border-border">
             <p className="text-sm text-muted-foreground mb-1 truncate">{item.funnel}</p>
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-green-400">{item.conversionRate}%</span>
@@ -645,7 +647,7 @@ const DealsStagesDistributionChart = ({
                     {stage.percentage.toFixed(0)}%
                   </span>
                   {/* Mini progress bar */}
-                  <div className="w-20 bg-white/10 rounded-full h-1.5 flex-shrink-0">
+                  <div className="w-20 bg-muted rounded-full h-1.5 flex-shrink-0">
                     <div
                       className="h-1.5 rounded-full transition-all duration-700"
                       style={{ width: `${stage.percentage}%`, backgroundColor: stage.color }}
@@ -724,7 +726,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
         })}
       </div>
 
-      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+      <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">{t('metrics.overall-conversion-rate')}</span>
           <span className="text-2xl font-bold text-foreground">{data.data.conversion_rate?.toFixed(2) || '0.00'}%</span>
@@ -867,8 +869,8 @@ const TabButton = ({ active, onClick, children }: { active: boolean; onClick: ()
     onClick={onClick}
     className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
       active
-        ? 'text-foreground bg-white/10 shadow-sm'
-        : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+        ? 'text-foreground bg-muted shadow-sm'
+        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
     }`}
   >
     {children}
@@ -892,6 +894,8 @@ interface OptomyzeMetricsProps {
 
 const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }: OptomyzeMetricsProps) => {
   const { t } = useLanguage();
+  const { mode } = useTheme();
+  const themedIcon = mode === 'dark' ? OptoIcon : OptoIconLight;
   const { user } = useAuth();
 
   // Separate data caches per tab
@@ -1127,8 +1131,8 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <img src={OptoIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
-            <h1 className="text-xl sm:text-3xl font-bold text-white">{t('dashboard.title.optomyze')}</h1>
+            <img src={themedIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">{t('dashboard.title.optomyze')}</h1>
           </div>
           <p className="text-sm sm:text-base text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
         </div>
@@ -1190,15 +1194,15 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <img src={OptoIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
-            <h1 className="text-xl sm:text-3xl font-bold text-white leading-tight">{t('dashboard.title.optomyze')}</h1>
+            <img src={themedIcon} alt="Optomyze" className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground leading-tight">{t('dashboard.title.optomyze')}</h1>
           </div>
           <p className="text-sm sm:text-base text-muted-foreground">{t('dashboard.subtitle.optomyze')}</p>
         </div>
       </div>
 
       {/* ── Tab Navigation ── */}
-      <div className="flex items-center gap-0.5 p-0.5 bg-white/5 rounded-lg border border-white/10 w-fit">
+      <div className="flex items-center gap-0.5 p-0.5 bg-muted/50 rounded-lg border border-border w-fit">
         <TabButton active={activeTab === 'periodic'} onClick={() => setActiveTab('periodic')}>
           <span className="relative z-10 flex items-center gap-1.5">
             <TrendingUp className="w-3 h-3" />
