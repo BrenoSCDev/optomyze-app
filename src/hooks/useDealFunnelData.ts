@@ -8,7 +8,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { tagService } from '@/services/tagApi';
 import { toast } from 'sonner';
-import { getMockDealFunnelData } from '@/data/mockFunnelLeadsData';
 
 export const useDealFunnelData = (funnelId: string | undefined) => {
   const [funnelData, setFunnelData] = useState<any>(null);
@@ -22,17 +21,12 @@ export const useDealFunnelData = (funnelId: string | undefined) => {
     try {
       setLoading(true);
       setError(null);
-
-      // TODO: restore API call later
-      // const [data, tags] = await Promise.all([
-      //   dealFunnelService.getDealFunnelData(funnelId),
-      //   tagService.getAllTags().catch(() => []),
-      // ]);
-      const data = getMockDealFunnelData(funnelId);
-      const tags = data?.tags || [];
-
+      const [data, tags] = await Promise.all([
+        dealFunnelService.getDealFunnelData(funnelId),
+        tagService.getAllTags().catch(() => []),
+      ]);
       setFunnelData(data);
-      setAvailableTags(tags);
+      setAvailableTags(data?.tags || tags || []);
     } catch (err: any) {
       console.error('Failed to fetch deal funnel data:', err);
       setError(err);

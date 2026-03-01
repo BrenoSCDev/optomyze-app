@@ -64,11 +64,9 @@ const WhatsAppInbox: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: restore API call later
-      // const response = await fetchWhatsAppChats();
-      // const sortedChats = (response.data || []).sort(...)
-      const { mockWhatsAppChats } = await import('@/data/mockInboxChatsData');
-      const sortedChats = mockWhatsAppChats.sort((a, b) => 
+      const response = await fetchWhatsAppChats();
+      // Sort by last_message_at descending
+      const sortedChats = (response.data || []).sort((a, b) => 
         new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
       );
       setChats(sortedChats);

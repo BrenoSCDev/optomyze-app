@@ -74,21 +74,8 @@ const FunnelsDashboard = () => {
   const fetchFunnels = async () => {
     try {
       setLoading(true);
-      // Demo fallback with random lead numbers for screenshots
-      const demoFunnels: Funnel[] = [
-        { id: 1, company_id: 1, name: 'B2B Enterprise Sales', description: 'High-value enterprise deals pipeline', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-01-15T10:00:00Z', updated_at: '2026-02-20T14:30:00Z', deleted_at: null, nleads: 347 },
-        { id: 2, company_id: 1, name: 'Inbound Marketing', description: 'Leads from content marketing and SEO', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-03-01T08:00:00Z', updated_at: '2026-02-22T09:15:00Z', deleted_at: null, nleads: 892 },
-        { id: 3, company_id: 1, name: 'SaaS Trial Conversions', description: 'Free trial to paid subscription pipeline', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-06-10T12:00:00Z', updated_at: '2026-02-21T16:45:00Z', deleted_at: null, nleads: 156 },
-        { id: 4, company_id: 1, name: 'Partner Referrals', description: 'Leads from strategic partnerships', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-08-20T09:00:00Z', updated_at: '2026-02-19T11:20:00Z', deleted_at: null, nleads: 78 },
-        { id: 5, company_id: 1, name: 'Outbound Prospecting', description: 'Cold outreach and SDR-generated leads', is_active: false, created_by: 1, settings: null, type: 'sale', created_at: '2025-04-05T14:00:00Z', updated_at: '2026-01-30T10:00:00Z', deleted_at: null, nleads: 234 },
-        { id: 6, company_id: 1, name: 'Enterprise Deals', description: 'Large contract negotiations pipeline', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-07-12T10:00:00Z', updated_at: '2026-02-22T08:00:00Z', deleted_at: null, nleads: 45 },
-        { id: 7, company_id: 1, name: 'Upsell & Cross-sell', description: 'Revenue expansion from existing customers', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-09-01T11:00:00Z', updated_at: '2026-02-20T17:30:00Z', deleted_at: null, nleads: 123 },
-        { id: 8, company_id: 1, name: 'Renewal Pipeline', description: 'Contract renewals and retention deals', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-11-15T09:00:00Z', updated_at: '2026-02-21T13:00:00Z', deleted_at: null, nleads: 67 },
-      ];
-      setFunnels(demoFunnels);
-      // TODO: restore API call later
-      // const response = await api.get('/api/funnels');
-      // if (response.data?.length) setFunnels(response.data);
+      const response = await api.get('/api/funnels');
+      setFunnels(response.data);
     } catch (error) {
       console.error('Error fetching funnels:', error);
       // Fallback to auth context funnels if API fails
@@ -101,7 +88,6 @@ const FunnelsDashboard = () => {
           is_active: true,
           created_by: 1,
           settings: null,
-          type: funnel.type || 'sale',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           deleted_at: null,
@@ -109,18 +95,6 @@ const FunnelsDashboard = () => {
         }));
         setFunnels(mappedFunnels);
       } else {
-        // Demo fallback with random lead numbers for screenshots
-        const demoFunnels: Funnel[] = [
-          { id: 1, company_id: 1, name: 'B2B Enterprise Sales', description: 'High-value enterprise deals pipeline', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-01-15T10:00:00Z', updated_at: '2026-02-20T14:30:00Z', deleted_at: null, nleads: 347 },
-          { id: 2, company_id: 1, name: 'Inbound Marketing', description: 'Leads from content marketing and SEO', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-03-01T08:00:00Z', updated_at: '2026-02-22T09:15:00Z', deleted_at: null, nleads: 892 },
-          { id: 3, company_id: 1, name: 'SaaS Trial Conversions', description: 'Free trial to paid subscription pipeline', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-06-10T12:00:00Z', updated_at: '2026-02-21T16:45:00Z', deleted_at: null, nleads: 156 },
-          { id: 4, company_id: 1, name: 'Partner Referrals', description: 'Leads from strategic partnerships', is_active: true, created_by: 1, settings: null, type: 'sale', created_at: '2025-08-20T09:00:00Z', updated_at: '2026-02-19T11:20:00Z', deleted_at: null, nleads: 78 },
-          { id: 5, company_id: 1, name: 'Outbound Prospecting', description: 'Cold outreach and SDR-generated leads', is_active: false, created_by: 1, settings: null, type: 'sale', created_at: '2025-04-05T14:00:00Z', updated_at: '2026-01-30T10:00:00Z', deleted_at: null, nleads: 234 },
-          { id: 6, company_id: 1, name: 'Enterprise Deals', description: 'Large contract negotiations pipeline', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-07-12T10:00:00Z', updated_at: '2026-02-22T08:00:00Z', deleted_at: null, nleads: 45 },
-          { id: 7, company_id: 1, name: 'Upsell & Cross-sell', description: 'Revenue expansion from existing customers', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-09-01T11:00:00Z', updated_at: '2026-02-20T17:30:00Z', deleted_at: null, nleads: 123 },
-          { id: 8, company_id: 1, name: 'Renewal Pipeline', description: 'Contract renewals and retention deals', is_active: true, created_by: 1, settings: null, type: 'deal', created_at: '2025-11-15T09:00:00Z', updated_at: '2026-02-21T13:00:00Z', deleted_at: null, nleads: 67 },
-        ];
-        setFunnels(demoFunnels);
         toast({
           title: t('common.error'),
           description: t('funnels.error-load'),

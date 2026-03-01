@@ -44,15 +44,10 @@ export function ManageLeadCompanies() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<LeadCompany | null>(null);
 
-  // Fetch companies — use mock data for now
+  // Fetch companies
   const { data: companies = [], isLoading, error } = useQuery({
     queryKey: ['lead-companies'],
-    queryFn: async () => {
-      // TODO: restore API call later
-      // return leadCompanyApi.getAll();
-      const { mockLeadCompanies } = await import('@/data/mockCrmData');
-      return mockLeadCompanies;
-    },
+    queryFn: leadCompanyApi.getAll,
   });
 
   // Mutations
