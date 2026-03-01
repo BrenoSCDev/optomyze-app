@@ -80,7 +80,7 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
       transition={{ delay: 0.35 }}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+        <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <Package className="w-5 h-5 text-primary" />
           {t('lead-details.products-of-interest')}
         </h3>
@@ -109,8 +109,8 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
 
       {products.length === 0 ? (
         <div className="text-center py-8">
-          <Package className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-          <p className="text-gray-400">{t('lead-details.no-products-linked')}</p>
+          <Package className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground">{t('lead-details.no-products-linked')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -145,8 +145,8 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
 
   return (
     <div 
-      className={`relative bg-white/5 border rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer ${
-        isSelected ? 'border-primary bg-primary/10' : 'border-white/10'
+      className={`relative bg-muted/50 border rounded-lg overflow-hidden hover:bg-muted transition-colors cursor-pointer ${
+        isSelected ? 'border-primary bg-primary/10' : 'border-border'
       }`}
       onClick={onToggleSelect}
     >
@@ -155,12 +155,12 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
         <Checkbox
           checked={isSelected}
           onCheckedChange={onToggleSelect}
-          className="bg-white/10 border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          className="bg-muted border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
       </div>
 
       {/* Product Image */}
-      <div className="aspect-video w-full bg-gray-800 flex items-center justify-center relative overflow-hidden">
+      <div className="aspect-video w-full bg-muted flex items-center justify-center relative overflow-hidden">
         {imageUrl ? (
           <img 
             src={imageUrl} 
@@ -173,18 +173,18 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
             }}
           />
         ) : (
-          <ImageOff className="w-8 h-8 text-gray-500" />
+          <ImageOff className="w-8 h-8 text-muted-foreground/50" />
         )}
         {/* Fallback icon container */}
         <div className="absolute inset-0 hidden fallback-active:flex items-center justify-center">
-          <ImageOff className="w-8 h-8 text-gray-500" />
+          <ImageOff className="w-8 h-8 text-muted-foreground/50" />
         </div>
       </div>
 
       {/* Product Info */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h4 className="text-white font-medium text-sm line-clamp-2">{product.name}</h4>
+          <h4 className="text-foreground font-medium text-sm line-clamp-2">{product.name}</h4>
           <Badge variant="secondary" className="text-xs shrink-0 capitalize">
             {product.type}
           </Badge>
@@ -193,19 +193,19 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
         {/* Pricing */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs">{t('lead-details.total-price')}</span>
+            <span className="text-muted-foreground text-xs">{t('lead-details.total-price')}</span>
             <span className="text-primary font-semibold">{formatPrice(product.total_price)}</span>
           </div>
 
           {showQuantityDetails && (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-xs">{t('lead-details.unit-price')}</span>
-                <span className="text-gray-300 text-sm">{formatPrice(product.unit_price)}</span>
+                <span className="text-muted-foreground text-xs">{t('lead-details.unit-price')}</span>
+                <span className="text-foreground/70 text-sm">{formatPrice(product.unit_price)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-xs">{t('lead-details.quantity')}</span>
-                <span className="text-gray-300 text-sm">x{product.quantity}</span>
+                <span className="text-muted-foreground text-xs">{t('lead-details.quantity')}</span>
+                <span className="text-foreground/70 text-sm">x{product.quantity}</span>
               </div>
             </>
           )}
