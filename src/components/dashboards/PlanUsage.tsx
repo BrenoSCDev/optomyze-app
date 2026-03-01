@@ -20,7 +20,8 @@ import {
   Sparkles,
   Infinity,
   Building2,
-  MessageSquare
+  MessageSquare,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -200,21 +201,25 @@ interface PlanUsageProps {
 const PlanUsage = ({ demoMode = false, demoData }: PlanUsageProps) => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(!demoMode);
+  const [refreshing, setRefreshing] = useState(false);
   const [planData, setPlanData] = useState<PlanUsageResponse | null>(demoMode ? demoData : null);
 
-  useEffect(() => {
+  const fetchPlanUsage = async (isRefresh = false) => {
     if (demoMode) return;
-    const fetchPlanUsage = async () => {
-      try {
-        const response = await api.get('/api/metrics/plan-usage');
-        setPlanData(response.data);
-      } catch (error) {
-        console.error('Error fetching plan usage:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const response = await api.get('/api/metrics/plan-usage');
+      setPlanData(response.data);
+    } catch (error) {
+      console.error('Error fetching plan usage:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPlanUsage();
   }, [demoMode]);
 
@@ -374,9 +379,23 @@ const PlanUsage = ({ demoMode = false, demoData }: PlanUsageProps) => {
         <h1 className="text-3xl font-bold text-foreground mb-2">
           {t('planUsage.title')}
         </h1>
-        <p className="text-muted-foreground">
-          {t('planUsage.description')}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground">
+            {t('planUsage.description')}
+          </p>
+          {!demoMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchPlanUsage(true)}
+              disabled={refreshing}
+              className="ml-auto gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{t('common.refresh') || 'Refresh'}</span>
+            </Button>
+          )}
+        </div>
       </motion.div>
 
       {/* Plan Information Card */}
