@@ -120,7 +120,8 @@ export const mockPeriodicData = {
 
 export const mockMonthlyChartsData = {
   data: {
-    monthly_lead_data: [
+    year: 2026,
+    monthly_overview: [
       { month: 'Jan', leads: 89, deals: 12 },
       { month: 'Feb', leads: 112, deals: 18 },
       { month: 'Mar', leads: 134, deals: 22 },
