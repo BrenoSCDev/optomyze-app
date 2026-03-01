@@ -493,6 +493,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '8px',
               }}
+              formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
             />
             <Legend />
             <Bar dataKey="impressions" fill="#8B5CF6" name="Impressions" />
@@ -534,6 +535,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
                 }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Bar 
@@ -579,6 +581,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
                 }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Spend ($)" />
@@ -617,6 +620,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '8px',
                 }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
             </PieChart>
           </ResponsiveContainer>
