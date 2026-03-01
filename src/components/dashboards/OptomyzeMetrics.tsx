@@ -914,6 +914,10 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   // Date range state (shared across tabs, reset cache on change)
   const [dateRange, setDateRange] = useState<DateRange>('30_days');
 
+  // Year selector for monthly charts
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+
   const isErpModule = user?.company?.product_module === 'ERP';
 
   // ── Customizable layout ─────────────────────────────────────────────────────
@@ -968,7 +972,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
     try {
       setMonthlyLoading(true);
       setMonthlyError(null);
-      const response = await api.get('/api/metrics/monthly-charts');
+      const response = await api.get('/api/metrics/monthly-charts', { params: { year: selectedYear } });
       setMonthlyChartsData(response.data);
     } catch (err: any) {
       setMonthlyError(err);
@@ -1000,6 +1004,16 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
+
+  // ── Bust monthly cache when year changes ──────────────────────────────────
+  useEffect(() => {
+    if (demoMode) return;
+    setMonthlyChartsData(null);
+    if (activeTab === 'monthly') {
+      fetchMonthlyData(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear]);
 
   // Loading / error state for the active tab
   const loading          = activeTab === 'periodic' ? periodicLoading : monthlyLoading;
@@ -1107,15 +1121,18 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   };
 
   const getMonthlyData = () => {
-    // Monthly lead flow comes from the monthly-charts endpoint
+    // Monthly lead flow comes from the monthly-charts endpoint (new: monthly_overview)
     const source = monthlyChartsData ?? periodicData;
-    if (!source?.data?.monthly_lead_data) return [];
-    return source.data.monthly_lead_data.map((item: any) => ({
+    const overview = source?.data?.monthly_overview || source?.data?.monthly_lead_data;
+    if (!overview) return [];
+    return overview.map((item: any) => ({
       name: item.month,
       leads: item.leads,
       ...(item.deals != null ? { deals: item.deals } : {}),
     }));
   };
+
+  const monthlyYear = monthlyChartsData?.data?.year || selectedYear;
 
   // Monthly charts endpoint data
   const getMonthlyDealsData  = () => monthlyChartsData?.data?.revenue_metrics?.metrics?.monthly_deals_analysis?.monthly_data || null;
@@ -1300,9 +1317,21 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25 }}
           >
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>Aggregated monthly trends — full period view</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>Aggregated monthly trends — {monthlyYear}</span>
+              </div>
+              <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                <SelectTrigger className="w-[120px] h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => currentYear - i).map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Monthly Revenue Chart — hidden for ERP users */}
