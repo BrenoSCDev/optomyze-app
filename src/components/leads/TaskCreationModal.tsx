@@ -155,7 +155,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
         <motion.div 
           className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}

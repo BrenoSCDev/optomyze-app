@@ -173,7 +173,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
         <motion.div 
           className="glass-card w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
           initial={{ opacity: 0, scale: 0.95 }}
