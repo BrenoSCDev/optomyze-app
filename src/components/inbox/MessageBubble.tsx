@@ -2,6 +2,7 @@ import React from 'react';
 import { ChatMessage } from '@/services/inboxChatApi';
 import { Check } from 'lucide-react';
 import AudioMessagePlayer from './AudioMessage';
+import { extractTime } from '@/lib/utils';
 
 interface MessageBubbleProps {
   message: ChatMessage;
