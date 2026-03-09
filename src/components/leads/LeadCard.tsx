@@ -21,6 +21,7 @@ import {
   useDraggable,
 } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface LeadCardProps {
   lead: Lead;
