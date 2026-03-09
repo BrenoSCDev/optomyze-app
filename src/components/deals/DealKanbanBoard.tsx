@@ -38,6 +38,7 @@ import {
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealKanbanBoardProps {
   funnel: any;
