@@ -228,7 +228,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const secondaryKpis = [
     { 
       title: t('meta.cpc'), 
-      value: `$${avgCPC}`, 
+      value: `${cs}${avgCPC}`, 
       trend: { value: 'Avg per click', isPositive: parseFloat(avgCPC) < 2 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
