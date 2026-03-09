@@ -683,7 +683,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                     <td className="p-3 text-right">{parseInt(campaign.metrics.impressions).toLocaleString()}</td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.clicks).toLocaleString()}</td>
                     <td className="p-3 text-right">{(campaign.metrics.ctr * 100).toFixed(2)}%</td>
-                    <td className="p-3 text-right">${spend.toFixed(2)}</td>
+                    <td className="p-3 text-right">{cs}{spend.toFixed(2)}</td>
                     <td className="p-3 text-right text-primary font-medium">
                       {campaign.metrics.conversions.toFixed(0)}
                     </td>
