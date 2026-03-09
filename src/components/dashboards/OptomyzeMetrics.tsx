@@ -1339,7 +1339,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
 
             {/* Monthly Revenue Chart — hidden for ERP users */}
             {!isErpModule && (
-              <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} />
+              <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} currencySymbol={currencySymbol} />
             )}
 
             {/* Monthly Lead Flow */}
