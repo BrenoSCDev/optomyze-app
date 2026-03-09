@@ -2,6 +2,7 @@ export interface Company {
   id: number;
   name: string;
   product_module: 'ERP' | 'products' | string;
+  currency?: string;
 }
 
 export interface User {
