@@ -313,7 +313,7 @@ const FunnelTableView = ({
                             <TableCell>
                               {lead.value > 0 ? (
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                  {formatCurrency(lead.value, lead.currency || 'USD')}
+                                  {formatCurrency(lead.value, lead.currency)}
                                 </Badge>
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>
