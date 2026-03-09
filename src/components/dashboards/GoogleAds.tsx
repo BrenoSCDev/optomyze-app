@@ -690,7 +690,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                     <td className={`p-3 text-right font-medium ${
                       cpa < 50 ? 'text-green-500' : cpa < 100 ? 'text-amber-500' : 'text-red-500'
                     }`}>
-                      ${cpa > 0 ? cpa.toFixed(2) : '—'}
+                      {cs}{cpa > 0 ? cpa.toFixed(2) : '—'}
                     </td>
                   </motion.tr>
                 );
