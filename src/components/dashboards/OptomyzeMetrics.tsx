@@ -748,7 +748,7 @@ interface ProductPerformanceItem {
   revenue: number;
 }
 
-const ProductsSalesRevenueChart = ({ data, isLoading }: { data: ProductPerformanceItem[] | null; isLoading: boolean }) => {
+const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: ProductPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
