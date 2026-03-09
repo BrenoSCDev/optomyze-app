@@ -126,9 +126,10 @@ const chartTooltipItemStyle  = { color: 'hsl(var(--foreground))' };
 interface MonthlyRevenueChartProps {
   monthlyData: Record<string, { closed: { count: number; total: number }; lost: { count: number; total: number } }> | null;
   isLoading: boolean;
+  currencySymbol?: string;
 }
 
-const MonthlyRevenueChart = ({ monthlyData, isLoading }: MonthlyRevenueChartProps) => {
+const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: MonthlyRevenueChartProps) => {
   const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
