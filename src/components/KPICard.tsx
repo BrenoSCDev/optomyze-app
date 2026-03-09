@@ -83,7 +83,7 @@ const AnimatedCounter = ({ value, delay = 0, currencyPrefix }: { value: string |
   return <span>{displayValue.toLocaleString()}</span>;
 };
 
-const KPICard = ({ title, value, trend, icon, delay = 0 }: KPICardProps) => {
+const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix }: KPICardProps) => {
   return (
     <motion.div
       className="kpi-card floating" // Glass card with floating animation
