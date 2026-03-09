@@ -394,7 +394,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
                 stroke="#8B5CF6"
                 strokeWidth={2}
                 dot={{ fill: '#8B5CF6', r: 3 }}
-                name="Spend ($)"
+                name={`Spend (${cs})`}
               />
               <Bar yAxisId="right" dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[4, 4, 0, 0]} />
             </ComposedChart>
