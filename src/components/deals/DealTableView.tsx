@@ -38,6 +38,7 @@ interface DealTableViewProps {
 
 const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, showProducts = true, showCharges = true }: DealTableViewProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const [openStages, setOpenStages] = useState<string[]>(() => {
     try {
