@@ -29,7 +29,7 @@ function formatMessageTime(iso: string): string {
   const isToday = d.toDateString() === now.toDateString();
   const y = new Date(now); y.setDate(now.getDate() - 1);
   const isYesterday = d.toDateString() === y.toDateString();
-  if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return extractTime(iso);
   if (isYesterday) return 'Yesterday';
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }

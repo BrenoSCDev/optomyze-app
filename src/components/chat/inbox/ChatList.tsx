@@ -82,7 +82,7 @@ const ChatList: React.FC<ChatListProps> = ({
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return extractTime(dateString);
     } else if (diffDays === 1) {
       return t('chat.inbox.yesterday');
     } else if (diffDays < 7) {
