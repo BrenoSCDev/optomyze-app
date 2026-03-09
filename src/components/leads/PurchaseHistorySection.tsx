@@ -177,6 +177,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
   const [discountsOpen, setDiscountsOpen] = useState(false);
