@@ -372,7 +372,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
     {
       title: t('google-ads.conversions'),
       value: aggregateMetrics.totalConversions.toFixed(0),
-      trend: { value: `$${aggregateMetrics.totalConversionsValue.toFixed(2)} value`, isPositive: true },
+      trend: { value: `${cs}${aggregateMetrics.totalConversionsValue.toFixed(2)} value`, isPositive: true },
       icon: <Target className="h-5 w-5 text-primary" />,
     },
     {
