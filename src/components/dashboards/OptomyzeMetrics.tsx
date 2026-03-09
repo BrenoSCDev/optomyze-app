@@ -193,19 +193,19 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: M
       <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
         <div className="text-center">
           <p className="text-2xl font-bold text-green-400">
-            ${totalClosed >= 1000 ? `${(totalClosed / 1000).toFixed(0)}k` : totalClosed.toLocaleString()}
+            {currencySymbol}{totalClosed >= 1000 ? `${(totalClosed / 1000).toFixed(0)}k` : totalClosed.toLocaleString()}
           </p>
           <p className="text-sm text-muted-foreground">{t('metrics.total-closed')}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-bold text-red-400">
-            ${totalLost >= 1000 ? `${(totalLost / 1000).toFixed(0)}k` : totalLost.toLocaleString()}
+            {currencySymbol}{totalLost >= 1000 ? `${(totalLost / 1000).toFixed(0)}k` : totalLost.toLocaleString()}
           </p>
           <p className="text-sm text-muted-foreground">{t('metrics.total-lost')}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">
-            ${(totalClosed + totalLost) >= 1000
+            {currencySymbol}{(totalClosed + totalLost) >= 1000
               ? `${((totalClosed + totalLost) / 1000).toFixed(0)}k`
               : (totalClosed + totalLost).toLocaleString()}
           </p>
