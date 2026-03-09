@@ -525,7 +525,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       createdAt: updatedLead.created_at,
       assignedTo: updatedLead.assigned_to,
       assigned_user: updatedLead.assigned_user,
-      currency: updatedLead.currency || 'USD',
+      currency: updatedLead.currency || companyCurrency,
       initialMessage: updatedLead.initial_message,
       contactMethods: updatedLead.contact_methods || [],
       preferredContact: updatedLead.preferred_contact_method || 'email'
