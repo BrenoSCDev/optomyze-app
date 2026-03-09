@@ -91,7 +91,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         description: stage.description,
         type: stage.type,
         stageColor: stage.color || '#FFFFFF',
-        currency: funnel.currency || 'USD',
+        currency: funnel.currency || companyCurrency,
         totalValue: (stage.deals || []).reduce((sum: number, d: any) => sum + (d.final_total || 0), 0),
         deals: (stage.deals || []).map((deal: any) => ({
           ...deal,
