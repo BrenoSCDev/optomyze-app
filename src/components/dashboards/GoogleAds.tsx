@@ -338,7 +338,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const kpiData = [
     {
       title: t('google-ads.total-spend'),
-      value: `$${aggregateMetrics.totalSpend.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.totalSpend.toFixed(2)}`,
       trend: { value: t('meta.last-30-days'), isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
