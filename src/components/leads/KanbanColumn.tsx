@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { useCurrency } from '@/hooks/useCurrency';
 import { KanbanColumn as ColumnType } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
