@@ -41,6 +41,7 @@ interface DealPreviewModalProps {
 
 const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [sale, setSale] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
