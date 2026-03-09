@@ -77,6 +77,7 @@ interface GoogleAdsProps {
 const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { symbol: cs } = useCurrency();
   const { toast } = useToast();
   const [loading, setLoading] = useState(!demoMode);
   const [error, setError] = useState<string | null>(null);

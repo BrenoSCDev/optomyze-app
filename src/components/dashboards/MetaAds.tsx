@@ -61,6 +61,7 @@ interface MetaAdsProps {
 
 const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const { t } = useLanguage();
+  const { symbol: cs } = useCurrency();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!demoMode);
