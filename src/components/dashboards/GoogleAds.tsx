@@ -377,7 +377,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
     },
     {
       title: t('google-ads.cpa'),
-      value: `$${aggregateMetrics.cpa.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.cpa.toFixed(2)}`,
       trend: { value: 'Cost per acquisition', isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
