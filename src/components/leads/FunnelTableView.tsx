@@ -73,6 +73,7 @@ const FunnelTableView = ({
 }: FunnelTableViewProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   // Persist accordion state
   const [openStages, setOpenStages] = useState<string[]>(() => {
