@@ -224,7 +224,7 @@ const FunnelTableView = ({
                 </Badge>
                 {showEstimatedValues && column.valueEstimated > 0 && (
                   <Badge className="text-xs font-medium">
-                    {formatCurrency(column.valueEstimated, column.currency || funnel.currency || 'USD')}
+                    {formatCurrency(column.valueEstimated, column.currency || funnel.currency)}
                   </Badge>
                 )}
               </div>
