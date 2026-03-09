@@ -27,6 +27,7 @@ interface DealKanbanColumnProps {
 
 const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
   const isDropTarget = overId === column.id;
