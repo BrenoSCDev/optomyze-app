@@ -50,6 +50,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 import api from '@/services/api';
 import { getStorageUrl } from '@/lib/constants';
 import SaleDocumentUploadModal from './SaleDocumentUploadModal';
