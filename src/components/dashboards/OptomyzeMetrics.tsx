@@ -23,6 +23,7 @@ import OptoIconLight from '@/assets/opto-icon-light.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/services/api';
 import {
