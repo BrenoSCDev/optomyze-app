@@ -176,7 +176,7 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: M
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
-          <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             formatter={(value: number, name: string) => [
