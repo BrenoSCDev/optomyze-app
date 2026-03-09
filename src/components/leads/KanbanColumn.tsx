@@ -42,6 +42,7 @@ interface KanbanColumnProps {
 
 const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { currencyCode: companyCurrency } = useCurrency();
   
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
