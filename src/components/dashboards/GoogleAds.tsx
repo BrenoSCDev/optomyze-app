@@ -704,13 +704,13 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
           <h4 className="text-sm font-semibold mb-2">CPA Color Guide:</h4>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-green-500">● Excellent:</span> CPA &lt; $50
+              <span className="text-green-500">● Excellent:</span> CPA &lt; {cs}50
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-amber-500">● Good:</span> CPA $50-$100
+              <span className="text-amber-500">● Good:</span> CPA {cs}50-{cs}100
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-red-500">● High:</span> CPA &gt; $100
+              <span className="text-red-500">● High:</span> CPA &gt; {cs}100
             </div>
           </div>
         </div>
