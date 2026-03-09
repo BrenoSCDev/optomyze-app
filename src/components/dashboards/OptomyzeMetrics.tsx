@@ -1113,7 +1113,8 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       {
         title: 'Revenue',
         value: dealStats?.revenue != null
-          ? `$${Number(dealStats.revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ? formatCurrency(Number(dealStats.revenue))
+          : '—',
           : '—',
         trend: { value: '+0%', isPositive: true },
         icon: <DollarSign className="h-5 w-5 text-primary" />,
