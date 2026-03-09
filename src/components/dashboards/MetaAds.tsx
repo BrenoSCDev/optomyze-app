@@ -201,7 +201,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const kpiData = [
     { 
       title: t('meta.total-spend'), 
-      value: `$${aggregatedMetrics.totalSpend.toFixed(2)}`, 
+      value: `${cs}${aggregatedMetrics.totalSpend.toFixed(2)}`, 
       trend: { value: `${metaData.length} ${t('common.days')}`, isPositive: true }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
