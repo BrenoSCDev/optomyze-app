@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
-import { cn } from '@/lib/utils';
+import { cn, extractTime } from '@/lib/utils';
 import { getStorageUrl } from '@/lib/constants';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
