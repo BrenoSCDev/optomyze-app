@@ -1197,11 +1197,11 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       case 'lead-breakdown':
         return <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />;
       case 'estimated-vs-closed':
-        return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />;
+        return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} currencySymbol={currencySymbol} />;
       case 'products-sales':
-        return <ProductsSalesRevenueChart data={periodicData?.data?.product_sales_performance ?? null} isLoading={periodicLoading} />;
+        return <ProductsSalesRevenueChart data={periodicData?.data?.product_sales_performance ?? null} isLoading={periodicLoading} currencySymbol={currencySymbol} />;
       case 'agents-sales':
-        return <AgentsSalesRevenueChart data={periodicData?.data?.agent_sales_performance ?? null} isLoading={periodicLoading} />;
+        return <AgentsSalesRevenueChart data={periodicData?.data?.agent_sales_performance ?? null} isLoading={periodicLoading} currencySymbol={currencySymbol} />;
       default:
         return null;
     }
