@@ -37,6 +37,7 @@ interface DealCardProps {
 
 const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = true, showCharges = true }: DealCardProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
