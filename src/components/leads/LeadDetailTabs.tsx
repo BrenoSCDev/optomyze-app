@@ -306,6 +306,7 @@ const MetricCard = ({ label, value, icon, color }: { label: string; value: strin
 // Lead Info Content
 const LeadInfoContent = ({ lead }: { lead: Lead }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   
   const getDaysActive = () => {
     const created = new Date(lead.created_at);
