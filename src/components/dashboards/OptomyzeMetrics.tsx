@@ -899,6 +899,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   const { mode } = useTheme();
   const themedIcon = mode === 'dark' ? OptoIcon : OptoIconLight;
   const { user } = useAuth();
+  const { symbol: currencySymbol, formatCurrency } = useCurrency();
 
   // Separate data caches per tab
   const [periodicData,      setPeriodicData]      = useState<any>(demoMode ? demoPeriodicData : null);
