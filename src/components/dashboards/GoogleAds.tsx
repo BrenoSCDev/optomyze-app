@@ -451,7 +451,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                     {idx + 1}. {campaign.campaign.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    ${campaign.spend.toFixed(2)} spent
+                    {cs}{campaign.spend.toFixed(2)} spent
                   </p>
                 </div>
                 <div className="text-right ml-4">
