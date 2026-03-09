@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Info, 
