@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealCardProps {
   deal: any;
