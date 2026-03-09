@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { getStorageUrl } from '@/lib/constants';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
 import {
