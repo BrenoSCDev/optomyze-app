@@ -586,7 +586,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
-              <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Spend ($)" />
+              <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={`Spend (${cs})`} />
               <Bar dataKey="conversions" fill="#06B6D4" radius={[4, 4, 0, 0]} name="Conversions" />
             </BarChart>
           </ResponsiveContainer>
