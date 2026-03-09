@@ -171,7 +171,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         type: stage.type,
         stageColor: stage.color || '#FFFFFF',
         valueEstimated: stage.value_estimated || 0,
-        currency: stage.currency || funnel.currency || 'USD',
+        currency: stage.currency || funnel.currency || companyCurrency,
         leads: stage.active_leads.map((lead: any) => ({
           id: lead.id.toString(),
           name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
