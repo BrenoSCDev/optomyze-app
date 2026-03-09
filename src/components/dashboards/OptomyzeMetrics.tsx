@@ -447,12 +447,12 @@ const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="vertical">
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-          <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <YAxis type="category" dataKey="funnel" stroke="#9CA3AF" fontSize={12} width={120} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             formatter={(value: number, name: string) => [
-              `$${value.toLocaleString()}`,
+              `${currencySymbol}${value.toLocaleString()}`,
               name === 'estimatedValue' ? t('metrics.estimated') : name === 'closedValue' ? t('metrics.closed') : t('metrics.gap'),
             ]}
           />
