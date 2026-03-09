@@ -334,7 +334,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
                 formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
-              <Bar dataKey="spend" fill="#8B5CF6" name="Spend ($)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="spend" fill="#8B5CF6" name={`Spend (${cs})`} radius={[0, 4, 4, 0]} />
               <Bar dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[0, 4, 4, 0]} />
             </ComposedChart>
           </ResponsiveContainer>
