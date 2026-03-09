@@ -35,6 +35,7 @@ interface LeadCardProps {
 
 const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
