@@ -49,6 +49,7 @@ interface DealKanbanBoardProps {
 const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);

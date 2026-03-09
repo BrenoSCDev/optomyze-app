@@ -88,6 +88,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
