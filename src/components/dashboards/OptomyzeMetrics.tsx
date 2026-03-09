@@ -806,7 +806,7 @@ interface AgentPerformanceItem {
   revenue: number;
 }
 
-const AgentsSalesRevenueChart = ({ data, isLoading }: { data: AgentPerformanceItem[] | null; isLoading: boolean }) => {
+const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: AgentPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
