@@ -412,7 +412,7 @@ interface PipelineData {
   closed_value: number; conversion_percentage: number; gap_percentage: number;
 }
 
-const PipelineValueChart = ({ pipelineData, isLoading }: { pipelineData: PipelineData[] | null; isLoading: boolean }) => {
+const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: { pipelineData: PipelineData[] | null; isLoading: boolean; currencySymbol?: string }) => {
   const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
