@@ -65,6 +65,7 @@ import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 import LeadPreviewModal from './LeadPreviewModal';
@@ -87,6 +88,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -169,7 +171,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         type: stage.type,
         stageColor: stage.color || '#FFFFFF',
         valueEstimated: stage.value_estimated || 0,
-        currency: stage.currency || funnel.currency || 'USD',
+        currency: stage.currency || funnel.currency || companyCurrency,
         leads: stage.active_leads.map((lead: any) => ({
           id: lead.id.toString(),
           name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
@@ -189,7 +191,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           createdAt: lead.created_at,
           assignedTo: lead.assigned_to,
           assigned_user: lead.assigned_user,
-          currency: lead.currency || 'USD',
+          currency: lead.currency || companyCurrency,
           initialMessage: lead.initial_message,
           contactMethods: lead.contact_methods || [],
           preferredContact: lead.preferred_contact_method || 'email'
@@ -523,7 +525,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       createdAt: updatedLead.created_at,
       assignedTo: updatedLead.assigned_to,
       assigned_user: updatedLead.assigned_user,
-      currency: updatedLead.currency || 'USD',
+      currency: updatedLead.currency || companyCurrency,
       initialMessage: updatedLead.initial_message,
       contactMethods: updatedLead.contact_methods || [],
       preferredContact: updatedLead.preferred_contact_method || 'email'
@@ -582,7 +584,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-muted-foreground">{t('funnel.page.estimated-funnel-value')}</span>
               <Badge className="px-3 text-sm font-semibold">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(funnel.value_estimated)}
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || companyCurrency }).format(funnel.value_estimated)}
               </Badge>
             </div>
           )}

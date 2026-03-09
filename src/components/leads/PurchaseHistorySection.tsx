@@ -50,6 +50,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 import api from '@/services/api';
 import { getStorageUrl } from '@/lib/constants';
 import SaleDocumentUploadModal from './SaleDocumentUploadModal';
@@ -176,6 +177,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [productsOpen, setProductsOpen] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
   const [discountsOpen, setDiscountsOpen] = useState(false);
@@ -205,7 +207,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const formatCurrency = (value: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
-      currency: currency || 'USD' 
+      currency: currency || companyCurrency 
     }).format(value);
   };
 

@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 
@@ -72,6 +73,7 @@ const FunnelTableView = ({
 }: FunnelTableViewProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   // Persist accordion state
   const [openStages, setOpenStages] = useState<string[]>(() => {
@@ -114,7 +116,7 @@ const FunnelTableView = ({
     return colors[source] || 'bg-muted/50 text-muted-foreground';
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
@@ -222,7 +224,7 @@ const FunnelTableView = ({
                 </Badge>
                 {showEstimatedValues && column.valueEstimated > 0 && (
                   <Badge className="text-xs font-medium">
-                    {formatCurrency(column.valueEstimated, column.currency || funnel.currency || 'USD')}
+                    {formatCurrency(column.valueEstimated, column.currency || funnel.currency)}
                   </Badge>
                 )}
               </div>
@@ -311,7 +313,7 @@ const FunnelTableView = ({
                             <TableCell>
                               {lead.value > 0 ? (
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                  {formatCurrency(lead.value, lead.currency || 'USD')}
+                                  {formatCurrency(lead.value, lead.currency)}
                                 </Badge>
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>

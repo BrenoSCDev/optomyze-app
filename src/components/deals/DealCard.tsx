@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealCardProps {
   deal: any;
@@ -36,6 +37,7 @@ interface DealCardProps {
 
 const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = true, showCharges = true }: DealCardProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
@@ -67,7 +69,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
     ? `${deal.lead.first_name} ${deal.lead.last_name || ''}`.trim()
     : 'No lead';
 
-  const currency = deal.currency || 'USD';
+  const currency = deal.currency || companyCurrency;
   const chargesTotal = deal.charges_total || 0;
   const discountTotal = parseFloat(deal.discount_total || '0');
   const subtotal = parseFloat(deal.subtotal || '0');

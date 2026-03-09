@@ -21,6 +21,7 @@ import {
   useDraggable,
 } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface LeadCardProps {
   lead: Lead;
@@ -34,6 +35,7 @@ interface LeadCardProps {
 
 const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
@@ -83,7 +85,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
   };
 
   // Access lead's currency if available (extended Lead type)
-  const leadCurrency = (lead as any).currency || 'USD';
+  const leadCurrency = (lead as any).currency || companyCurrency;
 
   return (
     <div className="relative">

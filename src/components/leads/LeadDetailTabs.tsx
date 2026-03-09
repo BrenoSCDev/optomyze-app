@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Info, 
@@ -305,6 +306,7 @@ const MetricCard = ({ label, value, icon, color }: { label: string; value: strin
 // Lead Info Content
 const LeadInfoContent = ({ lead }: { lead: Lead }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   
   const getDaysActive = () => {
     const created = new Date(lead.created_at);
@@ -401,7 +403,7 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
           />
           <MetricCard
             label={t('lead-details.estimated-value')}
-            value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: lead.currency || 'USD' }).format(lead.value_estimated) : t('lead-details.not-set')}
+            value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: lead.currency || companyCurrency }).format(lead.value_estimated) : t('lead-details.not-set')}
             icon={<TrendingUp className="w-5 h-5" />}
             color="green"
           />

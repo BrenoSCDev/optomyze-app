@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { useCurrency } from '@/hooks/useCurrency';
 import { KanbanColumn as ColumnType } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ interface KanbanColumnProps {
 
 const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { currencyCode: companyCurrency } = useCurrency();
   
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
@@ -111,7 +113,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
         {/* Stage Estimated Value */}
         {showEstimatedValues && stageValueEstimated !== undefined && stageValueEstimated > 0 && (
           <Badge className="text-xs font-medium w-fit">
-            {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || 'USD' }).format(stageValueEstimated)}
+            {new Intl.NumberFormat('en-US', { style: 'currency', currency: stageCurrency || companyCurrency }).format(stageValueEstimated)}
           </Badge>
         )}
       </div>

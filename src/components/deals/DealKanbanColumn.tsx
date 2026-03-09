@@ -11,6 +11,7 @@ import DealCard from './DealCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, MoreVertical, Package } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealKanbanColumnProps {
   column: any;
@@ -26,11 +27,12 @@ interface DealKanbanColumnProps {
 
 const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
   const isDropTarget = overId === column.id;
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount);

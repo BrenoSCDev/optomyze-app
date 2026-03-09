@@ -38,6 +38,7 @@ import {
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealKanbanBoardProps {
   funnel: any;
@@ -48,6 +49,7 @@ interface DealKanbanBoardProps {
 const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -89,7 +91,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         description: stage.description,
         type: stage.type,
         stageColor: stage.color || '#FFFFFF',
-        currency: funnel.currency || 'USD',
+        currency: funnel.currency || companyCurrency,
         totalValue: (stage.deals || []).reduce((sum: number, d: any) => sum + (d.final_total || 0), 0),
         deals: (stage.deals || []).map((deal: any) => ({
           ...deal,
@@ -272,7 +274,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
       return sum + (s.deals || []).reduce((dSum: number, d: any) => dSum + (d.final_total || 0), 0);
     }, 0);
   }, [funnel]);
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || 'USD' }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || companyCurrency }).format(value);
 
   return (
     <div className="space-y-6">

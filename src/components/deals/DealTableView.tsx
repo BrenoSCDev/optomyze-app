@@ -20,6 +20,7 @@ import {
 import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 
@@ -37,6 +38,7 @@ interface DealTableViewProps {
 
 const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, showProducts = true, showCharges = true }: DealTableViewProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const [openStages, setOpenStages] = useState<string[]>(() => {
     try {
@@ -58,7 +60,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount);
@@ -197,7 +199,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                               <div className="space-y-0.5">
                                 {deal.final_total > 0 ? (
                                   <Badge className="bg-deal/15 text-deal border-deal/30 text-xs">
-                                    {formatCurrency(deal.final_total, deal.currency || 'USD')}
+                                    {formatCurrency(deal.final_total, deal.currency)}
                                   </Badge>
                                 ) : (
                                   <span className="text-xs text-muted-foreground">—</span>
@@ -207,13 +209,13 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                                     {parseFloat(deal.charges_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
                                         <TrendingUp className="h-2.5 w-2.5" />
-                                        +{formatCurrency(parseFloat(deal.charges_total), deal.currency || 'USD')}
+                                        +{formatCurrency(parseFloat(deal.charges_total), deal.currency)}
                                       </span>
                                     )}
                                     {parseFloat(deal.discount_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-rose-400">
                                         <TrendingDown className="h-2.5 w-2.5" />
-                                        -{formatCurrency(parseFloat(deal.discount_total), deal.currency || 'USD')}
+                                        -{formatCurrency(parseFloat(deal.discount_total), deal.currency)}
                                       </span>
                                     )}
                                   </div>

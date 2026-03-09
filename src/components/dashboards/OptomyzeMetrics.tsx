@@ -23,6 +23,7 @@ import OptoIconLight from '@/assets/opto-icon-light.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/services/api';
 import {
@@ -125,9 +126,10 @@ const chartTooltipItemStyle  = { color: 'hsl(var(--foreground))' };
 interface MonthlyRevenueChartProps {
   monthlyData: Record<string, { closed: { count: number; total: number }; lost: { count: number; total: number } }> | null;
   isLoading: boolean;
+  currencySymbol?: string;
 }
 
-const MonthlyRevenueChart = ({ monthlyData, isLoading }: MonthlyRevenueChartProps) => {
+const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: MonthlyRevenueChartProps) => {
   const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
@@ -174,11 +176,11 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading }: MonthlyRevenueChartProp
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
-          <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             formatter={(value: number, name: string) => [
-              `$${value.toLocaleString()}`,
+              `${currencySymbol}${value.toLocaleString()}`,
               name === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals'),
             ]}
           />
@@ -191,19 +193,19 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading }: MonthlyRevenueChartProp
       <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
         <div className="text-center">
           <p className="text-2xl font-bold text-green-400">
-            ${totalClosed >= 1000 ? `${(totalClosed / 1000).toFixed(0)}k` : totalClosed.toLocaleString()}
+            {currencySymbol}{totalClosed >= 1000 ? `${(totalClosed / 1000).toFixed(0)}k` : totalClosed.toLocaleString()}
           </p>
           <p className="text-sm text-muted-foreground">{t('metrics.total-closed')}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-bold text-red-400">
-            ${totalLost >= 1000 ? `${(totalLost / 1000).toFixed(0)}k` : totalLost.toLocaleString()}
+            {currencySymbol}{totalLost >= 1000 ? `${(totalLost / 1000).toFixed(0)}k` : totalLost.toLocaleString()}
           </p>
           <p className="text-sm text-muted-foreground">{t('metrics.total-lost')}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-bold text-primary">
-            ${(totalClosed + totalLost) >= 1000
+            {currencySymbol}{(totalClosed + totalLost) >= 1000
               ? `${((totalClosed + totalLost) / 1000).toFixed(0)}k`
               : (totalClosed + totalLost).toLocaleString()}
           </p>
@@ -410,7 +412,7 @@ interface PipelineData {
   closed_value: number; conversion_percentage: number; gap_percentage: number;
 }
 
-const PipelineValueChart = ({ pipelineData, isLoading }: { pipelineData: PipelineData[] | null; isLoading: boolean }) => {
+const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: { pipelineData: PipelineData[] | null; isLoading: boolean; currencySymbol?: string }) => {
   const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
@@ -445,12 +447,12 @@ const PipelineValueChart = ({ pipelineData, isLoading }: { pipelineData: Pipelin
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="vertical">
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-          <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <YAxis type="category" dataKey="funnel" stroke="#9CA3AF" fontSize={12} width={120} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             formatter={(value: number, name: string) => [
-              `$${value.toLocaleString()}`,
+              `${currencySymbol}${value.toLocaleString()}`,
               name === 'estimatedValue' ? t('metrics.estimated') : name === 'closedValue' ? t('metrics.closed') : t('metrics.gap'),
             ]}
           />
@@ -746,7 +748,7 @@ interface ProductPerformanceItem {
   revenue: number;
 }
 
-const ProductsSalesRevenueChart = ({ data, isLoading }: { data: ProductPerformanceItem[] | null; isLoading: boolean }) => {
+const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: ProductPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
@@ -770,7 +772,7 @@ const ProductsSalesRevenueChart = ({ data, isLoading }: { data: ProductPerforman
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="product_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             content={({ active, payload, label }) => {
@@ -780,7 +782,7 @@ const ProductsSalesRevenueChart = ({ data, isLoading }: { data: ProductPerforman
                 <div style={chartTooltipStyle} className="p-3 shadow-lg">
                   <p className="font-semibold mb-1">{label}</p>
                   <p className="text-sm">Units Sold: <span className="font-medium">{item.quantity_sold}</span></p>
-                  <p className="text-sm">Revenue: <span className="font-medium">${item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-sm">Revenue: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
                   <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
                 </div>
               );
@@ -804,7 +806,7 @@ interface AgentPerformanceItem {
   revenue: number;
 }
 
-const AgentsSalesRevenueChart = ({ data, isLoading }: { data: AgentPerformanceItem[] | null; isLoading: boolean }) => {
+const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: AgentPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
@@ -828,10 +830,10 @@ const AgentsSalesRevenueChart = ({ data, isLoading }: { data: AgentPerformanceIt
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="user_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
             formatter={(value: number, name: string) => [
-              name === 'revenue' ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
+              name === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
               name === 'revenue' ? 'Revenue' : 'Closed Deals',
             ]}
           />
@@ -897,6 +899,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   const { mode } = useTheme();
   const themedIcon = mode === 'dark' ? OptoIcon : OptoIconLight;
   const { user } = useAuth();
+  const { symbol: currencySymbol, formatCurrency } = useCurrency();
 
   // Separate data caches per tab
   const [periodicData,      setPeriodicData]      = useState<any>(demoMode ? demoPeriodicData : null);
@@ -1110,7 +1113,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       {
         title: 'Revenue',
         value: dealStats?.revenue != null
-          ? `$${Number(dealStats.revenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ? formatCurrency(Number(dealStats.revenue))
           : '—',
         trend: { value: '+0%', isPositive: true },
         icon: <DollarSign className="h-5 w-5 text-primary" />,
@@ -1194,11 +1197,11 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
       case 'lead-breakdown':
         return <LeadBreakdownFunnel data={periodicData} isLoading={periodicLoading} />;
       case 'estimated-vs-closed':
-        return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} />;
+        return <PipelineValueChart pipelineData={getPipelineData()} isLoading={loading} currencySymbol={currencySymbol} />;
       case 'products-sales':
-        return <ProductsSalesRevenueChart data={periodicData?.data?.product_sales_performance ?? null} isLoading={periodicLoading} />;
+        return <ProductsSalesRevenueChart data={periodicData?.data?.product_sales_performance ?? null} isLoading={periodicLoading} currencySymbol={currencySymbol} />;
       case 'agents-sales':
-        return <AgentsSalesRevenueChart data={periodicData?.data?.agent_sales_performance ?? null} isLoading={periodicLoading} />;
+        return <AgentsSalesRevenueChart data={periodicData?.data?.agent_sales_performance ?? null} isLoading={periodicLoading} currencySymbol={currencySymbol} />;
       default:
         return null;
     }
@@ -1336,7 +1339,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
 
             {/* Monthly Revenue Chart — hidden for ERP users */}
             {!isErpModule && (
-              <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} />
+              <MonthlyRevenueChart monthlyData={getMonthlyDealsData()} isLoading={loading} currencySymbol={currencySymbol} />
             )}
 
             {/* Monthly Lead Flow */}

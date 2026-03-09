@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { getStorageUrl } from '@/lib/constants';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
 import {
@@ -40,6 +41,7 @@ interface DealPreviewModalProps {
 
 const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [sale, setSale] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +78,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
-  const formatCurrency = (amount: number | string, currency: string = 'USD') => {
+  const formatCurrency = (amount: number | string, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2,
     }).format(typeof amount === 'string' ? parseFloat(amount) : amount);
@@ -165,7 +167,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
-  const currency = sale?.currency || 'USD';
+  const currency = sale?.currency || companyCurrency;
 
   return (
     <>

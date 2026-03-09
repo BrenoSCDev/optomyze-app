@@ -20,6 +20,7 @@ import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, M
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -60,6 +61,7 @@ interface MetaAdsProps {
 
 const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const { t } = useLanguage();
+  const { symbol: cs } = useCurrency();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!demoMode);
@@ -199,7 +201,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const kpiData = [
     { 
       title: t('meta.total-spend'), 
-      value: `$${aggregatedMetrics.totalSpend.toFixed(2)}`, 
+      value: `${cs}${aggregatedMetrics.totalSpend.toFixed(2)}`, 
       trend: { value: `${metaData.length} ${t('common.days')}`, isPositive: true }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
@@ -226,7 +228,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const secondaryKpis = [
     { 
       title: t('meta.cpc'), 
-      value: `$${avgCPC}`, 
+      value: `${cs}${avgCPC}`, 
       trend: { value: 'Avg per click', isPositive: parseFloat(avgCPC) < 2 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
@@ -238,13 +240,13 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
     },
     { 
       title: t('meta.cpa'), 
-      value: `$${avgCPA}`, 
+      value: `${cs}${avgCPA}`, 
       trend: { value: 'Cost per action', isPositive: parseFloat(avgCPA) < 50 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
     { 
       title: 'CPM', 
-      value: `$${avgCPM}`, 
+      value: `${cs}${avgCPM}`, 
       trend: { value: 'Per 1k impressions', isPositive: parseFloat(avgCPM) < 50 }, 
       icon: <TrendingUp className="h-5 w-5 text-primary" /> 
     },
@@ -332,7 +334,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
                 formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
-              <Bar dataKey="spend" fill="#8B5CF6" name="Spend ($)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="spend" fill="#8B5CF6" name={`Spend (${cs})`} radius={[0, 4, 4, 0]} />
               <Bar dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[0, 4, 4, 0]} />
             </ComposedChart>
           </ResponsiveContainer>
@@ -392,7 +394,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
                 stroke="#8B5CF6"
                 strokeWidth={2}
                 dot={{ fill: '#8B5CF6', r: 3 }}
-                name="Spend ($)"
+                name={`Spend (${cs})`}
               />
               <Bar yAxisId="right" dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[4, 4, 0, 0]} />
             </ComposedChart>

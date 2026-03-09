@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SiGoogleads } from "react-icons/si";
@@ -76,6 +77,7 @@ interface GoogleAdsProps {
 const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { symbol: cs } = useCurrency();
   const { toast } = useToast();
   const [loading, setLoading] = useState(!demoMode);
   const [error, setError] = useState<string | null>(null);
@@ -336,7 +338,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const kpiData = [
     {
       title: t('google-ads.total-spend'),
-      value: `$${aggregateMetrics.totalSpend.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.totalSpend.toFixed(2)}`,
       trend: { value: t('meta.last-30-days'), isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
@@ -363,19 +365,19 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const secondaryKpis = [
     {
       title: t('google-ads.avg-cpc'),
-      value: `$${aggregateMetrics.avgCpc.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.avgCpc.toFixed(2)}`,
       trend: { value: 'Average', isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
     {
       title: t('google-ads.conversions'),
       value: aggregateMetrics.totalConversions.toFixed(0),
-      trend: { value: `$${aggregateMetrics.totalConversionsValue.toFixed(2)} value`, isPositive: true },
+      trend: { value: `${cs}${aggregateMetrics.totalConversionsValue.toFixed(2)} value`, isPositive: true },
       icon: <Target className="h-5 w-5 text-primary" />,
     },
     {
       title: t('google-ads.cpa'),
-      value: `$${aggregateMetrics.cpa.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.cpa.toFixed(2)}`,
       trend: { value: 'Cost per acquisition', isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
@@ -449,7 +451,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                     {idx + 1}. {campaign.campaign.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    ${campaign.spend.toFixed(2)} spent
+                    {cs}{campaign.spend.toFixed(2)} spent
                   </p>
                 </div>
                 <div className="text-right ml-4">
@@ -543,7 +545,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 dataKey="spend" 
                 fill="#EF4444" 
                 radius={[4, 4, 0, 0]} 
-                name="Spend ($)" 
+                name={`Spend (${cs})`} 
               />
               <Line 
                 yAxisId="right"
@@ -584,7 +586,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
-              <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Spend ($)" />
+              <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={`Spend (${cs})`} />
               <Bar dataKey="conversions" fill="#06B6D4" radius={[4, 4, 0, 0]} name="Conversions" />
             </BarChart>
           </ResponsiveContainer>
@@ -681,14 +683,14 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                     <td className="p-3 text-right">{parseInt(campaign.metrics.impressions).toLocaleString()}</td>
                     <td className="p-3 text-right">{parseInt(campaign.metrics.clicks).toLocaleString()}</td>
                     <td className="p-3 text-right">{(campaign.metrics.ctr * 100).toFixed(2)}%</td>
-                    <td className="p-3 text-right">${spend.toFixed(2)}</td>
+                    <td className="p-3 text-right">{cs}{spend.toFixed(2)}</td>
                     <td className="p-3 text-right text-primary font-medium">
                       {campaign.metrics.conversions.toFixed(0)}
                     </td>
                     <td className={`p-3 text-right font-medium ${
                       cpa < 50 ? 'text-green-500' : cpa < 100 ? 'text-amber-500' : 'text-red-500'
                     }`}>
-                      ${cpa > 0 ? cpa.toFixed(2) : '—'}
+                      {cs}{cpa > 0 ? cpa.toFixed(2) : '—'}
                     </td>
                   </motion.tr>
                 );
@@ -702,13 +704,13 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
           <h4 className="text-sm font-semibold mb-2">CPA Color Guide:</h4>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="flex items-center gap-1">
-              <span className="text-green-500">● Excellent:</span> CPA &lt; $50
+              <span className="text-green-500">● Excellent:</span> CPA &lt; {cs}50
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-amber-500">● Good:</span> CPA $50-$100
+              <span className="text-amber-500">● Good:</span> CPA {cs}50-{cs}100
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-red-500">● High:</span> CPA &gt; $100
+              <span className="text-red-500">● High:</span> CPA &gt; {cs}100
             </div>
           </div>
         </div>
