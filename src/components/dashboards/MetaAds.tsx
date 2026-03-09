@@ -20,6 +20,7 @@ import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, M
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
