@@ -167,7 +167,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
-  const currency = sale?.currency || 'USD';
+  const currency = sale?.currency || companyCurrency;
 
   return (
     <>
