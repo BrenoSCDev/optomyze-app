@@ -25,6 +25,8 @@ interface KPICardProps {
   };
   icon?: React.ReactNode;
   delay?: number;
+  /** Optional currency prefix for animated counter (e.g. "$", "R$", "€"). Detected automatically from value string if omitted. */
+  currencyPrefix?: string;
 }
 
 /**
