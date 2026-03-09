@@ -2,6 +2,7 @@ import React from 'react';
 import { ChatMessage } from '@/services/inboxChatApi';
 import { Check } from 'lucide-react';
 import AudioMessagePlayer from './AudioMessage';
+import { extractTime } from '@/lib/utils';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -37,7 +38,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isOwn, showSender, showDaySeparator,
   selectMode = false, isSelected = false, onToggleSelect,
 }) => {
-  const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const time = extractTime(message.created_at);
   const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
   const getFileUrl = (url: string) => {

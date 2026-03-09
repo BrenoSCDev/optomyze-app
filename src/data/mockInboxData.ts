@@ -255,7 +255,11 @@ export function formatMessageTime(isoString: string): string {
   const isToday = d.toDateString() === now.toDateString();
   const yesterdayDate = new Date(now); yesterdayDate.setDate(now.getDate() - 1);
   const isYesterday = d.toDateString() === yesterdayDate.toDateString();
-  if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) {
+    const match = isoString.match(/T(\d{2}):(\d{2})/);
+    if (match) return `${match[1]}:${match[2]}`;
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
   if (isYesterday) return 'Yesterday';
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }

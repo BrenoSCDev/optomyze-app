@@ -5,6 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Extract HH:mm directly from an ISO timestamp string.
+ * Backend sends timestamps with the company's timezone offset,
+ * so we read the time as-is instead of converting to browser timezone.
+ */
+export function extractTime(iso: string): string {
+  const match = iso.match(/T(\d{2}):(\d{2})/);
+  if (match) return `${match[1]}:${match[2]}`;
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 export function timeAgo(dateString?: string): string {
   if (!dateString) return 'No activity';
 

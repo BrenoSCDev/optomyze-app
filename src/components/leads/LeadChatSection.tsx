@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
-import { cn } from '@/lib/utils';
+import { cn, extractTime } from '@/lib/utils';
 import { getStorageUrl } from '@/lib/constants';
 import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
@@ -212,8 +212,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   };
 
   const formatMessageTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return extractTime(dateString);
   };
 
   const formatMessageDate = (dateString: string): string => {

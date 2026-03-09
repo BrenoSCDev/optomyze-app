@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { cn } from '@/lib/utils';
+import { cn, extractTime } from '@/lib/utils';
 import { sendWhatsAppMessage, clearWhatsAppChatMessages } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
@@ -182,8 +182,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   };
 
   const formatMessageTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return extractTime(dateString);
   };
 
   const formatMessageDate = (dateString: string): string => {
