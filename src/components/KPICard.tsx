@@ -97,7 +97,7 @@ const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix }: KPICa
         <div className="flex-1 min-w-0">
           <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight">{title}</h3>
           <div className="kpi-value text-xl sm:text-2xl lg:text-3xl">
-            <AnimatedCounter value={value} delay={delay * 100} />
+            <AnimatedCounter value={value} delay={delay * 100} currencyPrefix={currencyPrefix} />
           </div>
         </div>
         {icon && (
