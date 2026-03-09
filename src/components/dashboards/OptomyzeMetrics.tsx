@@ -772,7 +772,7 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="product_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip
             contentStyle={chartTooltipStyle}
             content={({ active, payload, label }) => {
@@ -782,7 +782,7 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
                 <div style={chartTooltipStyle} className="p-3 shadow-lg">
                   <p className="font-semibold mb-1">{label}</p>
                   <p className="text-sm">Units Sold: <span className="font-medium">{item.quantity_sold}</span></p>
-                  <p className="text-sm">Revenue: <span className="font-medium">${item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-sm">Revenue: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
                   <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
                 </div>
               );
