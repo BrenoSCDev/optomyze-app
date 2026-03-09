@@ -240,7 +240,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
     },
     { 
       title: t('meta.cpa'), 
-      value: `$${avgCPA}`, 
+      value: `${cs}${avgCPA}`, 
       trend: { value: 'Cost per action', isPositive: parseFloat(avgCPA) < 50 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
