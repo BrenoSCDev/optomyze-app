@@ -246,7 +246,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
     },
     { 
       title: 'CPM', 
-      value: `$${avgCPM}`, 
+      value: `${cs}${avgCPM}`, 
       trend: { value: 'Per 1k impressions', isPositive: parseFloat(avgCPM) < 50 }, 
       icon: <TrendingUp className="h-5 w-5 text-primary" /> 
     },
