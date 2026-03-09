@@ -11,6 +11,7 @@ import DealCard from './DealCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, MoreVertical, Package } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface DealKanbanColumnProps {
   column: any;
