@@ -365,7 +365,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
   const secondaryKpis = [
     {
       title: t('google-ads.avg-cpc'),
-      value: `$${aggregateMetrics.avgCpc.toFixed(2)}`,
+      value: `${cs}${aggregateMetrics.avgCpc.toFixed(2)}`,
       trend: { value: 'Average', isPositive: true },
       icon: <DollarSign className="h-5 w-5 text-primary" />,
     },
