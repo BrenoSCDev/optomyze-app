@@ -5,6 +5,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatConversation, ChatContact } from '@/services/inboxChatApi';
+import { extractTime } from '@/lib/utils';
 
 type Tab = 'all' | 'contacts' | 'groups';
 
