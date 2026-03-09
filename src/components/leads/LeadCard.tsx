@@ -85,7 +85,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
   };
 
   // Access lead's currency if available (extended Lead type)
-  const leadCurrency = (lead as any).currency || 'USD';
+  const leadCurrency = (lead as any).currency || companyCurrency;
 
   return (
     <div className="relative">

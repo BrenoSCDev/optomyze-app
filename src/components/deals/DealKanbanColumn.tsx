@@ -32,7 +32,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
   const isDropTarget = overId === column.id;
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount);
