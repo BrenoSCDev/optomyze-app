@@ -78,7 +78,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
-  const formatCurrency = (amount: number | string, currency: string = 'USD') => {
+  const formatCurrency = (amount: number | string, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2,
     }).format(typeof amount === 'string' ? parseFloat(amount) : amount);

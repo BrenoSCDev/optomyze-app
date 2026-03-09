@@ -60,7 +60,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount);

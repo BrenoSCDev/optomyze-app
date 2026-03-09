@@ -116,7 +116,7 @@ const FunnelTableView = ({
     return colors[source] || 'bg-muted/50 text-muted-foreground';
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,

@@ -207,7 +207,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const formatCurrency = (value: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { 
       style: 'currency', 
-      currency: currency || 'USD' 
+      currency: currency || companyCurrency 
     }).format(value);
   };
 
