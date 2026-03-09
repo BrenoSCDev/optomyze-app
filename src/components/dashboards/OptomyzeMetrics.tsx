@@ -830,10 +830,10 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis dataKey="user_name" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
             formatter={(value: number, name: string) => [
-              name === 'revenue' ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
+              name === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
               name === 'revenue' ? 'Revenue' : 'Closed Deals',
             ]}
           />
