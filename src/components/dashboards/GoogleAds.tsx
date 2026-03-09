@@ -545,7 +545,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 dataKey="spend" 
                 fill="#EF4444" 
                 radius={[4, 4, 0, 0]} 
-                name="Spend ($)" 
+                name={`Spend (${cs})`} 
               />
               <Line 
                 yAxisId="right"
