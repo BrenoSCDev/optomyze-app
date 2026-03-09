@@ -180,7 +180,7 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: M
           <Tooltip
             contentStyle={chartTooltipStyle}
             formatter={(value: number, name: string) => [
-              `$${value.toLocaleString()}`,
+              `${currencySymbol}${value.toLocaleString()}`,
               name === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals'),
             ]}
           />
