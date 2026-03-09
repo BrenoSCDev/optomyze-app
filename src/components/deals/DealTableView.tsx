@@ -20,6 +20,7 @@ import {
 import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 
