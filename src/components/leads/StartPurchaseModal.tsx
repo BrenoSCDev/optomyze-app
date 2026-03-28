@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
@@ -72,6 +73,7 @@ const StartPurchaseModal = ({
   const [dealName, setDealName] = useState('');
   const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  const [manualValue, setManualValue] = useState<number>(0);
 
   // Get stages for selected funnel
   const selectedFunnel = useMemo(() => {
@@ -98,6 +100,7 @@ const StartPurchaseModal = ({
     setDealName('');
     setSelectedFunnelId('');
     setSelectedStageId('');
+    setManualValue(0);
     onClose();
   };
 
@@ -107,10 +110,11 @@ const StartPurchaseModal = ({
     setSelectedStageId('');
   };
 
-  // Calculate products subtotal
+  // Calculate products subtotal (use manual value when no products selected)
   const productsSubtotal = useMemo(() => {
+    if (selectedProducts.length === 0 && pricingModel === 'product') return manualValue;
     return selectedProducts.reduce((sum, p) => sum + p.total_price, 0);
-  }, [selectedProducts]);
+  }, [selectedProducts, manualValue, pricingModel]);
 
   // Calculate commission subtotal (reference value is always products subtotal)
   const commissionSubtotal = useMemo(() => {
@@ -215,6 +219,10 @@ const StartPurchaseModal = ({
         stage_id: Number(selectedStageId),
         name: dealName.trim(),
       };
+
+      if (selectedProducts.length === 0 && pricingModel === 'product' && manualValue > 0) {
+        payload.manual_value = manualValue;
+      }
 
       // Add commission fields if applicable
       if (pricingModel === 'commission' || pricingModel === 'hybrid') {
@@ -342,34 +350,49 @@ const StartPurchaseModal = ({
                 <FileText className="w-4 h-4" />
                 {t('sale.selected-products')}
               </Label>
-              <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-white/5">
-                    <tr>
-                      <th className="text-left p-3 text-gray-400 font-medium">{t('sale.product-name')}</th>
-                      <th className="text-center p-3 text-gray-400 font-medium">{t('sale.qty')}</th>
-                      <th className="text-right p-3 text-gray-400 font-medium">{t('sale.unit-price')}</th>
-                      <th className="text-right p-3 text-gray-400 font-medium">{t('sale.total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedProducts.map((product) => (
-                      <tr key={product.id} className="border-t border-white/5">
-                        <td className="p-3 text-white">{product.name}</td>
-                        <td className="p-3 text-center text-gray-300">{product.quantity}</td>
-                        <td className="p-3 text-right text-gray-300">{formatPrice(product.unit_price)}</td>
-                        <td className="p-3 text-right text-primary font-medium">{formatPrice(product.total_price)}</td>
+              {selectedProducts.length > 0 ? (
+                <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-white/5">
+                      <tr>
+                        <th className="text-left p-3 text-gray-400 font-medium">{t('sale.product-name')}</th>
+                        <th className="text-center p-3 text-gray-400 font-medium">{t('sale.qty')}</th>
+                        <th className="text-right p-3 text-gray-400 font-medium">{t('sale.unit-price')}</th>
+                        <th className="text-right p-3 text-gray-400 font-medium">{t('sale.total')}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-white/5">
-                    <tr>
-                      <td colSpan={3} className="p-3 text-right text-gray-400 font-medium">{t('sale.products-subtotal')}</td>
-                      <td className="p-3 text-right text-white font-semibold">{formatPrice(productsSubtotal)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {selectedProducts.map((product) => (
+                        <tr key={product.id} className="border-t border-white/5">
+                          <td className="p-3 text-white">{product.name}</td>
+                          <td className="p-3 text-center text-gray-300">{product.quantity}</td>
+                          <td className="p-3 text-right text-gray-300">{formatPrice(product.unit_price)}</td>
+                          <td className="p-3 text-right text-primary font-medium">{formatPrice(product.total_price)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-white/5">
+                      <tr>
+                        <td colSpan={3} className="p-3 text-right text-gray-400 font-medium">{t('sale.products-subtotal')}</td>
+                        <td className="p-3 text-right text-white font-semibold">{formatPrice(productsSubtotal)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500 italic">{t('sale.no-products-selected')}</p>
+                  <div className="space-y-1">
+                    <Label className="text-gray-400 text-sm">{t('sale.deal-value')}</Label>
+                    <CurrencyInput
+                      value={manualValue}
+                      onValueChange={setManualValue}
+                      placeholder="$0.00"
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 2. Pricing Model Selection */}
@@ -422,15 +445,25 @@ const StartPurchaseModal = ({
 
                   <div className="space-y-2">
                     <Label className="text-gray-400 text-sm">{t('sale.commission-value')}</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={commissionType === 'percentage' ? 0.01 : 1}
-                      value={commissionValue}
-                      onChange={(e) => setCommissionValue(Number(e.target.value))}
-                      className="bg-white/5 border-white/10 text-white"
-                      placeholder={commissionType === 'percentage' ? '5' : '1000'}
-                    />
+                    {commissionType === 'fixed' ? (
+                      <CurrencyInput
+                        value={commissionValue}
+                        onValueChange={setCommissionValue}
+                        placeholder="$0.00"
+                        className="bg-white/5 border-white/10 text-white"
+                      />
+                    ) : (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.01}
+                        value={commissionValue}
+                        onChange={(e) => setCommissionValue(Number(e.target.value))}
+                        className="bg-white/5 border-white/10 text-white"
+                        placeholder="5"
+                      />
+                    )}
                   </div>
 
                   {commissionType === 'percentage' && (
@@ -491,15 +524,25 @@ const StartPurchaseModal = ({
                           <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={charge.type === 'percentage' ? 0.01 : 1}
-                        value={charge.value}
-                        onChange={(e) => updateCharge(charge.id, 'value', Number(e.target.value))}
-                        className="w-24 bg-white/5 border-white/10 text-white text-sm"
-                        placeholder="0"
-                      />
+                      {charge.type === 'fixed' ? (
+                        <CurrencyInput
+                          value={charge.value}
+                          onValueChange={(v) => updateCharge(charge.id, 'value', v)}
+                          placeholder="$0.00"
+                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.01}
+                          value={charge.value}
+                          onChange={(e) => updateCharge(charge.id, 'value', Number(e.target.value))}
+                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                          placeholder="0"
+                        />
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
@@ -557,15 +600,25 @@ const StartPurchaseModal = ({
                           <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={discount.type === 'percentage' ? 0.01 : 1}
-                        value={discount.value}
-                        onChange={(e) => updateDiscount(discount.id, 'value', Number(e.target.value))}
-                        className="w-24 bg-white/5 border-white/10 text-white text-sm"
-                        placeholder="0"
-                      />
+                      {discount.type === 'fixed' ? (
+                        <CurrencyInput
+                          value={discount.value}
+                          onValueChange={(v) => updateDiscount(discount.id, 'value', v)}
+                          placeholder="$0.00"
+                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.01}
+                          value={discount.value}
+                          onChange={(e) => updateDiscount(discount.id, 'value', Number(e.target.value))}
+                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                          placeholder="0"
+                        />
+                      )}
                       <Button
                         type="button"
                         variant="ghost"

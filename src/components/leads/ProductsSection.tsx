@@ -63,14 +63,12 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
   };
 
   const handleStartPurchase = () => {
-    const selectedProducts = products.filter(p => selectedProductIds.has(p.id));
-    if (onStartPurchase && selectedProducts.length > 0) {
-      onStartPurchase(selectedProducts);
+    if (onStartPurchase) {
+      const selected = products.filter(p => selectedProductIds.has(p.id));
+      onStartPurchase(selected);
       setSelectedProductIds(new Set());
     }
   };
-
-  const hasSelectedProducts = selectedProductIds.size > 0;
 
   return (
     <motion.div 
@@ -85,17 +83,15 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
           {t('lead-details.products-of-interest')}
         </h3>
         <div className="flex items-center gap-2">
-          {hasSelectedProducts && (
-            <Button 
-              onClick={handleStartPurchase} 
-              size="sm"
-              className="bg-primary hover:bg-primary/80"
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              {t('sale.start-purchase')}
-            </Button>
-          )}
-          <Button 
+          <Button
+            onClick={handleStartPurchase}
+            size="sm"
+            className="bg-primary hover:bg-primary/80"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            {t('sale.start-purchase')}
+          </Button>
+          <Button
             onClick={onAddProducts} 
             variant="outline" 
             size="sm"

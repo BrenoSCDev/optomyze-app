@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -246,19 +247,13 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           <Label htmlFor="product-price">
             {t('products.price-label')} <span className="text-destructive">*</span>
           </Label>
-          <div className="relative mt-2">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
-            <Input
+          <div className="mt-2">
+            <CurrencyInput
               id="product-price"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.base_price}
-              onChange={(e) => setFormData(prev => ({ ...prev, base_price: e.target.value }))}
-              required
+              value={parseFloat(String(formData.base_price)) || 0}
+              onValueChange={(v) => setFormData(prev => ({ ...prev, base_price: String(v) }))}
               disabled={loading}
-              placeholder="0.00"
-              className="pl-8"
+              placeholder="$0.00"
             />
           </div>
         </div>

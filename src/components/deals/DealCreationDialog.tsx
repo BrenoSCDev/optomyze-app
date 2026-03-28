@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -88,6 +89,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const [discounts, setDiscounts] = useState<ChargeItem[]>([]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [manualValue, setManualValue] = useState<number>(0);
 
   // Set stage from props
   useEffect(() => {
@@ -207,8 +209,9 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   // Calculations
   const productsSubtotal = useMemo(() => {
+    if (leadProducts.length === 0 && pricingModel === 'product') return manualValue;
     return leadProducts.reduce((sum, p) => sum + parseFloat(p.pivot.total_price || '0'), 0);
-  }, [leadProducts]);
+  }, [leadProducts, manualValue, pricingModel]);
 
   const commissionSubtotal = useMemo(() => {
     if (pricingModel === 'product') return 0;
@@ -253,7 +256,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
     setProductQuery(''); setProductResults([]);
     setDealName(''); setStageId(selectedStageId || (stages[0]?.id.toString() ?? ''));
     setPricingModel('product'); setCommissionType('percentage'); setCommissionValue(0);
-    setCharges([]); setDiscounts([]); setNotes('');
+    setCharges([]); setDiscounts([]); setNotes(''); setManualValue(0);
   };
 
   const handleClose = () => { resetForm(); onClose(); };
@@ -262,9 +265,6 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
     if (!selectedLead) { toast({ title: 'Validation', description: 'Please select a lead.', variant: 'destructive' }); return; }
     if (!dealName.trim()) { toast({ title: 'Validation', description: 'Deal name is required.', variant: 'destructive' }); return; }
     if (!stageId) { toast({ title: 'Validation', description: 'Please select a stage.', variant: 'destructive' }); return; }
-    if ((pricingModel === 'product' || pricingModel === 'hybrid') && leadProducts.length === 0) {
-      toast({ title: 'Validation', description: 'At least one product is required.', variant: 'destructive' }); return;
-    }
     if ((pricingModel === 'commission' || pricingModel === 'hybrid') && commissionValue <= 0) {
       toast({ title: 'Validation', description: 'Commission value is required.', variant: 'destructive' }); return;
     }
@@ -278,6 +278,10 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
         stage_id: Number(stageId),
         name: dealName.trim(),
       };
+
+      if (leadProducts.length === 0 && pricingModel === 'product' && manualValue > 0) {
+        payload.manual_value = manualValue;
+      }
       if (pricingModel === 'commission' || pricingModel === 'hybrid') {
         payload.commission_type = commissionType;
         payload.commission_value = commissionValue;
@@ -456,7 +460,21 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                       </table>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">No products of interest yet.</p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500 italic">No products of interest. You can add one below or enter the deal value manually.</p>
+                      {pricingModel === 'product' && (
+                        <div className="space-y-1">
+                          <Label className="text-gray-400 text-sm">Deal Value</Label>
+                          <CurrencyInput
+                            value={manualValue}
+                            onValueChange={setManualValue}
+                            placeholder="$0.00"
+                            className="bg-white/5 border-deal/20 text-white placeholder:text-white/40"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Add Product Search */}
@@ -534,9 +552,18 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     </div>
                     <div className="space-y-2">
                       <Label className="text-gray-400 text-sm">Value</Label>
-                      <Input type="number" min={0} step={commissionType === 'percentage' ? 0.01 : 1}
-                        value={commissionValue} onChange={e => setCommissionValue(Number(e.target.value))}
-                        className="bg-white/5 border-white/10 text-white" />
+                      {commissionType === 'fixed' ? (
+                        <CurrencyInput
+                          value={commissionValue}
+                          onValueChange={setCommissionValue}
+                          placeholder="$0.00"
+                          className="bg-white/5 border-white/10 text-white"
+                        />
+                      ) : (
+                        <Input type="number" min={0} max={100} step={0.01}
+                          value={commissionValue} onChange={e => setCommissionValue(Number(e.target.value))}
+                          className="bg-white/5 border-white/10 text-white" placeholder="5" />
+                      )}
                     </div>
                     {commissionType === 'percentage' && (
                       <div className="space-y-2">
@@ -580,9 +607,14 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                               <SelectItem value="fixed" className="text-white hover:bg-gray-700">Fixed</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Input type="number" min={0} step={charge.type === 'percentage' ? 0.01 : 1} value={charge.value}
-                            onChange={e => updateCharge(charge.id, 'value', Number(e.target.value))}
-                            className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
+                          {charge.type === 'fixed' ? (
+                            <CurrencyInput value={charge.value} onValueChange={v => updateCharge(charge.id, 'value', v)}
+                              placeholder="$0.00" className="w-24 bg-white/5 border-white/10 text-white text-sm" />
+                          ) : (
+                            <Input type="number" min={0} max={100} step={0.01} value={charge.value}
+                              onChange={e => updateCharge(charge.id, 'value', Number(e.target.value))}
+                              className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
+                          )}
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeCharge(charge.id)}
                             className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                             <Trash2 className="w-4 h-4" />
@@ -620,9 +652,14 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                               <SelectItem value="fixed" className="text-white hover:bg-gray-700">Fixed</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Input type="number" min={0} step={discount.type === 'percentage' ? 0.01 : 1} value={discount.value}
-                            onChange={e => updateDiscount(discount.id, 'value', Number(e.target.value))}
-                            className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
+                          {discount.type === 'fixed' ? (
+                            <CurrencyInput value={discount.value} onValueChange={v => updateDiscount(discount.id, 'value', v)}
+                              placeholder="$0.00" className="w-24 bg-white/5 border-white/10 text-white text-sm" />
+                          ) : (
+                            <Input type="number" min={0} max={100} step={0.01} value={discount.value}
+                              onChange={e => updateDiscount(discount.id, 'value', Number(e.target.value))}
+                              className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
+                          )}
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeDiscount(discount.id)}
                             className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
                             <Trash2 className="w-4 h-4" />

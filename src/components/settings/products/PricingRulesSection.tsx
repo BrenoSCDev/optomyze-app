@@ -2,6 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProductSettings, PricingRules } from '@/services/settingsApi';
 
@@ -72,13 +73,11 @@ const PricingRulesSection = ({ settings, onUpdate }: Props) => {
       <div className="grid gap-2">
         <Label>{t('settings.products.min-deal-value')}</Label>
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">{settings.default_currency}</span>
-          <Input
-            type="number"
-            min={0}
+          <CurrencyInput
             value={pricing_rules.minDealValue}
-            onChange={(e) => updatePricingRules({ minDealValue: Number(e.target.value) })}
-            className="w-32"
+            onValueChange={(v) => updatePricingRules({ minDealValue: v })}
+            className="w-40"
+            placeholder="$0.00"
           />
         </div>
         <p className="text-xs text-muted-foreground">{t('settings.products.min-deal-value-desc')}</p>

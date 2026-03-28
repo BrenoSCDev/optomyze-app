@@ -30,6 +30,7 @@ export interface CreateSalePayload {
   charges?: SaleCharge[];
   discounts?: SaleDiscount[];
   notes?: string;
+  manual_value?: number;
 }
 
 export interface SaleResponse {

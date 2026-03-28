@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { X, Filter, RotateCcw } from 'lucide-react';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DealFilterDialogProps {
@@ -113,22 +114,20 @@ export const DealFilterDialog: React.FC<DealFilterDialogProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-white/90 mb-2">Min Value</label>
-                <input
-                  type="number"
-                  value={filters.minValue}
-                  onChange={(e) => setFilters(prev => ({ ...prev, minValue: e.target.value }))}
-                  placeholder="0"
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors"
+                <CurrencyInput
+                  value={parseFloat(filters.minValue) || 0}
+                  onValueChange={(v) => setFilters(prev => ({ ...prev, minValue: v ? String(v) : '' }))}
+                  placeholder="$0.00"
+                  className="w-full bg-white/5 border-deal/20 text-white placeholder:text-white/50"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-white/90 mb-2">Max Value</label>
-                <input
-                  type="number"
-                  value={filters.maxValue}
-                  onChange={(e) => setFilters(prev => ({ ...prev, maxValue: e.target.value }))}
-                  placeholder="100000"
-                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors"
+                <CurrencyInput
+                  value={parseFloat(filters.maxValue) || 0}
+                  onValueChange={(v) => setFilters(prev => ({ ...prev, maxValue: v ? String(v) : '' }))}
+                  placeholder="$0.00"
+                  className="w-full bg-white/5 border-deal/20 text-white placeholder:text-white/50"
                 />
               </div>
             </div>
