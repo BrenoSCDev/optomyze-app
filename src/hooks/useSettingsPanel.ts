@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  SettingsPanel, 
-  ProductSettings, 
+import {
+  SettingsPanel,
+  ProductSettings,
   SalesSettings,
   defaultSettings,
   getSettings,
+  saveSettings,
 } from '@/services/settingsApi';
 import { ApiNotificationSettings } from '@/services/notificationSettingsApi';
 import { useToast } from '@/hooks/use-toast';
@@ -81,12 +82,11 @@ export const useSettingsPanel = () => {
     return JSON.stringify(settings.sales_settings) !== JSON.stringify(originalSettings.sales_settings);
   }, [settings.sales_settings, originalSettings.sales_settings]);
 
-  // Mock save - replace with API call when backend is ready
   const saveProductSettings = useCallback(async () => {
     try {
       setSaving(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setOriginalSettings(settings);
+      await saveSettings({ product_settings: settings.product_settings, sales_settings: settings.sales_settings });
+      setOriginalSettings(prev => ({ ...prev, product_settings: settings.product_settings }));
       toast({
         title: t('common.success'),
         description: t('settings.panel.save-success'),
@@ -103,12 +103,11 @@ export const useSettingsPanel = () => {
     }
   }, [settings, toast, t]);
 
-  // Mock save - replace with API call when backend is ready
   const saveSalesSettings = useCallback(async () => {
     try {
       setSaving(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setOriginalSettings(settings);
+      await saveSettings({ product_settings: settings.product_settings, sales_settings: settings.sales_settings });
+      setOriginalSettings(prev => ({ ...prev, sales_settings: settings.sales_settings }));
       toast({
         title: t('common.success'),
         description: t('settings.panel.save-success'),

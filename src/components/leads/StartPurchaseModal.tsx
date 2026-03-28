@@ -4,7 +4,7 @@
  * Modal for creating a new sale from selected products
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, Package, Calculator, FileText, DollarSign, Percent, Tag } from 'lucide-react';
 import { LeadProduct } from './ProductsSection';
 import { saleService, SaleCharge, CreateSalePayload } from '@/services/saleApi';
+import { getSettings, defaultSettings } from '@/services/settingsApi';
 import { Briefcase } from 'lucide-react';
 
 type PricingModel = 'product' | 'commission' | 'hybrid';
@@ -61,7 +62,16 @@ const StartPurchaseModal = ({
   onSaleCreated 
 }: StartPurchaseModalProps) => {
   const { t } = useLanguage();
-  
+
+  const salesSettingsRef = useRef(defaultSettings.sales_settings);
+  const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
+  useEffect(() => {
+    getSettings().then(s => {
+      salesSettingsRef.current = s.sales_settings;
+      pricingRulesRef.current = s.product_settings.pricing_rules;
+    });
+  }, []);
+
   // Form state
   const [pricingModel, setPricingModel] = useState<PricingModel>('product');
   const [commissionType, setCommissionType] = useState<ChargeType>('percentage');
@@ -209,6 +219,17 @@ const StartPurchaseModal = ({
       return;
     }
 
+    const ss = salesSettingsRef.current;
+    const pr = pricingRulesRef.current;
+    if (!ss.deal_rules.allowDealsWithoutProducts && selectedProducts.length === 0 && pricingModel === 'product') {
+      toast.error(t('sale.no-products-selected'));
+      return;
+    }
+    if (pr.minDealValue > 0 && finalTotal < pr.minDealValue) {
+      toast.error(`${t('sale.deal-value')} min: ${pr.minDealValue}`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -272,6 +293,8 @@ const StartPurchaseModal = ({
   };
 
   const showCommissionSection = pricingModel === 'commission' || pricingModel === 'hybrid';
+  const maxDiscountPercent = pricingRulesRef.current.maxDiscountPercent;
+  const allowPriceOverride = pricingRulesRef.current.allowPriceOverride;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -389,6 +412,7 @@ const StartPurchaseModal = ({
                       onValueChange={setManualValue}
                       placeholder="$0.00"
                       className="bg-white/5 border-white/10 text-white"
+                      disabled={!allowPriceOverride}
                     />
                   </div>
                 </div>
@@ -611,10 +635,10 @@ const StartPurchaseModal = ({
                         <Input
                           type="number"
                           min={0}
-                          max={100}
+                          max={maxDiscountPercent}
                           step={0.01}
                           value={discount.value}
-                          onChange={(e) => updateDiscount(discount.id, 'value', Number(e.target.value))}
+                          onChange={(e) => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))}
                           className="w-24 bg-white/5 border-white/10 text-white text-sm"
                           placeholder="0"
                         />

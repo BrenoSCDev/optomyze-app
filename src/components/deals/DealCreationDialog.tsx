@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { saleService, CreateSalePayload } from '@/services/saleApi';
+import { getSettings, defaultSettings } from '@/services/settingsApi';
 import {
   searchLeadsWithProducts,
   searchProducts,
@@ -60,6 +61,15 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 }) => {
   const { toast } = useToast();
   const { t } = useLanguage();
+
+  const salesSettingsRef = useRef(defaultSettings.sales_settings);
+  const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
+  useEffect(() => {
+    getSettings().then(s => {
+      salesSettingsRef.current = s.sales_settings;
+      pricingRulesRef.current = s.product_settings.pricing_rules;
+    });
+  }, []);
 
   // Lead search
   const [leadQuery, setLeadQuery] = useState('');
@@ -269,6 +279,15 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
       toast({ title: 'Validation', description: 'Commission value is required.', variant: 'destructive' }); return;
     }
 
+    const ss = salesSettingsRef.current;
+    const pr = pricingRulesRef.current;
+    if (!ss.deal_rules.allowDealsWithoutProducts && leadProducts.length === 0 && pricingModel === 'product') {
+      toast({ title: t('common.error'), description: t('sale.no-products-selected'), variant: 'destructive' }); return;
+    }
+    if (pr.minDealValue > 0 && finalTotal < pr.minDealValue) {
+      toast({ title: t('common.error'), description: `${t('sale.deal-value')} min: ${pr.minDealValue}`, variant: 'destructive' }); return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload: CreateSalePayload = {
@@ -311,6 +330,8 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
   const showCommissionSection = pricingModel === 'commission' || pricingModel === 'hybrid';
+  const maxDiscountPercent = pricingRulesRef.current.maxDiscountPercent;
+  const allowPriceOverride = pricingRulesRef.current.allowPriceOverride;
 
   return (
     <AnimatePresence>
@@ -470,7 +491,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                             onValueChange={setManualValue}
                             placeholder="$0.00"
                             className="bg-white/5 border-deal/20 text-white placeholder:text-white/40"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !allowPriceOverride}
                           />
                         </div>
                       )}
@@ -656,8 +677,8 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                             <CurrencyInput value={discount.value} onValueChange={v => updateDiscount(discount.id, 'value', v)}
                               placeholder="$0.00" className="w-24 bg-white/5 border-white/10 text-white text-sm" />
                           ) : (
-                            <Input type="number" min={0} max={100} step={0.01} value={discount.value}
-                              onChange={e => updateDiscount(discount.id, 'value', Number(e.target.value))}
+                            <Input type="number" min={0} max={maxDiscountPercent} step={0.01} value={discount.value}
+                              onChange={e => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))}
                               className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
                           )}
                           <Button type="button" variant="ghost" size="icon" onClick={() => removeDiscount(discount.id)}

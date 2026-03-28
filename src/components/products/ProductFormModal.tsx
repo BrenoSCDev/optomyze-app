@@ -4,7 +4,7 @@
  * Modal for creating and editing products with tab-based layout
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Package, Briefcase, MonitorDown, AlertCircle, Loader2, ImageIcon, Settings2 } from 'lucide-react';
 import {
   Dialog,
@@ -21,6 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createProduct, updateProduct, type Product, type ProductFormData, type ProductCustomField } from '@/services/productApi';
+import { getSettings, defaultSettings } from '@/services/settingsApi';
 import { useToast } from '@/hooks/use-toast';
 import ProductImageGallery from './ProductImageGallery';
 import ProductCustomFieldsTab from './ProductCustomFieldsTab';
@@ -32,6 +33,15 @@ interface ProductFormModalProps {
   onSuccess: () => void;
 }
 
+const generateSku = (format: string): string => {
+  // Replace {NNNN} or {0001} pattern with a random number padded to the same length
+  return format.replace(/\{(\d+)\}/, (_, digits) => {
+    const max = Math.pow(10, digits.length) - 1;
+    const num = Math.floor(Math.random() * max) + 1;
+    return String(num).padStart(digits.length, '0');
+  });
+};
+
 const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -42,6 +52,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('data');
   const [customFields, setCustomFields] = useState<ProductCustomField[]>([]);
+  const productSettingsRef = useRef(defaultSettings.product_settings);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
@@ -51,6 +62,12 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
     category: '',
     is_active: true,
   });
+
+  useEffect(() => {
+    getSettings().then(s => {
+      productSettingsRef.current = s.product_settings;
+    });
+  }, []);
 
   // Product ID for image management (either from editing or just created)
   const productIdForImages = product?.id || createdProductId;
@@ -69,14 +86,21 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
       setCustomFields(product.fields || []);
       setCreatedProductId(null);
     } else {
+      const ps = productSettingsRef.current;
+      const typeMap: Record<string, 'product' | 'service' | 'digital'> = {
+        physical: 'product',
+        service: 'service',
+      };
+      const defaultType = typeMap[ps.default_type] ?? 'product';
+      const autoSku = ps.auto_sku ? generateSku(ps.sku_format) : '';
       setFormData({
         name: '',
         description: '',
-        sku: '',
+        sku: autoSku,
         base_price: '',
-        type: 'product',
+        type: defaultType,
         category: '',
-        is_active: true,
+        is_active: ps.default_status === 'active',
       });
       setCustomFields([]);
       setCreatedProductId(null);
