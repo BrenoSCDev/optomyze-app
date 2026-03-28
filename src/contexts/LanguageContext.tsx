@@ -351,6 +351,7 @@ const translations = {
     'settings.products.field-type-select': 'Select',
     'settings.products.field-type-boolean': 'Boolean',
     'settings.products.field-type-date': 'Date',
+    'settings.products.field-type-title': 'Title',
     'settings.products.default-value': 'Default Value',
     'settings.products.default-value-placeholder': 'Enter default value',
     'settings.products.apply-to': 'Apply To',
@@ -383,6 +384,22 @@ const translations = {
     'settings.products.field-delete-error': 'Failed to delete custom field',
     'settings.products.delete-field-title': 'Delete Custom Field',
     'settings.products.delete-field-description': 'Are you sure you want to delete this custom field? This action cannot be undone.',
+
+    // Lead Custom Fields Settings
+    'settings.leads.custom-fields-title': 'Default Lead Fields',
+    'settings.leads.custom-fields-desc': 'Default fields added to every new lead.',
+    'settings.leads.lead-fields-desc': 'Custom fields for this lead.',
+    'settings.leads.add-field': 'Add Field',
+    'settings.leads.edit-field': 'Edit Field',
+    'settings.leads.no-custom-fields': 'No default lead fields defined.',
+    'settings.leads.no-lead-fields': 'No custom fields for this lead.',
+    'settings.leads.field-created': 'Field added successfully',
+    'settings.leads.field-updated': 'Field updated successfully',
+    'settings.leads.field-deleted': 'Field removed successfully',
+    'settings.leads.field-create-error': 'Failed to save field',
+    'settings.leads.field-update-error': 'Failed to update field',
+    'settings.leads.field-delete-error': 'Failed to delete field',
+    'settings.leads.load-fields-error': 'Failed to load fields',
 
     // Sales Settings
     'settings.sales.pipelines': 'Sales Pipelines',
@@ -2243,7 +2260,8 @@ const translations = {
     'lead-details.tabs.chat-empty-desc': 'Start a conversation with this lead.',
     'lead-details.tabs.products': 'Products of Interest',
     'lead-details.tabs.products-short': 'Products',
-    
+    'lead-details.tabs.custom-fields': 'Fields',
+
     // Purchase History
     'lead-details.purchase-history': 'Deal History',
     'lead-details.no-purchases': 'No purchases recorded yet',
@@ -2475,6 +2493,7 @@ const translations = {
     'products.type-label': 'Product Type',
     'products.physical-product': 'Physical Product',
     'products.service': 'Service',
+    'products.digital-product': 'Digital Product',
     'products.name-label': 'Product Name',
     'products.name-placeholder': 'e.g., Premium Consulting Package',
     'products.sku-label': 'SKU',
@@ -2910,6 +2929,7 @@ const translations = {
     'settings.products.field-type-select': 'Seleção',
     'settings.products.field-type-boolean': 'Booleano',
     'settings.products.field-type-date': 'Data',
+    'settings.products.field-type-title': 'Título',
     'settings.products.default-value': 'Valor Padrão',
     'settings.products.default-value-placeholder': 'Digite valor padrão',
     'settings.products.apply-to': 'Aplicar A',
@@ -2942,6 +2962,22 @@ const translations = {
     'settings.products.field-delete-error': 'Falha ao excluir campo personalizado',
     'settings.products.delete-field-title': 'Excluir Campo Personalizado',
     'settings.products.delete-field-description': 'Tem certeza de que deseja excluir este campo personalizado? Esta ação não pode ser desfeita.',
+
+    // Lead Custom Fields Settings
+    'settings.leads.custom-fields-title': 'Campos Padrão de Leads',
+    'settings.leads.custom-fields-desc': 'Campos padrão adicionados a cada novo lead.',
+    'settings.leads.lead-fields-desc': 'Campos personalizados deste lead.',
+    'settings.leads.add-field': 'Adicionar Campo',
+    'settings.leads.edit-field': 'Editar Campo',
+    'settings.leads.no-custom-fields': 'Nenhum campo padrão de lead definido.',
+    'settings.leads.no-lead-fields': 'Nenhum campo personalizado para este lead.',
+    'settings.leads.field-created': 'Campo adicionado com sucesso',
+    'settings.leads.field-updated': 'Campo atualizado com sucesso',
+    'settings.leads.field-deleted': 'Campo removido com sucesso',
+    'settings.leads.field-create-error': 'Falha ao salvar campo',
+    'settings.leads.field-update-error': 'Falha ao atualizar campo',
+    'settings.leads.field-delete-error': 'Falha ao excluir campo',
+    'settings.leads.load-fields-error': 'Falha ao carregar campos',
 
     // Sales Settings
     'settings.sales.pipelines': 'Pipelines de Vendas',
@@ -4766,7 +4802,8 @@ const translations = {
     'lead-details.tabs.chat-empty-desc': 'Inicie uma conversa com este lead.',
     'lead-details.tabs.products': 'Produtos de Interesse',
     'lead-details.tabs.products-short': 'Produtos',
-    
+    'lead-details.tabs.custom-fields': 'Campos',
+
     // Purchase History
     'lead-details.purchase-history': 'Histórico de Negócios',
     'lead-details.no-purchases': 'Nenhuma compra registrada ainda',
@@ -4998,6 +5035,7 @@ const translations = {
     'products.type-label': 'Tipo de Produto',
     'products.physical-product': 'Produto Físico',
     'products.service': 'Serviço',
+    'products.digital-product': 'Produto Digital',
     'products.name-label': 'Nome do Produto',
     'products.name-placeholder': 'ex: Pacote de Consultoria Premium',
     'products.sku-label': 'SKU',
@@ -5332,6 +5370,7 @@ const translations = {
     'settings.products.field-type-select': 'Auswahl',
     'settings.products.field-type-boolean': 'Boolesch',
     'settings.products.field-type-date': 'Datum',
+    'settings.products.field-type-title': 'Titel',
     'settings.products.default-value': 'Standardwert',
     'settings.products.default-value-placeholder': 'Standardwert eingeben',
     'settings.products.apply-to': 'Anwenden auf',
@@ -5364,6 +5403,22 @@ const translations = {
     'settings.products.field-delete-error': 'Fehler beim Löschen des benutzerdefinierten Felds',
     'settings.products.delete-field-title': 'Benutzerdefiniertes Feld löschen',
     'settings.products.delete-field-description': 'Sind Sie sicher, dass Sie dieses benutzerdefinierte Feld löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+
+    // Lead Custom Fields Settings
+    'settings.leads.custom-fields-title': 'Standard-Lead-Felder',
+    'settings.leads.custom-fields-desc': 'Standardfelder, die jedem neuen Lead hinzugefügt werden.',
+    'settings.leads.lead-fields-desc': 'Benutzerdefinierte Felder für diesen Lead.',
+    'settings.leads.add-field': 'Feld hinzufügen',
+    'settings.leads.edit-field': 'Feld bearbeiten',
+    'settings.leads.no-custom-fields': 'Keine Standard-Lead-Felder definiert.',
+    'settings.leads.no-lead-fields': 'Keine benutzerdefinierten Felder für diesen Lead.',
+    'settings.leads.field-created': 'Feld erfolgreich hinzugefügt',
+    'settings.leads.field-updated': 'Feld erfolgreich aktualisiert',
+    'settings.leads.field-deleted': 'Feld erfolgreich entfernt',
+    'settings.leads.field-create-error': 'Fehler beim Speichern des Felds',
+    'settings.leads.field-update-error': 'Fehler beim Aktualisieren des Felds',
+    'settings.leads.field-delete-error': 'Fehler beim Löschen des Felds',
+    'settings.leads.load-fields-error': 'Fehler beim Laden der Felder',
 
     // Sales Settings
     'settings.sales.pipelines': 'Verkaufs-Pipelines',
@@ -7018,7 +7073,8 @@ const translations = {
     'lead-details.tabs.chat-empty-desc': 'Starten Sie ein Gespräch mit diesem Lead.',
     'lead-details.tabs.products': 'Interessierte Produkte',
     'lead-details.tabs.products-short': 'Produkte',
-    
+    'lead-details.tabs.custom-fields': 'Felder',
+
     // Purchase History
     'lead-details.purchase-history': 'Deal-Historie',
     'lead-details.no-purchases': 'Noch keine Käufe verzeichnet',
@@ -7250,6 +7306,7 @@ const translations = {
     'products.type-label': 'Produkttyp',
     'products.physical-product': 'Physisches Produkt',
     'products.service': 'Dienstleistung',
+    'products.digital-product': 'Digitales Produkt',
     'products.name-label': 'Produktname',
     'products.name-placeholder': 'z.B. Premium-Beratungspaket',
     'products.sku-label': 'SKU',
@@ -7691,6 +7748,7 @@ const translations = {
     'settings.products.field-type-select': 'Selección',
     'settings.products.field-type-boolean': 'Booleano',
     'settings.products.field-type-date': 'Fecha',
+    'settings.products.field-type-title': 'Título',
     'settings.products.default-value': 'Valor Predeterminado',
     'settings.products.default-value-placeholder': 'Ingresa valor predeterminado',
     'settings.products.apply-to': 'Aplicar A',
@@ -7723,6 +7781,22 @@ const translations = {
     'settings.products.field-delete-error': 'Error al eliminar campo personalizado',
     'settings.products.delete-field-title': 'Eliminar Campo Personalizado',
     'settings.products.delete-field-description': '¿Estás seguro de que deseas eliminar este campo personalizado? Esta acción no se puede deshacer.',
+
+    // Lead Custom Fields Settings
+    'settings.leads.custom-fields-title': 'Campos Predeterminados de Leads',
+    'settings.leads.custom-fields-desc': 'Campos predeterminados añadidos a cada nuevo lead.',
+    'settings.leads.lead-fields-desc': 'Campos personalizados de este lead.',
+    'settings.leads.add-field': 'Añadir Campo',
+    'settings.leads.edit-field': 'Editar Campo',
+    'settings.leads.no-custom-fields': 'No hay campos predeterminados de lead definidos.',
+    'settings.leads.no-lead-fields': 'No hay campos personalizados para este lead.',
+    'settings.leads.field-created': 'Campo añadido exitosamente',
+    'settings.leads.field-updated': 'Campo actualizado exitosamente',
+    'settings.leads.field-deleted': 'Campo eliminado exitosamente',
+    'settings.leads.field-create-error': 'Error al guardar el campo',
+    'settings.leads.field-update-error': 'Error al actualizar el campo',
+    'settings.leads.field-delete-error': 'Error al eliminar el campo',
+    'settings.leads.load-fields-error': 'Error al cargar los campos',
 
     // Sales Settings
     'settings.sales.pipelines': 'Pipelines de Ventas',
@@ -9377,7 +9451,8 @@ const translations = {
     'lead-details.tabs.chat-empty-desc': 'Inicie una conversación con este lead.',
     'lead-details.tabs.products': 'Productos de Interés',
     'lead-details.tabs.products-short': 'Productos',
-    
+    'lead-details.tabs.custom-fields': 'Campos',
+
     // Purchase History
     'lead-details.purchase-history': 'Historial de Negocios',
     'lead-details.no-purchases': 'Aún no hay compras registradas',
@@ -9609,6 +9684,7 @@ const translations = {
     'products.type-label': 'Tipo de Producto',
     'products.physical-product': 'Producto Físico',
     'products.service': 'Servicio',
+    'products.digital-product': 'Producto Digital',
     'products.name-label': 'Nombre del Producto',
     'products.name-placeholder': 'ej: Paquete de Consultoría Premium',
     'products.sku-label': 'SKU',
