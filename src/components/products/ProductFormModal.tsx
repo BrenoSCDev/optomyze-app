@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Package, Briefcase, AlertCircle, Loader2, ImageIcon, Settings2 } from 'lucide-react';
+import { Package, Briefcase, MonitorDown, AlertCircle, Loader2, ImageIcon, Settings2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -165,7 +165,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         <Label className="mb-2 block">
           {t('products.type-label')} <span className="text-destructive">*</span>
         </Label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, type: 'product' }))}
@@ -189,6 +189,18 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           >
             <Briefcase className="w-6 h-6 mx-auto mb-2" />
             <div className="text-sm font-medium">{t('products.service')}</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, type: 'digital' }))}
+            className={`p-4 rounded-lg border transition-all ${
+              formData.type === 'digital'
+                ? 'bg-primary/20 border-primary text-primary'
+                : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/40'
+            }`}
+          >
+            <MonitorDown className="w-6 h-6 mx-auto mb-2" />
+            <div className="text-sm font-medium">{t('products.digital-product')}</div>
           </button>
         </div>
       </div>

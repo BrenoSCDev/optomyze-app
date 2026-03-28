@@ -11,6 +11,7 @@ import { useSettingsPanel } from '@/hooks/useSettingsPanel';
 import { useFunnelSettings } from '@/hooks/useFunnelSettings';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { useCustomProductFields } from '@/hooks/useCustomProductFields';
+import { useLeadCustomFields } from '@/hooks/useLeadCustomFields';
 import { FunnelStage } from '@/services/funnelSettingsApi';
 
 // Product Settings
@@ -24,6 +25,7 @@ import NotificationsSection from './sales/NotificationsSection';
 
 // Funnel Settings
 import FunnelTemplatesSection from './funnels/FunnelTemplatesSection';
+import LeadCustomFieldsSection from './funnels/LeadCustomFieldsSection';
 import StageEntryRulesSection from './funnels/StageEntryRulesSection';
 import StageActionsSection from './funnels/StageActionsSection';
 import FunnelManagersQueueSection from './funnels/FunnelManagersQueueSection';
@@ -110,6 +112,15 @@ const CrmPanel = () => {
     removeField: removeCustomField,
   } = useCustomProductFields();
 
+  const {
+    fields: customLeadFields,
+    loading: leadFieldsLoading,
+    saving: leadFieldsSaving,
+    addField: addLeadField,
+    editField: editLeadField,
+    removeField: removeLeadField,
+  } = useLeadCustomFields();
+
   const handleEditStage = (stage: FunnelStage) => {
     setEditingStage(stage);
     setStageDialogOpen(true);
@@ -149,7 +160,7 @@ const CrmPanel = () => {
     setEditingStage({ ...editingStage, actions });
   };
 
-  if (loading || funnelLoading || notificationLoading || customFieldsLoading) {
+  if (loading || funnelLoading || notificationLoading || customFieldsLoading || leadFieldsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -415,6 +426,31 @@ const CrmPanel = () => {
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
                     <LossHandlingSection />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Lead Custom Fields */}
+              <AccordionItem value="lead-custom-fields" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <List className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.leads.custom-fields-title') || 'Lead Custom Fields'}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <LeadCustomFieldsSection
+                      fields={customLeadFields}
+                      saving={leadFieldsSaving}
+                      onAdd={addLeadField}
+                      onEdit={editLeadField}
+                      onDelete={removeLeadField}
+                    />
                   </div>
                 </AccordionContent>
               </AccordionItem>

@@ -10,10 +10,10 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Info, 
-  Phone, 
-  ListTodo, 
+import {
+  Info,
+  Phone,
+  ListTodo,
   FileText,
   StickyNote,
   FileSignature,
@@ -29,7 +29,8 @@ import {
   Brain,
   TrendingUp,
   Calendar,
-  MapPin
+  MapPin,
+  Settings2,
 } from 'lucide-react';
 import { VscSourceControl } from "react-icons/vsc";
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +43,7 @@ import ObservationsSection from './ObservationsSection';
 import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadWhatsAppChat, LeadWhatsAppMessage } from './LeadChatSection';
+import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 
 interface AssignedUser {
   id: number;
@@ -201,8 +203,15 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <FileSignature className="w-3.5 h-3.5 mr-1.5" />
             <span>{t('lead-details.tabs.contracts')}</span>
           </TabsTrigger> */}
-          <TabsTrigger 
-            value="chat" 
+          <TabsTrigger
+            value="custom-fields"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.custom-fields') || 'Fields'}</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="chat"
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
             <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
@@ -257,6 +266,11 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         {/* <TabsContent value="contracts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <ContractsContent />
         </TabsContent> */}
+
+        {/* Custom Fields Tab */}
+        <TabsContent value="custom-fields" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <LeadCustomFieldsTab leadId={lead.id} />
+        </TabsContent>
 
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">

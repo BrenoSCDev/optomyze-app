@@ -28,7 +28,7 @@ export interface Product {
   description: string | null;
   sku: string;
   base_price: number;
-  type: 'product' | 'service';
+  type: 'product' | 'service' | 'digital';
   category: string | null;
   is_active: boolean;
   metadata: ProductMetadata | null;
@@ -54,7 +54,7 @@ export interface ProductFormData {
   description?: string;
   sku: string;
   base_price: number | string;
-  type: 'product' | 'service';
+  type: 'product' | 'service' | 'digital';
   category?: string;
   is_active: boolean;
   metadata?: ProductMetadata;

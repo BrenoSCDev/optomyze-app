@@ -200,11 +200,6 @@ const StartPurchaseModal = ({
     }
 
     // Validation
-    if ((pricingModel === 'product' || pricingModel === 'hybrid') && selectedProducts.length === 0) {
-      toast.error(t('sale.validation.products-required'));
-      return;
-    }
-
     if ((pricingModel === 'commission' || pricingModel === 'hybrid') && commissionValue <= 0) {
       toast.error(t('sale.validation.commission-required'));
       return;
