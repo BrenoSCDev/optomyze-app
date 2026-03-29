@@ -632,7 +632,7 @@ const StartPurchaseModal = ({
                           className="w-24 bg-white/5 border-white/10 text-white text-sm"
                         />
                       ) : (
-                        <div className="flex flex-col items-end gap-0.5">
+                        <div className="flex items-center gap-1">
                           <Input
                             type="number"
                             min={0}
@@ -640,10 +640,10 @@ const StartPurchaseModal = ({
                             step={0.01}
                             value={discount.value}
                             onChange={(e) => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))}
-                            className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                            className="w-16 bg-white/5 border-white/10 text-white text-sm"
                             placeholder="0"
                           />
-                          <span className="text-xs text-white/40">max {maxDiscountPercent}%</span>
+                          <span className="text-xs text-white/40 whitespace-nowrap">/ {maxDiscountPercent}%</span>
                         </div>
                       )}
                       <Button
