@@ -18,7 +18,7 @@ export interface PricingRules {
 }
 
 export interface ProductSettings {
-  default_type: 'service' | 'physical';
+  default_type: 'service' | 'physical' | 'digital';
   lock_type: boolean;
   default_pricing_model: 'fixed' | 'recurring' | 'hourly' | 'per-unit';
   default_currency: string;

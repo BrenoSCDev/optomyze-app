@@ -20,7 +20,7 @@ const ProductBehaviorSection = ({ settings, onUpdate }: Props) => {
         <Label>{t('settings.products.default-type')}</Label>
         <Select 
           value={settings.default_type} 
-          onValueChange={(value: 'service' | 'physical') => onUpdate({ default_type: value })}
+          onValueChange={(value: 'service' | 'physical' | 'digital') => onUpdate({ default_type: value })}
         >
           <SelectTrigger>
             <SelectValue />
@@ -28,6 +28,7 @@ const ProductBehaviorSection = ({ settings, onUpdate }: Props) => {
           <SelectContent>
             <SelectItem value="service">{t('settings.products.type-service')}</SelectItem>
             <SelectItem value="physical">{t('settings.products.type-physical')}</SelectItem>
+            <SelectItem value="digital">{t('settings.products.type-digital')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

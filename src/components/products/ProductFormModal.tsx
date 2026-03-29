@@ -90,6 +90,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
       const typeMap: Record<string, 'product' | 'service' | 'digital'> = {
         physical: 'product',
         service: 'service',
+        digital: 'digital',
       };
       const defaultType = typeMap[ps.default_type] ?? 'product';
       const autoSku = ps.auto_sku ? generateSku(ps.sku_format) : '';
