@@ -8,7 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,7 +18,7 @@ import {
   useUpdateCalendarEvent, 
   useDeleteCalendarEvent 
 } from '@/hooks/useCalendarEvents';
-import { CalendarTask, CalendarEvent } from '@/services/calendarApi';
+import { CalendarTask, CalendarEvent, CalendarAppointment } from '@/services/calendarApi';
 import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
@@ -49,6 +49,14 @@ const taskStatusColors: Record<string, string> = {
   cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
 
+// Color mapping for appointment statuses
+const appointmentStatusColors: Record<string, string> = {
+  scheduled: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  no_show: 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+
 // Unified calendar item type
 interface CalendarItem {
   id: string;
@@ -57,7 +65,7 @@ interface CalendarItem {
   description: string;
   date: Date;
   endDate?: Date;
-  type: 'task' | 'event';
+  type: 'task' | 'event' | 'appointment';
   subType: string;
   allDay?: boolean;
   priority?: string;
@@ -69,6 +77,9 @@ interface CalendarItem {
   leadId?: number;
   funnelId?: number;
   originalEvent?: CalendarEvent;
+  // Appointments
+  appointmentTypeColor?: string;
+  timezone?: string;
 }
 
 const OptomyzeCalendar: React.FC = () => {
@@ -83,7 +94,7 @@ const OptomyzeCalendar: React.FC = () => {
   const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
   const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
 
-  const { data, isLoading, error } = useCalendarEvents();
+  const { data, isLoading, error, refetch, isFetching } = useCalendarEvents();
   const createEventMutation = useCreateCalendarEvent();
   const updateEventMutation = useUpdateCalendarEvent();
   const deleteEventMutation = useDeleteCalendarEvent();
@@ -151,6 +162,26 @@ const OptomyzeCalendar: React.FC = () => {
         allDay: event.all_day,
         hasReminder: event.reminder === 1,
         originalEvent: event,
+      });
+    });
+
+    // Transform appointments
+    data.appointments?.forEach((appt: CalendarAppointment) => {
+      items.push({
+        id: `appointment-${appt.id}`,
+        originalId: appt.id,
+        title: appt.title,
+        description: appt.notes || '',
+        date: parseDateSafe(appt.scheduled_at),
+        endDate: appt.end_at ? parseDateSafe(appt.end_at) : undefined,
+        type: 'appointment',
+        subType: appt.status,
+        hasReminder: false,
+        leadName: appt.lead ? `${appt.lead.first_name} ${appt.lead.last_name}` : undefined,
+        leadId: appt.lead?.id,
+        funnelId: appt.lead?.funnel_id,
+        appointmentTypeColor: appt.appointment_type?.color,
+        timezone: appt.timezone,
       });
     });
 
@@ -246,6 +277,9 @@ const OptomyzeCalendar: React.FC = () => {
     if (item.type === 'task') {
       return taskPriorityColors[item.priority || 'medium'] || taskPriorityColors.medium;
     }
+    if (item.type === 'appointment') {
+      return appointmentStatusColors[item.subType] || appointmentStatusColors.scheduled;
+    }
     return eventTypeColors[item.subType] || eventTypeColors.other;
   };
 
@@ -284,10 +318,15 @@ const OptomyzeCalendar: React.FC = () => {
             {t('calendar.optomyze.description')}
           </p>
         </div>
-        <Button className="bg-primary hover:bg-primary/80" onClick={handleCreateEvent}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('calendar.new-event')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} title="Refresh">
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button className="bg-primary hover:bg-primary/80" onClick={handleCreateEvent}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('calendar.new-event')}
+          </Button>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -359,10 +398,22 @@ const OptomyzeCalendar: React.FC = () => {
                       {dayItems.slice(0, 2).map(item => (
                         <div
                           key={item.id}
-                          className={`text-xs px-1 py-0.5 rounded truncate flex items-center gap-1 ${getItemColor(item)}`}
+                          className={`text-xs px-1 py-0.5 rounded truncate flex items-center gap-1 ${
+                            item.type === 'appointment' && item.appointmentTypeColor
+                              ? 'bg-white/10 text-white border border-white/10'
+                              : getItemColor(item)
+                          }`}
+                          style={item.type === 'appointment' && item.appointmentTypeColor
+                            ? { borderLeftColor: item.appointmentTypeColor, borderLeftWidth: 3 }
+                            : undefined}
                         >
                           {item.type === 'task' ? (
                             <CheckSquare className="h-3 w-3 flex-shrink-0" />
+                          ) : item.type === 'appointment' ? (
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0 inline-block"
+                              style={{ backgroundColor: item.appointmentTypeColor || '#14b8a6' }}
+                            />
                           ) : (
                             <CalendarDays className="h-3 w-3 flex-shrink-0" />
                           )}
@@ -408,26 +459,46 @@ const OptomyzeCalendar: React.FC = () => {
               {selectedDateItems.map(item => (
                 <div
                   key={item.id}
-                  className={`p-4 rounded-lg border ${getItemColor(item)} hover:scale-[1.02] transition-transform`}
+                  className={`p-4 rounded-lg border hover:scale-[1.02] transition-transform ${
+                    item.type === 'appointment' && item.appointmentTypeColor
+                      ? 'bg-white/5 border-white/10'
+                      : getItemColor(item)
+                  }`}
+                  style={item.type === 'appointment' && item.appointmentTypeColor
+                    ? { borderLeftColor: item.appointmentTypeColor, borderLeftWidth: 4 }
+                    : undefined}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {item.type === 'task' ? (
                         <CheckSquare className="h-4 w-4" />
+                      ) : item.type === 'appointment' ? (
+                        <span
+                          className="w-3 h-3 rounded-full flex-shrink-0 inline-block"
+                          style={{ backgroundColor: item.appointmentTypeColor || '#14b8a6' }}
+                        />
                       ) : (
                         <CalendarDays className="h-4 w-4" />
                       )}
                       <h4 className="font-medium text-white">{item.title}</h4>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={getItemColor(item)}>
-                        {item.type === 'task' ? 'Task' : item.subType}
+                      <Badge
+                        variant="outline"
+                        className={item.type === 'appointment'
+                          ? 'text-xs capitalize border-white/20 text-white/70'
+                          : getItemColor(item)}
+                        style={item.type === 'appointment' && item.appointmentTypeColor
+                          ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
+                          : undefined}
+                      >
+                        {item.type === 'task' ? 'Task' : item.subType.replace('_', ' ')}
                       </Badge>
                       {item.type === 'event' && (
                         <>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -436,9 +507,9 @@ const OptomyzeCalendar: React.FC = () => {
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-7 w-7 text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -451,7 +522,7 @@ const OptomyzeCalendar: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Description */}
                   {item.description && (
                     <div className="mt-2 flex items-start gap-2 text-sm text-gray-300">
@@ -459,7 +530,7 @@ const OptomyzeCalendar: React.FC = () => {
                       <p className="line-clamp-2">{item.description}</p>
                     </div>
                   )}
-                  
+
                   <div className="mt-3 space-y-2 text-sm text-gray-400">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
@@ -474,20 +545,30 @@ const OptomyzeCalendar: React.FC = () => {
                         <span>{item.attendee}</span>
                       </div>
                     )}
-                    {item.leadName && item.leadId && item.funnelId && (
+                    {item.leadName && item.leadId && (
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
                         <span>Lead: </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
-                          }}
-                          className="text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
-                        >
-                          {item.leadName}
-                          <ExternalLink className="h-3 w-3" />
-                        </button>
+                        {item.funnelId ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                            }}
+                            className="text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                          >
+                            {item.leadName}
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
+                        ) : (
+                          <span>{item.leadName}</span>
+                        )}
+                      </div>
+                    )}
+                    {item.timezone && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        <span>{item.timezone}</span>
                       </div>
                     )}
                     {item.location && (
@@ -502,7 +583,7 @@ const OptomyzeCalendar: React.FC = () => {
                           {item.priority} priority
                         </Badge>
                       )}
-                      {item.status && (
+                      {item.status && item.type !== 'appointment' && (
                         <Badge variant="outline" className={`text-xs capitalize border ${taskStatusColors[item.status] || ''}`}>
                           {item.status.replace('_', ' ')}
                         </Badge>
@@ -548,36 +629,63 @@ const OptomyzeCalendar: React.FC = () => {
                   setCurrentDate(item.date);
                   setSelectedDate(item.date);
                 }}
-                className={`p-4 rounded-lg border ${getItemColor(item)} hover:scale-[1.02] transition-transform cursor-pointer`}
+                className={`p-4 rounded-lg border hover:scale-[1.02] transition-transform cursor-pointer ${
+                  item.type === 'appointment' && item.appointmentTypeColor
+                    ? 'bg-white/5 border-white/10'
+                    : getItemColor(item)
+                }`}
+                style={item.type === 'appointment' && item.appointmentTypeColor
+                  ? { borderLeftColor: item.appointmentTypeColor, borderLeftWidth: 4 }
+                  : undefined}
               >
                 <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
                   {item.type === 'task' ? (
                     <CheckSquare className="h-3 w-3" />
+                  ) : item.type === 'appointment' ? (
+                    <span
+                      className="w-2 h-2 rounded-full inline-block"
+                      style={{ backgroundColor: item.appointmentTypeColor || '#14b8a6' }}
+                    />
                   ) : (
                     <CalendarDays className="h-3 w-3" />
                   )}
                   <span>{format(item.date, 'MMM d, HH:mm')}</span>
                 </div>
                 <h4 className="font-medium text-white text-sm">{item.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex flex-col gap-0.5 mt-1">
                   {item.attendee && (
                     <p className="text-xs text-gray-400">{item.attendee}</p>
                   )}
-                  {item.leadName && item.leadId && item.funnelId && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
-                      }}
-                      className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
-                    >
-                      {item.leadName}
-                      <ExternalLink className="h-3 w-3" />
-                    </button>
+                  {item.leadName && item.leadId && (
+                    item.funnelId ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                        }}
+                        className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                      >
+                        {item.leadName}
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                    ) : (
+                      <p className="text-xs text-gray-400">{item.leadName}</p>
+                    )
+                  )}
+                  {item.timezone && (
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <Globe className="h-3 w-3" />{item.timezone}
+                    </p>
                   )}
                 </div>
-                <Badge variant="outline" className="text-xs mt-2">
-                  {item.type === 'task' ? 'Task' : 'Event'}
+                <Badge
+                  variant="outline"
+                  className="text-xs mt-2"
+                  style={item.type === 'appointment' && item.appointmentTypeColor
+                    ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
+                    : undefined}
+                >
+                  {item.type === 'task' ? 'Task' : item.type === 'appointment' ? item.subType.replace('_', ' ') : 'Event'}
                 </Badge>
               </div>
             ))}

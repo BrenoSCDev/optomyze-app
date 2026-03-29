@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, XCircle, Mail, Users, BarChart3, Moon, FileStack } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, XCircle, Mail, Users, BarChart3, Moon, FileStack, CalendarDays } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -29,6 +29,9 @@ import StageEntryRulesSection from './funnels/StageEntryRulesSection';
 import StageActionsSection from './funnels/StageActionsSection';
 import FunnelManagersQueueSection from './funnels/FunnelManagersQueueSection';
 import LossHandlingSection from './funnels/LossHandlingSection';
+
+// Appointment Settings
+import AppointmentTypesSection from './appointments/AppointmentTypesSection';
 
 // Notification Settings
 import {
@@ -180,7 +183,7 @@ const CrmPanel = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">{t('settings.crm-panel.tabs.notifications')}</span>
@@ -196,6 +199,10 @@ const CrmPanel = () => {
           <TabsTrigger value="sales" className="gap-2">
             <DollarSign className="w-4 h-4" />
             <span className="hidden sm:inline">{t('settings.crm-panel.tabs.sales')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="appointments" className="gap-2">
+            <CalendarDays className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('settings.crm-panel.tabs.appointments')}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -648,6 +655,45 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
+            </Accordion>
+          </div>
+        </TabsContent>
+
+        {/* Appointments Tab */}
+        <TabsContent value="appointments" className="mt-0">
+          <div className="glass-card p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <CalendarDays className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {t('settings.appointments.types-title')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.appointments.types-description')}
+                </p>
+              </div>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              <AccordionItem value="appointment-types" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <CalendarDays className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.appointments.types-title')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 px-2 border-t">
+                    <AppointmentTypesSection />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
           </div>
         </TabsContent>

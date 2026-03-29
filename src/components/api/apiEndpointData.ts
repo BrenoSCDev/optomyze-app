@@ -12,6 +12,10 @@ import { getTeamsEndpoints } from './endpoints/teamsEndpoints';
 import { getLeadCompaniesEndpoints } from './endpoints/leadCompaniesEndpoints';
 import { getFunnelsEndpoints } from './endpoints/funnelsEndpoints';
 import { getStagesEndpoints } from './endpoints/stagesEndpoints';
+import { getAppointmentsEndpoints } from './endpoints/appointmentsEndpoints';
+import { getObservationsEndpoints } from './endpoints/observationsEndpoints';
+import { getTasksEndpoints } from './endpoints/tasksEndpoints';
+import { getLeadActionsEndpoints } from './endpoints/leadActionsEndpoints';
 export interface EndpointParam {
   name: string;
   type: string;
@@ -289,6 +293,10 @@ export const getEndpointCategories = (t: (key: string) => string): EndpointCateg
   getSalesEndpoints(t),
   getProductsEndpoints(t),
   getEventsEndpoints(t),
+  getAppointmentsEndpoints(t),
+  getObservationsEndpoints(t),
+  getTasksEndpoints(t),
+  getLeadActionsEndpoints(t),
   getUsersEndpoints(t),
   getTeamsEndpoints(t),
   getLeadCompaniesEndpoints(t),

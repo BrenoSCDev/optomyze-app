@@ -47,9 +47,29 @@ export interface CalendarEvent {
   updated_at: string;
 }
 
+export interface CalendarAppointment {
+  id: number;
+  company_id: number;
+  lead_id: number;
+  appointment_type_id: number | null;
+  user_id: number | null;
+  title: string;
+  scheduled_at: string;
+  end_at: string | null;
+  timezone: string;
+  notes: string | null;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  created_at: string;
+  updated_at: string;
+  appointment_type?: { id: number; name: string; color: string; duration_minutes: number } | null;
+  lead?: { id: number; first_name: string; last_name: string; funnel_id: number } | null;
+  user?: { id: number; name: string; email: string } | null;
+}
+
 export interface CalendarEventsResponse {
   tasks: CalendarTask[];
   events: CalendarEvent[];
+  appointments: CalendarAppointment[];
 }
 
 export interface CreateEventPayload {

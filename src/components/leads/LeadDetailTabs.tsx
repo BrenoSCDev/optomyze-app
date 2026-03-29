@@ -44,6 +44,7 @@ import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadWhatsAppChat, LeadWhatsAppMessage } from './LeadChatSection';
 import LeadCustomFieldsTab from './LeadCustomFieldsTab';
+import LeadAppointmentsTab from './LeadAppointmentsTab';
 
 interface AssignedUser {
   id: number;
@@ -95,6 +96,7 @@ interface Lead {
   products?: LeadProduct[];
   observations?: Observation[];
   whats_app_evo_chat?: LeadWhatsAppChat | null;
+  timezone?: string | null;
 }
 
 interface LeadDetailTabsProps {
@@ -195,9 +197,16 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger
+            value="appointments"
+            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+          >
+            <Calendar className="w-3.5 h-3.5 mr-1.5" />
+            <span>{t('lead-details.tabs.appointments')}</span>
+          </TabsTrigger>
           {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
-          {/* <TabsTrigger 
-            value="contracts" 
+          {/* <TabsTrigger
+            value="contracts"
             className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
             <FileSignature className="w-3.5 h-3.5 mr-1.5" />
@@ -260,6 +269,11 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             onObservationUpdated={onObservationUpdated}
             onObservationDeleted={onObservationDeleted}
           />
+        </TabsContent>
+
+        {/* Appointments Tab */}
+        <TabsContent value="appointments" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <LeadAppointmentsTab leadId={lead.id} leadTimezone={lead.timezone} />
         </TabsContent>
 
         {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
