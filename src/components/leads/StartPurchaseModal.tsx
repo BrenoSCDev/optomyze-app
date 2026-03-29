@@ -184,7 +184,7 @@ const StartPurchaseModal = ({
 
   // Add new discount
   const addDiscount = () => {
-    setDiscounts([...discounts, { id: generateId(), name: '', type: 'percentage', value: 0 }]);
+    setDiscounts([...discounts, { id: generateId(), name: '', type: pricingRulesRef.current.defaultDiscountType, value: 0 }]);
   };
 
   // Update discount

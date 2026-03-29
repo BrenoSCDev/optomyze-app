@@ -21,7 +21,6 @@ import PricingRulesSection from './products/PricingRulesSection';
 
 // Sales Settings
 import DealRulesSection from './sales/DealRulesSection';
-import NotificationsSection from './sales/NotificationsSection';
 
 // Funnel Settings
 import FunnelTemplatesSection from './funnels/FunnelTemplatesSection';
@@ -597,9 +596,9 @@ const CrmPanel = () => {
                   </p>
                 </div>
               </div>
-              {hasSalesChanges() && (
+              {(hasSalesChanges() || hasProductChanges()) && (
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={resetSalesSettings} disabled={saving}>
+                  <Button variant="outline" onClick={() => { resetSalesSettings(); resetProductSettings(); }} disabled={saving}>
                     {t('common.cancel')}
                   </Button>
                   <Button onClick={saveSalesSettings} disabled={saving}>
@@ -649,23 +648,6 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="notifications-sales" className="border rounded-lg px-4 bg-background/50">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Bell className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="font-semibold text-foreground">
-                      {t('settings.sales.notifications')}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="py-4 px-2 border-t">
-                    <NotificationsSection settings={settings.sales_settings} onUpdate={updateSalesSettings} />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
             </Accordion>
           </div>
         </TabsContent>

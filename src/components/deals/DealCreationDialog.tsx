@@ -257,7 +257,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const addCharge = () => setCharges([...charges, { id: generateId(), name: '', type: 'percentage', value: 0 }]);
   const updateCharge = (id: string, field: keyof ChargeItem, value: string | number) => setCharges(charges.map(c => c.id === id ? { ...c, [field]: value } : c));
   const removeCharge = (id: string) => setCharges(charges.filter(c => c.id !== id));
-  const addDiscount = () => setDiscounts([...discounts, { id: generateId(), name: '', type: 'percentage', value: 0 }]);
+  const addDiscount = () => setDiscounts([...discounts, { id: generateId(), name: '', type: pricingRulesRef.current.defaultDiscountType, value: 0 }]);
   const updateDiscount = (id: string, field: keyof ChargeItem, value: string | number) => setDiscounts(discounts.map(d => d.id === id ? { ...d, [field]: value } : d));
   const removeDiscount = (id: string) => setDiscounts(discounts.filter(d => d.id !== id));
 
