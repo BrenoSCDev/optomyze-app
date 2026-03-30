@@ -34,7 +34,12 @@ interface Props {
 }
 
 const toDatetimeLocal = (iso: string) => {
-  try { return format(parseISO(iso), "yyyy-MM-dd'T'HH:mm"); } catch { return ''; }
+  try {
+    // Normalize space-format ("2026-03-30 10:30:00") to ISO before parsing
+    return format(parseISO(iso.replace(' ', 'T')), "yyyy-MM-dd'T'HH:mm");
+  } catch {
+    return iso.replace(' ', 'T').substring(0, 16);
+  }
 };
 
 const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appointmentTypes, appointment, onSaved }: Props) => {
@@ -115,8 +120,8 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
         lead_id: leadId,
         appointment_type_id: typeId ? Number(typeId) : null,
         title: title.trim(),
-        scheduled_at: new Date(scheduledAt).toISOString(),
-        end_at: endAt ? new Date(endAt).toISOString() : undefined,
+        scheduled_at: scheduledAt,  // wall-clock time in the appointment's timezone, no UTC conversion
+        end_at: endAt || undefined,
         timezone,
         notes: notes.trim() || undefined,
         status,
