@@ -667,7 +667,7 @@ const DealsStagesDistributionChart = ({
 
 // ============= LEAD BREAKDOWN FUNNEL (Visual Funnel) =============
 
-const FUNNEL_COLORS = ['#7C3AED', '#6366F1', '#4F8FF5', '#3B82F6'];
+const FUNNEL_COLORS = ['#7C3AED', '#6366F1', '#4F8FF5', '#3B82F6', '#0EA5E9'];
 
 const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolean }) => {
   const { t } = useLanguage();
@@ -675,11 +675,13 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   if (!data?.data?.lead_statistics) return null;
 
   const stats = data.data.lead_statistics;
+  const dealStats = data.data.deal_statistics;
   const funnelSteps = [
-    { name: t('metrics.total-leads-summary'), value: stats.total_leads, color: FUNNEL_COLORS[0] },
-    { name: t('metrics.in-pipeline'), value: (stats.breakdown?.entry || 0) + (stats.breakdown?.normal || 0), color: FUNNEL_COLORS[1] },
-    { name: t('metrics.in-service'), value: stats.in_service, color: FUNNEL_COLORS[2] },
-    { name: t('metrics.converted'), value: stats.converted_leads, color: FUNNEL_COLORS[3] },
+    { name: t('metrics.total-leads-summary'),  value: stats.total_leads ?? 0,           color: FUNNEL_COLORS[0] },
+    { name: t('metrics.in-service'),            value: stats.in_service ?? 0,            color: FUNNEL_COLORS[1] },
+    { name: t('metrics.funnel.qualified'),      value: stats.qualified_leads ?? 0,       color: FUNNEL_COLORS[2] },
+    { name: t('metrics.total-deals-created'),   value: dealStats?.total_deals ?? 0,      color: FUNNEL_COLORS[3] },
+    { name: t('metrics.total-deals-closed'),    value: dealStats?.closed_deals ?? 0,     color: FUNNEL_COLORS[4] },
   ];
 
   const totalSteps = funnelSteps.length;
