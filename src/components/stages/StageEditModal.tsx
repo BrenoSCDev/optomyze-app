@@ -21,6 +21,8 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import api from '@/services/api';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getStageTypesForFunnel } from '@/lib/stageTypes';
 
 interface Stage {
   id: number;
@@ -29,6 +31,7 @@ interface Stage {
   description: string;
   order: number;
   type: string;
+  color: string;
   is_active: boolean;
   settings: {
     sla_hours: number;
@@ -41,27 +44,56 @@ interface Stage {
   deleted_at?: string;
 }
 
+const STAGE_COLORS = [
+  { value: '#FFFFFF', label: 'White' },
+  { value: '#EF4444', label: 'Red' },
+  { value: '#F97316', label: 'Orange' },
+  { value: '#EAB308', label: 'Yellow' },
+  { value: '#22C55E', label: 'Green' },
+  { value: '#06B6D4', label: 'Cyan' },
+  { value: '#3B82F6', label: 'Blue' },
+  { value: '#8B5CF6', label: 'Purple' },
+  { value: '#EC4899', label: 'Pink' },
+  { value: '#6B7280', label: 'Gray' },
+  // Second row - more diverse colors
+  { value: '#0F172A', label: 'Slate' },
+  { value: '#7C2D12', label: 'Brown' },
+  { value: '#065F46', label: 'Emerald' },
+  { value: '#0E7490', label: 'Teal' },
+  { value: '#1E3A8A', label: 'Indigo' },
+  { value: '#4C1D95', label: 'Violet' },
+  { value: '#831843', label: 'Rose' },
+  { value: '#FCD34D', label: 'Amber' },
+  { value: '#A3E635', label: 'Lime' },
+  { value: '#F472B6', label: 'Fuchsia' },
+];
+
 interface StageEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   stage: Stage | null;
   funnelId: string;
+  funnelType: 'sale' | 'deal';
   onUpdate: (updatedStage: Stage) => void;
 }
+
 
 const StageEditModal: React.FC<StageEditModalProps> = ({
   isOpen,
   onClose,
   stage,
   funnelId,
+  funnelType,
   onUpdate
 }) => {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     type: '',
+    color: '#FFFFFF',
     is_active: true
   });
   const [formErrors, setFormErrors] = useState({
@@ -70,16 +102,8 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
     type: ''
   });
 
-  // Stage type options
-  const stageTypes = [
-    { value: 'entry', label: 'Entry' },
-    { value: 'normal', label: 'Normal' },
-    { value: 'service', label: 'Service' },
-    { value: 'proposition', label: 'Proposition' },
-    { value: 'qualified', label: 'Qualified' },
-    { value: 'conversion', label: 'Conversion' },
-    { value: 'lost', label: 'Lost' }
-  ];
+  // Stage type options based on funnel type
+  const stageTypes = getStageTypesForFunnel(funnelType);
 
   // Pre-fill form with stage data when modal opens
   useEffect(() => {
@@ -88,6 +112,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: stage.name || '',
         description: stage.description || '',
         type: stage.type || '',
+        color: stage.color || '#FFFFFF',
         is_active: stage.is_active
       });
       setFormErrors({ name: '', description: '', type: '' });
@@ -101,6 +126,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: '',
         description: '',
         type: '',
+        color: '#FFFFFF',
         is_active: true
       });
       setFormErrors({ name: '', description: '', type: '' });
@@ -147,6 +173,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         type: formData.type,
+        color: formData.color,
         is_active: formData.is_active
       });
 
@@ -222,7 +249,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
 
           {/* Stage Description */}
           <div className="space-y-2">
-            <Label htmlFor="editStageDescription">Description</Label>
+            <Label htmlFor="editStageDescription">{t('settings.funnels.stage-description')}</Label>
             <Textarea
               id="editStageDescription"
               value={formData.description}
@@ -232,7 +259,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
                   setFormErrors(prev => ({ ...prev, description: '' }));
                 }
               }}
-              placeholder="Enter stage description (optional)"
+              placeholder={t('settings.funnels.stage-description-placeholder')}
               className={formErrors.description ? 'border-destructive' : ''}
               rows={3}
               maxLength={1000}
@@ -272,6 +299,28 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
             {formErrors.type && (
               <p className="text-sm text-destructive">{formErrors.type}</p>
             )}
+          </div>
+
+          {/* Stage Color */}
+          <div className="space-y-2">
+            <Label>Color</Label>
+            <div className="flex flex-wrap gap-2">
+              {STAGE_COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    formData.color === color.value 
+                      ? 'border-primary ring-2 ring-primary/30 scale-110' 
+                      : 'border-border hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.label}
+                  disabled={loading}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Is Active Toggle */}

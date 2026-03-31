@@ -1,10 +1,19 @@
 /**
  * KANBAN BOARD COMPONENT
  * 
- * Main Kanban board layout with drag and drop functionality using react-beautiful-dnd
+ * Main Kanban board layout with drag and drop functionality using @dnd-kit
+ * 
+ * ARCHITECTURE NOTES:
+ * - Uses useDroppable for columns (drop targets only)
+ * - Uses useDraggable for lead cards (draggable only, NOT sortable)
+ * - Collision detection strictly validates column targets
+ * - All IDs are string-based, never index-based
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { List, AlertTriangle } from 'lucide-react';
+import { TbLayoutKanbanFilled } from "react-icons/tb";
+import FunnelTableView from './FunnelTableView';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,31 +23,27 @@ import {
   Filter, 
   Tag,
   UserPlus,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown
+  Download,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
-  rectIntersection,
   useSensor,
   useSensors,
   PointerSensor,
   KeyboardSensor,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
   CollisionDetection,
-  getFirstCollision,
   pointerWithin,
+  rectIntersection,
+  getFirstCollision,
+  UniqueIdentifier,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
-  SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import LeadCard from './LeadCard';
 import {
@@ -55,12 +60,19 @@ import { TagCreationDialog } from './TagCreationDialog';
 import { LeadCreationDialog } from './LeadCreationDialog';
 import { LeadFilterDialog } from './LeadFilterDialog';
 import TagManagementModal from './TagManagementModal';
+import FunnelSettingsDropdown from './FunnelSettingsDropdown';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
+import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
+import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
+import LeadPreviewModal from './LeadPreviewModal';
+import LostReasonModal from './LostReasonModal';
 
 interface KanbanBoardProps {
-  funnel: any; // API funnel object
+  funnel: any;
   availableTags: any[];
   onCreateLead: () => void;
   onCreateTag: () => void;
@@ -69,20 +81,45 @@ interface KanbanBoardProps {
   onLeadCreated?: () => void;
   onTagCreated?: (newTag: any) => void;
   onTagsUpdated?: (leadId: string, updatedLead: any) => void;
+  onRefresh?: () => void;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated, onRefresh }: KanbanBoardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [leadDialogOpen, setLeadDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<any>(null);
+  const [lostReasonLeadId, setLostReasonLeadId] = useState<string | null>(null);
+  const [entryErrors, setEntryErrors] = useState<{ stageName: string; errors: Array<{ field: string; message: string }> } | null>(null);
+  
+  // View mode state (persisted in localStorage)
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
+    return (localStorage.getItem('funnel_view_mode') as 'kanban' | 'table') || 'kanban';
+  });
+  
+  const handleViewModeChange = useCallback((mode: 'kanban' | 'table') => {
+    setViewMode(mode);
+    localStorage.setItem('funnel_view_mode', mode);
+  }, []);
+  const [overId, setOverId] = useState<string | null>(null);
+  
+  // Funnel display settings
+  const { settings: displaySettings, setShowEstimatedValues, setShowAssignedUser } = useFunnelDisplaySettings();
   
   // Filter state
   const [activeFilters, setActiveFilters] = useState<any>({});
+  
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Tag modal state
   const [tagModalState, setTagModalState] = useState({
@@ -90,156 +127,140 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     selectedLead: null
   });
 
-  // DnD sensors with improved detection
+  // Lead preview modal state
+  const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Handle export to Excel
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const exportData = prepareFunnelExportData(funnel);
+      exportFunnelToExcel(exportData);
+      toast.success(`Exported ${exportData.leads.length} leads to Excel`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export leads. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [funnel]);
+
+  // DnD sensors with optimized settings for reliability
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        // Require 10px movement to start drag - prevents accidental drags
+        distance: 10,
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  // Custom collision detection for better column detection across screen sizes
-  const customCollisionDetection: CollisionDetection = (args) => {
-    // First try pointer-within detection for more precise column detection
-    const pointerCollisions = pointerWithin(args);
-    
-    if (pointerCollisions.length > 0) {
-      // Filter to only column IDs (exclude lead IDs)
-      const columnCollisions = pointerCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Fallback to rectangle intersection for edge cases
-    const rectCollisions = rectIntersection(args);
-    
-    if (rectCollisions.length > 0) {
-      // Filter to only column IDs
-      const columnCollisions = rectCollisions.filter(collision => 
-        columns.some(col => col.id === collision.id)
-      );
-      
-      if (columnCollisions.length > 0) {
-        return columnCollisions;
-      }
-    }
-    
-    // Final fallback to closest center, but still filter for columns
-    const centerCollisions = closestCenter(args);
-    return centerCollisions.filter(collision => 
-      columns.some(col => col.id === collision.id)
-    );
-  };
   
   // Transform API data to kanban format
-  const kanbanColumns = funnel.stages
-    ?.sort((a: any, b: any) => a.order - b.order)
-    .map((stage: any) => ({
-      id: stage.id.toString(),
-      title: stage.name,
-      description: stage.description,
-      type: stage.type,
-      leads: stage.active_leads.map((lead: any) => ({
-        id: lead.id.toString(),
-        name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
-        email: lead.email,
-        phone: lead.phone,
-        company: lead.custom_fields?.industry || 'N/A',
-        title: lead.custom_fields?.title || 'Contact',
-        score: parseFloat(lead.ai_score || '0'),
-        value: parseFloat(lead.estimated_value || '0'),
-        source: lead.source_platform || 'Direct',
-        tags: Array.isArray(lead.tags) ? lead.tags : [],
-        lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
-        priority: lead.priority || 'medium',
-        stage: stage.id.toString(),
-        avatar: lead.platform_data?.profile_picture,
-        notes: lead.notes,
-        createdAt: lead.created_at,
-        assignedTo: lead.assigned_to,
-        currency: lead.currency || 'USD',
-        initialMessage: lead.initial_message,
-        contactMethods: lead.contact_methods || [],
-        preferredContact: lead.preferred_contact_method || 'email'
-      }))
-    })) || [];
+  const kanbanColumns = useMemo(() => {
+    return funnel.stages
+      ?.sort((a: any, b: any) => a.order - b.order)
+      .map((stage: any) => ({
+        id: stage.id.toString(),
+        title: stage.name,
+        description: stage.description,
+        type: stage.type,
+        stageColor: stage.color || '#FFFFFF',
+        valueEstimated: stage.value_estimated || 0,
+        currency: stage.currency || funnel.currency || companyCurrency,
+        leads: stage.active_leads.map((lead: any) => ({
+          id: lead.id.toString(),
+          name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
+          email: lead.email,
+          phone: lead.phone,
+          company: lead.custom_fields?.industry || 'N/A',
+          title: lead.custom_fields?.title || 'Contact',
+          score: parseFloat(lead.ai_score || '0'),
+          value: parseFloat(lead.value_estimated || lead.estimated_value || '0'),
+          source: lead.source_platform || 'Direct',
+          tags: Array.isArray(lead.tags) ? lead.tags : [],
+          lastActivity: lead.updated_at ? timeAgo(lead.updated_at) : 'No activity',
+          priority: lead.priority || 'medium',
+          stage: stage.id.toString(),
+          avatar: lead.platform_data?.profile_picture,
+          notes: lead.notes,
+          createdAt: lead.created_at,
+          assignedTo: lead.assigned_to,
+          assigned_user: lead.assigned_user,
+          currency: lead.currency || companyCurrency,
+          initialMessage: lead.initial_message,
+          contactMethods: lead.contact_methods || [],
+          preferredContact: lead.preferred_contact_method || 'email'
+        }))
+      })) || [];
+  }, [funnel]);
 
   const [columns, setColumns] = useState(kanbanColumns);
   const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
+  
+  // Keep a ref to column IDs for collision detection (avoids stale closure)
+  const columnIdsRef = useRef<Set<string>>(new Set());
+  
+  // Update columnIdsRef whenever columns change
+  useEffect(() => {
+    columnIdsRef.current = new Set(columns.map(col => col.id));
+  }, [columns]);
+
+  // Sync columns when funnel data changes
+  useEffect(() => {
+    setColumns(kanbanColumns);
+  }, [kanbanColumns]);
 
   // Filter leads based on active filters
-  const filterLeads = (leads: any[], filters: any) => {
+  const filterLeads = useCallback((leads: any[], filters: any) => {
     return leads.filter(lead => {
-      
-      // Name filters - firstName and lastName are combined in the name field
       if (filters.firstName && !lead.name.toLowerCase().includes(filters.firstName.toLowerCase())) {
         return false;
       }
       if (filters.lastName && !lead.name.toLowerCase().includes(filters.lastName.toLowerCase())) {
         return false;
       }
-      
-      // Email filter
-      if (filters.email && !lead.email.toLowerCase().includes(filters.email.toLowerCase())) {
+      if (filters.email && !lead.email?.toLowerCase().includes(filters.email.toLowerCase())) {
         return false;
       }
-      
-      // Phone filter
-      if (filters.phone && !lead.phone.includes(filters.phone.replace(/\D/g, ''))) {
+      if (filters.phone && !lead.phone?.includes(filters.phone.replace(/\D/g, ''))) {
         return false;
       }
-      
-      // DDI filter
-      if (filters.ddi && !lead.phone.startsWith(filters.ddi)) {
+      if (filters.ddi && !lead.phone?.startsWith(filters.ddi)) {
         return false;
       }
-      
-      // Source platform filter
       if (filters.sourcePlatform && lead.source !== filters.sourcePlatform) {
         return false;
       }
-      
-      // Stage filter
       if (filters.stageId && lead.stage !== filters.stageId) {
         return false;
       }
-      
-      // Score range filter
       if (filters.scoreRange) {
         const [min, max] = filters.scoreRange;
         if (lead.score < min || lead.score > max) {
           return false;
         }
       }
-      
-      // Value range filter
       if (filters.valueRange) {
         const [min, max] = filters.valueRange;
         if (lead.value < min || lead.value > max) {
           return false;
         }
       }
-      
-      // Tags filter
       if (filters.tags && filters.tags.length > 0) {
-        const leadTags = lead.tags.map(tag => typeof tag === 'string' ? tag : tag.name);
-        const hasMatchingTag = filters.tags.some(filterTag => leadTags.includes(filterTag));
+        const leadTags = lead.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name);
+        const hasMatchingTag = filters.tags.some((filterTag: string) => leadTags.includes(filterTag));
         if (!hasMatchingTag) {
           return false;
         }
       }
-      
       return true;
     });
-  };
+  }, []);
 
   // Apply filters to columns
   useEffect(() => {
@@ -252,14 +273,12 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       }));
       setFilteredColumns(filtered);
     }
-  }, [columns, activeFilters]);
+  }, [columns, activeFilters, filterLeads]);
 
-  // Handle filter apply
   const handleFilterApply = (filters: any) => {
     setActiveFilters(filters);
   };
 
-  // Handle filter clear
   const handleFilterClear = () => {
     setActiveFilters({});
   };
@@ -269,40 +288,116 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     setLeadDialogOpen(true);
   }, []);
 
-  // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
+  /**
+   * COLLISION DETECTION STRATEGY
+   * 
+   * This is the critical function that determines which column a dragged card is over.
+   * 
+   * Strategy:
+   * 1. Use pointerWithin for precise detection when pointer is clearly inside a column
+   * 2. Fall back to rectIntersection for edge cases
+   * 3. NEVER use closestCenter - it can pick wrong targets across screen sizes
+   * 4. ONLY return collisions with valid column IDs - filter out lead card IDs
+   * 5. If no valid column detected, return empty array (abort drop)
+   */
+  const customCollisionDetection: CollisionDetection = useCallback((args) => {
+    const columnIds = columnIdsRef.current;
     
-    // Find the dragged lead
+    // Helper to filter collisions to only valid columns
+    const filterToColumns = (collisions: ReturnType<CollisionDetection>) => {
+      return collisions.filter(collision => columnIds.has(collision.id as string));
+    };
+    
+    // Strategy 1: pointerWithin - most accurate when pointer is inside a column
+    const pointerCollisions = pointerWithin(args);
+    const pointerColumnCollisions = filterToColumns(pointerCollisions);
+    
+    if (pointerColumnCollisions.length > 0) {
+      // Return the first (highest priority) column collision
+      return [pointerColumnCollisions[0]];
+    }
+    
+    // Strategy 2: rectIntersection - for when dragging near edges
+    const rectCollisions = rectIntersection(args);
+    const rectColumnCollisions = filterToColumns(rectCollisions);
+    
+    if (rectColumnCollisions.length > 0) {
+      // Sort by intersection ratio and return the best match
+      return [rectColumnCollisions[0]];
+    }
+    
+    // No valid column detected - return empty to prevent incorrect drops
+    return [];
+  }, []);
+
+  // Handle drag start
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const { active } = event;
+    const dragId = active.id as string;
+    
+    setActiveId(dragId);
+    
+    // Find the dragged lead from current columns state
     const lead = columns
       .flatMap(col => col.leads)
-      .find(lead => lead.id === active.id);
-    setDraggedLead(lead);
-  };
+      .find(lead => lead.id === dragId);
+    
+    if (lead) {
+      setDraggedLead(lead);
+    }
+  }, [columns]);
 
-  // Handle drag end
-  const handleDragEnd = async (event: DragEndEvent) => {
+  // Handle drag over - track which column we're hovering
+  const handleDragOver = useCallback((event: any) => {
+    const { over } = event;
+    
+    if (over && columnIdsRef.current.has(over.id as string)) {
+      setOverId(over.id as string);
+    } else {
+      setOverId(null);
+    }
+  }, []);
+
+  // Handle drag end - the main logic for moving leads between stages
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
     
+    // Reset drag state immediately
+    setActiveId(null);
+    setDraggedLead(null);
+    setOverId(null);
+    
+    // VALIDATION 1: Check we have both active and over
     if (!over || !active.id) {
-      setActiveId(null);
-      setDraggedLead(null);
+      console.log('[DnD] No valid drop target');
       return;
     }
 
     const leadId = active.id as string;
-    const newStageId = over.id as string;
+    const targetId = over.id as string;
+    
+    // VALIDATION 2: Verify target is a valid column ID (not a lead ID)
+    const isValidColumn = columns.some(col => col.id === targetId);
+    if (!isValidColumn) {
+      console.warn('[DnD] Drop target is not a valid column:', targetId);
+      return;
+    }
+    
+    const newStageId = targetId;
 
-    // Find current stage of the lead
+    // VALIDATION 3: Find current stage of the lead
     const currentStage = columns.find(col => 
       col.leads.some(lead => lead.id === leadId)
     );
 
-    // Early return if no current stage found or dropping in same column
-    if (!currentStage || currentStage.id === newStageId) {
-      setActiveId(null);
-      setDraggedLead(null);
+    if (!currentStage) {
+      console.warn('[DnD] Could not find current stage for lead:', leadId);
+      return;
+    }
+
+    // VALIDATION 4: Don't process if dropping in same column
+    if (currentStage.id === newStageId) {
+      console.log('[DnD] Dropped in same column, no action needed');
       return;
     }
 
@@ -310,52 +405,43 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     const leadToMove = currentStage.leads.find(lead => lead.id === leadId);
 
     if (!leadToMove) {
-      setActiveId(null);
-      setDraggedLead(null);
+      console.warn('[DnD] Could not find lead to move:', leadId);
       return;
     }
 
-    // Optimistic update - add to top of target column
-    setColumns(prevColumns => {
-      const newColumns = prevColumns.map(col => {
-        if (col.id === oldStageId) {
-          return {
-            ...col,
-            leads: col.leads.filter(lead => lead.id !== leadId)
-          };
-        }
-        if (col.id === newStageId) {
-          return {
-            ...col,
-            leads: [{ ...leadToMove, stage: newStageId }, ...col.leads]
-          };
-        }
-        return col;
-      });
-      return newColumns;
-    });
+    // Get the lead value for updating stage estimated values
+    const leadValue = leadToMove.value || 0;
+    const targetColumn = columns.find(col => col.id === newStageId);
+    const targetStageName = targetColumn?.title || 'this stage';
+
+    console.log('[DnD] Moving lead', { leadId, from: oldStageId, to: newStageId, value: leadValue });
 
     try {
-      // Make API call
+      // Call API first — NO optimistic update
       const response = await leadService.moveLeadToStage(leadId, newStageId);
       
-      // Update with API response data
+      // Success — now update columns
       setColumns(prevColumns => {
         return prevColumns.map(col => {
-          if (col.id === newStageId) {
+          if (col.id === oldStageId) {
             return {
               ...col,
-              leads: col.leads.map(lead => 
-                lead.id === leadId 
-                  ? {
-                      ...lead,
-                      ...response.data,
-                      id: response.data.id.toString(),
-                      name: `${response.data.first_name} ${response.data.last_name || ''}`,
-                      stage: response.data.stage_id.toString()
-                    }
-                  : lead
-              )
+              leads: col.leads.filter(lead => lead.id !== leadId),
+              valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
+            };
+          }
+          if (col.id === newStageId) {
+            const updatedLead = {
+              ...leadToMove,
+              ...response.data,
+              id: response.data.id.toString(),
+              name: `${response.data.first_name} ${response.data.last_name || ''}`,
+              stage: response.data.stage_id.toString()
+            };
+            return {
+              ...col,
+              leads: [updatedLead, ...col.leads],
+              valueEstimated: (col.valueEstimated || 0) + leadValue
             };
           }
           return col;
@@ -363,48 +449,38 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       });
 
       toast.success('Lead moved successfully');
+
+      // Check if we need to prompt for lost reason
+      if (response.prompt_lost_reason) {
+        setLostReasonLeadId(leadId);
+      }
       
       // Notify parent component
       if (onUpdateLeadStage) {
         onUpdateLeadStage(leadId, newStageId, oldStageId);
       }
-    } catch (error) {
-      console.error('Error moving lead:', error);
+    } catch (error: any) {
+      console.error('[DnD] Error moving lead:', error);
       
-      // Revert optimistic update - restore to original position
-      setColumns(prevColumns => {
-        const newColumns = prevColumns.map(col => {
-          if (col.id === newStageId) {
-            return {
-              ...col,
-              leads: col.leads.filter(lead => lead.id !== leadId)
-            };
-          }
-          if (col.id === oldStageId) {
-            // Find original position or add to end if not found
-            const originalIndex = col.leads.findIndex(lead => lead.id === leadId);
-            const newLeads = [...col.leads];
-            if (originalIndex >= 0) {
-              newLeads.splice(originalIndex, 0, leadToMove);
-            } else {
-              newLeads.push(leadToMove);
-            }
-            return {
-              ...col,
-              leads: newLeads
-            };
-          }
-          return col;
+      // Check for 422 entry requirement errors
+      const responseData = error?.response?.data;
+      if (error?.response?.status === 422 && responseData?.entry_requirement_errors?.length > 0) {
+        setEntryErrors({
+          stageName: targetStageName,
+          errors: responseData.entry_requirement_errors,
         });
-        return newColumns;
-      });
-
-      toast.error('Failed to move lead. Please try again.');
+      } else {
+        toast.error('Failed to move lead. Please try again.');
+      }
     }
+  }, [columns, onUpdateLeadStage]);
 
+  // Handle drag cancel - reset state
+  const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setDraggedLead(null);
-  };
+    setOverId(null);
+  }, []);
 
   // Handle tag icon click
   const handleTagClick = (lead: any) => {
@@ -422,14 +498,14 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     });
   };
 
-  // Handle lead click to navigate to detail page
+  // Handle lead click to open preview modal
   const handleLeadClick = (leadId: string) => {
-    navigate(`/leads/${funnel.id}/lead/${leadId}`);
+    setPreviewLeadId(leadId);
+    setPreviewOpen(true);
   };
 
   // Handle tags updated with API response data
   const handleTagsUpdated = (leadId: string, updatedLead: any) => {
-    // Transform the API lead data to match our UI format
     const transformedLead = {
       id: updatedLead.id.toString(),
       name: `${updatedLead.first_name} ${updatedLead.last_name}`,
@@ -448,13 +524,13 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       notes: updatedLead.notes,
       createdAt: updatedLead.created_at,
       assignedTo: updatedLead.assigned_to,
-      currency: updatedLead.currency || 'USD',
+      assigned_user: updatedLead.assigned_user,
+      currency: updatedLead.currency || companyCurrency,
       initialMessage: updatedLead.initial_message,
       contactMethods: updatedLead.contact_methods || [],
       preferredContact: updatedLead.preferred_contact_method || 'email'
     };
 
-    // Update the specific lead in the columns state
     setColumns(prevColumns => {
       return prevColumns.map(column => ({
         ...column,
@@ -464,15 +540,10 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       }));
     });
 
-    // Also notify parent component if callback is provided (but don't refetch)
     if (onTagsUpdated) {
       onTagsUpdated(leadId, updatedLead);
     }
   };
-
-  // Calculate trend (mock data)
-  const trendPercentage = Math.floor(Math.random() * 20) + 5;
-  const isPositiveTrend = Math.random() > 0.3;
 
   return (
     <div className="space-y-6">
@@ -499,51 +570,118 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           
           {/* Title and Stats */}
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-foreground">{funnel.name}</h1>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="secondary"
-                className="bg-primary/20 text-primary px-3 py-1"
-              >
-                {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} total leads
-              </Badge>
-              <div className={`flex items-center gap-1 text-sm ${
-                isPositiveTrend ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {isPositiveTrend ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-                <span>{trendPercentage}%</span>
-              </div>
-            </div>
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
+            <Badge
+              variant="secondary"
+              className="bg-primary/20 text-primary px-3 py-1"
+            >
+              {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} {t('funnel.page.total-leads')}
+            </Badge>
           </div>
+          
+          {/* Funnel Estimated Value */}
+          {displaySettings.showEstimatedValues && funnel.value_estimated > 0 && (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-muted-foreground">{t('funnel.page.estimated-funnel-value')}</span>
+              <Badge className="px-3 text-sm font-semibold">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || companyCurrency }).format(funnel.value_estimated)}
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {/* View Switcher */}
+          <div className="flex items-center rounded-md border border-white/20 overflow-hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => handleViewModeChange('kanban')}
+              title={t('funnel.page.view-kanban') || 'Kanban'}
+            >
+              <TbLayoutKanbanFilled className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-none h-9 px-2.5 border-l border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => handleViewModeChange('table')}
+              title={t('funnel.page.view-table') || 'Table'}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Refresh Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="glass-card border-white/20 hover:bg-white/10"
+            onClick={async () => {
+              if (onRefresh) {
+                setIsRefreshing(true);
+                try {
+                  await onRefresh();
+                } finally {
+                  setIsRefreshing(false);
+                }
+              }
+            }}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{t('common.refresh')}</span>
+          </Button>
+
+          {/* Settings Dropdown */}
+          <FunnelSettingsDropdown
+            showEstimatedValues={displaySettings.showEstimatedValues}
+            showAssignedUser={displaySettings.showAssignedUser}
+            onShowEstimatedValuesChange={setShowEstimatedValues}
+            onShowAssignedUserChange={setShowAssignedUser}
+          />
+          
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="glass-card border-white/20 hover:bg-white/10"
+            onClick={handleExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 sm:mr-1 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 sm:mr-1" />
+            )}
+            <span className="hidden sm:inline">{isExporting ? t('funnel.page.exporting') : t('funnel.page.export')}</span>
+          </Button>
+          
           {/* Create Tag Button - Hidden for Agent role */}
           {user?.role?.toLowerCase() !== 'agent' && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setTagDialogOpen(true)}
               className="glass-card border-accent/30 hover:bg-accent/10"
             >
-              <Tag className="h-4 w-4 mr-2" />
-              Create Tag
+              <Tag className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">{t('funnel.page.create-tag')}</span>
             </Button>
           )}
           
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setFilterDialogOpen(true)}
             className={`glass-card border-white/20 hover:bg-white/10 ${
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
+            <Filter className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t('funnel.page.filters')}</span>
             {Object.keys(activeFilters).length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
                 {Object.keys(activeFilters).length}
@@ -552,97 +690,94 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           </Button>
           
           <Button
+            size="sm"
             onClick={() => {
               setSelectedStageId('');
               setLeadDialogOpen(true);
             }}
             className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Create Lead
+            <UserPlus className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">{t('funnel.page.create-lead')}</span>
           </Button>
         </div>
       </div>
 
-      {/* Kanban Board */}
-      <style>
-      {`
-        .kanban-board {
-          max-width: 640px; /* Small screens (default) */
-          overflow-x: auto;
-        }
+      {/* View Content */}
+      {viewMode === 'kanban' ? (
+        <>
+          <style>
+          {`
+            .kanban-board { max-width: 640px; overflow-x: auto; }
+            @media (min-width: 768px) { .kanban-board { max-width: 768px; } }
+            @media (min-width: 1024px) { .kanban-board { max-width: 1024px; } }
+            @media (min-width: 1280px) { .kanban-board { max-width: 1200px; } }
+            @media (min-width: 1536px) { .kanban-board { max-width: 1600px; } }
+          `}
+          </style>
 
-        @media (min-width: 768px) { /* Mid screens */
-          .kanban-board {
-            max-width: 768px;
-          }
-        }
-
-        @media (min-width: 1024px) { /* Normal laptop */
-          .kanban-board {
-            max-width: 1024px;
-          }
-        }
-
-        @media (min-width: 1280px) { /* Wide */
-          .kanban-board {
-            max-width: 1200px;
-          }
-        }
-
-        @media (min-width: 1536px) { /* Ultra Wide */
-          .kanban-board {
-            max-width: 1600px;
-          }
-        }
-      `}
-      </style>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={customCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        autoScroll={false}
-      >
-        <div
-          className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board"
-        >
-          {filteredColumns.map((column, index) => (
-            <KanbanColumn
-              key={column.id}
-              column={column}
-              index={index}
-              onAddLead={handleAddLead}
-              onTagClick={handleTagClick}
-              onLeadClick={handleLeadClick}
-              activeId={activeId}
-            />
-          ))}
-        </div>
-        
-        <DragOverlay 
-          dropAnimation={{
-            duration: 200,
-            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-          }}
-        >
-          {activeId && draggedLead ? (
-            <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
-              {/* Enhanced shadow and glow effect */}
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
-              <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
-                <LeadCard
-                  lead={draggedLead}
-                  isDragging={false}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={customCollisionDetection}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board">
+              {filteredColumns.map((column, index) => (
+                <KanbanColumn
+                  key={column.id}
+                  column={column}
+                  index={index}
+                  onAddLead={handleAddLead}
                   onTagClick={handleTagClick}
                   onLeadClick={handleLeadClick}
+                  activeId={activeId}
+                  overId={overId}
+                  stageValueEstimated={(column as any).valueEstimated}
+                  stageCurrency={(column as any).currency}
+                  showEstimatedValues={displaySettings.showEstimatedValues}
+                  showAssignedUser={displaySettings.showAssignedUser}
                 />
-              </div>
+              ))}
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+            
+            <DragOverlay 
+              dropAnimation={{
+                duration: 200,
+                easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+              }}
+            >
+              {activeId && draggedLead ? (
+                <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
+                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
+                  <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
+                    <LeadCard
+                      lead={draggedLead}
+                      isDragging={false}
+                      onTagClick={handleTagClick}
+                      onLeadClick={handleLeadClick}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </>
+      ) : (
+        <FunnelTableView
+          columns={filteredColumns}
+          funnel={funnel}
+          onAddLead={handleAddLead}
+          onTagClick={handleTagClick}
+          onLeadClick={handleLeadClick}
+          onUpdateLeadStage={onUpdateLeadStage}
+          showEstimatedValues={displaySettings.showEstimatedValues}
+          showAssignedUser={displaySettings.showAssignedUser}
+          setColumns={setColumns}
+        />
+      )}
 
 
       {/* Tag Creation Dialog */}
@@ -687,6 +822,50 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onFilterApply={handleFilterApply}
         onFilterClear={handleFilterClear}
       />
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={previewOpen}
+        onClose={() => { setPreviewOpen(false); setPreviewLeadId(null); }}
+        leadId={previewLeadId}
+        onLeadDeleted={onRefresh}
+      />
+      {/* Lost Reason Modal */}
+      <LostReasonModal
+        isOpen={!!lostReasonLeadId}
+        onClose={() => setLostReasonLeadId(null)}
+        leadId={lostReasonLeadId || ''}
+      />
+
+      {/* Entry Requirement Errors Modal */}
+      {entryErrors && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEntryErrors(null)} />
+          <div className="relative glass-card p-6 max-w-md w-full mx-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/20">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                {t('leads.entry-requirements.title').replace('{stage}', entryErrors.stageName)}
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {entryErrors.errors.map((err, i) => (
+                <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-sm text-foreground">{err.message}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setEntryErrors(null)} variant="outline">
+                {t('common.ok') || 'OK'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

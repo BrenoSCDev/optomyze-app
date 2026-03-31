@@ -20,6 +20,7 @@ import { DollarSign, Eye, MousePointer, Target, TrendingUp, Users, Smartphone, M
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import api from '@/services/api';
+import { useCurrency } from '@/hooks/useCurrency';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -53,17 +54,24 @@ interface MetaAdsResponse {
   };
 }
 
-const MetaAds = () => {
+interface MetaAdsProps {
+  demoMode?: boolean;
+  demoData?: MetaAdsCampaignData[];
+}
+
+const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
   const { t } = useLanguage();
+  const { symbol: cs } = useCurrency();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [metaData, setMetaData] = useState<MetaAdsCampaignData[]>([]);
+  const [loading, setLoading] = useState(!demoMode);
+  const [metaData, setMetaData] = useState<MetaAdsCampaignData[]>(demoMode && demoData ? demoData : []);
   const [notConfigured, setNotConfigured] = useState(false);
   
   useEffect(() => {
+    if (demoMode) return;
     fetchMetaData();
-  }, []);
+  }, [demoMode]);
 
   const fetchMetaData = async () => {
     try {
@@ -144,7 +152,7 @@ const MetaAds = () => {
       
       return acc;
     }, {} as Record<string, any>)
-  ).sort((a, b) => b.spend - a.spend).slice(0, 10);
+  ).map((c: any) => ({ ...c, spend: parseFloat(c.spend.toFixed(2)) })).sort((a: any, b: any) => b.spend - a.spend).slice(0, 10);
 
   // Group data by date for trend analysis
   const dailyTrend = Object.values(
@@ -159,7 +167,7 @@ const MetaAds = () => {
           conversions: 0,
         };
       }
-      acc[date].spend += parseFloat(item.spend || '0');
+      acc[date].spend = parseFloat((acc[date].spend + parseFloat(item.spend || '0')).toFixed(2));
       acc[date].clicks += parseInt(item.clicks || '0');
       acc[date].impressions += parseInt(item.impressions || '0');
       
@@ -193,7 +201,7 @@ const MetaAds = () => {
   const kpiData = [
     { 
       title: t('meta.total-spend'), 
-      value: `$${aggregatedMetrics.totalSpend.toFixed(2)}`, 
+      value: `${cs}${aggregatedMetrics.totalSpend.toFixed(2)}`, 
       trend: { value: `${metaData.length} ${t('common.days')}`, isPositive: true }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
@@ -220,7 +228,7 @@ const MetaAds = () => {
   const secondaryKpis = [
     { 
       title: t('meta.cpc'), 
-      value: `$${avgCPC}`, 
+      value: `${cs}${avgCPC}`, 
       trend: { value: 'Avg per click', isPositive: parseFloat(avgCPC) < 2 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
@@ -232,13 +240,13 @@ const MetaAds = () => {
     },
     { 
       title: t('meta.cpa'), 
-      value: `$${avgCPA}`, 
+      value: `${cs}${avgCPA}`, 
       trend: { value: 'Cost per action', isPositive: parseFloat(avgCPA) < 50 }, 
       icon: <DollarSign className="h-5 w-5 text-primary" /> 
     },
     { 
       title: 'CPM', 
-      value: `$${avgCPM}`, 
+      value: `${cs}${avgCPM}`, 
       trend: { value: 'Per 1k impressions', isPositive: parseFloat(avgCPM) < 50 }, 
       icon: <TrendingUp className="h-5 w-5 text-primary" /> 
     },
@@ -279,7 +287,7 @@ const MetaAds = () => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <FaMeta size={32}/>
-            <h1 className="text-3xl font-bold text-white bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-foreground">
               {t('dashboard.title.meta')}
             </h1>
           </div>
@@ -323,9 +331,10 @@ const MetaAds = () => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
-              <Bar dataKey="spend" fill="#8B5CF6" name="Spend ($)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="spend" fill="#8B5CF6" name={`Spend (${cs})`} radius={[0, 4, 4, 0]} />
               <Bar dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[0, 4, 4, 0]} />
             </ComposedChart>
           </ResponsiveContainer>
@@ -347,6 +356,7 @@ const MetaAds = () => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Bar dataKey="clicks" fill="#10B981" name="Clicks" radius={[4, 4, 0, 0]} />
@@ -374,6 +384,7 @@ const MetaAds = () => {
               <Tooltip 
                 contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
                 labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
               />
               <Legend />
               <Line
@@ -383,7 +394,7 @@ const MetaAds = () => {
                 stroke="#8B5CF6"
                 strokeWidth={2}
                 dot={{ fill: '#8B5CF6', r: 3 }}
-                name="Spend ($)"
+                name={`Spend (${cs})`}
               />
               <Bar yAxisId="right" dataKey="conversions" fill="#06B6D4" name="Conversions" radius={[4, 4, 0, 0]} />
             </ComposedChart>
@@ -440,10 +451,11 @@ const MetaAds = () => {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="date" stroke="#9CA3AF" fontSize={10} angle={-45} textAnchor="end" height={80} />
             <YAxis stroke="#9CA3AF" />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-              labelStyle={{ color: '#fff' }}
-            />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                labelStyle={{ color: '#fff' }}
+                formatter={(value: number) => typeof value === 'number' ? value.toFixed(2) : value}
+              />
             <Legend />
             <Line type="monotone" dataKey="clicks" stroke="#10B981" strokeWidth={2} name="Clicks" />
             <Line type="monotone" dataKey="impressions" stroke="#F59E0B" strokeWidth={2} name="Impressions" />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Filter, RotateCcw } from 'lucide-react';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { motion, AnimatePresence } from 'framer-motion';
 import InputMask from 'react-input-mask';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -386,22 +387,18 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
                       Estimated Value Range ($)
                     </label>
                     <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        min="0"
+                      <CurrencyInput
                         value={filters.valueRange?.[0] || 0}
-                        onChange={(e) => handleRangeChange('valueRange', 0, e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                        placeholder="Min"
+                        onValueChange={(v) => setFilters(prev => { const r = [...(prev.valueRange || [0, 10000])]; r[0] = v; return { ...prev, valueRange: r as [number, number] }; })}
+                        placeholder="$0.00"
+                        className="w-full bg-white/5 border-white/10 text-white"
                       />
                       <span className="text-white/50">to</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={filters.valueRange?.[1] || 10000}
-                        onChange={(e) => handleRangeChange('valueRange', 1, e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                        placeholder="Max"
+                      <CurrencyInput
+                        value={filters.valueRange?.[1] || 0}
+                        onValueChange={(v) => setFilters(prev => { const r = [...(prev.valueRange || [0, 10000])]; r[1] = v; return { ...prev, valueRange: r as [number, number] }; })}
+                        placeholder="$0.00"
+                        className="w-full bg-white/5 border-white/10 text-white"
                       />
                     </div>
                   </div>

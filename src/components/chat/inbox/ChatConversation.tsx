@@ -1,0 +1,772 @@
+/**
+ * CHAT CONVERSATION COMPONENT
+ * 
+ * Center panel displaying the message thread
+ */
+
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn, extractTime } from '@/lib/utils';
+import { sendWhatsAppMessage, clearWhatsAppChatMessages } from '@/services/whatsappChatApi';
+import { toast } from '@/hooks/use-toast';
+import { getStorageUrl } from '@/lib/constants';
+import AudioPlayer from './AudioPlayer';
+import DocumentMessage from './DocumentMessage';
+import ContactMessage from './ContactMessage';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useWhatsApp } from '@/contexts/WhatsAppContext';
+
+interface ChatConversationProps {
+  chat: WhatsAppChat | null;
+  onBack?: () => void;
+  showBackButton?: boolean;
+  onMessageSent?: (message: WhatsAppMessage) => void;
+}
+
+interface PendingMessage {
+  id: string;
+  text: string;
+  status: 'sending' | 'error';
+  messageMode: 'external' | 'internal';
+}
+
+const ChatConversation: React.FC<ChatConversationProps> = ({
+  chat,
+  onBack,
+  showBackButton = false,
+  onMessageSent
+}) => {
+  const { t } = useLanguage();
+  const { handleChatCleared } = useWhatsApp();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [messageText, setMessageText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [leadPreviewOpen, setLeadPreviewOpen] = useState(false);
+  const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (chat) {
+      scrollToBottom();
+    }
+  }, [chat]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [pendingMessages]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !chat?.lead?.id || !chat?.whatsapp_instance_id) {
+      return;
+    }
+
+    const text = messageText.trim();
+    const tempId = `pending-${Date.now()}`;
+    const currentMode = messageMode;
+    
+    setMessageText('');
+    setIsSending(true);
+    setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
+
+    try {
+      const response = await sendWhatsAppMessage(chat.whatsapp_instance_id, {
+        lead_id: chat.lead.id,
+        text,
+        message_mode: currentMode
+      });
+
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
+      
+      const sentMessage: WhatsAppMessage = {
+        id: response.message.id,
+        whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
+        direction: response.message.direction || 'outgoing',
+        type: 'text',
+        text: response.message.text,
+        status: response.message.status,
+        sent_at: response.message.sent_at,
+        user_id: response.message.user_id,
+        message_mode: response.message.message_mode || currentMode,
+        user: response.message.user,
+      };
+
+      onMessageSent?.(sentMessage);
+    } catch (error: any) {
+      setPendingMessages(prev => 
+        prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
+      );
+
+      toast({
+        title: t('chat.inbox.message-error'),
+        description: error?.response?.data?.message || t('chat.inbox.message-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleRetry = (pendingMessage: PendingMessage) => {
+    setPendingMessages(prev => prev.filter(m => m.id !== pendingMessage.id));
+    setMessageText(pendingMessage.text);
+    setMessageMode(pendingMessage.messageMode);
+  };
+
+  const handleClearMessages = async () => {
+    if (!chat) return;
+    setIsClearing(true);
+    try {
+      await clearWhatsAppChatMessages(chat.id);
+      handleChatCleared(chat.id);
+      toast({ title: t('chat.inbox.clear-success') });
+    } catch (error: any) {
+      toast({
+        title: t('chat.inbox.clear-error'),
+        description: error?.response?.data?.message || '',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsClearing(false);
+      setShowClearConfirm(false);
+    }
+  };
+
+  const getLeadName = (): string => {
+    if (chat?.lead?.first_name || chat?.lead?.last_name) {
+      return `${chat.lead.first_name || ''} ${chat.lead.last_name || ''}`.trim();
+    }
+    return chat?.phone_number || '';
+  };
+
+  const formatMessageTime = (dateString: string): string => {
+    return extractTime(dateString);
+  };
+
+  const formatMessageDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return t('chat.inbox.today');
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return t('chat.inbox.yesterday');
+    }
+    return date.toLocaleDateString([], { 
+      weekday: 'long', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  const groupMessagesByDate = (messages: WhatsAppMessage[]) => {
+    const groups: { date: string; messages: WhatsAppMessage[] }[] = [];
+    let currentDate = '';
+
+    messages.forEach((message) => {
+      const messageDate = new Date(message.sent_at).toDateString();
+      if (messageDate !== currentDate) {
+        currentDate = messageDate;
+        groups.push({ date: message.sent_at, messages: [message] });
+      } else {
+        groups[groups.length - 1].messages.push(message);
+      }
+    });
+
+    return groups;
+  };
+
+  const isInternalNote = (message: WhatsAppMessage) => message.message_mode === 'internal';
+
+  if (!chat) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-muted/20">
+        <div className="text-center space-y-3 p-8">
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <FaWhatsapp className="h-8 w-8 text-green-600" />
+          </div>
+          <h3 className="text-lg font-medium">{t('chat.inbox.select-chat')}</h3>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            {t('chat.inbox.select-chat-description')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const messageGroups = groupMessagesByDate(chat.messages || []);
+
+  return (
+    <div className="flex flex-col h-full min-h-0 bg-background" style={{maxHeight: "700px"}}>
+      {/* Header */}
+      <div className="p-4 border-b border-border/50 bg-card">
+        <div className="flex items-center gap-3">
+          {showBackButton && (
+            <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+            <User className="h-5 w-5 text-green-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            {chat.lead?.id ? (
+              <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left">
+                {getLeadName()}
+              </button>
+            ) : (
+              <h3 className="font-semibold truncate">{getLeadName()}</h3>
+            )}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="h-3 w-3" />
+              <span>{chat.phone_number}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-1 justify-end">
+              {chat.lead?.funnel && (
+                <Badge variant="outline" className="text-xs">
+                  {chat.lead.funnel.name}
+                </Badge>
+              )}
+              {chat.lead?.stage && (
+                <Badge variant="secondary" className="text-xs">
+                  {chat.lead.stage.name}
+                </Badge>
+              )}
+            </div>
+            {/* Chat actions menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => setShowClearConfirm(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t('chat.inbox.clear-messages')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
+        {chat.messages && chat.messages.length > 0 ? (
+          <div className="space-y-4">
+            {messageGroups.map((group, groupIndex) => (
+              <div key={groupIndex} className="space-y-3">
+                {/* Date separator */}
+                <div className="flex items-center justify-center">
+                  <span className="text-xs bg-muted px-3 py-1 rounded-full text-muted-foreground">
+                    {formatMessageDate(group.date)}
+                  </span>
+                </div>
+                
+                {/* Messages */}
+                {group.messages.map((message, messageIndex) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: messageIndex * 0.03 }}
+                    className={cn(
+                      "flex",
+                      message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
+                        message.type === 'image' ? "p-1" : 
+                        message.type === 'audio' ? "px-2 py-1.5" :
+                        message.type === 'location' ? "p-2" :
+                        message.type === 'document' ? "p-2" :
+                        message.type === 'contact' ? "p-3" : "p-3",
+                        isInternalNote(message)
+                          ? "bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-br-none"
+                          : message.direction === 'outgoing'
+                            ? "bg-green-500 text-white rounded-br-none"
+                            : "bg-card border border-border/50 rounded-bl-none"
+                      )}
+                    >
+                      {/* Internal note label */}
+                      {isInternalNote(message) && (
+                        <div className="flex items-center gap-1 mb-1">
+                          <StickyNote className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                          <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                            {t('chat.inbox.internal-note')}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Sender name for outgoing messages */}
+                      {message.direction === 'outgoing' && message.user?.name && (
+                        <div className={cn(
+                          "flex items-center gap-1 mb-1 pb-1 border-b",
+                          isInternalNote(message) 
+                            ? "border-amber-600/30 dark:border-amber-500/30" 
+                            : "border-white/20"
+                        )}>
+                          <User className={cn(
+                            "h-3 w-3 shrink-0",
+                            isInternalNote(message) ? "text-amber-700 dark:text-amber-300" : "text-green-200"
+                          )} />
+                          <span className={cn(
+                            "text-xs font-semibold",
+                            isInternalNote(message) ? "text-amber-700 dark:text-amber-300" : "text-green-200"
+                          )}>
+                            {message.user.name}
+                          </span>
+                        </div>
+                      )}
+
+                      {message.type === 'image' && message.media_url ? (
+                        <div className="space-y-1">
+                          <button 
+                            onClick={() => setLightboxImage(getStorageUrl(message.media_url) || null)}
+                            className="block"
+                          >
+                            <img
+                              src={getStorageUrl(message.media_url)}
+                              alt="Shared image"
+                              className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                              loading="lazy"
+                            />
+                          </button>
+                          {message.text && (
+                            <p className={cn("text-sm whitespace-pre-wrap break-words px-2 pt-1", isInternalNote(message) && "text-amber-900 dark:text-amber-100")}>
+                              {message.text}
+                            </p>
+                          )}
+                          <div className={cn(
+                            "flex items-center gap-1 px-2 pb-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'audio' && message.media_url ? (
+                        <div className="space-y-2">
+                          <AudioPlayer 
+                            src={getStorageUrl(message.media_url) || ''} 
+                            isOutgoing={message.direction === 'outgoing'}
+                          />
+                          {message.text && (
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {message.text}
+                            </p>
+                          )}
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'location' && message.latitude != null && message.longitude != null ? (
+                        <div className="space-y-1.5">
+                          <div className="rounded-md overflow-hidden">
+                            <iframe
+                              src={`https://maps.google.com/maps?q=${message.latitude},${message.longitude}&z=15&output=embed`}
+                              width="240"
+                              height="160"
+                              className="border-0 w-full"
+                              loading="lazy"
+                              allowFullScreen={false}
+                            />
+                          </div>
+                          <a
+                            href={`https://maps.google.com/?q=${message.latitude},${message.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              "flex items-center gap-1.5 text-xs font-medium hover:underline",
+                              message.direction === 'outgoing' ? "text-green-100" : "text-primary"
+                            )}
+                          >
+                            <MapPin className="h-3 w-3" />
+                            Open in Maps
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'document' && message.media_url ? (
+                        <div className="space-y-1">
+                          <DocumentMessage
+                            fileName={message.text || 'Document'}
+                            fileUrl={getStorageUrl(message.media_url) || ''}
+                            mimeType={message.media_mime}
+                            fileSize={message.media_size}
+                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
+                          />
+                          <div className={cn(
+                            "flex items-center gap-1 px-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : message.type === 'contact' && message.metadata ? (
+                        <div className="space-y-1">
+                          <ContactMessage
+                            contactName={message.metadata.contact_name || message.text || ''}
+                            contactPhone={message.metadata.contact_phone || ''}
+                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
+                            instanceId={chat.whatsapp_instance_id}
+                          />
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className={cn(
+                            "text-sm whitespace-pre-wrap break-words",
+                            isInternalNote(message) && "text-amber-900 dark:text-amber-100"
+                          )}>
+                            {message.text}
+                          </p>
+                          <div className={cn(
+                            "flex items-center gap-1 mt-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
+                              message.direction === 'outgoing' 
+                                ? "text-green-100" 
+                                : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <span className="text-xs text-green-100">
+                                • {message.status}
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ))}
+
+            {/* Pending Messages */}
+            {pendingMessages.map((pending) => (
+              <motion.div
+                key={pending.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-end"
+              >
+                <div
+                  className={cn(
+                    "max-w-[75%] rounded-lg p-3 shadow-sm rounded-br-none",
+                    pending.status === 'error'
+                      ? "bg-destructive/80 text-destructive-foreground"
+                      : pending.messageMode === 'internal'
+                        ? "bg-amber-100/70 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700"
+                        : "bg-green-500/70 text-white"
+                  )}
+                >
+                  {pending.messageMode === 'internal' && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <StickyNote className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                        {t('chat.inbox.internal-note')}
+                      </span>
+                    </div>
+                  )}
+                  <p className={cn(
+                    "text-sm whitespace-pre-wrap break-words",
+                    pending.messageMode === 'internal' && "text-amber-900 dark:text-amber-100"
+                  )}>
+                    {pending.text}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1 justify-end">
+                    {pending.status === 'sending' ? (
+                      <span className={cn(
+                        "text-xs flex items-center gap-1",
+                        pending.messageMode === 'internal' ? "text-amber-600 dark:text-amber-400" : "text-green-100"
+                      )}>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {t('chat.inbox.sending')}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleRetry(pending)}
+                        className="text-xs underline hover:no-underline"
+                      >
+                        {t('chat.inbox.retry')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-12">
+            <MessageSquare className="h-12 w-12 text-muted-foreground/50" />
+            <p className="text-muted-foreground mt-2">
+              {t('chat.inbox.no-messages-in-chat')}
+            </p>
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Message Input */}
+      <div className="p-4 border-t border-border/50 bg-card space-y-2">
+        {/* Message mode toggle */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant={messageMode === 'external' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageMode('external')}
+            className={cn(
+              "h-7 text-xs gap-1.5 rounded-full",
+              messageMode === 'external' && "bg-green-500 hover:bg-green-600 text-white"
+            )}
+          >
+            <FaWhatsapp className="h-3 w-3" />
+            {t('chat.inbox.mode-external')}
+          </Button>
+          <Button
+            variant={messageMode === 'internal' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setMessageMode('internal')}
+            className={cn(
+              "h-7 text-xs gap-1.5 rounded-full",
+              messageMode === 'internal' && "bg-amber-500 hover:bg-amber-600 text-white"
+            )}
+          >
+            <StickyNote className="h-3 w-3" />
+            {t('chat.inbox.mode-internal')}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Input
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
+            disabled={isSending || !chat.lead?.id}
+            className={cn(
+              "flex-1",
+              messageMode === 'internal' && "border-amber-300 dark:border-amber-700"
+            )}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!messageText.trim() || isSending || !chat.lead?.id}
+            size="icon"
+            className={cn(
+              "shrink-0",
+              messageMode === 'internal'
+                ? "bg-amber-500 hover:bg-amber-600"
+                : "bg-green-500 hover:bg-green-600"
+            )}
+          >
+            {isSending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Image Lightbox */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={() => setLightboxImage(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+              onClick={() => setLightboxImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              src={lightboxImage}
+              alt="Full size image"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={leadPreviewOpen}
+        onClose={() => setLeadPreviewOpen(false)}
+        leadId={chat?.lead?.id ? String(chat.lead.id) : null}
+      />
+
+      {/* Clear Messages Confirmation */}
+      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('chat.inbox.clear-messages')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('chat.inbox.clear-messages-confirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClearing}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearMessages}
+              disabled={isClearing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isClearing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {t('chat.inbox.clear-messages')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default ChatConversation;

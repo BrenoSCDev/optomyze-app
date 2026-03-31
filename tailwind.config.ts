@@ -59,12 +59,20 @@ export default {
 					DEFAULT: 'hsl(var(--glass-bg))',
 					border: 'hsl(var(--glass-border))',
 					hover: 'hsl(var(--glass-hover))'
+				},
+				deal: {
+					DEFAULT: 'hsl(var(--deal-accent))',
+					foreground: 'hsl(var(--deal-accent-foreground))',
+					glass: 'hsl(var(--deal-glass-bg))',
+					'glass-border': 'hsl(var(--deal-glass-border))',
+					'glass-hover': 'hsl(var(--deal-glass-hover))'
 				}
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-dark': 'var(--gradient-dark)', 
-				'gradient-glass': 'var(--gradient-glass)'
+				'gradient-glass': 'var(--gradient-glass)',
+				'gradient-deal': 'var(--gradient-deal)'
 			},
 			boxShadow: {
 				'glow': 'var(--glow-primary)',

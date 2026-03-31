@@ -11,11 +11,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   Plus, 
-  Settings, 
+  Pencil, 
   Trash2, 
   ListTree,
   ChevronRight,
-  GripVertical
+  GripVertical,
+  Cog
 } from 'lucide-react';
 import {
   DndContext,
@@ -49,6 +50,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import StageEditModal from './StageEditModal';
+import StageEntryRequirementsModal, { EntryRequirement } from './StageEntryRequirementsModal';
+import { getStageTypesForFunnel } from '@/lib/stageTypes';
 
 interface Stage {
   id: number;
@@ -57,6 +60,7 @@ interface Stage {
   description: string;
   order: number;
   type: string;
+  color: string;
   is_active: boolean;
   settings: {
     sla_hours: number;
@@ -64,19 +68,59 @@ interface Stage {
     required_fields: string[];
     notifications_enabled: boolean;
   };
+  entry_requirement?: EntryRequirement;
   created_at: string;
   updated_at: string;
   deleted_at?: string;
 }
 
+const STAGE_COLORS = [
+  { value: '#FFFFFF', label: 'White' },
+  { value: '#EF4444', label: 'Red' },
+  { value: '#F97316', label: 'Orange' },
+  { value: '#EAB308', label: 'Yellow' },
+  { value: '#22C55E', label: 'Green' },
+  { value: '#06B6D4', label: 'Cyan' },
+  { value: '#3B82F6', label: 'Blue' },
+  { value: '#8B5CF6', label: 'Purple' },
+  { value: '#EC4899', label: 'Pink' },
+  { value: '#6B7280', label: 'Gray' },
+  // Second row - more diverse colors
+  { value: '#0F172A', label: 'Slate' },
+  { value: '#7C2D12', label: 'Brown' },
+  { value: '#065F46', label: 'Emerald' },
+  { value: '#0E7490', label: 'Teal' },
+  { value: '#1E3A8A', label: 'Indigo' },
+  { value: '#4C1D95', label: 'Violet' },
+  { value: '#831843', label: 'Rose' },
+  { value: '#FCD34D', label: 'Amber' },
+  { value: '#A3E635', label: 'Lime' },
+  { value: '#F472B6', label: 'Fuchsia' },
+];
+
 interface Funnel {
   id: number;
+  company_id: number;
   name: string;
   description: string;
+  is_active: boolean;
+  created_by: number;
+  settings: any;
+  type: 'sale' | 'deal';
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 }
 
-const FunnelStages = () => {
-  const { funnelId } = useParams<{ funnelId: string }>();
+interface FunnelStagesProps {
+  funnelIdProp?: string;
+  onBack?: () => void;
+  isEmbedded?: boolean;
+}
+
+const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStagesProps = {}) => {
+  const params = useParams<{ funnelId: string }>();
+  const funnelId = funnelIdProp || params.funnelId;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -88,6 +132,7 @@ const FunnelStages = () => {
   const [showNewStageModal, setShowNewStageModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEntryRequirementsModal, setShowEntryRequirementsModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [creating, setCreating] = useState(false);
   const [reordering, setReordering] = useState(false);
@@ -96,7 +141,8 @@ const FunnelStages = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: ''
+    type: '',
+    color: '#FFFFFF'
   });
   const [formErrors, setFormErrors] = useState({
     name: '',
@@ -117,16 +163,8 @@ const FunnelStages = () => {
   );
 
   
-  // Stage type options
-  const stageTypes = [
-    { value: 'entry', label: 'Entry' },
-    { value: 'normal', label: 'Normal' },
-    { value: 'service', label: 'Service' },
-    { value: 'proposition', label: 'Proposition' },
-    { value: 'qualified', label: 'Qualified' },
-    { value: 'conversion', label: 'Conversion' },
-    { value: 'lost', label: 'Lost' }
-  ];
+  // Stage type options based on funnel type
+  const stageTypes = funnel ? getStageTypesForFunnel(funnel.type) : [];
 
   // Fetch funnel details and stages
   useEffect(() => {
@@ -136,13 +174,10 @@ const FunnelStages = () => {
       try {
         setLoading(true);
         
-        // Fetch funnel details
-        const funnelResponse = await api.get(`/api/funnels/${funnelId}`);
-        setFunnel(funnelResponse.data);
-
-        // Fetch stages
-        const stagesResponse = await api.get(`/api/funnels/${funnelId}/stages`);
-        setStages(stagesResponse.data || []);
+        // Fetch stages and funnel data (new API response format)
+        const response = await api.get(`/api/funnels/${funnelId}/stages`);
+        setStages(response.data.stages || []);
+        setFunnel(response.data.funnel || null);
         
         // Mark as initially loaded for animation control
         if (!hasInitiallyLoaded) {
@@ -197,14 +232,15 @@ const FunnelStages = () => {
       const response = await api.post(`/api/funnels/${funnelId}/stages`, {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        type: formData.type
+        type: formData.type,
+        color: formData.color
       });
 
       // Add new stage to the list
       setStages(prev => [...prev, response.data]);
       
       // Reset form and close modal
-      setFormData({ name: '', description: '', type: '' });
+      setFormData({ name: '', description: '', type: '', color: '#FFFFFF' });
       setFormErrors({ name: '', description: '', type: '' });
       setShowNewStageModal(false);
       
@@ -293,6 +329,21 @@ const FunnelStages = () => {
     setStages(prev => prev.map(stage => 
       stage.id === updatedStage.id ? updatedStage : stage
     ));
+  };
+
+  // Handle entry requirement update
+  const handleEntryRequirementUpdate = (updatedRequirement: EntryRequirement) => {
+    setStages(prev => prev.map(stage => 
+      stage.id === updatedRequirement.stage_id 
+        ? { ...stage, entry_requirement: updatedRequirement } 
+        : stage
+    ));
+  };
+
+  // Open entry requirements modal
+  const openEntryRequirementsModal = (stage: Stage) => {
+    setSelectedStage(stage);
+    setShowEntryRequirementsModal(true);
   };
 
   // Handle drag start
@@ -397,57 +448,73 @@ const FunnelStages = () => {
           transition-all duration-200
         `}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <GripVertical 
-                    className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
-                    {...attributes}
-                    {...listeners}
-                  />
-                  <ListTree className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-lg font-semibold text-foreground truncate">
-                  {stage.name}
-                </span>
+            <CardTitle className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <GripVertical 
+                  className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors cursor-grab" 
+                  {...attributes}
+                  {...listeners}
+                />
+                <div 
+                  className="w-4 h-4 rounded-full border border-border shrink-0"
+                  style={{ backgroundColor: stage.color || '#FFFFFF' }}
+                />
+                <ListTree className="h-5 w-5 text-primary" />
               </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-primary/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditModal(stage);
-                  }}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-destructive/10 text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedStage(stage);
-                    setShowDeleteModal(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <span className="text-lg font-semibold text-foreground truncate">
+                {stage.name}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm line-clamp-3">
               {stage.description}
             </p>
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span>{t('stages.order')}: {stage.order}</span>
-              <span>•</span>
-              <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
-                {stage.is_active ? t('stages.active') : t('stages.inactive')}
-              </span>
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>{t('stages.order')}: {stage.order}</span>
+                <span>•</span>
+                <span className={stage.is_active ? 'text-green-400' : 'text-red-400'}>
+                  {stage.is_active ? t('stages.active') : t('stages.inactive')}
+                </span>
+              </div>
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-accent/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEntryRequirementsModal(stage);
+                  }}
+                  title={t('stages.configure_entry_requirements')}
+                >
+                  <Cog className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditModal(stage);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-destructive/10 text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStage(stage);
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -511,48 +578,52 @@ const FunnelStages = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-primary/5 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={isEmbedded ? "space-y-6" : "min-h-screen bg-gradient-to-br from-background via-background/80 to-primary/5 p-6"}>
+      <div className={isEmbedded ? "space-y-6" : "max-w-7xl mx-auto space-y-6"}>
         {/* Header Section */}
         <div className="space-y-4">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <button
-              onClick={() => navigate('/?section=funnels')}
-              className="hover:text-foreground transition-colors"
-            >
-              {t('nav.settings')}
-            </button>
-            <ChevronRight className="h-4 w-4" />
-            <button
-              onClick={() => navigate('/?section=funnels')}
-              className="hover:text-foreground transition-colors"
-            >
-              {t('nav.funnels')}
-            </button>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">
-              {funnel?.name || t('stages.loading')}
-            </span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground">
-              {t('stages.title')}
-            </span>
-          </div>
+          {/* Breadcrumb - only show when not embedded */}
+          {!isEmbedded && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <button
+                onClick={() => navigate('/?section=funnels')}
+                className="hover:text-foreground transition-colors"
+              >
+                {t('nav.settings')}
+              </button>
+              <ChevronRight className="h-4 w-4" />
+              <button
+                onClick={() => navigate('/?section=funnels')}
+                className="hover:text-foreground transition-colors"
+              >
+                {t('nav.funnels')}
+              </button>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground font-medium">
+                {funnel?.name || t('stages.loading')}
+              </span>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground">
+                {t('stages.title')}
+              </span>
+            </div>
+          )}
 
           {/* Page Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/?section=funnels')}
-                className="hover:bg-primary/10"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              {!isEmbedded && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onBack ? onBack() : navigate('/?section=funnels')}
+                  className="hover:bg-primary/10"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
               <div>
-                <h1 className="text-3xl font-bold text-foreground">
+                <h1 className={isEmbedded ? "text-2xl font-bold text-foreground" : "text-3xl font-bold text-foreground"}>
                   {t('stages.title')}
                 </h1>
                 <p className="text-muted-foreground">
@@ -717,13 +788,34 @@ const FunnelStages = () => {
                 <p className="text-sm text-destructive">{formErrors.type}</p>
               )}
             </div>
+
+            {/* Stage Color */}
+            <div className="space-y-2">
+              <Label>{t('stages.color_label')}</Label>
+              <div className="flex flex-wrap gap-2">
+                {STAGE_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      formData.color === color.value 
+                        ? 'border-primary ring-2 ring-primary/30 scale-110' 
+                        : 'border-border hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.label}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setShowNewStageModal(false);
-                setFormData({ name: '', description: '', type: '' });
+                setFormData({ name: '', description: '', type: '', color: '#FFFFFF' });
                 setFormErrors({ name: '', description: '', type: '' });
               }}
               disabled={creating}
@@ -791,7 +883,21 @@ const FunnelStages = () => {
         }}
         stage={selectedStage}
         funnelId={funnelId || ''}
+        funnelType={funnel?.type || 'sale'}
         onUpdate={handleStageUpdate}
+      />
+
+      {/* Stage Entry Requirements Modal */}
+      <StageEntryRequirementsModal
+        isOpen={showEntryRequirementsModal}
+        onClose={() => {
+          setShowEntryRequirementsModal(false);
+          setSelectedStage(null);
+        }}
+        stageId={selectedStage?.id || 0}
+        stageName={selectedStage?.name || ''}
+        entryRequirement={selectedStage?.entry_requirement || null}
+        onUpdate={handleEntryRequirementUpdate}
       />
     </div>
   );

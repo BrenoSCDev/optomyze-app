@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,13 +16,33 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { Camera, Edit, Save, X, Eye, EyeOff, AlertCircle, Upload, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import TopHeader from '@/components/layout/TopHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { profileService } from '@/services/profileApi';
 import optomyzeLogo from '@/assets/optomyze.png';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const { t } = useLanguage();
+  const { navLayout } = useMenuOrder();
+  const navigate = useNavigate();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const useHeaderLayout = navLayout === 'header' && !isMobile;
+
+  const handleSectionChange = (section: string) => {
+    setMobileSidebarOpen(false);
+    navigate(`/?section=${section}`);
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -313,61 +335,64 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-background">
-      <Sidebar 
-        isCollapsed={false}
-        onToggle={() => {}}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-dark">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-3/4 right-1/4 w-64 h-64 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+      </div>
+
+      <TopHeader
+        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection="profile"
-        onSectionChange={() => {}}
+        onSectionChange={handleSectionChange}
+        headerNavMode={useHeaderLayout}
       />
-      
-      <div className="lg:pl-64">
+
+      <div className="relative z-10 flex pt-16">
+        {!useHeaderLayout && (
+          <Sidebar
+            isCollapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection="profile"
+            onSectionChange={handleSectionChange}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        {useHeaderLayout && isMobile && (
+          <Sidebar
+            isCollapsed={false}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            activeSection="profile"
+            onSectionChange={handleSectionChange}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        <motion.main
+          className="flex-1 transition-all duration-300"
+          initial={false}
+          animate={{
+            marginLeft: useHeaderLayout
+              ? 0
+              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+          }}
+        >
+          <div>
         {/* Header with background image */}
         <div 
-          className="relative h-64 bg-cover bg-center bg-no-repeat"
+          className="relative h-48 sm:h-64 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${bgPicPreview || optomyzeLogo})`,
             backgroundColor: 'hsl(var(--muted))'
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          
-          {/* Profile picture positioned at bottom of header */}
-          <div className="absolute -bottom-16 left-8">
-            <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                <AvatarImage 
-                  src={profilePicPreview} 
-                  alt="Profile"
-                  className="object-cover"
-                />
-                <AvatarFallback className="text-2xl font-bold text-white">
-                  {getUserInitial()}
-                </AvatarFallback>
-              </Avatar>
-              {isEditing && (
-                <div className="absolute bottom-2 right-2 flex gap-1">
-                  <Button
-                    size="sm"
-                    className="rounded-full w-8 h-8 p-0"
-                    onClick={() => profilePicInputRef.current?.click()}
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                  {profilePicPreview && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="rounded-full w-8 h-8 p-0"
-                      onClick={handleRemoveProfilePic}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Edit background button */}
           {isEditing && (
@@ -409,8 +434,44 @@ const Profile = () => {
         </div>
 
         {/* Main content */}
-        <div className="px-8 pt-20 pb-8">
+        <div className="px-4 sm:px-8 pb-8">
           <div className="max-w-4xl mx-auto">
+            {/* Profile picture + user info - aligned with card */}
+            <div className="relative -mt-16 mb-6">
+              <div className="relative inline-block">
+                <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
+                  <AvatarImage 
+                    src={profilePicPreview} 
+                    alt="Profile"
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-2xl font-bold text-white">
+                    {getUserInitial()}
+                  </AvatarFallback>
+                </Avatar>
+                {isEditing && (
+                  <div className="absolute bottom-2 right-2 flex gap-1">
+                    <Button
+                      size="sm"
+                      className="rounded-full w-8 h-8 p-0"
+                      onClick={() => profilePicInputRef.current?.click()}
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                    {profilePicPreview && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="rounded-full w-8 h-8 p-0"
+                        onClick={handleRemoveProfilePic}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             {/* User info header */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
@@ -611,6 +672,8 @@ const Profile = () => {
             </Card>
           </div>
         </div>
+          </div>
+        </motion.main>
       </div>
     </div>
   );

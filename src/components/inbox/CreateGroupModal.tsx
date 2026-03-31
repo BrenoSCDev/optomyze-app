@@ -1,0 +1,196 @@
+import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Users, Search, Check, ImagePlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ChatContact } from '@/services/inboxChatApi';
+
+interface CreateGroupModalProps {
+  open: boolean;
+  onClose: () => void;
+  onCreateGroup: (name: string, memberIds: number[], coverImage?: File) => void;
+  contacts: ChatContact[];
+}
+
+function getInitials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function getAvatarUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  return `${baseUrl}/${url.replace(/^\//, '')}`;
+}
+
+const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCreateGroup, contacts }) => {
+  const [groupName, setGroupName] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [search, setSearch] = useState('');
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleUser = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverImage(file);
+      const reader = new FileReader();
+      reader.onload = () => setCoverPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
+  };
+
+  const handleCreate = () => {
+    if (!groupName.trim() || selectedIds.length === 0) return;
+    onCreateGroup(groupName.trim(), selectedIds, coverImage || undefined);
+    setGroupName('');
+    setSelectedIds([]);
+    setSearch('');
+    setCoverImage(null);
+    setCoverPreview(null);
+    onClose();
+  };
+
+  const filteredContacts = contacts.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+          <motion.div
+            className="fixed top-[8%] left-1/2 -translate-x-1/2 z-[100] w-full max-w-md"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="bg-card border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <h2 className="font-semibold text-sm text-foreground">Create Group</h2>
+                </div>
+                <button onClick={onClose} className="w-7 h-7 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-4">
+                {/* Cover Image + Name */}
+                <div className="flex items-center gap-3">
+                  <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverSelect} />
+                  <button
+                    onClick={() => coverInputRef.current?.click()}
+                    className="w-12 h-12 rounded-full border border-accent/30 flex items-center justify-center text-accent font-bold text-sm shrink-0 overflow-hidden bg-accent/20 hover:bg-accent/30 transition-colors"
+                    title="Add cover image"
+                  >
+                    {coverPreview ? (
+                      <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+                    ) : groupName ? (
+                      getInitials(groupName)
+                    ) : (
+                      <ImagePlus className="w-4 h-4" />
+                    )}
+                  </button>
+                  <Input
+                    value={groupName}
+                    onChange={e => setGroupName(e.target.value)}
+                    placeholder="Group name"
+                    className="text-sm"
+                  />
+                </div>
+
+                {coverImage && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground truncate flex-1">{coverImage.name}</span>
+                    <button onClick={() => { setCoverImage(null); setCoverPreview(null); }} className="text-[11px] text-destructive hover:underline">Remove</button>
+                  </div>
+                )}
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search members..."
+                    className="pl-9 text-xs"
+                  />
+                </div>
+
+                <div className="max-h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-border">
+                  {filteredContacts.map(contact => {
+                    const isSelected = selectedIds.includes(contact.id);
+                    const picUrl = getAvatarUrl(contact.profile_pic_url);
+                    return (
+                      <button
+                        key={contact.id}
+                        onClick={() => toggleUser(contact.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left
+                          ${isSelected ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/30 border border-transparent'}`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-semibold text-xs shrink-0 overflow-hidden">
+                          {picUrl ? (
+                            <img src={picUrl} alt={contact.name} className="w-full h-full object-cover" />
+                          ) : (
+                            getInitials(contact.name)
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{contact.role}</p>
+                        </div>
+                        {isSelected && (
+                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                            <Check className="w-3 h-3 text-primary-foreground" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedIds.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground">{selectedIds.length} member(s) selected</p>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border/40 bg-muted/20">
+                <button onClick={onClose} className="px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreate}
+                  disabled={!groupName.trim() || selectedIds.length === 0}
+                  className="px-4 py-2 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Create Group
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+};
+
+export default CreateGroupModal;

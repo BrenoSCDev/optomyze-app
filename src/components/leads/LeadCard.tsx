@@ -11,19 +11,17 @@ import { motion } from 'framer-motion';
 import { 
   Mail, 
   Phone, 
-  Building, 
   Clock, 
-  DollarSign,
   TrendingUp,
   GripVertical,
-  Tag
+  Tag,
+  User
 } from 'lucide-react';
 import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import {
-  CSS,
-} from '@dnd-kit/utilities';
+  useDraggable,
+} from '@dnd-kit/core';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface LeadCardProps {
   lead: Lead;
@@ -31,29 +29,37 @@ interface LeadCardProps {
   isMoving?: boolean;
   onTagClick?: (lead: Lead) => void;
   onLeadClick?: (leadId: string) => void;
+  showEstimatedValue?: boolean;
+  showAssignedUser?: boolean;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
+  const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-    transition,
-  } = useSortable({ id: lead.id });
+    isDragging: isCurrentlyDragging,
+  } = useDraggable({ id: lead.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
   };
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const parts = name.split(' ').filter(n => n.length > 0 && !n.includes('-'));
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    // Only first name initial + first last name initial
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-l-red-500';
-      case 'medium': return 'border-l-orange-500';
+      case 'urgent': return 'border-l-red-500';
+      case 'high': return 'border-l-orange-500';
+      case 'medium': return 'border-l-yellow-500';
       case 'low': return 'border-l-green-500';
       default: return 'border-l-gray-500';
     }
@@ -69,14 +75,17 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  // Access lead's currency if available (extended Lead type)
+  const leadCurrency = (lead as any).currency || companyCurrency;
 
   return (
     <div className="relative">
@@ -176,6 +185,15 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
         </div>
       )}
 
+      {/* Lead Estimated Value */}
+      {showEstimatedValue && lead.value > 0 && (
+        <div className="mt-2">
+          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium">
+            {t('funnel.page.estimated')}: {formatCurrency(lead.value, leadCurrency)}
+          </Badge>
+        </div>
+      )}
+
       {/* Bottom Section */}
       <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
       
@@ -192,6 +210,16 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick 
           </Badge>
         </div>
       </div>
+
+      {/* Assigned User */}
+      {showAssignedUser && (lead as any).assigned_user && (
+        <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10">
+          <User className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
+            {(lead as any).assigned_user.name}
+          </span>
+        </div>
+      )}
       </motion.div>
       
       {/* Loading Overlay for Moving State */}
