@@ -6,7 +6,7 @@ import { UserX, UserCheck, Trash2 } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
-import { getStorageUrl } from '@/lib/constants';
+import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 
 interface UserCardProps {
   user: User;
@@ -113,7 +113,7 @@ const UserCard: React.FC<UserCardProps> = ({
         {/* Profile Photo */}
         <div className="mb-4">
           <Avatar className="h-16 w-16 border-4 border-white/30 shadow-lg">
-            <AvatarImage src={getStorageUrl(user.profile_pic)} alt={user.name} />
+            <PrivateAvatarImage path={user.profile_pic} alt={user.name} />
             <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
               {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>

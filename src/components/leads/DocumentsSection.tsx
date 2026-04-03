@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Upload, File, Download, Trash2, Loader2, Eye, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getStorageUrl } from '@/lib/constants';
+import { downloadPrivateFile } from '@/hooks/usePrivateFile';
+import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import { deleteDocument } from '@/services/documentApi';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -73,16 +74,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
   };
 
   const handleDownload = (doc: LeadDocument) => {
-    const url = getStorageUrl(doc.path);
-    if (url) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = doc.title;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    downloadPrivateFile(doc.path, doc.title);
   };
 
   const handleDeleteClick = (doc: LeadDocument) => {
@@ -216,21 +208,14 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
           
           <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
             {previewDoc && isPreviewSupported(previewDoc.path) ? (
-              isImageFile(previewDoc.path) ? (
-                <div className="flex items-center justify-center">
-                  <img 
-                    src={getStorageUrl(previewDoc.path)} 
-                    alt={previewDoc.title}
-                    className="max-w-full max-h-[60vh] object-contain rounded-lg"
-                  />
-                </div>
-              ) : (
-                <iframe
-                  src={getStorageUrl(previewDoc.path)}
-                  className="w-full h-[70vh] rounded-lg bg-white"
+              <div className={isImageFile(previewDoc.path) ? "flex items-center justify-center" : ""}>
+                <PrivateFilePreview
+                  path={previewDoc.path}
+                  isImage={isImageFile(previewDoc.path)}
+                  alt={previewDoc.title}
                   title={previewDoc.title}
                 />
-              )
+              </div>
             ) : (
               <div className="text-center py-16">
                 <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />

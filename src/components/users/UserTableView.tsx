@@ -15,7 +15,7 @@ import { Trash2 } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
-import { getStorageUrl } from '@/lib/constants';
+import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 
 interface UserTableViewProps {
   users: User[];
@@ -77,7 +77,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
             <TableRow key={user.id} className="hover:bg-muted/50">
               <TableCell>
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={getStorageUrl(user.profile_pic)} alt={user.name} />
+                  <PrivateAvatarImage path={user.profile_pic} alt={user.name} />
                   <AvatarFallback>
                     {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>

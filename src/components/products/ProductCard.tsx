@@ -9,7 +9,8 @@ import { Package, Briefcase, Edit, Trash2, Tag, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
-import { getProductImages, getPrimaryImageUrl, getFullImageUrl } from '@/services/productImageApi';
+import { getProductImages, getPrimaryImageUrl } from '@/services/productImageApi';
+import { PrivateImage } from '@/components/ui/PrivateImage';
 
 interface ProductCardProps {
   product: Product;
@@ -55,8 +56,8 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
       {loadingImage ? (
           <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         ) : primaryImageUrl ? (
-          <img
-            src={getFullImageUrl(primaryImageUrl)}
+          <PrivateImage
+            path={primaryImageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
             loading="lazy"

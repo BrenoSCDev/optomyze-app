@@ -27,7 +27,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getFullImageUrl, type ProductImage } from '@/services/productImageApi';
+import { type ProductImage } from '@/services/productImageApi';
+import { PrivateImage } from '@/components/ui/PrivateImage';
 
 interface ProductImageCardProps {
   image: ProductImage;
@@ -92,8 +93,8 @@ const ProductImageCard = ({
 
         {/* Image Preview */}
         <div className="aspect-square bg-muted">
-          <img
-            src={getFullImageUrl(image.url)}
+          <PrivateImage
+            path={image.url}
             alt={image.alt_text || t('products.images.product-image')}
             className="w-full h-full object-cover"
             loading="lazy"

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Package, Plus, ImageOff, ShoppingCart } from 'lucide-react';
-import { getFullImageUrl } from '@/services/productImageApi';
+import { PrivateImage } from '@/components/ui/PrivateImage';
 
 export interface LeadProduct {
   id: number;
@@ -46,8 +46,7 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
   };
 
   const getImageUrl = (product: LeadProduct): string | null => {
-    if (!product.primary_image?.url) return null;
-    return getFullImageUrl(product.primary_image.url);
+    return product.primary_image?.url || null;
   };
 
   const toggleProductSelection = (productId: number) => {
@@ -158,15 +157,10 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
       {/* Product Image */}
       <div className="aspect-video w-full bg-muted flex items-center justify-center relative overflow-hidden">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
+          <PrivateImage
+            path={imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.parentElement?.classList.add('fallback-active');
-            }}
           />
         ) : (
           <ImageOff className="w-8 h-8 text-muted-foreground/50" />

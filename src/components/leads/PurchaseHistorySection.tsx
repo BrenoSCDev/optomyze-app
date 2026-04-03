@@ -52,7 +52,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/useCurrency';
 import api from '@/services/api';
-import { getStorageUrl } from '@/lib/constants';
+import { downloadPrivateFile } from '@/hooks/usePrivateFile';
+import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from './SaleDocumentUploadModal';
 
 interface SaleProduct {
@@ -368,16 +369,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const handleDownloadDocument = (doc: SaleDocument) => {
     const path = getDocPath(doc);
     if (path) {
-      const url = getStorageUrl(path);
-      if (url) {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = getDocName(doc);
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      downloadPrivateFile(path, getDocName(doc));
     }
   };
 
@@ -737,21 +729,14 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           
           <div className="p-4 overflow-auto max-h-[calc(90vh-80px)]">
             {previewDoc && isPreviewSupported(getDocPath(previewDoc)) ? (
-              isImageFile(getDocPath(previewDoc)) ? (
-                <div className="flex items-center justify-center">
-                  <img 
-                    src={getStorageUrl(getDocPath(previewDoc))} 
-                    alt={getDocName(previewDoc)}
-                    className="max-w-full max-h-[60vh] object-contain rounded-lg"
-                  />
-                </div>
-              ) : (
-                <iframe
-                  src={getStorageUrl(getDocPath(previewDoc))}
-                  className="w-full h-[70vh] rounded-lg bg-white"
+              <div className={isImageFile(getDocPath(previewDoc)) ? "flex items-center justify-center" : ""}>
+                <PrivateFilePreview
+                  path={getDocPath(previewDoc)}
+                  isImage={isImageFile(getDocPath(previewDoc))}
+                  alt={getDocName(previewDoc)}
                   title={getDocName(previewDoc)}
                 />
-              )
+              </div>
             ) : (
               <div className="text-center py-16">
                 <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />

@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { getStorageUrl } from '@/lib/constants';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
@@ -54,12 +54,15 @@ const Profile = () => {
     phone: user?.phone || '',
   });
 
-  // File upload states
+  // Blob URLs for the saved profile/bg pics from private storage
+  const savedProfilePicUrl = usePrivateFile(user?.profile_pic);
+  const savedBgPicUrl = usePrivateFile(user?.bg_pic);
+
+  // File upload states — local preview overrides the saved URL while editing
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(getStorageUrl(user?.profile_pic) || '');
-  console.log(profilePicPreview)
+  const [profilePicPreview, setProfilePicPreview] = useState<string>('');
   const [bgPicFile, setBgPicFile] = useState<File | null>(null);
-  const [bgPicPreview, setBgPicPreview] = useState(getStorageUrl(user?.bg_pic) || '');
+  const [bgPicPreview, setBgPicPreview] = useState<string>('');
 
   // UI states
   const [loading, setLoading] = useState(false);
@@ -90,8 +93,6 @@ const Profile = () => {
         name: user.name || '',
         phone: user.phone || '',
       });
-      setProfilePicPreview(getStorageUrl(user.profile_pic) || '');
-      setBgPicPreview(getStorageUrl(user.bg_pic) || '');
     }
   }, [user]);
 
@@ -104,8 +105,8 @@ const Profile = () => {
       });
       setProfilePicFile(null);
       setBgPicFile(null);
-      setProfilePicPreview(getStorageUrl(user?.profile_pic) || '');
-      setBgPicPreview(getStorageUrl(user?.bg_pic) || '');
+      setProfilePicPreview('');
+      setBgPicPreview('');
       setError(null);
       
       // Reset file inputs
@@ -312,9 +313,7 @@ const Profile = () => {
 
   const handleRemoveProfilePic = () => {
     setProfilePicFile(null);
-    setProfilePicPreview(getStorageUrl(user?.profile_pic) || '');
-    
-    // Reset file input
+    setProfilePicPreview('');
     if (profilePicInputRef.current) {
       profilePicInputRef.current.value = '';
     }
@@ -322,9 +321,7 @@ const Profile = () => {
 
   const handleRemoveBgPic = () => {
     setBgPicFile(null);
-    setBgPicPreview(getStorageUrl(user?.bg_pic) || '');
-    
-    // Reset file input
+    setBgPicPreview('');
     if (bgPicInputRef.current) {
       bgPicInputRef.current.value = '';
     }
@@ -388,7 +385,7 @@ const Profile = () => {
         <div 
           className="relative h-48 sm:h-64 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url(${bgPicPreview || optomyzeLogo})`,
+            backgroundImage: `url(${bgPicPreview || savedBgPicUrl || optomyzeLogo})`,
             backgroundColor: 'hsl(var(--muted))'
           }}
         >
@@ -404,7 +401,7 @@ const Profile = () => {
                 <Camera className="w-4 h-4 mr-2" />
                 {t('profile.change-background')}
               </Button>
-              {bgPicPreview && bgPicPreview !== optomyzeLogo && (
+              {(bgPicPreview || savedBgPicUrl) && (bgPicPreview || savedBgPicUrl) !== optomyzeLogo && (
                 <Button
                   size="sm"
                   variant="destructive"
@@ -440,8 +437,8 @@ const Profile = () => {
             <div className="relative -mt-16 mb-6">
               <div className="relative inline-block">
                 <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-                  <AvatarImage 
-                    src={profilePicPreview} 
+                  <AvatarImage
+                    src={profilePicPreview || savedProfilePicUrl}
                     alt="Profile"
                     className="object-cover"
                   />
@@ -458,7 +455,7 @@ const Profile = () => {
                     >
                       <Camera className="w-4 h-4" />
                     </Button>
-                    {profilePicPreview && (
+                    {(profilePicPreview || savedProfilePicUrl) && (
                       <Button
                         size="sm"
                         variant="destructive"

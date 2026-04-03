@@ -34,6 +34,7 @@ import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { getStorageUrl } from '@/lib/constants';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
 import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId, getDefaultSearchTarget } from '@/lib/searchConfig';
 import optomyzeLogo from '@/assets/optomyze.png';
 import optomyzeLogoLight from '@/assets/optomyze-light.png';
@@ -79,6 +80,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const { user, funnels, logout } = useAuth();
   const { t } = useLanguage();
+  const userProfilePicUrl = usePrivateFile(user?.profile_pic);
   const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
@@ -784,8 +786,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2 px-2 py-1.5 h-auto hover:bg-primary/10">
                 <div className="flex-shrink-0">
-                  {user.profile_pic ? (
-                    <img src={getStorageUrl(user.profile_pic)} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
+                  {userProfilePicUrl ? (
+                    <img src={userProfilePicUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-white/20">
                       <span className="text-primary font-semibold text-sm">{user.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
