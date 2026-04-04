@@ -1,5 +1,12 @@
 import api from './api';
 
+export interface TaskLeadResult {
+  id: number;
+  first_name: string;
+  last_name: string;
+  funnel_id: number;
+}
+
 interface TaskUser {
   id: number;
   name: string;
@@ -9,7 +16,7 @@ interface TaskUser {
 
 export interface Task {
   id: number;
-  lead_id: number;
+  lead_id: number | null;
   title: string;
   description: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent';
@@ -26,7 +33,7 @@ export interface Task {
 }
 
 export interface CreateTaskPayload {
-  lead_id: number;
+  lead_id?: number;
   title: string;
   description?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
@@ -73,5 +80,15 @@ export const taskApi = {
       console.error('Error deleting task:', error);
       throw error;
     }
-  }
+  },
+
+  searchLeads: async (q: string): Promise<TaskLeadResult[]> => {
+    try {
+      const response = await api.get('/api/leads/search', { params: { q } });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching leads:', error);
+      throw error;
+    }
+  },
 };

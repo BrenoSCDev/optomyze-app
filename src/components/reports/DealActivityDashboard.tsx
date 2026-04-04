@@ -76,8 +76,8 @@ const TransactionItem: React.FC<{ tx: DealActivityTransaction; index: number }> 
         <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
           <span>{formatTimestamp(tx.created_at)}</span>
           {tx.user && <span>• {tx.user.name}</span>}
-          <span className="text-accent">• {tx.sale.name}</span>
-          {tx.sale.lead && (
+          {tx.sale && <span className="text-accent">• {tx.sale.name}</span>}
+          {tx.sale?.lead && (
             <span className="text-muted-foreground">• {tx.sale.lead.first_name} {tx.sale.lead.last_name}</span>
           )}
         </div>
@@ -177,7 +177,6 @@ const DealActivityDashboard: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Handshake className="w-6 h-6 text-accent" />
           {t('deal-activity.title')}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">{t('deal-activity.subtitle')}</p>

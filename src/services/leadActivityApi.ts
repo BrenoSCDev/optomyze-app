@@ -29,7 +29,7 @@ export interface ActivityTransaction {
 
 export interface ActivityTask {
   id: number;
-  lead_id: number;
+  lead_id: number | null;
   title: string;
   description: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent';
@@ -41,7 +41,7 @@ export interface ActivityTask {
   reminder: number;
   created_at: string;
   updated_at: string;
-  lead: ActivityLead;
+  lead: ActivityLead | null;
   creator: ActivityUser | null;
   assignee: ActivityUser | null;
 }

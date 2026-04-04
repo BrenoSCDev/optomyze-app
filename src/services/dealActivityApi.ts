@@ -38,7 +38,7 @@ export interface DealActivityTransaction {
   source: string;
   created_at: string;
   updated_at: string;
-  sale: DealActivitySale;
+  sale: DealActivitySale | null;
   user: DealActivityUser | null;
 }
 

@@ -613,12 +613,52 @@ const Profile = () => {
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="currentPassword">{t('profile.current-password')}</Label>
-...
+                        <div className="relative">
+                          <Input
+                            id="currentPassword"
+                            type={showCurrentPassword ? "text" : "password"}
+                            value={passwordData.currentPassword}
+                            onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                            className={passwordErrors.currentPassword ? "border-destructive" : ""}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          >
+                            {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        {passwordErrors.currentPassword && (
+                          <p className="text-sm text-destructive">{passwordErrors.currentPassword}</p>
+                        )}
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="newPassword">{t('profile.new-password')}</Label>
-...
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={passwordData.newPassword}
+                            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                            className={passwordErrors.newPassword ? "border-destructive" : ""}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        {passwordErrors.newPassword && (
+                          <p className="text-sm text-destructive">{passwordErrors.newPassword}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">

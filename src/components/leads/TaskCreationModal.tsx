@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { X, Loader2, Calendar as CalendarIcon, Search, UserCheck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
-import { taskApi, CreateTaskPayload, Task } from '@/services/taskApi';
+import { taskApi, CreateTaskPayload, Task, TaskLeadResult } from '@/services/taskApi';
 import { userApi } from '@/services/userApi';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface TaskCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  leadId: number;
+  leadId?: number;
   onTaskCreated: (task: Task, transaction?: any) => void;
   editTask?: Task | null;
   onTaskUpdated?: (task: Task) => void;
@@ -48,7 +48,16 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  
+
+  // Lead search (only when leadId prop is not provided)
+  const isStandaloneMode = leadId === undefined;
+  const [leadQuery, setLeadQuery] = useState('');
+  const [leadResults, setLeadResults] = useState<TaskLeadResult[]>([]);
+  const [leadSearchLoading, setLeadSearchLoading] = useState(false);
+  const [showLeadDropdown, setShowLeadDropdown] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<TaskLeadResult | null>(null);
+  const leadDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const isEditMode = !!editTask;
   
   const [formData, setFormData] = useState({
@@ -64,7 +73,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
-      
+      setSelectedLead(null);
+      setLeadQuery('');
+      setLeadResults([]);
+
       if (editTask) {
         // Pre-fill form with existing task data
         setFormData({
@@ -91,6 +103,28 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     }
   }, [isOpen, editTask]);
 
+  // Lead search debounce
+  useEffect(() => {
+    if (!isStandaloneMode || leadQuery.length < 3) {
+      setLeadResults([]);
+      setShowLeadDropdown(false);
+      return;
+    }
+    if (leadDebounceRef.current) clearTimeout(leadDebounceRef.current);
+    leadDebounceRef.current = setTimeout(async () => {
+      setLeadSearchLoading(true);
+      try {
+        const results = await taskApi.searchLeads(leadQuery);
+        setLeadResults(results);
+        setShowLeadDropdown(true);
+      } catch {
+        // ignore
+      } finally {
+        setLeadSearchLoading(false);
+      }
+    }, 300);
+  }, [leadQuery, isStandaloneMode]);
+
   const fetchUsers = async () => {
     try {
       setLoadingUsers(true);
@@ -114,8 +148,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     setLoading(true);
     
     try {
+      const resolvedLeadId = leadId ?? selectedLead?.id;
+
       const payload: CreateTaskPayload = {
-        lead_id: leadId,
+        ...(resolvedLeadId !== undefined ? { lead_id: resolvedLeadId } : {}),
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
         priority: formData.priority,
@@ -180,6 +216,71 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
             
             {/* Body */}
             <div className="p-6 space-y-5">
+
+              {/* Lead search — only in standalone mode */}
+              {isStandaloneMode && (
+                <div>
+                  <Label className="text-white mb-2 block">
+                    Associate with Lead <span className="text-gray-500 font-normal text-xs">(optional)</span>
+                  </Label>
+                  {selectedLead ? (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/15 border border-primary/30">
+                      <UserCheck className="w-4 h-4 text-primary shrink-0" />
+                      <span className="text-sm text-white flex-1">
+                        {selectedLead.first_name} {selectedLead.last_name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedLead(null)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Input
+                          value={leadQuery}
+                          onChange={(e) => setLeadQuery(e.target.value)}
+                          placeholder="Search by name (min 3 chars)…"
+                          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                          onBlur={() => setTimeout(() => setShowLeadDropdown(false), 150)}
+                          onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
+                        />
+                        {leadSearchLoading && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+                        )}
+                      </div>
+                      {showLeadDropdown && leadResults.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 rounded-lg border border-white/10 bg-gray-900 shadow-lg overflow-hidden">
+                          {leadResults.map((lead) => (
+                            <button
+                              key={lead.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                              onMouseDown={() => {
+                                setSelectedLead(lead);
+                                setLeadQuery('');
+                                setShowLeadDropdown(false);
+                              }}
+                            >
+                              {lead.first_name} {lead.last_name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {showLeadDropdown && leadResults.length === 0 && !leadSearchLoading && leadQuery.length >= 3 && (
+                        <div className="absolute z-10 w-full mt-1 rounded-lg border border-white/10 bg-gray-900 shadow-lg px-3 py-2 text-sm text-gray-500">
+                          No leads found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <Label htmlFor="title" className="text-white mb-2 block">
