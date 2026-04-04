@@ -152,7 +152,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
               >
                 <SelectValue placeholder={t('integrations.panel.funnel.select-placeholder')} />
               </SelectTrigger>
-              <SelectContent className="bg-popover border border-border z-50">
+              <SelectContent className="bg-popover border border-border z-[80]">
                 {funnels.map((funnel) => (
                   <SelectItem key={funnel.id} value={String(funnel.id)}>
                     {funnel.name}
