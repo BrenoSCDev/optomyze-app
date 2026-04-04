@@ -2127,7 +2127,13 @@ const translations = {
     'chat.inbox.clear-messages-confirm': 'Are you sure you want to clear all messages from this chat? This action cannot be undone.',
     'chat.inbox.clear-success': 'Chat messages cleared successfully',
     'chat.inbox.clear-error': 'Failed to clear messages',
-    
+    'chat.inbox.all-chats-loaded': 'All conversations loaded',
+    'chat.inbox.all-messages-loaded': 'All messages loaded',
+    'chat.inbox.start-conversation': 'Start New Conversation',
+    'chat.inbox.search-lead': 'Lead',
+    'chat.inbox.search-lead-placeholder': 'Search by name or phone...',
+    'chat.inbox.select-instance': 'Select WhatsApp Instance',
+
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
     'lead-details.back': 'Back',
@@ -2296,6 +2302,7 @@ const translations = {
     'lead-details.tabs.chat': 'Chat',
     'lead-details.tabs.chat-empty': 'No messages yet',
     'lead-details.tabs.chat-empty-desc': 'Start a conversation with this lead.',
+    'lead-details.tabs.chat-start-desc': 'Select a WhatsApp instance and send the first message to start a conversation.',
     'lead-details.tabs.products': 'Products of Interest',
     'lead-details.tabs.products-short': 'Products',
     'lead-details.tabs.custom-fields': 'Fields',
@@ -4746,6 +4753,12 @@ const translations = {
     'chat.inbox.clear-messages-confirm': 'Tem certeza que deseja limpar todas as mensagens deste chat? Esta ação não pode ser desfeita.',
     'chat.inbox.clear-success': 'Mensagens do chat limpas com sucesso',
     'chat.inbox.clear-error': 'Falha ao limpar mensagens',
+    'chat.inbox.all-chats-loaded': 'Todas as conversas carregadas',
+    'chat.inbox.all-messages-loaded': 'Todas as mensagens carregadas',
+    'chat.inbox.start-conversation': 'Iniciar Nova Conversa',
+    'chat.inbox.search-lead': 'Lead',
+    'chat.inbox.search-lead-placeholder': 'Buscar por nome ou telefone...',
+    'chat.inbox.select-instance': 'Selecionar Instância WhatsApp',
     
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -4915,6 +4928,7 @@ const translations = {
     'lead-details.tabs.chat': 'Chat',
     'lead-details.tabs.chat-empty': 'Nenhuma mensagem ainda',
     'lead-details.tabs.chat-empty-desc': 'Inicie uma conversa com este lead.',
+    'lead-details.tabs.chat-start-desc': 'Selecione uma instância WhatsApp e envie a primeira mensagem para iniciar uma conversa.',
     'lead-details.tabs.products': 'Produtos de Interesse',
     'lead-details.tabs.products-short': 'Produtos',
     'lead-details.tabs.custom-fields': 'Campos',
@@ -7094,7 +7108,13 @@ const translations = {
     'chat.inbox.clear-messages-confirm': 'Möchten Sie wirklich alle Nachrichten aus diesem Chat löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     'chat.inbox.clear-success': 'Chat-Nachrichten erfolgreich gelöscht',
     'chat.inbox.clear-error': 'Nachrichten konnten nicht gelöscht werden',
-    
+    'chat.inbox.all-chats-loaded': 'Alle Unterhaltungen geladen',
+    'chat.inbox.all-messages-loaded': 'Alle Nachrichten geladen',
+    'chat.inbox.start-conversation': 'Neue Unterhaltung starten',
+    'chat.inbox.search-lead': 'Lead',
+    'chat.inbox.search-lead-placeholder': 'Nach Name oder Telefon suchen...',
+    'chat.inbox.select-instance': 'WhatsApp-Instanz auswählen',
+
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
     'lead-details.back': 'Zurück',
@@ -7263,6 +7283,7 @@ const translations = {
     'lead-details.tabs.chat': 'Chat',
     'lead-details.tabs.chat-empty': 'Noch keine Nachrichten',
     'lead-details.tabs.chat-empty-desc': 'Starten Sie ein Gespräch mit diesem Lead.',
+    'lead-details.tabs.chat-start-desc': 'Wählen Sie eine WhatsApp-Instanz aus und senden Sie die erste Nachricht, um eine Unterhaltung zu starten.',
     'lead-details.tabs.products': 'Interessierte Produkte',
     'lead-details.tabs.products-short': 'Produkte',
     'lead-details.tabs.custom-fields': 'Felder',
@@ -9549,6 +9570,12 @@ const translations = {
     'chat.inbox.clear-messages-confirm': '¿Estás seguro de que deseas eliminar todos los mensajes de este chat? Esta acción no se puede deshacer.',
     'chat.inbox.clear-success': 'Mensajes del chat eliminados exitosamente',
     'chat.inbox.clear-error': 'Error al limpiar mensajes',
+    'chat.inbox.all-chats-loaded': 'Todas las conversaciones cargadas',
+    'chat.inbox.all-messages-loaded': 'Todos los mensajes cargados',
+    'chat.inbox.start-conversation': 'Iniciar Nueva Conversación',
+    'chat.inbox.search-lead': 'Lead',
+    'chat.inbox.search-lead-placeholder': 'Buscar por nombre o teléfono...',
+    'chat.inbox.select-instance': 'Seleccionar Instancia WhatsApp',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
@@ -9718,6 +9745,7 @@ const translations = {
     'lead-details.tabs.chat': 'Chat',
     'lead-details.tabs.chat-empty': 'Sin mensajes aún',
     'lead-details.tabs.chat-empty-desc': 'Inicie una conversación con este lead.',
+    'lead-details.tabs.chat-start-desc': 'Seleccione una instancia de WhatsApp y envíe el primer mensaje para iniciar una conversación.',
     'lead-details.tabs.products': 'Productos de Interés',
     'lead-details.tabs.products-short': 'Productos',
     'lead-details.tabs.custom-fields': 'Campos',

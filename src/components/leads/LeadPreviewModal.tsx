@@ -501,7 +501,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-background border-border z-[60]">
+        <AlertDialogContent className="bg-background border-border z-[80]">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('lead-details.delete-lead-title')}</AlertDialogTitle>
             <AlertDialogDescription>{t('lead-details.delete-lead-confirmation')}</AlertDialogDescription>

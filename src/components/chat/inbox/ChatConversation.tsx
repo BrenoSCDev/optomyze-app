@@ -4,7 +4,7 @@
  * Center panel displaying the message thread
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendWhatsAppMessage, clearWhatsAppChatMessages } from '@/services/whatsappChatApi';
+import { sendWhatsAppMessage, clearWhatsAppChatMessages, fetchChatMessages } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import { getStorageUrl } from '@/lib/constants';
 import AudioPlayer from './AudioPlayer';
@@ -61,7 +61,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   onMessageSent
 }) => {
   const { t } = useLanguage();
-  const { handleChatCleared } = useWhatsApp();
+  const { handleChatCleared, chats: contextChats } = useWhatsApp();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -72,24 +72,126 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
-  const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
-    }
-  };
+  // Message pagination state
+  const [localMessages, setLocalMessages] = useState<WhatsAppMessage[]>([]);
+  const [messagePage, setMessagePage] = useState(1);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
 
+  // Track local message IDs to avoid duplicates
+  const localMessageIdsRef = useRef<Set<number>>(new Set());
+  // Saved scroll height for position restoration after prepend
+  const savedScrollHeightRef = useRef<number | null>(null);
+
+  const getViewport = useCallback(() =>
+    scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null,
+  []);
+
+  const scrollToBottom = useCallback(() => {
+    const viewport = getViewport();
+    if (viewport) viewport.scrollTop = viewport.scrollHeight;
+  }, [getViewport]);
+
+  // Load messages when chat changes
   useEffect(() => {
-    if (chat) {
-      scrollToBottom();
+    if (!chat) {
+      setLocalMessages([]);
+      localMessageIdsRef.current = new Set();
+      setMessagePage(1);
+      setHasMoreMessages(false);
+      return;
     }
-  }, [chat]);
+    setIsLoadingMessages(true);
+    setLocalMessages([]);
+    localMessageIdsRef.current = new Set();
+    setMessagePage(1);
+
+    fetchChatMessages(chat.id, 1)
+      .then(res => {
+        const msgs = [...res.data].reverse(); // API returns newest first; reverse for display
+        msgs.forEach(m => localMessageIdsRef.current.add(m.id));
+        setLocalMessages(msgs);
+        setHasMoreMessages(res.meta.current_page < res.meta.last_page);
+        setTimeout(scrollToBottom, 50);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingMessages(false));
+  }, [chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync new messages from WebSocket (context updates selectedChat.messages)
+  useEffect(() => {
+    if (!chat) return;
+    const contextChat = contextChats.find(c => c.id === chat.id);
+    if (!contextChat?.messages?.length) return;
+
+    const newMsgs = contextChat.messages.filter(m => !localMessageIdsRef.current.has(m.id));
+    if (newMsgs.length > 0) {
+      newMsgs.forEach(m => localMessageIdsRef.current.add(m.id));
+      setLocalMessages(prev => [...prev, ...newMsgs]);
+      setTimeout(scrollToBottom, 50);
+    }
+  }, [contextChats, chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Also sync from the chat prop (sent message updates from WhatsAppInbox)
+  useEffect(() => {
+    if (!chat?.messages?.length) return;
+    const newMsgs = chat.messages.filter(m => !localMessageIdsRef.current.has(m.id));
+    if (newMsgs.length > 0) {
+      newMsgs.forEach(m => localMessageIdsRef.current.add(m.id));
+      setLocalMessages(prev => [...prev, ...newMsgs]);
+      setTimeout(scrollToBottom, 50);
+    }
+  }, [chat?.messages]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Restore scroll position after prepending older messages
+  useEffect(() => {
+    if (savedScrollHeightRef.current !== null) {
+      const viewport = getViewport();
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight - savedScrollHeightRef.current;
+      }
+      savedScrollHeightRef.current = null;
+    }
+  }, [localMessages, getViewport]);
+
+  // Load older messages when user scrolls to top
+  const loadMoreMessages = useCallback(async () => {
+    if (!chat || isLoadingMoreMessages || !hasMoreMessages) return;
+    const viewport = getViewport();
+    if (viewport) savedScrollHeightRef.current = viewport.scrollHeight;
+    setIsLoadingMoreMessages(true);
+    const nextPage = messagePage + 1;
+    try {
+      const res = await fetchChatMessages(chat.id, nextPage);
+      const olderMsgs = [...res.data].reverse().filter(m => !localMessageIdsRef.current.has(m.id));
+      olderMsgs.forEach(m => localMessageIdsRef.current.add(m.id));
+      setLocalMessages(prev => [...olderMsgs, ...prev]);
+      setHasMoreMessages(res.meta.current_page < res.meta.last_page);
+      setMessagePage(nextPage);
+    } catch {
+      savedScrollHeightRef.current = null;
+    } finally {
+      setIsLoadingMoreMessages(false);
+    }
+  }, [chat, isLoadingMoreMessages, hasMoreMessages, messagePage, getViewport]);
+
+  // Scroll-to-top detection for loading older messages
+  useEffect(() => {
+    const viewport = getViewport();
+    if (!viewport) return;
+    const handleScroll = () => {
+      if (viewport.scrollTop <= 80 && hasMoreMessages && !isLoadingMoreMessages) {
+        loadMoreMessages();
+      }
+    };
+    viewport.addEventListener('scroll', handleScroll, { passive: true });
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [getViewport, hasMoreMessages, isLoadingMoreMessages, loadMoreMessages]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [pendingMessages]);
+  }, [pendingMessages, scrollToBottom]);
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !chat?.lead?.id || !chat?.whatsapp_instance_id) {
@@ -112,7 +214,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       });
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
-      
+
       const sentMessage: WhatsAppMessage = {
         id: response.message.id,
         whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
@@ -125,6 +227,12 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         message_mode: response.message.message_mode || currentMode,
         user: response.message.user,
       };
+
+      // Add to local messages (avoids duplicate from context sync)
+      if (!localMessageIdsRef.current.has(sentMessage.id)) {
+        localMessageIdsRef.current.add(sentMessage.id);
+        setLocalMessages(prev => [...prev, sentMessage]);
+      }
 
       onMessageSent?.(sentMessage);
     } catch (error: any) {
@@ -161,6 +269,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     try {
       await clearWhatsAppChatMessages(chat.id);
       handleChatCleared(chat.id);
+      setLocalMessages([]);
+      localMessageIdsRef.current = new Set();
       toast({ title: t('chat.inbox.clear-success') });
     } catch (error: any) {
       toast({
@@ -238,7 +348,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     );
   }
 
-  const messageGroups = groupMessagesByDate(chat.messages || []);
+  const messageGroups = groupMessagesByDate(localMessages);
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-background" style={{maxHeight: "700px"}}>
@@ -302,8 +412,24 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
       {/* Messages */}
       <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
-        {chat.messages && chat.messages.length > 0 ? (
+        {isLoadingMessages ? (
+          <div className="flex items-center justify-center h-full py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : localMessages.length > 0 ? (
           <div className="space-y-4">
+            {/* Load more indicator at top */}
+            {isLoadingMoreMessages && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!hasMoreMessages && localMessages.length >= 50 && (
+              <p className="text-xs text-muted-foreground text-center py-1">
+                {t('chat.inbox.all-messages-loaded')}
+              </p>
+            )}
+
             {messageGroups.map((group, groupIndex) => (
               <div key={groupIndex} className="space-y-3">
                 {/* Date separator */}

@@ -5,13 +5,28 @@
  */
 
 import api from './api';
-import { WhatsAppChatResponse } from '@/types/whatsappChat';
+import { WhatsAppChatResponse, WhatsAppMessage, PaginationMeta } from '@/types/whatsappChat';
 
 /**
- * Fetch all WhatsApp chats
+ * Fetch paginated WhatsApp chats (20 per page)
  */
-export const fetchWhatsAppChats = async (): Promise<WhatsAppChatResponse> => {
-  const response = await api.get('/api/integrations/whatsapp-evo-chat');
+export const fetchWhatsAppChats = async (page = 1): Promise<WhatsAppChatResponse> => {
+  const response = await api.get('/api/integrations/whatsapp-evo-chat', { params: { page } });
+  return response.data;
+};
+
+export interface ChatMessagesResponse {
+  data: WhatsAppMessage[]; // newest first from API
+  meta: PaginationMeta;
+}
+
+/**
+ * Fetch paginated messages for a specific chat (50 per page, newest first)
+ */
+export const fetchChatMessages = async (chatId: number, page = 1): Promise<ChatMessagesResponse> => {
+  const response = await api.get(`/api/integrations/whatsapp-evo-chat/${chatId}/messages`, {
+    params: { page },
+  });
   return response.data;
 };
 
@@ -60,5 +75,36 @@ export const sendWhatsAppMessage = async (
  */
 export const clearWhatsAppChatMessages = async (chatId: number): Promise<{ message: string }> => {
   const response = await api.delete(`/api/integrations/whatsapp-evo-chats/${chatId}/clear-messages`);
+  return response.data;
+};
+
+export interface WhatsAppInstanceOption {
+  id: number;
+  instance_name: string;
+  status: string;
+}
+
+/**
+ * Fetch all WhatsApp instances for the company
+ */
+export const fetchWhatsAppInstances = async (): Promise<WhatsAppInstanceOption[]> => {
+  const response = await api.get('/api/integrations/whatsapp-evo-instances');
+  return response.data;
+};
+
+export interface LeadSearchResult {
+  id: number;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  funnel_id: number;
+  stage_id: number;
+}
+
+/**
+ * Search leads by name or phone for WhatsApp conversation
+ */
+export const searchLeadsForWhatsApp = async (q: string): Promise<LeadSearchResult[]> => {
+  const response = await api.get('/api/integrations/whatsapp-leads/search', { params: { q } });
   return response.data;
 };

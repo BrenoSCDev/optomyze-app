@@ -143,7 +143,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
           </div>
 
           {/* Funnel Selector */}
-          <div className="space-y-2">
+          <div className="space-y-2 z-100">
             <Label htmlFor="funnel-select">{t('integrations.panel.funnel.select-label')}</Label>
             <Select value={selectedFunnelId} onValueChange={handleFunnelChange}>
               <SelectTrigger 
@@ -152,7 +152,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
               >
                 <SelectValue placeholder={t('integrations.panel.funnel.select-placeholder')} />
               </SelectTrigger>
-              <SelectContent className="bg-popover border border-border z-50">
+              <SelectContent>
                 {funnels.map((funnel) => (
                   <SelectItem key={funnel.id} value={String(funnel.id)}>
                     {funnel.name}

@@ -22,6 +22,7 @@ import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import ChatList from './inbox/ChatList';
 import ChatConversation from './inbox/ChatConversation';
 import ChatDetails from './inbox/ChatDetails';
+import StartConversationModal from './inbox/StartConversationModal';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'list' | 'conversation' | 'details';
@@ -42,6 +43,10 @@ const WhatsAppInbox: React.FC = () => {
   
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<ViewMode>('list');
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [chatPage, setChatPage] = useState(1);
+  const [hasMoreChats, setHasMoreChats] = useState(false);
+  const [isLoadingMoreChats, setIsLoadingMoreChats] = useState(false);
 
   // Fetch chats on mount
   useEffect(() => {
@@ -63,13 +68,14 @@ const WhatsAppInbox: React.FC = () => {
   const loadChats = async () => {
     setIsLoading(true);
     setError(null);
+    setChatPage(1);
     try {
-      const response = await fetchWhatsAppChats();
-      // Sort by last_message_at descending
-      const sortedChats = (response.data || []).sort((a, b) => 
+      const response = await fetchWhatsAppChats(1);
+      const sortedChats = (response.data || []).sort((a, b) =>
         new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
       );
       setChats(sortedChats);
+      setHasMoreChats(response.meta.current_page < response.meta.last_page);
     } catch (err) {
       console.error('Failed to fetch WhatsApp chats:', err);
       setError(t('chat.inbox.error-loading'));
@@ -80,6 +86,28 @@ const WhatsAppInbox: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadMoreChats = async () => {
+    if (isLoadingMoreChats || !hasMoreChats) return;
+    setIsLoadingMoreChats(true);
+    const nextPage = chatPage + 1;
+    try {
+      const response = await fetchWhatsAppChats(nextPage);
+      setChats(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const newChats = (response.data || []).filter(c => !existingIds.has(c.id));
+        return [...prev, ...newChats].sort((a, b) =>
+          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        );
+      });
+      setHasMoreChats(response.meta.current_page < response.meta.last_page);
+      setChatPage(nextPage);
+    } catch {
+      // silently fail
+    } finally {
+      setIsLoadingMoreChats(false);
     }
   };
 
@@ -100,29 +128,22 @@ const WhatsAppInbox: React.FC = () => {
     setMobileView('conversation');
   };
 
+  // ChatConversation manages messages locally — we only update metadata here
   const handleMessageSent = (message: WhatsAppMessage) => {
     if (!selectedChat) return;
-
-    // Add the sent message to the selected chat's messages
-    const updatedChat: WhatsAppChat = {
-      ...selectedChat,
-      messages: [...(selectedChat.messages || []), message],
-      last_message_at: message.sent_at,
-    };
-
-    // Update the selected chat
-    setSelectedChat(updatedChat);
-
-    // Update the chat in the chats list and re-sort
-    setChats(prevChats => {
-      const updatedChats = prevChats.map(chat =>
-        chat.id === selectedChat.id ? updatedChat : chat
-      );
-      // Re-sort by last_message_at descending
-      return updatedChats.sort((a, b) =>
-        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-      );
-    });
+    // Update last_message_at on selectedChat (metadata only, not messages array)
+    setSelectedChat(prev => prev ? { ...prev, last_message_at: message.sent_at } : null);
+    // Update chat in list: move to top, update preview message
+    setChats(prevChats =>
+      prevChats
+        .map(c => c.id === selectedChat.id
+          ? { ...c, last_message_at: message.sent_at, messages: [message] }
+          : c
+        )
+        .sort((a, b) =>
+          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        )
+    );
   };
 
   return (
@@ -190,6 +211,10 @@ const WhatsAppInbox: React.FC = () => {
                 selectedChat={selectedChat}
                 onSelectChat={handleSelectChat}
                 isLoading={isLoading}
+                onStartConversation={() => setShowStartModal(true)}
+                onLoadMore={loadMoreChats}
+                hasMore={hasMoreChats}
+                isLoadingMore={isLoadingMoreChats}
               />
             </div>
 
@@ -213,6 +238,10 @@ const WhatsAppInbox: React.FC = () => {
                 selectedChat={selectedChat}
                 onSelectChat={handleSelectChat}
                 isLoading={isLoading}
+                onStartConversation={() => setShowStartModal(true)}
+                onLoadMore={loadMoreChats}
+                hasMore={hasMoreChats}
+                isLoadingMore={isLoadingMoreChats}
               />
             </div>
 
@@ -279,6 +308,12 @@ const WhatsAppInbox: React.FC = () => {
           </div>
         </div>
       )}
+
+      <StartConversationModal
+        open={showStartModal}
+        onClose={() => setShowStartModal(false)}
+        onSuccess={loadChats}
+      />
     </div>
   );
 };

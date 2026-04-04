@@ -288,9 +288,10 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <LeadChatSection 
-            chat={chatWithLocalMessages} 
+          <LeadChatSection
+            chat={chatWithLocalMessages}
             leadId={lead.id}
+            leadPhone={lead.phone}
             onMessageSent={handleChatMessageSent}
           />
         </TabsContent>

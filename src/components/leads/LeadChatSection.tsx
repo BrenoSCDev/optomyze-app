@@ -7,17 +7,19 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink, StickyNote } from 'lucide-react';
+import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MessageCirclePlus } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
 import { cn, extractTime } from '@/lib/utils';
 import { getStorageUrl } from '@/lib/constants';
-import { sendWhatsAppMessage } from '@/services/whatsappChatApi';
+import { sendWhatsAppMessage, fetchWhatsAppInstances, WhatsAppInstanceOption } from '@/services/whatsappChatApi';
 import { toast } from 'sonner';
 import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
 import DocumentMessage from '@/components/chat/inbox/DocumentMessage';
@@ -76,12 +78,14 @@ interface PendingMessage {
 interface LeadChatSectionProps {
   chat: LeadWhatsAppChat | null;
   leadId: number;
+  leadPhone?: string;
   onMessageSent?: (message: LeadWhatsAppMessage) => void;
 }
 
 const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   chat: initialChat,
   leadId,
+  leadPhone,
   onMessageSent
 }) => {
   const { t } = useLanguage();
@@ -93,9 +97,87 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
 
+  // Start conversation state (when no chat exists)
+  const [instances, setInstances] = useState<WhatsAppInstanceOption[]>([]);
+  const [loadingInstances, setLoadingInstances] = useState(false);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string>('');
+  const [startMessage, setStartMessage] = useState('');
+  const [isStarting, setIsStarting] = useState(false);
+  const [conversationStarted, setConversationStarted] = useState(false);
+
+  // Load instances when there's no chat
+  useEffect(() => {
+    if (!initialChat) {
+      setLoadingInstances(true);
+      fetchWhatsAppInstances()
+        .then(setInstances)
+        .catch(() => {})
+        .finally(() => setLoadingInstances(false));
+    }
+  }, [initialChat]);
+
+  // Watch context for the newly created chat after starting a conversation
+  const startedChat = useMemo(() => {
+    if (!conversationStarted || initialChat) return null;
+    const found = chats.find(c => c.lead_id === leadId);
+    if (!found) return null;
+    return {
+      id: found.id,
+      company_id: found.company_id,
+      whatsapp_instance_id: found.whatsapp_instance_id,
+      lead_id: found.lead_id,
+      remote_jid: found.remote_jid,
+      phone_number: found.phone_number,
+      is_group: found.is_group,
+      is_archived: found.is_archived,
+      last_message_at: found.last_message_at,
+      created_at: found.created_at,
+      updated_at: found.updated_at,
+      messages: (found.messages || []).map(m => ({
+        id: m.id,
+        whatsapp_evo_chat_id: m.whatsapp_evo_chat_id,
+        wa_message_id: undefined,
+        direction: m.direction,
+        type: m.type,
+        text: m.text || '',
+        media_url: m.media_url,
+        media_mime: m.media_mime,
+        media_size: m.media_size,
+        latitude: m.latitude,
+        longitude: m.longitude,
+        status: m.status,
+        sent_at: m.sent_at,
+        created_at: m.sent_at,
+        updated_at: m.sent_at,
+        user_id: m.user_id,
+        message_mode: m.message_mode,
+        user: m.user,
+      })) as LeadWhatsAppMessage[],
+      instance: found.instance,
+    } as LeadWhatsAppChat;
+  }, [conversationStarted, chats, leadId, initialChat]);
+
+  const handleStartConversation = async () => {
+    if (!selectedInstanceId || !startMessage.trim()) return;
+    setIsStarting(true);
+    try {
+      await sendWhatsAppMessage(Number(selectedInstanceId), {
+        lead_id: leadId,
+        text: startMessage.trim(),
+        message_mode: 'external',
+      });
+      setConversationStarted(true);
+      toast.success(t('chat.inbox.message-sent'));
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || t('chat.inbox.message-error'));
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
   // REAL-TIME: Merge initial messages with live WebSocket messages
   const chat = useMemo(() => {
-    if (!initialChat) return null;
+    if (!initialChat) return startedChat;
     
     const liveChat = chats.find(c => c.id === initialChat.id);
     
@@ -135,7 +217,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     }
     
     return initialChat;
-  }, [initialChat, chats]);
+  }, [initialChat, chats, startedChat]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -255,14 +337,63 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   // Empty state - no WhatsApp chat associated
   if (!chat) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-8 px-4">
         <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
           <FaWhatsapp className="w-8 h-8 text-green-500/60" />
         </div>
-        <h4 className="text-white font-medium mb-2">{t('lead-details.tabs.chat-empty')}</h4>
-        <p className="text-gray-400 text-sm text-center max-w-xs">
-          {t('lead-details.tabs.chat-empty-desc')}
+        <h4 className="text-white font-medium mb-1">{t('lead-details.tabs.chat-empty')}</h4>
+        <p className="text-gray-400 text-sm text-center max-w-xs mb-6">
+          {t('lead-details.tabs.chat-start-desc')}
         </p>
+
+        <div className="w-full max-w-sm space-y-3">
+          {leadPhone && (
+            <div className="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
+              <Phone className="h-4 w-4 text-green-500 shrink-0" />
+              <span>{leadPhone}</span>
+            </div>
+          )}
+
+          <Select
+            value={selectedInstanceId}
+            onValueChange={setSelectedInstanceId}
+            disabled={loadingInstances}
+          >
+            <SelectTrigger className="bg-white/10 border-white/10 text-white">
+              <SelectValue placeholder={t('chat.inbox.select-instance')} />
+            </SelectTrigger>
+            <SelectContent>
+              {instances.map(inst => (
+                <SelectItem key={inst.id} value={String(inst.id)}>
+                  {inst.instance_name.split('_')[0]}
+                  <span className="ml-2 text-xs text-muted-foreground">({inst.status})</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Textarea
+            value={startMessage}
+            onChange={e => setStartMessage(e.target.value)}
+            placeholder={t('chat.inbox.type-message')}
+            disabled={isStarting}
+            className="bg-white/10 border-white/10 text-white placeholder:text-gray-500 resize-none"
+            rows={3}
+          />
+
+          <Button
+            onClick={handleStartConversation}
+            disabled={!selectedInstanceId || !startMessage.trim() || isStarting}
+            className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
+          >
+            {isStarting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <MessageCirclePlus className="h-4 w-4" />
+            )}
+            {t('chat.inbox.start-conversation')}
+          </Button>
+        </div>
       </div>
     );
   }

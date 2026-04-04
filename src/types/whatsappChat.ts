@@ -79,6 +79,14 @@ export interface WhatsAppChat {
   messages: WhatsAppMessage[];
 }
 
+export interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
 export interface WhatsAppChatResponse {
   data: WhatsAppChat[];
+  meta: PaginationMeta;
 }

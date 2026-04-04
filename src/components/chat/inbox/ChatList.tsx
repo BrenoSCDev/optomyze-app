@@ -4,11 +4,12 @@
  * Left panel displaying list of WhatsApp conversations
  */
 
-import React from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User } from 'lucide-react';
+import { MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,15 +21,42 @@ interface ChatListProps {
   selectedChat: WhatsAppChat | null;
   onSelectChat: (chat: WhatsAppChat) => void;
   isLoading: boolean;
+  onStartConversation?: () => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
   chats,
   selectedChat,
   onSelectChat,
-  isLoading
+  isLoading,
+  onStartConversation,
+  onLoadMore,
+  hasMore = false,
+  isLoadingMore = false,
 }) => {
   const { t } = useLanguage();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Detect scroll-to-bottom for loading more chats
+  const handleScroll = useCallback(() => {
+    if (!onLoadMore || isLoadingMore || !hasMore) return;
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    if (scrollTop + clientHeight >= scrollHeight - 80) {
+      onLoadMore();
+    }
+  }, [onLoadMore, isLoadingMore, hasMore]);
+
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+    viewport.addEventListener('scroll', handleScroll, { passive: true });
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   const getLeadName = (chat: WhatsAppChat): string => {
     if (chat.lead?.first_name || chat.lead?.last_name) {
@@ -94,11 +122,16 @@ const ChatList: React.FC<ChatListProps> = ({
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-border/50">
+        <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <FaWhatsapp className="h-5 w-5 text-green-600" />
             {t('chat.inbox.conversations')}
           </h2>
+          {onStartConversation && (
+            <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse space-y-3 w-full p-4">
@@ -114,11 +147,16 @@ const ChatList: React.FC<ChatListProps> = ({
   if (chats.length === 0) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-border/50">
+        <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <FaWhatsapp className="h-5 w-5 text-green-600" />
             {t('chat.inbox.conversations')}
           </h2>
+          {onStartConversation && (
+            <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center space-y-2">
@@ -141,7 +179,7 @@ const ChatList: React.FC<ChatListProps> = ({
           {chats.length} {t('chat.inbox.chats-count')}
         </p>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-2 space-y-1">
           {chats.map((chat, index) => (
             <motion.div
@@ -251,6 +289,18 @@ const ChatList: React.FC<ChatListProps> = ({
               </div>
             </motion.div>
           ))}
+
+          {/* Infinite scroll indicators */}
+          {isLoadingMore && (
+            <div className="flex justify-center py-3">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {!hasMore && chats.length > 0 && (
+            <p className="text-xs text-muted-foreground text-center py-3">
+              {t('chat.inbox.all-chats-loaded')}
+            </p>
+          )}
         </div>
       </ScrollArea>
     </div>
