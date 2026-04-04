@@ -9,13 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { 
-  ShoppingBag, 
-  Package, 
-  Receipt, 
-  FileText, 
-  Upload, 
-  Edit, 
-  ChevronDown, 
+  ShoppingBag,
+  Package,
+  Receipt,
+  FileText,
+  Upload,
+  ChevronDown,
   ChevronUp,
   User,
   Calendar,
@@ -194,7 +193,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const [lostDialogOpen, setLostDialogOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [localStatus, setLocalStatus] = useState(sale.status);
-  
+  const [localStage, setLocalStage] = useState(sale.stage);
   const getStatusColor = (status: string) => {
     const colors = {
       'pending': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
@@ -321,8 +320,9 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const handleCloseDeal = async () => {
     setIsUpdatingStatus(true);
     try {
-      await api.put(`/api/sales/${sale.id}/status`, { status: 'closed' });
+      const res = await api.put(`/api/sales/${sale.id}/status`, { status: 'closed' });
       setLocalStatus('closed');
+      if (res.data?.data?.stage) setLocalStage(res.data.data.stage);
       onUpdated?.(sale.id, { status: 'closed' });
       toast({
         title: t('lead-details.close-deal-success'),
@@ -344,8 +344,9 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const handleMarkAsLost = async () => {
     setIsUpdatingStatus(true);
     try {
-      await api.put(`/api/sales/${sale.id}/status`, { status: 'lost' });
+      const res = await api.put(`/api/sales/${sale.id}/status`, { status: 'lost' });
       setLocalStatus('lost');
+      if (res.data?.data?.stage) setLocalStage(res.data.data.stage);
       onUpdated?.(sale.id, { status: 'lost' });
       toast({
         title: t('lead-details.mark-lost-success'),
@@ -396,17 +397,17 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               <span className="text-foreground font-medium">
                 {sale.name || `${t('lead-details.order')} #${sale.id}`}
               </span>
-              {sale.stage && (
-                <Badge 
+              {localStage && (
+                <Badge
                   className="text-xs font-medium border flex items-center gap-1"
-                  style={{ 
-                    backgroundColor: `${sale.stage.color}20`,
-                    color: sale.stage.color,
-                    borderColor: `${sale.stage.color}50`
+                  style={{
+                    backgroundColor: `${localStage.color}20`,
+                    color: localStage.color,
+                    borderColor: `${localStage.color}50`
                   }}
                 >
                   <CircleDot className="w-3 h-3" />
-                  {sale.stage.name}
+                  {localStage.name}
                 </Badge>
               )}
               {sale.funnel && (
@@ -671,15 +672,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           <Upload className="w-3 h-3 mr-1" />
           {t('lead-details.upload-document')}
         </Button>
-        <Button 
-          variant="outline" 
-          size="icon"
-          className="glass-card h-8 w-8"
-          disabled
-        >
-          <Edit className="w-4 h-4" />
-        </Button>
-        <Button 
+        <Button
           variant="outline" 
           size="icon"
           className="glass-card h-8 w-8 hover:bg-destructive/20 hover:text-destructive hover:border-destructive/50"
@@ -894,6 +887,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </motion.div>
   );
 };

@@ -14,6 +14,8 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         { name: 'type', type: 'string', required: false, description: t('api.params.product-type') },
         { name: 'category', type: 'string', required: false, description: t('api.params.product-category') },
         { name: 'search', type: 'string', required: false, description: t('api.params.product-search') },
+        { name: 'with_images', type: 'boolean', required: false, description: t('api.params.product-with-images') },
+        { name: 'with_custom_fields', type: 'boolean', required: false, description: t('api.params.product-with-custom-fields') },
         { name: 'per_page', type: 'integer', required: false, description: t('api.params.per-page') },
         { name: 'page', type: 'integer', required: false, description: t('api.params.page') },
       ],
@@ -36,12 +38,40 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
                 is_active: true,
                 metadata: null,
                 created_at: "2026-01-15T08:00:00.000Z",
-                primary_image: { id: 3, url: "https://yourdomain.com/storage/products/ent.jpg" }
+                primary_image: { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1 }
               }
             ],
             last_page: 2,
             per_page: 20,
             total: 34
+          }
+        },
+        {
+          status: 200,
+          label: '200 OK — with_images=1&with_custom_fields=1',
+          body: {
+            current_page: 1,
+            data: [
+              {
+                id: 1,
+                name: "Enterprise Plan",
+                sku: "ENT-001",
+                base_price: 1200.00,
+                type: "service",
+                is_active: true,
+                primary_image: { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1 },
+                images: [
+                  { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1, alt_text: null },
+                  { id: 4, url: "products/ent-2.jpg", is_primary: false, display_order: 2, alt_text: null }
+                ],
+                fields: [
+                  { id: 1, field_type: "text", field_value: "12 months", created_at: "2026-01-15T08:00:00.000Z" }
+                ]
+              }
+            ],
+            last_page: 1,
+            per_page: 20,
+            total: 1
           }
         }
       ]

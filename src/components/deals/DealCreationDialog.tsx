@@ -23,6 +23,23 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { saleService, CreateSalePayload } from '@/services/saleApi';
 import { getSettings, defaultSettings } from '@/services/settingsApi';
+
+export interface EditDeal {
+  id: number;
+  name: string;
+  notes?: string | null;
+  stage_id: number;
+  pricing_model: string;
+  commission_type?: string | null;
+  commission_value?: number | null;
+  reference_value?: number | null;
+  lead?: { id: number; first_name: string; last_name: string } | null;
+  lead_id?: number;
+  items?: Array<{ product_id: number; product_name?: string; name?: string; quantity: number; unit_price: number; total_price: number }>;
+  charges?: Array<{ name: string; type: 'percentage' | 'fixed'; value: number }>;
+  discounts?: Array<{ name: string; type: 'percentage' | 'fixed'; value: number }>;
+  subtotal?: number;
+}
 import {
   searchLeadsWithProducts,
   searchProducts,
@@ -49,6 +66,8 @@ interface DealCreationDialogProps {
   stages: any[];
   selectedStageId?: string;
   onDealCreated: () => void;
+  editDeal?: EditDeal | null;
+  onDealUpdated?: () => void;
 }
 
 export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
@@ -58,7 +77,10 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   stages,
   selectedStageId,
   onDealCreated,
+  editDeal,
+  onDealUpdated,
 }) => {
+  const isEditMode = !!editDeal;
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -101,14 +123,48 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualValue, setManualValue] = useState<number>(0);
 
-  // Set stage from props
+  // Set stage from props or editDeal
   useEffect(() => {
-    if (selectedStageId) {
+    if (editDeal) {
+      setStageId(editDeal.stage_id.toString());
+      setDealName(editDeal.name || '');
+      setNotes(editDeal.notes || '');
+      setPricingModel((editDeal.pricing_model as PricingModel) || 'product');
+      setCommissionType((editDeal.commission_type as ChargeType) || 'percentage');
+      setCommissionValue(editDeal.commission_value ?? 0);
+      setCharges(
+        (editDeal.charges || []).map(c => ({ id: generateId(), name: c.name, type: c.type, value: c.value }))
+      );
+      setDiscounts(
+        (editDeal.discounts || []).map(d => ({ id: generateId(), name: d.name, type: d.type, value: d.value }))
+      );
+      // Set a mock selectedLead so product/pricing sections render
+      if (editDeal.lead) {
+        const mockLead = {
+          id: editDeal.lead.id,
+          first_name: editDeal.lead.first_name,
+          last_name: editDeal.lead.last_name,
+          products: (editDeal.items || []).map(item => ({
+            id: item.product_id,
+            name: item.product_name || item.name || '',
+            pivot: {
+              lead_id: editDeal.lead!.id,
+              product_id: item.product_id,
+              quantity: item.quantity,
+              unit_price: item.unit_price.toString(),
+              total_price: item.total_price.toString(),
+            },
+          })),
+        } as LeadWithProducts;
+        setSelectedLead(mockLead);
+        setLeadQuery(`${editDeal.lead.first_name} ${editDeal.lead.last_name}`);
+      }
+    } else if (selectedStageId) {
       setStageId(selectedStageId);
     } else if (stages.length > 0) {
       setStageId(stages[0].id.toString());
     }
-  }, [stages, selectedStageId]);
+  }, [stages, selectedStageId, editDeal]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -269,7 +325,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
     setCharges([]); setDiscounts([]); setNotes(''); setManualValue(0);
   };
 
-  const handleClose = () => { resetForm(); onClose(); };
+  const handleClose = () => { if (!isEditMode) resetForm(); onClose(); };
 
   const handleSubmit = async () => {
     if (!selectedLead) { toast({ title: 'Validation', description: 'Please select a lead.', variant: 'destructive' }); return; }
@@ -290,37 +346,55 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
     setIsSubmitting(true);
     try {
-      const payload: CreateSalePayload = {
-        pricing_model: pricingModel,
-        product_ids: leadProducts.map(p => p.id),
-        funnel_id: Number(funnelId),
-        stage_id: Number(stageId),
-        name: dealName.trim(),
-      };
-
-      if (leadProducts.length === 0 && pricingModel === 'product' && manualValue > 0) {
-        payload.manual_value = manualValue;
+      if (isEditMode && editDeal) {
+        const updatePayload: Partial<Omit<CreateSalePayload, 'funnel_id'>> = {
+          name: dealName.trim(),
+          stage_id: Number(stageId),
+          pricing_model: pricingModel,
+          notes: notes.trim() || undefined,
+          charges: charges.filter(c => c.name.trim() && c.value > 0).map(c => ({ name: c.name, type: c.type, value: c.value })),
+          discounts: discounts.filter(d => d.name.trim() && d.value > 0).map(d => ({ name: d.name, type: d.type, value: d.value })),
+        };
+        if (pricingModel === 'commission' || pricingModel === 'hybrid') {
+          updatePayload.commission_type = commissionType;
+          updatePayload.commission_value = commissionValue;
+          updatePayload.reference_value = productsSubtotal;
+        }
+        await saleService.updateSale(editDeal.id, updatePayload);
+        toast({ title: 'Success', description: 'Deal updated successfully.' });
+        onDealUpdated?.();
+        onClose();
+      } else {
+        const payload: CreateSalePayload = {
+          pricing_model: pricingModel,
+          product_ids: leadProducts.map(p => p.id),
+          funnel_id: Number(funnelId),
+          stage_id: Number(stageId),
+          name: dealName.trim(),
+        };
+        if (leadProducts.length === 0 && pricingModel === 'product' && manualValue > 0) {
+          payload.manual_value = manualValue;
+        }
+        if (pricingModel === 'commission' || pricingModel === 'hybrid') {
+          payload.commission_type = commissionType;
+          payload.commission_value = commissionValue;
+          payload.reference_value = productsSubtotal;
+        }
+        if (charges.length > 0) {
+          payload.charges = charges.filter(c => c.name.trim() && c.value > 0).map(c => ({ name: c.name, type: c.type, value: c.value }));
+        }
+        if (discounts.length > 0) {
+          payload.discounts = discounts.filter(d => d.name.trim() && d.value > 0).map(d => ({ name: d.name, type: d.type, value: d.value }));
+        }
+        if (notes.trim()) payload.notes = notes.trim();
+        await saleService.createSale(selectedLead.id, payload);
+        toast({ title: 'Success', description: 'Deal created successfully.' });
+        resetForm();
+        onDealCreated();
+        onClose();
       }
-      if (pricingModel === 'commission' || pricingModel === 'hybrid') {
-        payload.commission_type = commissionType;
-        payload.commission_value = commissionValue;
-        payload.reference_value = productsSubtotal;
-      }
-      if (charges.length > 0) {
-        payload.charges = charges.filter(c => c.name.trim() && c.value > 0).map(c => ({ name: c.name, type: c.type, value: c.value }));
-      }
-      if (discounts.length > 0) {
-        payload.discounts = discounts.filter(d => d.name.trim() && d.value > 0).map(d => ({ name: d.name, type: d.type, value: d.value }));
-      }
-      if (notes.trim()) payload.notes = notes.trim();
-
-      await saleService.createSale(selectedLead.id, payload);
-      toast({ title: 'Success', description: 'Deal created successfully.' });
-      resetForm();
-      onDealCreated();
-      onClose();
     } catch (error: any) {
-      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to create deal.', variant: 'destructive' });
+      toast({ title: 'Error', description: error.response?.data?.message || (isEditMode ? 'Failed to update deal.' : 'Failed to create deal.'), variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -335,7 +409,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -351,7 +425,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               <div className="p-2 rounded-lg bg-gradient-deal">
                 <Briefcase className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-xl font-semibold text-white">Create New Deal</h2>
+              <h2 className="text-xl font-semibold text-white">{isEditMode ? 'Edit Deal' : 'Create New Deal'}</h2>
             </div>
             <button onClick={handleClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors" disabled={isSubmitting}>
               <X className="h-5 w-5 text-white/70" />
@@ -365,44 +439,54 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               {/* 1. Lead Search */}
               <div className="space-y-3">
                 <Label className="text-white font-medium flex items-center gap-2">
-                  <User className="w-4 h-4" /> Lead *
+                  <User className="w-4 h-4" /> Lead {!isEditMode && '*'}
                 </Label>
-                <div ref={leadSearchRef} className="relative">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                    <Input
-                      value={leadQuery}
-                      onChange={(e) => handleLeadSearch(e.target.value)}
-                      onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
-                      placeholder="Search lead by name..."
-                      className="pl-9 bg-white/5 border-deal/20 text-white placeholder:text-white/40"
-                      disabled={isSubmitting}
-                    />
-                    {isSearchingLeads && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-deal animate-spin" />}
-                  </div>
-                  {showLeadDropdown && leadResults.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                      {leadResults.map(lead => (
-                        <button
-                          key={lead.id}
-                          onClick={() => handleSelectLead(lead)}
-                          className="w-full text-left px-4 py-2.5 hover:bg-white/10 transition-colors flex items-center justify-between"
-                        >
-                          <span className="text-white text-sm">{lead.first_name} {lead.last_name}</span>
-                          <span className="text-xs text-white/40">{lead.products.length} product(s)</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {selectedLead && (
+                {isEditMode ? (
                   <div className="flex items-center gap-2 p-2 bg-deal/10 border border-deal/20 rounded-lg">
                     <User className="w-4 h-4 text-deal" />
-                    <span className="text-sm text-white">{selectedLead.first_name} {selectedLead.last_name}</span>
-                    <button onClick={() => { setSelectedLead(null); setLeadQuery(''); }} className="ml-auto text-white/40 hover:text-white">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <span className="text-sm text-white">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : 'Unknown Lead'}</span>
+                    <span className="ml-auto text-xs text-white/30">locked</span>
                   </div>
+                ) : (
+                  <>
+                    <div ref={leadSearchRef} className="relative">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                        <Input
+                          value={leadQuery}
+                          onChange={(e) => handleLeadSearch(e.target.value)}
+                          onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
+                          placeholder="Search lead by name..."
+                          className="pl-9 bg-white/5 border-deal/20 text-white placeholder:text-white/40"
+                          disabled={isSubmitting}
+                        />
+                        {isSearchingLeads && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-deal animate-spin" />}
+                      </div>
+                      {showLeadDropdown && leadResults.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {leadResults.map(lead => (
+                            <button
+                              key={lead.id}
+                              onClick={() => handleSelectLead(lead)}
+                              className="w-full text-left px-4 py-2.5 hover:bg-white/10 transition-colors flex items-center justify-between"
+                            >
+                              <span className="text-white text-sm">{lead.first_name} {lead.last_name}</span>
+                              <span className="text-xs text-white/40">{lead.products.length} product(s)</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {selectedLead && (
+                      <div className="flex items-center gap-2 p-2 bg-deal/10 border border-deal/20 rounded-lg">
+                        <User className="w-4 h-4 text-deal" />
+                        <span className="text-sm text-white">{selectedLead.first_name} {selectedLead.last_name}</span>
+                        <button onClick={() => { setSelectedLead(null); setLeadQuery(''); }} className="ml-auto text-white/40 hover:text-white">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -459,6 +543,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                               <td className="p-3 text-center text-gray-300">{p.pivot.quantity}</td>
                               <td className="p-3 text-right text-gray-300">{formatPrice(parseFloat(p.pivot.unit_price))}</td>
                               <td className="p-3 text-right text-deal font-medium">{formatPrice(parseFloat(p.pivot.total_price))}</td>
+                              {!isEditMode && (
                               <td className="p-3 text-center">
                                 <button
                                   onClick={() => handleRemoveProduct(p.id)}
@@ -469,6 +554,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </td>
+                              )}
                             </tr>
                           ))}
                         </tbody>
@@ -498,8 +584,8 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     </div>
                   )}
 
-                  {/* Add Product Search */}
-                  <div ref={productSearchRef} className="relative">
+                  {/* Add Product Search — hidden in edit mode */}
+                  {!isEditMode && <div ref={productSearchRef} className="relative">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                       <Input
@@ -527,7 +613,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                         ))}
                       </div>
                     )}
-                  </div>
+                  </div>}
                 </div>
               )}
 
@@ -744,8 +830,11 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             </button>
             <button type="button" onClick={handleSubmit}
               className="flex-1 px-4 py-3 rounded-lg bg-gradient-deal text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              disabled={isSubmitting || !selectedLead}>
-              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</> : <><Briefcase className="w-4 h-4" /> Create Deal</>}
+              disabled={isSubmitting || (!isEditMode && !selectedLead)}>
+              {isSubmitting
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> {isEditMode ? 'Saving...' : 'Creating...'}</>
+                : <><Briefcase className="w-4 h-4" /> {isEditMode ? 'Save Changes' : 'Create Deal'}</>
+              }
             </button>
           </div>
         </motion.div>

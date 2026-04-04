@@ -288,7 +288,7 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
               <SelectTrigger className={formErrors.type ? 'border-destructive' : ''}>
                 <SelectValue placeholder="Select stage type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[300]">
                 {stageTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}

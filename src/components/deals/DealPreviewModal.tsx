@@ -26,6 +26,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { downloadPrivateFile } from '@/hooks/usePrivateFile';
 import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
+import { DealCreationDialog, type EditDeal } from '@/components/deals/DealCreationDialog';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -51,6 +52,8 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
   const [previewDoc, setPreviewDoc] = useState<any>(null);
   const [confirmDeleteDoc, setConfirmDeleteDoc] = useState<any>(null);
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [funnelStages, setFunnelStages] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen && dealId) {
@@ -77,6 +80,17 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenEdit = async () => {
+    if (!sale?.funnel_id) return;
+    if (funnelStages.length === 0) {
+      try {
+        const res = await api.get(`/api/funnels/${sale.funnel_id}/stages`);
+        setFunnelStages(res.data.stages || []);
+      } catch { /* ignore */ }
+    }
+    setEditDialogOpen(true);
   };
 
   const formatCurrency = (amount: number | string, currency: string = companyCurrency) => {
@@ -276,7 +290,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         variant="outline"
                         size="sm"
                         className="border-deal/20 text-deal hover:bg-deal/10"
-                        onClick={() => toast.info('Edit functionality coming soon')}
+                        onClick={handleOpenEdit}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
@@ -735,6 +749,37 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Deal Dialog */}
+      {sale && (
+        <DealCreationDialog
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          funnelId={String(sale.funnel_id || '')}
+          stages={funnelStages}
+          editDeal={{
+            id: sale.id,
+            name: sale.name,
+            notes: sale.notes,
+            stage_id: sale.stage?.id || sale.stage_id,
+            pricing_model: sale.pricing_model || 'product',
+            commission_type: sale.commission_type,
+            commission_value: sale.commission_value,
+            reference_value: sale.reference_value,
+            lead: sale.lead,
+            lead_id: sale.lead_id,
+            items: sale.items,
+            charges: sale.charges,
+            discounts: sale.discounts,
+            subtotal: sale.subtotal,
+          } as EditDeal}
+          onDealCreated={() => {}}
+          onDealUpdated={() => {
+            fetchDealData(String(sale.id));
+            setEditDialogOpen(false);
+          }}
+        />
+      )}
     </>
   );
 };

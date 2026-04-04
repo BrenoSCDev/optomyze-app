@@ -90,6 +90,19 @@ export const saleService = {
   },
 
   /**
+   * Update an existing sale (name, notes, stage, charges, discounts, pricing model)
+   */
+  async updateSale(saleId: number, payload: Partial<Omit<CreateSalePayload, 'funnel_id'>>): Promise<SaleResponse> {
+    try {
+      const response = await api.put(`/api/sales/${saleId}`, payload);
+      return response.data.sale || response.data;
+    } catch (error) {
+      console.error('Error updating sale:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Update a sale's status (close or mark as lost)
    */
   async updateSaleStatus(saleId: number, status: 'closed' | 'lost'): Promise<SaleResponse> {
