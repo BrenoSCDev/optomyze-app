@@ -22,6 +22,18 @@ const ChatListImageThumb: React.FC<{ path: string | undefined }> = ({ path }) =>
   return <img src={url} alt="" className="w-5 h-5 rounded object-cover shrink-0" />;
 };
 
+const ChatAvatar: React.FC<{ path: string | null | undefined; name: string }> = ({ path, name }) => {
+  const url = usePrivateFile(path ?? undefined);
+  if (url) {
+    return <img src={url} alt={name} className="w-10 h-10 rounded-full object-cover shrink-0" />;
+  }
+  return (
+    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+      <FaWhatsapp className="h-5 w-5 text-green-600" />
+    </div>
+  );
+};
+
 interface ChatListProps {
   chats: WhatsAppChat[];
   selectedChat: WhatsAppChat | null;
@@ -202,11 +214,16 @@ const ChatList: React.FC<ChatListProps> = ({
                   : "bg-background/50"
               )}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start gap-3">
+                <ChatAvatar path={chat.profile_pic_url} name={getLeadName(chat)} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="font-medium truncate">
                       {getLeadName(chat)}
+                    </span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                      <Clock className="h-3 w-3" />
+                      {formatTime(chat.last_message_at)}
                     </span>
                   </div>
                   {(() => {
@@ -277,12 +294,6 @@ const ChatList: React.FC<ChatListProps> = ({
                       {chat.instance?.instance_name?.split('_')[0] || 'Instance'}
                     </Badge>
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {formatTime(chat.last_message_at)}
-                  </span>
                 </div>
               </div>
             </motion.div>

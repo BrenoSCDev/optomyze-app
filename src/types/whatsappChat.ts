@@ -72,6 +72,7 @@ export interface WhatsAppChat {
   is_group: number;
   is_archived: number;
   last_message_at: string;
+  profile_pic_url?: string | null;
   created_at: string;
   updated_at: string;
   instance: WhatsAppInstance;

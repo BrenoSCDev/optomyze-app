@@ -144,6 +144,18 @@ const WhatsAppPrivateDocument: React.FC<{
   );
 };
 
+const ChatHeaderAvatar: React.FC<{ profilePicPath: string | null | undefined }> = ({ profilePicPath }) => {
+  const url = usePrivateFile(profilePicPath ?? undefined);
+  if (url) {
+    return <img src={url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />;
+  }
+  return (
+    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+      <User className="h-5 w-5 text-green-600" />
+    </div>
+  );
+};
+
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
   onBack?: () => void;
@@ -550,9 +562,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-            <User className="h-5 w-5 text-green-600" />
-          </div>
+          <ChatHeaderAvatar profilePicPath={chat.profile_pic_url} />
           <div className="flex-1 min-w-0">
             {chat.lead?.id ? (
               <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left">
