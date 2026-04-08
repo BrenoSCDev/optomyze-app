@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2 } from 'lucide-react';
+import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Paperclip, Mic } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendWhatsAppMessage, clearWhatsAppChatMessages, fetchChatMessages } from '@/services/whatsappChatApi';
+import { sendWhatsAppMessage, sendWhatsAppMedia, clearWhatsAppChatMessages, fetchChatMessages } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -169,6 +169,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isSendingMedia, setIsSendingMedia] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [leadPreviewOpen, setLeadPreviewOpen] = useState(false);
@@ -365,6 +370,87 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setPendingMessages(prev => prev.filter(m => m.id !== pendingMessage.id));
     setMessageText(pendingMessage.text);
     setMessageMode(pendingMessage.messageMode);
+  };
+
+  const handleSendMedia = useCallback(async (file: File, type: 'image' | 'audio') => {
+    if (!chat?.lead?.id || !chat?.whatsapp_instance_id) return;
+
+    const tempId = `pending-media-${Date.now()}`;
+    setIsSendingMedia(true);
+    setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: 'external' }]);
+
+    try {
+      const response = await sendWhatsAppMedia(chat.whatsapp_instance_id, chat.lead.id, type, file, 'external');
+
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
+
+      const sentMessage: WhatsAppMessage = {
+        id: response.message.id,
+        whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
+        direction: 'outgoing',
+        type: type,
+        text: null,
+        media_url: response.message.media_url,
+        media_mime: response.message.media_mime,
+        media_size: response.message.media_size,
+        status: response.message.status,
+        sent_at: response.message.sent_at,
+        user_id: response.message.user_id,
+        message_mode: 'external',
+        user: response.message.user,
+      };
+
+      if (!localMessageIdsRef.current.has(sentMessage.id)) {
+        localMessageIdsRef.current.add(sentMessage.id);
+        setLocalMessages(prev => [...prev, sentMessage]);
+      }
+
+      onMessageSent?.(sentMessage);
+    } catch (error: any) {
+      setPendingMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m));
+      toast({
+        title: t('chat.inbox.message-error'),
+        description: error?.response?.data?.message || t('chat.inbox.message-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingMedia(false);
+    }
+  }, [chat?.lead?.id, chat?.whatsapp_instance_id, onMessageSent, t]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleSendMedia(file, 'image');
+    e.target.value = '';
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          if (audioChunksRef.current.length > 0) {
+            const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+            handleSendMedia(file, 'audio');
+          }
+        };
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+        setIsRecording(true);
+      } catch {
+        toast({ title: 'Microphone access denied', variant: 'destructive' });
+      }
+    }
   };
 
   const handleClearMessages = async () => {
@@ -847,7 +933,39 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
           </Button>
         </div>
 
+        {/* Hidden image file input */}
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageSelect}
+        />
+
+        {/* Recording indicator */}
+        {isRecording && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+            <span className="text-xs text-destructive font-medium flex-1">Recording audio...</span>
+            <button onClick={toggleRecording} className="text-destructive hover:text-destructive/80">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
+          {messageMode === 'external' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isSendingMedia || !chat.lead?.id}
+              className="shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
+              title="Send image"
+            >
+              {isSendingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+            </Button>
+          )}
           <Input
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
@@ -859,6 +977,23 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               messageMode === 'internal' && "border-amber-300 dark:border-amber-700"
             )}
           />
+          {messageMode === 'external' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleRecording}
+              disabled={isSendingMedia || !chat.lead?.id}
+              className={cn(
+                "shrink-0 h-9 w-9",
+                isRecording
+                  ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title={isRecording ? 'Stop recording' : 'Record audio'}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             onClick={handleSendMessage}
             disabled={!messageText.trim() || isSending || !chat.lead?.id}

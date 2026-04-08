@@ -41,7 +41,11 @@ export interface SentMessageData {
   whatsapp_evo_chat_id: number;
   wa_message_id: string;
   direction: 'incoming' | 'outgoing';
+  type?: string;
   text: string;
+  media_url?: string | null;
+  media_mime?: string | null;
+  media_size?: number | null;
   status: string;
   sent_at: string;
   updated_at: string;
@@ -66,6 +70,29 @@ export const sendWhatsAppMessage = async (
   const response = await api.post(
     `/api/integrations/whatsapp-evo-chat/message/${instanceId}`,
     payload
+  );
+  return response.data;
+};
+
+/**
+ * Send a WhatsApp media message (image or audio) to a lead
+ */
+export const sendWhatsAppMedia = async (
+  instanceId: number,
+  leadId: number,
+  type: 'image' | 'audio',
+  file: File,
+  messageMode: 'external' | 'internal' = 'external'
+): Promise<SendMessageResponse> => {
+  const formData = new FormData();
+  formData.append('lead_id', String(leadId));
+  formData.append('type', type);
+  formData.append('file', file);
+  formData.append('message_mode', messageMode);
+  const response = await api.post(
+    `/api/integrations/whatsapp-evo-chat/media/${instanceId}`,
+    formData,
+    { headers: { 'Content-Type': undefined } }
   );
   return response.data;
 };
