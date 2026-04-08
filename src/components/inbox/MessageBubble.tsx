@@ -3,6 +3,7 @@ import { ChatMessage } from '@/services/inboxChatApi';
 import { Check } from 'lucide-react';
 import AudioMessagePlayer from './AudioMessage';
 import { extractTime } from '@/lib/utils';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -27,26 +28,13 @@ function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function getAvatarUrl(profilePicUrl: string | null | undefined): string | null {
-  if (!profilePicUrl) return null;
-  if (profilePicUrl.startsWith('http://') || profilePicUrl.startsWith('https://')) return profilePicUrl;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  return `${baseUrl}/${profilePicUrl.replace(/^\//, '')}`;
-}
-
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isOwn, showSender, showDaySeparator,
   selectMode = false, isSelected = false, onToggleSelect,
 }) => {
   const time = extractTime(message.created_at);
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-
-  const getFileUrl = (url: string) => {
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${baseUrl}/${url.replace(/^\//, '')}`;
-  };
-
-  const avatarUrl = getAvatarUrl(message.sender.profile_pic_url);
+  const fileUrl = usePrivateFile(message.file_url);
+  const avatarUrl = usePrivateFile(message.sender.profile_pic_url);
 
   const handleClick = () => {
     if (selectMode && onToggleSelect) {
@@ -111,18 +99,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               <p className="whitespace-pre-wrap break-words">{message.body}</p>
             )}
 
-            {message.type === 'image' && message.file_url && (
+            {message.type === 'image' && fileUrl && (
               <img
-                src={getFileUrl(message.file_url)}
+                src={fileUrl}
                 alt="Image"
                 className="rounded-lg max-w-full max-h-60 object-cover cursor-pointer"
-                onClick={(e) => { if (!selectMode) { e.stopPropagation(); window.open(getFileUrl(message.file_url!), '_blank'); } }}
+                onClick={(e) => { if (!selectMode) { e.stopPropagation(); window.open(fileUrl, '_blank'); } }}
               />
             )}
 
-            {message.type === 'audio' && message.file_url && (
+            {message.type === 'audio' && fileUrl && (
               <AudioMessagePlayer
-                src={getFileUrl(message.file_url)}
+                src={fileUrl}
                 duration={message.body || '0:00'}
                 isOwn={isOwn}
               />

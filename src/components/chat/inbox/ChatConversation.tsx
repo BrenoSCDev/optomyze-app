@@ -17,9 +17,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
 import { sendWhatsAppMessage, clearWhatsAppChatMessages, fetchChatMessages } from '@/services/whatsappChatApi';
 import { toast } from '@/hooks/use-toast';
-import { getStorageUrl } from '@/lib/constants';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
 import ContactMessage from './ContactMessage';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import {
@@ -39,6 +39,110 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useWhatsApp } from '@/contexts/WhatsAppContext';
+
+/** Renders a WhatsApp image message fetched through the authenticated backend. */
+const WhatsAppPrivateImage: React.FC<{
+  path: string;
+  onOpenLightbox: (url: string) => void;
+  isInternalNote: boolean;
+  direction: string;
+  status?: string;
+  sentAt: string;
+}> = ({ path, onOpenLightbox, isInternalNote, direction, status, sentAt }) => {
+  const url = usePrivateFile(path);
+
+  return (
+    <div className="space-y-1">
+      {url ? (
+        <button onClick={() => onOpenLightbox(url)} className="block">
+          <img
+            src={url}
+            alt="Shared image"
+            className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+            loading="lazy"
+          />
+        </button>
+      ) : (
+        <div className="w-48 h-32 rounded-md bg-muted/40 animate-pulse" />
+      )}
+      <div className={cn('flex items-center gap-1 px-2 pb-1', direction === 'outgoing' ? 'justify-end' : 'justify-start')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : direction === 'outgoing' ? 'text-green-100' : 'text-muted-foreground')}>
+          {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        {direction === 'outgoing' && status && !isInternalNote && (
+          <span className="text-xs text-green-100">• {status}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** Renders a WhatsApp audio message fetched through the authenticated backend. */
+const WhatsAppPrivateAudio: React.FC<{
+  path: string;
+  isOutgoing: boolean;
+  isInternalNote: boolean;
+  status?: string;
+  sentAt: string;
+}> = ({ path, isOutgoing, isInternalNote, status, sentAt }) => {
+  const url = usePrivateFile(path);
+
+  return (
+    <div className="space-y-2">
+      {url ? (
+        <AudioPlayer src={url} isOutgoing={isOutgoing} />
+      ) : (
+        <div className="w-48 h-10 rounded-md bg-muted/40 animate-pulse" />
+      )}
+      <div className={cn('flex items-center gap-1', isOutgoing ? 'justify-end' : 'justify-start')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-green-100' : 'text-muted-foreground')}>
+          {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        {isOutgoing && status && !isInternalNote && (
+          <span className="text-xs text-green-100">• {status}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** Renders a WhatsApp document message fetched through the authenticated backend. */
+const WhatsAppPrivateDocument: React.FC<{
+  path: string;
+  fileName: string;
+  mimeType?: string | null;
+  fileSize?: number | null;
+  isOutgoing: boolean;
+  isInternalNote: boolean;
+  status?: string;
+  sentAt: string;
+}> = ({ path, fileName, mimeType, fileSize, isOutgoing, isInternalNote, status, sentAt }) => {
+  const url = usePrivateFile(path);
+
+  return (
+    <div className="space-y-1">
+      {url ? (
+        <DocumentMessage
+          fileName={fileName}
+          fileUrl={url}
+          mimeType={mimeType}
+          fileSize={fileSize}
+          isOutgoing={isOutgoing && !isInternalNote}
+        />
+      ) : (
+        <div className="w-48 h-12 rounded-md bg-muted/40 animate-pulse" />
+      )}
+      <div className={cn('flex items-center gap-1 px-1', isOutgoing ? 'justify-end' : 'justify-start')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-green-100' : 'text-muted-foreground')}>
+          {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        {isOutgoing && status && !isInternalNote && (
+          <span className="text-xs text-green-100">• {status}</span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface ChatConversationProps {
   chat: WhatsAppChat | null;
@@ -499,72 +603,34 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
                       {message.type === 'image' && message.media_url ? (
                         <div className="space-y-1">
-                          <button 
-                            onClick={() => setLightboxImage(getStorageUrl(message.media_url) || null)}
-                            className="block"
-                          >
-                            <img
-                              src={getStorageUrl(message.media_url)}
-                              alt="Shared image"
-                              className="rounded-md max-w-full max-h-64 object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                              loading="lazy"
-                            />
-                          </button>
+                          <WhatsAppPrivateImage
+                            path={message.media_url}
+                            onOpenLightbox={setLightboxImage}
+                            isInternalNote={isInternalNote(message)}
+                            direction={message.direction}
+                            status={message.status}
+                            sentAt={message.sent_at}
+                          />
                           {message.text && (
                             <p className={cn("text-sm whitespace-pre-wrap break-words px-2 pt-1", isInternalNote(message) && "text-amber-900 dark:text-amber-100")}>
                               {message.text}
                             </p>
                           )}
-                          <div className={cn(
-                            "flex items-center gap-1 px-2 pb-1",
-                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                          )}>
-                            <span className={cn(
-                              "text-xs",
-                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
-                                : "text-muted-foreground"
-                            )}>
-                              {formatMessageTime(message.sent_at)}
-                            </span>
-                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
-                                • {message.status}
-                              </span>
-                            )}
-                          </div>
                         </div>
                       ) : message.type === 'audio' && message.media_url ? (
                         <div className="space-y-2">
-                          <AudioPlayer 
-                            src={getStorageUrl(message.media_url) || ''} 
+                          <WhatsAppPrivateAudio
+                            path={message.media_url}
                             isOutgoing={message.direction === 'outgoing'}
+                            isInternalNote={isInternalNote(message)}
+                            status={message.status}
+                            sentAt={message.sent_at}
                           />
                           {message.text && (
                             <p className="text-sm whitespace-pre-wrap break-words">
                               {message.text}
                             </p>
                           )}
-                          <div className={cn(
-                            "flex items-center gap-1",
-                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                          )}>
-                            <span className={cn(
-                              "text-xs",
-                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
-                                : "text-muted-foreground"
-                            )}>
-                              {formatMessageTime(message.sent_at)}
-                            </span>
-                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
-                                • {message.status}
-                              </span>
-                            )}
-                          </div>
                         </div>
                       ) : message.type === 'location' && message.latitude != null && message.longitude != null ? (
                         <div className="space-y-1.5">
@@ -613,32 +679,16 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </div>
                       ) : message.type === 'document' && message.media_url ? (
                         <div className="space-y-1">
-                          <DocumentMessage
+                          <WhatsAppPrivateDocument
+                            path={message.media_url}
                             fileName={message.text || 'Document'}
-                            fileUrl={getStorageUrl(message.media_url) || ''}
                             mimeType={message.media_mime}
                             fileSize={message.media_size}
-                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
+                            isOutgoing={message.direction === 'outgoing'}
+                            isInternalNote={isInternalNote(message)}
+                            status={message.status}
+                            sentAt={message.sent_at}
                           />
-                          <div className={cn(
-                            "flex items-center gap-1 px-1",
-                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
-                          )}>
-                            <span className={cn(
-                              "text-xs",
-                              isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
-                                : "text-muted-foreground"
-                            )}>
-                              {formatMessageTime(message.sent_at)}
-                            </span>
-                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
-                                • {message.status}
-                              </span>
-                            )}
-                          </div>
                         </div>
                       ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">

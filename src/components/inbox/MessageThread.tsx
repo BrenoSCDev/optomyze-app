@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
 import {
@@ -32,12 +33,32 @@ function getInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function getAvatarUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  return `${baseUrl}/${url.replace(/^\//, '')}`;
-}
+/** Small component so we can call usePrivateFile inside JSX for the header avatar. */
+const ConversationHeaderAvatar: React.FC<{
+  isGroup: boolean;
+  coverPath: string | null | undefined;
+  otherPicPath: string | null | undefined;
+  name: string;
+  initials: string;
+}> = ({ isGroup, coverPath, otherPicPath, name, initials }) => {
+  const coverUrl = usePrivateFile(isGroup ? coverPath : null);
+  const otherUrl = usePrivateFile(!isGroup ? otherPicPath : null);
+  const blobUrl = isGroup ? coverUrl : otherUrl;
+
+  if (blobUrl) {
+    return (
+      <div className={`w-9 h-9 rounded-full overflow-hidden border ${isGroup ? 'border-accent/30' : 'border-primary/30'}`}>
+        <img src={blobUrl} alt={name} className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+  return (
+    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
+      ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
+      {isGroup ? <Hash className="w-4 h-4" /> : initials}
+    </div>
+  );
+};
 
 const MessageThread: React.FC<MessageThreadProps> = ({
   conversation, contacts = [], onBack, showBackButton = false, onMessageSent,
@@ -294,8 +315,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   const isGroup = conversation.type === 'group';
   const initials = getInitials(conversation.name);
-  const coverUrl = getAvatarUrl(conversation.cover_image_url);
   const meParticipant = conversation.participants.find(p => p.id === currentUserId);
+  const otherParticipant = !isGroup ? conversation.participants.find(p => p.id !== currentUserId) : null;
   const isGroupAdmin = isGroup && meParticipant?.conversation_role === 'admin';
 
   // Build rendered messages with day separators
@@ -319,28 +340,13 @@ const MessageThread: React.FC<MessageThreadProps> = ({
         )}
 
         <div className="relative">
-          {isGroup && coverUrl ? (
-            <div className="w-9 h-9 rounded-full overflow-hidden border border-accent/30">
-              <img src={coverUrl} alt={conversation.name} className="w-full h-full object-cover" />
-            </div>
-          ) : (() => {
-            const otherPic = !isGroup
-              ? getAvatarUrl(conversation.participants.find(p => p.id !== currentUserId)?.profile_pic_url)
-              : null;
-            if (otherPic) {
-              return (
-                <div className="w-9 h-9 rounded-full overflow-hidden border border-primary/30">
-                  <img src={otherPic} alt={conversation.name} className="w-full h-full object-cover" />
-                </div>
-              );
-            }
-            return (
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm
-                ${isGroup ? 'bg-accent/20 border border-accent/30 text-accent' : 'bg-primary/20 border border-primary/30 text-primary'}`}>
-                {isGroup ? <Hash className="w-4 h-4" /> : initials}
-              </div>
-            );
-          })()}
+          <ConversationHeaderAvatar
+            isGroup={isGroup}
+            coverPath={conversation.cover_image_url}
+            otherPicPath={otherParticipant?.profile_pic_url}
+            name={conversation.name}
+            initials={initials}
+          />
         </div>
 
         <div className="flex-1 min-w-0">

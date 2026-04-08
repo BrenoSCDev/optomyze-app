@@ -14,7 +14,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { WhatsAppChat } from '@/types/whatsappChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { getStorageUrl } from '@/lib/constants';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
+
+const ChatListImageThumb: React.FC<{ path: string | undefined }> = ({ path }) => {
+  const url = usePrivateFile(path);
+  if (!url) return <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />;
+  return <img src={url} alt="" className="w-5 h-5 rounded object-cover shrink-0" />;
+};
 
 interface ChatListProps {
   chats: WhatsAppChat[];
@@ -65,14 +71,14 @@ const ChatList: React.FC<ChatListProps> = ({
     return chat.phone_number;
   };
 
-  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imageUrl?: string } => {
+  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage.type === 'image') {
-        return { 
-          type: 'image', 
+        return {
+          type: 'image',
           text: lastMessage.text || t('chat.inbox.photo'),
-          imageUrl: lastMessage.media_url ? getStorageUrl(lastMessage.media_url) : undefined
+          imagePath: lastMessage.media_url ?? undefined,
         };
       }
       if (lastMessage.type === 'audio') {
@@ -208,15 +214,7 @@ const ChatList: React.FC<ChatListProps> = ({
                     if (lastMsg.type === 'image') {
                       return (
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          {lastMsg.imageUrl ? (
-                            <img 
-                              src={lastMsg.imageUrl} 
-                              alt="" 
-                              className="w-5 h-5 rounded object-cover shrink-0"
-                            />
-                          ) : (
-                            <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                          )}
+                          <ChatListImageThumb path={lastMsg.imagePath} />
                           <span className="text-sm text-muted-foreground truncate">
                             {lastMsg.text}
                           </span>
