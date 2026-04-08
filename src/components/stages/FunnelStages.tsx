@@ -776,7 +776,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
                 <SelectTrigger className={`w-full ${formErrors.type ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder={t('stages.type_placeholder')} />
                 </SelectTrigger>
-                <SelectContent className="bg-background border border-border shadow-lg z-50">
+                <SelectContent className="bg-background border border-border shadow-lg z-[300]">
                   {stageTypes.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
