@@ -16,6 +16,7 @@ import { getAppointmentsEndpoints } from './endpoints/appointmentsEndpoints';
 import { getObservationsEndpoints } from './endpoints/observationsEndpoints';
 import { getTasksEndpoints } from './endpoints/tasksEndpoints';
 import { getLeadActionsEndpoints } from './endpoints/leadActionsEndpoints';
+import { getFilesEndpoints } from './endpoints/filesEndpoints';
 export interface EndpointParam {
   name: string;
   type: string;
@@ -302,4 +303,5 @@ export const getEndpointCategories = (t: (key: string) => string): EndpointCateg
   getLeadCompaniesEndpoints(t),
   getFunnelsEndpoints(t),
   getStagesEndpoints(t),
+  getFilesEndpoints(t),
 ];
