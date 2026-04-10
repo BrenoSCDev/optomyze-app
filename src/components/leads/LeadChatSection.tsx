@@ -642,8 +642,17 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                       ) : message.type === 'contact' && (message as any).metadata ? (
                         <div className="space-y-1">
                           <ContactMessage
-                            contactName={(message as any).metadata.contact_name || message.text || ''}
-                            contactPhone={(message as any).metadata.contact_phone || ''}
+                            contacts={
+                              (message as any).metadata.contacts
+                                ? (message as any).metadata.contacts.map((c: any) => ({
+                                    contactName: c.contact_name || '',
+                                    contactPhone: c.contact_phone || '',
+                                  }))
+                                : [{
+                                    contactName: (message as any).metadata.contact_name || message.text || '',
+                                    contactPhone: (message as any).metadata.contact_phone || '',
+                                  }]
+                            }
                             isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
                             instanceId={chat.whatsapp_instance_id}
                           />

@@ -4,10 +4,16 @@
  * Type definitions for WhatsApp Evolution API chat data
  */
 
-export interface WhatsAppMessageMetadata {
+export interface WhatsAppContactEntry {
   contact_name?: string;
   contact_phone?: string;
   vcard?: string;
+}
+
+export interface WhatsAppMessageMetadata extends WhatsAppContactEntry {
+  // Single contact fields (contact_name, contact_phone, vcard inherited above)
+  // Multiple contacts
+  contacts?: WhatsAppContactEntry[];
 }
 
 export interface WhatsAppMessageUser {

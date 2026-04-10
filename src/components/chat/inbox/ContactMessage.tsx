@@ -16,37 +16,35 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
-interface ContactMessageProps {
+export interface ContactEntry {
   contactName: string;
   contactPhone: string;
+}
+
+interface ContactMessageProps {
+  contacts: ContactEntry[];
   isOutgoing: boolean;
   instanceId?: number;
 }
 
-const ContactMessage: React.FC<ContactMessageProps> = ({
-  contactName,
-  contactPhone,
-  isOutgoing,
-  instanceId,
-}) => {
-  const { t } = useLanguage();
+interface SingleContactCardProps {
+  contact: ContactEntry;
+  isOutgoing: boolean;
+  instanceId?: number;
+  t: (key: string) => string;
+}
+
+const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoing, instanceId, t }) => {
   const [showStartChat, setShowStartChat] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  const formatPhone = (phone: string) => {
-    if (phone.startsWith('+')) return phone;
-    return phone;
-  };
-
   const handleStartChat = async () => {
     if (!messageText.trim()) return;
-    
     setIsSending(true);
     try {
       // TODO: Call the send-to-contact endpoint once the route is specified
-      console.log('Start chat with:', { contactPhone, message: messageText, instanceId });
-      
+      console.log('Start chat with:', { contactPhone: contact.contactPhone, message: messageText, instanceId });
       setShowStartChat(false);
       setMessageText('');
     } catch (error) {
@@ -59,7 +57,6 @@ const ContactMessage: React.FC<ContactMessageProps> = ({
   return (
     <>
       <div className="space-y-2 min-w-[200px]">
-        {/* Contact card */}
         <div className="flex items-center gap-3">
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
@@ -68,37 +65,27 @@ const ContactMessage: React.FC<ContactMessageProps> = ({
             <User className={cn("h-5 w-5", isOutgoing ? "text-white" : "text-muted-foreground")} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={cn(
-              "text-sm font-semibold truncate",
-              isOutgoing ? "text-white" : "text-foreground"
-            )}>
-              {contactName}
+            <p className={cn("text-sm font-semibold truncate", isOutgoing ? "text-white" : "text-foreground")}>
+              {contact.contactName}
             </p>
             <div className="flex items-center gap-1">
               <Phone className={cn("h-3 w-3", isOutgoing ? "text-green-100" : "text-muted-foreground")} />
-              <span className={cn(
-                "text-xs",
-                isOutgoing ? "text-green-100" : "text-muted-foreground"
-              )}>
-                {formatPhone(contactPhone)}
+              <span className={cn("text-xs", isOutgoing ? "text-green-100" : "text-muted-foreground")}>
+                {contact.contactPhone}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Divider */}
         <div className={cn("border-t", isOutgoing ? "border-green-400/30" : "border-border/50")} />
 
-        {/* Start Chat button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowStartChat(true)}
           className={cn(
             "w-full gap-2 text-xs font-medium h-8",
-            isOutgoing 
-              ? "text-white hover:bg-green-400/20" 
-              : "text-primary hover:bg-accent"
+            isOutgoing ? "text-white hover:bg-green-400/20" : "text-primary hover:bg-accent"
           )}
         >
           <MessageSquare className="h-3.5 w-3.5" />
@@ -106,7 +93,6 @@ const ContactMessage: React.FC<ContactMessageProps> = ({
         </Button>
       </div>
 
-      {/* Start Chat Modal */}
       <Dialog open={showStartChat} onOpenChange={setShowStartChat}>
         <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
@@ -123,11 +109,11 @@ const ContactMessage: React.FC<ContactMessageProps> = ({
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">{t('chat.inbox.contact-name')}</Label>
-                <Input value={contactName} readOnly className="bg-muted/50" />
+                <Input value={contact.contactName} readOnly className="bg-muted/50" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">{t('chat.inbox.contact-phone')}</Label>
-                <Input value={formatPhone(contactPhone)} readOnly className="bg-muted/50" />
+                <Input value={contact.contactPhone} readOnly className="bg-muted/50" />
               </div>
             </div>
 
@@ -159,17 +145,42 @@ const ContactMessage: React.FC<ContactMessageProps> = ({
               disabled={!messageText.trim() || isSending}
               className="bg-green-600 hover:bg-green-700 text-white gap-2"
             >
-              {isSending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               {t('chat.inbox.contact-send-message')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+const ContactMessage: React.FC<ContactMessageProps> = ({ contacts, isOutgoing, instanceId }) => {
+  const { t } = useLanguage();
+
+  if (contacts.length === 1) {
+    return (
+      <SingleContactCard
+        contact={contacts[0]}
+        isOutgoing={isOutgoing}
+        instanceId={instanceId}
+        t={t}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3 min-w-[220px]">
+      {contacts.map((contact, idx) => (
+        <SingleContactCard
+          key={idx}
+          contact={contact}
+          isOutgoing={isOutgoing}
+          instanceId={instanceId}
+          t={t}
+        />
+      ))}
+    </div>
   );
 };
 

@@ -789,8 +789,17 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">
                           <ContactMessage
-                            contactName={message.metadata.contact_name || message.text || ''}
-                            contactPhone={message.metadata.contact_phone || ''}
+                            contacts={
+                              message.metadata.contacts
+                                ? message.metadata.contacts.map((c) => ({
+                                    contactName: c.contact_name || '',
+                                    contactPhone: c.contact_phone || '',
+                                  }))
+                                : [{
+                                    contactName: message.metadata.contact_name || message.text || '',
+                                    contactPhone: message.metadata.contact_phone || '',
+                                  }]
+                            }
                             isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
                             instanceId={chat.whatsapp_instance_id}
                           />
