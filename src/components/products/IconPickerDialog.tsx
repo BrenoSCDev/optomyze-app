@@ -1,56 +1,80 @@
 /**
  * ICON PICKER DIALOG
  *
- * Lets users search and select icons from react-icons (Fa, Md, Hi, Bs, Ai sets).
- * Stores the icon identifier string (e.g. "FaBox") and resolves it at render time.
+ * Curated set of ~93 lucide-react icons (already installed, no extra dependency).
+ * Stores the icon name string (e.g. "Package") and resolves it at render time.
+ * All imports are named — Rollup tree-shakes them individually, keeping the bundle small.
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import * as FaIcons from 'react-icons/fa';
-import * as MdIcons from 'react-icons/md';
-import * as HiIcons from 'react-icons/hi';
-import * as BsIcons from 'react-icons/bs';
-import * as AiIcons from 'react-icons/ai';
-import * as RiIcons from 'react-icons/ri';
-import * as IoIcons from 'react-icons/io5';
+import {
+  Settings, Settings2, SlidersHorizontal, Cog, Wrench,
+  User, Users, UserCheck, UserPlus, Contact, Headphones,
+  Briefcase, Building, Building2, Landmark, Store,
+  DollarSign, CreditCard, Banknote, Wallet, CircleDollarSign, Percent, TrendingUp,
+  Package, Box, ShoppingBag, ShoppingCart, Tag, Tags, Barcode,
+  Car, Truck, Bike, Navigation, MapPin,
+  Gauge, BarChart3, LineChart, PieChart, Activity, Target,
+  Phone, Mail, MessageSquare, MessageCircle, Bell, BellRing, Globe,
+  Calendar, CalendarDays, Clock, Timer, AlarmClock,
+  File, FileText, Folder, FolderOpen, Clipboard, ClipboardList,
+  Image, Camera, Video, Music, Printer,
+  Search, Edit, Pencil, Trash2, Download, Upload, Copy, Link,
+  Check, CheckCircle, Star, Heart, Bookmark, Award, Trophy, Shield, ShieldCheck,
+  Layers, LayoutGrid, List, Grid, Database, Server,
+  Key, Eye, Lock, Zap, Wifi, Flag, Info, AlertCircle, HelpCircle, Code,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Icon registry — map identifier prefix to icon set
-const ICON_SETS: Record<string, Record<string, any>> = {
-  Fa: FaIcons,
-  Md: MdIcons,
-  Hi: HiIcons,
-  Bs: BsIcons,
-  Ai: AiIcons,
-  Ri: RiIcons,
-  Io: IoIcons,
+/** Static curated map — key is the string stored in the DB */
+export const ICON_MAP: Record<string, LucideIcon> = {
+  // General
+  Settings, Settings2, SlidersHorizontal, Cog, Wrench,
+  // People
+  User, Users, UserCheck, UserPlus, Contact, Headphones,
+  // Business
+  Briefcase, Building, Building2, Landmark, Store,
+  // Finance
+  DollarSign, CreditCard, Banknote, Wallet, CircleDollarSign, Percent, TrendingUp,
+  // Products
+  Package, Box, ShoppingBag, ShoppingCart, Tag, Tags, Barcode,
+  // Transport
+  Car, Truck, Bike, Navigation, MapPin,
+  // Analytics
+  Gauge, BarChart3, LineChart, PieChart, Activity, Target,
+  // Communication
+  Phone, Mail, MessageSquare, MessageCircle, Bell, BellRing, Globe,
+  // Calendar & Time
+  Calendar, CalendarDays, Clock, Timer, AlarmClock,
+  // Files & Docs
+  File, FileText, Folder, FolderOpen, Clipboard, ClipboardList,
+  // Media
+  Image, Camera, Video, Music, Printer,
+  // Actions
+  Search, Edit, Pencil, Trash2, Download, Upload, Copy, Link,
+  // Status
+  Check, CheckCircle, Star, Heart, Bookmark, Award, Trophy, Shield, ShieldCheck,
+  // Layout
+  Layers, LayoutGrid, List, Grid, Database, Server,
+  // Misc
+  Key, Eye, Lock, Zap, Wifi, Flag, Info, AlertCircle, HelpCircle, Code,
 };
 
-// Build a flat array of { key, component } for searching
-const ALL_ICONS: { key: string; component: React.ElementType }[] = [];
-Object.entries(ICON_SETS).forEach(([, set]) => {
-  Object.entries(set).forEach(([key, comp]) => {
-    if (typeof comp === 'function') {
-      ALL_ICONS.push({ key, component: comp as React.ElementType });
-    }
-  });
-});
+const ALL_ICONS = Object.entries(ICON_MAP).map(([key, component]) => ({ key, component }));
 
-/** Resolve an icon identifier string to a React component */
-export function resolveIcon(iconKey: string | null | undefined): React.ElementType | null {
+/** Synchronous — resolves an icon name string to a LucideIcon component, or null */
+export function resolveIcon(iconKey: string | null | undefined): LucideIcon | null {
   if (!iconKey) return null;
-  for (const set of Object.values(ICON_SETS)) {
-    if (set[iconKey]) return set[iconKey] as React.ElementType;
-  }
-  return null;
+  return ICON_MAP[iconKey] ?? null;
 }
 
-/** Render an icon by its string key, with optional className */
+/** Renders a stored icon key synchronously; returns null if key is unknown */
 export function IconDisplay({
   iconKey,
   className,
@@ -70,19 +94,14 @@ interface IconPickerDialogProps {
   onChange: (iconKey: string | null) => void;
 }
 
-const PAGE_SIZE = 80;
-
 const IconPickerDialog = ({ open, onOpenChange, value, onChange }: IconPickerDialogProps) => {
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return ALL_ICONS;
     return ALL_ICONS.filter((i) => i.key.toLowerCase().includes(q));
   }, [search]);
-
-  const paginated = useMemo(() => filtered.slice(0, page * PAGE_SIZE), [filtered, page]);
 
   const handleSelect = useCallback(
     (key: string) => {
@@ -111,7 +130,7 @@ const IconPickerDialog = ({ open, onOpenChange, value, onChange }: IconPickerDia
             <Input
               placeholder="Search icons… (e.g. box, star, user)"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
               autoFocus
             />
@@ -131,7 +150,7 @@ const IconPickerDialog = ({ open, onOpenChange, value, onChange }: IconPickerDia
           {/* Grid */}
           <ScrollArea className="h-72">
             <div className="grid grid-cols-8 sm:grid-cols-10 gap-1 p-1">
-              {paginated.map(({ key, component: Icon }) => (
+              {filtered.map(({ key, component: Icon }) => (
                 <button
                   key={key}
                   title={key}
@@ -146,22 +165,16 @@ const IconPickerDialog = ({ open, onOpenChange, value, onChange }: IconPickerDia
               ))}
             </div>
 
-            {/* Load more */}
-            {paginated.length < filtered.length && (
-              <div className="flex justify-center py-3">
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>
-                  Load more ({filtered.length - paginated.length} remaining)
-                </Button>
-              </div>
-            )}
-
             {filtered.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">No icons found for "{search}"</div>
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No icons found for "{search}"
+              </div>
             )}
           </ScrollArea>
 
           <p className="text-xs text-muted-foreground text-right">
-            Showing {paginated.length} of {filtered.length} icons
+            {filtered.length} icon{filtered.length !== 1 ? 's' : ''}
+            {search ? ` matching "${search}"` : ' available'}
           </p>
         </div>
       </DialogContent>

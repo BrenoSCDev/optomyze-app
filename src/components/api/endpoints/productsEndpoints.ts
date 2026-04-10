@@ -3,6 +3,7 @@ import { EndpointCategory } from '../apiEndpointData';
 export const getProductsEndpoints = (t: (key: string) => string): EndpointCategory => ({
   categoryKey: t('api.products'),
   endpoints: [
+    // ─── List Products ────────────────────────────────────────────────────────
     {
       id: 'list-products',
       method: 'GET',
@@ -10,14 +11,17 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
       summary: t('api.list-products-summary'),
       description: t('api.list-products-description'),
       queryParams: [
-        { name: 'is_active', type: 'boolean', required: false, description: t('api.params.product-is-active') },
-        { name: 'type', type: 'string', required: false, description: t('api.params.product-type') },
-        { name: 'category', type: 'string', required: false, description: t('api.params.product-category') },
-        { name: 'search', type: 'string', required: false, description: t('api.params.product-search') },
-        { name: 'with_images', type: 'boolean', required: false, description: t('api.params.product-with-images') },
-        { name: 'with_custom_fields', type: 'boolean', required: false, description: t('api.params.product-with-custom-fields') },
-        { name: 'per_page', type: 'integer', required: false, description: t('api.params.per-page') },
-        { name: 'page', type: 'integer', required: false, description: t('api.params.page') },
+        { name: 'is_active',           type: 'boolean', required: false, description: t('api.params.product-is-active') },
+        { name: 'is_favorite',         type: 'boolean', required: false, description: 'Filter only favorite products.' },
+        { name: 'archived',            type: 'boolean', required: false, description: 'Pass true to return archived products only. Defaults to non-archived.' },
+        { name: 'type',                type: 'string',  required: false, description: t('api.params.product-type') },
+        { name: 'category',            type: 'string',  required: false, description: t('api.params.product-category') },
+        { name: 'category_id',         type: 'integer', required: false, description: 'Filter by product category ID.' },
+        { name: 'search',              type: 'string',  required: false, description: t('api.params.product-search') },
+        { name: 'with_images',         type: 'boolean', required: false, description: t('api.params.product-with-images') },
+        { name: 'with_custom_fields',  type: 'boolean', required: false, description: t('api.params.product-with-custom-fields') },
+        { name: 'per_page',            type: 'integer', required: false, description: t('api.params.per-page') },
+        { name: 'page',                type: 'integer', required: false, description: t('api.params.page') },
       ],
       exampleResponses: [
         {
@@ -36,9 +40,16 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
                 type: "service",
                 category: "Subscriptions",
                 is_active: true,
+                is_favorite: true,
+                is_archived: false,
+                archived_at: null,
                 metadata: null,
-                created_at: "2026-01-15T08:00:00.000Z",
-                primary_image: { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1 }
+                categories: [
+                  { id: 2, name: "SaaS", color: "#6366f1" }
+                ],
+                primary_image: { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1 },
+                created_at: "2026-01-15T08:00:00-03:00",
+                updated_at: "2026-03-01T10:00:00-03:00"
               }
             ],
             last_page: 2,
@@ -59,13 +70,30 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
                 base_price: 1200.00,
                 type: "service",
                 is_active: true,
+                is_favorite: true,
+                is_archived: false,
+                categories: [
+                  { id: 2, name: "SaaS", color: "#6366f1" }
+                ],
                 primary_image: { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1 },
                 images: [
                   { id: 3, url: "products/ent.jpg", is_primary: true, display_order: 1, alt_text: null },
                   { id: 4, url: "products/ent-2.jpg", is_primary: false, display_order: 2, alt_text: null }
                 ],
                 fields: [
-                  { id: 1, field_type: "text", field_value: "12 months", created_at: "2026-01-15T08:00:00.000Z" }
+                  { id: 5, field_key: "duration", field_type: "text", field_value: "12 months", group_id: 2, icon: "FaClock" }
+                ],
+                field_groups: [
+                  {
+                    id: 2,
+                    name: "Contract Details",
+                    icon: "FaFileContract",
+                    is_default: true,
+                    display_order: 1,
+                    fields: [
+                      { id: 5, field_key: "duration", field_type: "text", field_value: "12 months", icon: "FaClock" }
+                    ]
+                  }
                 ]
               }
             ],
@@ -76,45 +104,28 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         }
       ]
     },
+
+    // ─── List Product Categories ──────────────────────────────────────────────
     {
-      id: 'create-product',
-      method: 'POST',
-      path: '/products',
-      summary: t('api.create-product-summary'),
-      description: t('api.create-product-description'),
-      bodyParams: [
-        { name: 'name', type: 'string', required: true, description: t('api.params.product-name'), constraints: 'max 255' },
-        { name: 'sku', type: 'string', required: true, description: t('api.params.product-sku') },
-        { name: 'base_price', type: 'number', required: true, description: t('api.params.product-base-price'), constraints: 'min 0' },
-        { name: 'type', type: 'string', required: true, description: t('api.params.product-type-required') },
-        { name: 'description', type: 'string', required: false, description: t('api.params.product-description') },
-        { name: 'cost_price', type: 'number', required: false, description: t('api.params.product-cost-price') },
-        { name: 'category', type: 'string', required: false, description: t('api.params.product-category'), constraints: 'max 255' },
-        { name: 'is_active', type: 'boolean', required: false, description: t('api.params.product-is-active-default') },
-        { name: 'metadata', type: 'object', required: false, description: t('api.params.product-metadata') },
-      ],
-      exampleBody: {
-        name: "Starter Plan",
-        description: "Entry-level plan for small teams.",
-        sku: "START-001",
-        base_price: 299.00,
-        cost_price: 50.00,
-        type: "service",
-        category: "Subscriptions",
-        is_active: true,
-        metadata: { billing_cycle: "monthly" }
-      },
+      id: 'list-product-categories',
+      method: 'GET',
+      path: '/product-categories',
+      summary: 'List product categories',
+      description: 'Returns all product categories for the company.',
+      queryParams: [],
       exampleResponses: [
         {
-          status: 201,
-          label: '201 Created',
-          body: {
-            message: "Product created successfully",
-            data: { id: 12, name: "Starter Plan", sku: "START-001", base_price: 299.00, type: "service", is_active: true }
-          }
+          status: 200,
+          label: '200 OK',
+          body: [
+            { id: 1, name: "Hardware", description: null, color: "#10b981", products_count: 8 },
+            { id: 2, name: "SaaS",     description: "Software subscriptions", color: "#6366f1", products_count: 14 }
+          ]
         }
       ]
     },
+
+    // ─── Get Product ──────────────────────────────────────────────────────────
     {
       id: 'get-product',
       method: 'GET',
@@ -123,6 +134,9 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
       description: t('api.get-product-description'),
       pathParams: [
         { name: 'id', type: 'integer', required: true, description: t('api.params.product-id') },
+      ],
+      queryParams: [
+        { name: 'with_custom_fields', type: 'boolean', required: false, description: 'Include fields and field_groups in response.' },
       ],
       exampleResponses: [
         {
@@ -139,16 +153,81 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
               type: "service",
               category: "Subscriptions",
               is_active: true,
+              is_favorite: true,
+              is_archived: false,
+              archived_at: null,
               metadata: null,
+              categories: [
+                { id: 2, name: "SaaS", color: "#6366f1" }
+              ],
               images: [
                 { id: 3, url: "https://yourdomain.com/storage/products/ent.jpg", is_primary: true }
-              ]
+              ],
+              created_at: "2026-01-15T08:00:00-03:00",
+              updated_at: "2026-03-01T10:00:00-03:00"
             }
           }
         },
         { status: 404, label: '404 Not Found', body: { message: "Product not found" } }
       ]
     },
+
+    // ─── Create Product ───────────────────────────────────────────────────────
+    {
+      id: 'create-product',
+      method: 'POST',
+      path: '/products',
+      summary: t('api.create-product-summary'),
+      description: t('api.create-product-description'),
+      bodyParams: [
+        { name: 'name',         type: 'string',  required: true,  description: t('api.params.product-name'), constraints: 'max 255' },
+        { name: 'sku',          type: 'string',  required: true,  description: t('api.params.product-sku') },
+        { name: 'base_price',   type: 'number',  required: true,  description: t('api.params.product-base-price'), constraints: 'min 0' },
+        { name: 'type',         type: 'string',  required: true,  description: t('api.params.product-type-required'), constraints: 'product | service | digital' },
+        { name: 'description',  type: 'string',  required: false, description: t('api.params.product-description') },
+        { name: 'cost_price',   type: 'number',  required: false, description: t('api.params.product-cost-price') },
+        { name: 'category',     type: 'string',  required: false, description: t('api.params.product-category'), constraints: 'max 255' },
+        { name: 'category_ids', type: 'array',   required: false, description: 'Array of category IDs to assign to this product.' },
+        { name: 'is_active',    type: 'boolean', required: false, description: t('api.params.product-is-active-default') },
+        { name: 'is_favorite',  type: 'boolean', required: false, description: 'Mark product as favorite.' },
+        { name: 'metadata',     type: 'object',  required: false, description: t('api.params.product-metadata') },
+      ],
+      exampleBody: {
+        name: "Starter Plan",
+        description: "Entry-level plan for small teams.",
+        sku: "START-001",
+        base_price: 299.00,
+        cost_price: 50.00,
+        type: "service",
+        category: "Subscriptions",
+        category_ids: [2],
+        is_active: true,
+        is_favorite: false,
+        metadata: { billing_cycle: "monthly" }
+      },
+      exampleResponses: [
+        {
+          status: 201,
+          label: '201 Created',
+          body: {
+            message: "Product created successfully",
+            data: {
+              id: 12,
+              name: "Starter Plan",
+              sku: "START-001",
+              base_price: 299.00,
+              type: "service",
+              is_active: true,
+              is_favorite: false,
+              is_archived: false,
+              categories: [{ id: 2, name: "SaaS", color: "#6366f1" }]
+            }
+          }
+        }
+      ]
+    },
+
+    // ─── Update Product ───────────────────────────────────────────────────────
     {
       id: 'update-product',
       method: 'PUT',
@@ -159,21 +238,24 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         { name: 'id', type: 'integer', required: true, description: t('api.params.product-id') },
       ],
       bodyParams: [
-        { name: 'name', type: 'string', required: false, description: t('api.params.product-name'), constraints: 'max 255' },
-        { name: 'sku', type: 'string', required: false, description: t('api.params.product-sku') },
-        { name: 'base_price', type: 'number', required: false, description: t('api.params.product-base-price') },
-        { name: 'type', type: 'string', required: false, description: t('api.params.product-type-required') },
-        { name: 'description', type: 'string', required: false, description: t('api.params.product-description') },
-        { name: 'cost_price', type: 'number', required: false, description: t('api.params.product-cost-price') },
-        { name: 'category', type: 'string', required: false, description: t('api.params.product-category'), constraints: 'max 255' },
-        { name: 'is_active', type: 'boolean', required: false, description: t('api.params.product-is-active') },
-        { name: 'metadata', type: 'object', required: false, description: t('api.params.product-metadata') },
+        { name: 'name',         type: 'string',  required: false, description: t('api.params.product-name'), constraints: 'max 255' },
+        { name: 'sku',          type: 'string',  required: false, description: t('api.params.product-sku') },
+        { name: 'base_price',   type: 'number',  required: false, description: t('api.params.product-base-price') },
+        { name: 'type',         type: 'string',  required: false, description: t('api.params.product-type-required'), constraints: 'product | service | digital' },
+        { name: 'description',  type: 'string',  required: false, description: t('api.params.product-description') },
+        { name: 'cost_price',   type: 'number',  required: false, description: t('api.params.product-cost-price') },
+        { name: 'category',     type: 'string',  required: false, description: t('api.params.product-category'), constraints: 'max 255' },
+        { name: 'category_ids', type: 'array',   required: false, description: 'Array of category IDs to sync. Replaces existing category associations.' },
+        { name: 'is_active',    type: 'boolean', required: false, description: t('api.params.product-is-active') },
+        { name: 'is_favorite',  type: 'boolean', required: false, description: 'Mark or unmark product as favorite.' },
+        { name: 'metadata',     type: 'object',  required: false, description: t('api.params.product-metadata') },
       ],
       exampleBody: {
         name: "Enterprise Plan v2",
         base_price: 1400.00,
         is_active: false,
-        category: "Legacy"
+        is_favorite: true,
+        category_ids: [1, 2]
       },
       exampleResponses: [
         {
@@ -181,12 +263,25 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
           label: '200 OK',
           body: {
             message: "Product updated successfully",
-            data: { id: 1, name: "Enterprise Plan v2", base_price: 1400.00, is_active: false }
+            data: {
+              id: 1,
+              name: "Enterprise Plan v2",
+              base_price: 1400.00,
+              is_active: false,
+              is_favorite: true,
+              is_archived: false,
+              categories: [
+                { id: 1, name: "Hardware", color: "#10b981" },
+                { id: 2, name: "SaaS", color: "#6366f1" }
+              ]
+            }
           }
         },
         { status: 404, label: '404 Not Found', body: { message: "Product not found" } }
       ]
     },
+
+    // ─── Delete Product ───────────────────────────────────────────────────────
     {
       id: 'delete-product',
       method: 'DELETE',
@@ -197,7 +292,7 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         { name: 'id', type: 'integer', required: true, description: t('api.params.product-id') },
       ],
       exampleResponses: [
-        { status: 200, label: '200 OK', body: { message: "Product deleted successfully" } },
+        { status: 200, label: '200 OK',        body: { message: "Product deleted successfully" } },
         { status: 404, label: '404 Not Found', body: { message: "Product not found" } },
       ]
     },
