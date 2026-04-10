@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Package, Briefcase, Edit, Trash2, Tag, Settings2 } from 'lucide-react';
+import { Package, Briefcase, Edit, Trash2, Tag, Settings2, Star, Archive, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
@@ -17,9 +17,12 @@ interface ProductCardProps {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
   onToggleActive: (product: Product) => void;
+  onToggleFavorite?: (product: Product) => void;
+  onArchive?: (product: Product) => void;
+  onUnarchive?: (product: Product) => void;
 }
 
-const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardProps) => {
+const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavorite, onArchive, onUnarchive }: ProductCardProps) => {
   const { t } = useLanguage();
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(true);
@@ -50,7 +53,22 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
   };
 
   return (
-    <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+    <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative">
+      {/* Favorite star */}
+      {onToggleFavorite && (
+        <button
+          onClick={() => onToggleFavorite(product)}
+          className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/50 transition-colors"
+          title={product.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Star
+            className={`h-4 w-4 transition-colors ${
+              product.is_favorite ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'
+            }`}
+          />
+        </button>
+      )}
+
       {/* Product Image or Icon */}
       <div className="flex items-center justify-center w-full aspect-square max-h-32 mx-auto mb-4 rounded-lg bg-muted/30 overflow-hidden">
       {loadingImage ? (
@@ -116,6 +134,21 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
         </span>
       </div>
 
+      {/* Categories */}
+      {product.categories && product.categories.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {product.categories.map((cat) => (
+            <span
+              key={cat.id}
+              className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+              style={{ backgroundColor: cat.color ?? '#6366f1' }}
+            >
+              {cat.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Custom Fields Count */}
       <div className="flex items-center gap-2 mb-4 py-2 px-3 bg-muted/20 rounded-lg">
         <Settings2 className="w-4 h-4 text-muted-foreground" />
@@ -126,27 +159,52 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive }: ProductCardP
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onToggleActive(product)}
-          className={`flex-1 text-xs ${
-            product.is_active
-              ? 'border-red-600/30 text-red-400 hover:bg-red-600/20'
-              : 'border-green-600/30 text-green-400 hover:bg-green-600/20'
-          }`}
-        >
-          {product.is_active ? t('products.deactivate') : t('products.activate')}
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onEdit(product)}
-          className="border-primary/30 text-primary hover:bg-primary/20"
-          title={t('products.edit')}
-        >
-          <Edit className="w-4 h-4" />
-        </Button>
+        {!product.is_archived && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onToggleActive(product)}
+            className={`flex-1 text-xs ${
+              product.is_active
+                ? 'border-red-600/30 text-red-400 hover:bg-red-600/20'
+                : 'border-green-600/30 text-green-400 hover:bg-green-600/20'
+            }`}
+          >
+            {product.is_active ? t('products.deactivate') : t('products.activate')}
+          </Button>
+        )}
+        {product.is_archived && onUnarchive && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onUnarchive(product)}
+            className="flex-1 text-xs border-green-600/30 text-green-400 hover:bg-green-600/20"
+          >
+            Unarchive
+          </Button>
+        )}
+        {!product.is_archived && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onEdit(product)}
+            className="border-primary/30 text-primary hover:bg-primary/20"
+            title={t('products.edit')}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        )}
+        {!product.is_archived && onArchive && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onArchive(product)}
+            className="border-orange-600/30 text-orange-400 hover:bg-orange-600/20"
+            title="Archive product"
+          >
+            <Archive className="w-4 h-4" />
+          </Button>
+        )}
         <Button
           variant="outline"
           size="icon"

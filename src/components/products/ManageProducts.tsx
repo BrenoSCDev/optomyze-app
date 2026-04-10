@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Package, Plus, Search, Filter, Loader2, RefreshCw } from 'lucide-react';
+import { Package, Plus, Search, Loader2, RefreshCw, Star, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,10 +17,13 @@ import {
 } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  getProducts, 
-  deleteProduct, 
+import {
+  getProducts,
+  deleteProduct,
   toggleProductActive,
+  toggleProductFavorite,
+  archiveProduct,
+  unarchiveProduct,
   type Product,
   type ProductFilters,
 } from '@/services/productApi';
@@ -44,8 +47,11 @@ const ManageProducts = () => {
   const [filters, setFilters] = useState<ProductFilters>({
     search: '',
     is_active: null,
+    is_favorite: null,
+    archived: null,
     type: null,
     category: null,
+    category_id: null,
     sort_by: 'created_at',
     sort_order: 'desc',
     per_page: 15,
@@ -63,8 +69,8 @@ const ManageProducts = () => {
   // Search debounce
   const [searchInput, setSearchInput] = useState('');
 
-  // Get unique categories from products
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
+  // Get unique legacy categories from products (string-based)
+  const legacyCategories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
 
   // Fetch products
   const fetchProducts = useCallback(async () => {
@@ -139,8 +145,8 @@ const ManageProducts = () => {
       await toggleProductActive(product.id);
       toast({
         title: t('common.success'),
-        description: product.is_active 
-          ? t('products.deactivated-successfully') 
+        description: product.is_active
+          ? t('products.deactivated-successfully')
           : t('products.activated-successfully'),
       });
       fetchProducts();
@@ -150,6 +156,39 @@ const ManageProducts = () => {
         description: t('products.toggle-error'),
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleToggleFavorite = async (product: Product) => {
+    try {
+      await toggleProductFavorite(product.id);
+      toast({
+        title: t('common.success'),
+        description: product.is_favorite ? 'Removed from favorites.' : 'Added to favorites.',
+      });
+      fetchProducts();
+    } catch {
+      toast({ title: t('common.error'), description: 'Failed to update favorite status.', variant: 'destructive' });
+    }
+  };
+
+  const handleArchive = async (product: Product) => {
+    try {
+      await archiveProduct(product.id);
+      setProducts(prev => prev.filter(p => p.id !== product.id));
+      toast({ title: t('common.success'), description: `"${product.name}" archived.` });
+    } catch {
+      toast({ title: t('common.error'), description: 'Failed to archive product.', variant: 'destructive' });
+    }
+  };
+
+  const handleUnarchive = async (product: Product) => {
+    try {
+      await unarchiveProduct(product.id);
+      setProducts(prev => prev.filter(p => p.id !== product.id));
+      toast({ title: t('common.success'), description: `"${product.name}" unarchived.` });
+    } catch {
+      toast({ title: t('common.error'), description: 'Failed to unarchive product.', variant: 'destructive' });
     }
   };
 
@@ -235,8 +274,8 @@ const ManageProducts = () => {
           </SelectContent>
         </Select>
 
-        {/* Category Filter */}
-        {categories.length > 0 && (
+        {/* Category Filter (legacy string) */}
+        {legacyCategories.length > 0 && (
           <Select
             value={filters.category || 'all'}
             onValueChange={(value) => handleFilterChange('category', value)}
@@ -246,12 +285,34 @@ const ManageProducts = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('products.all-categories')}</SelectItem>
-              {categories.map((cat) => (
+              {legacyCategories.map((cat) => (
                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
+
+        {/* Favorites toggle */}
+        <Button
+          variant={filters.is_favorite ? 'default' : 'outline'}
+          size="sm"
+          className="gap-2"
+          onClick={() => handleFilterChange('is_favorite', filters.is_favorite ? null : true)}
+        >
+          <Star className={`h-4 w-4 ${filters.is_favorite ? 'fill-current' : ''}`} />
+          Favorites
+        </Button>
+
+        {/* Archived toggle */}
+        <Button
+          variant={filters.archived ? 'default' : 'outline'}
+          size="sm"
+          className="gap-2"
+          onClick={() => handleFilterChange('archived', filters.archived ? null : true)}
+        >
+          <Archive className="h-4 w-4" />
+          Archived
+        </Button>
       </div>
 
       {/* Loading State */}
@@ -272,6 +333,9 @@ const ManageProducts = () => {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
+                onToggleFavorite={handleToggleFavorite}
+                onArchive={handleArchive}
+                onUnarchive={handleUnarchive}
               />
             ))}
           </div>

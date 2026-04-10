@@ -17,6 +17,7 @@ import { FunnelStage } from '@/services/funnelSettingsApi';
 // Product Settings
 import ProductBehaviorSection from './products/ProductBehaviorSection';
 import CustomFieldsSection from './products/CustomFieldsSection';
+import ModelFieldGroupsSection from './products/ModelFieldGroupsSection';
 import PricingRulesSection from './products/PricingRulesSection';
 
 // Sales Settings
@@ -571,13 +572,19 @@ const CrmPanel = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="py-4 px-2 border-t">
-                    <CustomFieldsSection 
+                    <CustomFieldsSection
                       fields={customProductFields}
                       saving={customFieldsSaving}
                       onAdd={addCustomField}
                       onEdit={editCustomField}
                       onDelete={removeCustomField}
                     />
+                    <div className="mt-8 pt-8 border-t border-border">
+                      <h4 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                        Model Field Groups
+                      </h4>
+                      <ModelFieldGroupsSection />
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

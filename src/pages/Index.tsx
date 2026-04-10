@@ -27,6 +27,7 @@ import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
 import OptomyzeInbox from '@/components/inbox/OptomyzeInbox';
 import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
 import ManageProducts from '@/components/products/ManageProducts';
+import ManageProductCategories from '@/components/products/ManageProductCategories';
 import CrmPanel from '@/components/settings/CrmPanel';
 import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
 import LeadActivityDashboard from '@/components/reports/LeadActivityDashboard';
@@ -117,6 +118,7 @@ const Index = () => {
       case 'optomyze-inbox': return <OptomyzeInbox />;
       case 'optomyze-calendar': return <OptomyzeCalendar />;
       case 'manage-products': return <ManageProducts />;
+      case 'product-categories': return <ManageProductCategories />;
       case 'model-contracts':
       case 'list-contracts': return <ContractsPlaceholder />;
       case 'open-ticket': return <OpenTicket />;

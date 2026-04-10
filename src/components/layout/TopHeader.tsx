@@ -340,6 +340,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.products',
       children: [
         { id: 'manage-products', label: t('products.manage') },
+        { id: 'product-categories', label: 'Product Categories' },
       ],
     },
     support: {

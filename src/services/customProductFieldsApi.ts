@@ -14,6 +14,9 @@ export interface CustomProductField {
   field_value: string;
   type: 'model' | 'product';
   product_id: number | null;
+  group_id?: number | null;
+  icon?: string | null;
+  display_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +27,9 @@ export interface CustomProductFieldFormData {
   field_value: string | number;
   type: 'model' | 'product';
   product_id?: number | null;
+  group_id?: number | null;
+  icon?: string | null;
+  display_order?: number;
 }
 
 export interface SettingsPanelResponse {

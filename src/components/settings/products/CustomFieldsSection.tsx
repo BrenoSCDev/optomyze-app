@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Smile, Layers } from 'lucide-react';
 import { CustomProductField, CustomProductFieldFormData } from '@/services/customProductFieldsApi';
 import { getProducts, Product } from '@/services/productApi';
+import { getFieldGroups, type CustomProductFieldGroup } from '@/services/customProductFieldGroupApi';
+import IconPickerDialog, { IconDisplay } from '@/components/products/IconPickerDialog';
 
 interface Props {
   fields: CustomProductField[];
@@ -24,6 +26,8 @@ interface FormData {
   field_value: string;
   type: 'model' | 'product';
   product_id: number | null;
+  group_id: number | null;
+  icon: string | null;
 }
 
 const emptyFormData: FormData = {
@@ -32,6 +36,8 @@ const emptyFormData: FormData = {
   field_value: '',
   type: 'model',
   product_id: null,
+  group_id: null,
+  icon: null,
 };
 
 const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props) => {
@@ -44,8 +50,10 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
   const [formData, setFormData] = useState<FormData>(emptyFormData);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [modelGroups, setModelGroups] = useState<CustomProductFieldGroup[]>([]);
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
-  // Load products for the product selector
+  // Load products and model-level groups
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -58,7 +66,16 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
         setLoadingProducts(false);
       }
     };
+    const loadGroups = async () => {
+      try {
+        const groups = await getFieldGroups(); // no productId → model-level groups
+        setModelGroups(groups);
+      } catch (error) {
+        console.error('Failed to load model field groups:', error);
+      }
+    };
     loadProducts();
+    loadGroups();
   }, []);
 
   const handleAdd = () => {
@@ -75,6 +92,8 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
       field_value: field.field_value,
       type: field.type,
       product_id: field.product_id,
+      group_id: field.group_id ?? null,
+      icon: field.icon ?? null,
     });
     setIsDialogOpen(true);
   };
@@ -104,6 +123,8 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
       field_value: formData.field_value,
       type: formData.type,
       product_id: formData.type === 'product' ? formData.product_id : null,
+      group_id: formData.type === 'model' ? formData.group_id : null,
+      icon: formData.icon ?? undefined,
     };
 
     try {
@@ -141,6 +162,12 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
     return product?.name || `Product #${productId}`;
   };
 
+  const getGroupName = (groupId: number | null | undefined) => {
+    if (!groupId) return null;
+    const group = modelGroups.find(g => g.id === groupId);
+    return group?.name || `Group #${groupId}`;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -163,7 +190,10 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
               className="p-4 border rounded-lg bg-background/50 space-y-3"
             >
               <div className="flex items-start justify-between">
-                <div className="font-medium text-foreground">{field.field_key}</div>
+                <div className="flex items-center gap-2">
+                  {field.icon && <IconDisplay iconKey={field.icon} className="h-4 w-4 text-primary shrink-0" />}
+                  <div className="font-medium text-foreground">{field.field_key}</div>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(field)}>
                     <Pencil className="w-4 h-4" />
@@ -197,6 +227,14 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('settings.products.product')}:</span>
                     <span className="text-foreground truncate max-w-[120px]">{getProductName(field.product_id)}</span>
+                  </div>
+                )}
+                {field.type === 'model' && field.group_id && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Layers className="h-3 w-3" /> Group:
+                    </span>
+                    <span className="text-foreground truncate max-w-[120px]">{getGroupName(field.group_id)}</span>
                   </div>
                 )}
               </div>
@@ -254,12 +292,13 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
 
             <div className="grid gap-2">
               <Label>{t('settings.products.field-scope')}</Label>
-              <Select 
-                value={formData.type} 
-                onValueChange={(value: 'model' | 'product') => setFormData({ 
-                  ...formData, 
+              <Select
+                value={formData.type}
+                onValueChange={(value: 'model' | 'product') => setFormData({
+                  ...formData,
                   type: value,
-                  product_id: value === 'model' ? null : formData.product_id
+                  product_id: value === 'model' ? null : formData.product_id,
+                  group_id: value === 'product' ? null : formData.group_id,
                 })}
               >
                 <SelectTrigger>
@@ -272,11 +311,39 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
               </Select>
             </div>
 
+            {/* Group assignment — only for model-level fields */}
+            {formData.type === 'model' && modelGroups.length > 0 && (
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-1">
+                  <Layers className="h-3.5 w-3.5" /> Field Group <span className="text-muted-foreground font-normal">(optional)</span>
+                </Label>
+                <Select
+                  value={formData.group_id?.toString() || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, group_id: value === 'none' ? null : parseInt(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No group</SelectItem>
+                    {modelGroups.map((group) => (
+                      <SelectItem key={group.id} value={group.id.toString()}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  This field will be placed inside the group when added to new products.
+                </p>
+              </div>
+            )}
+
             {formData.type === 'product' && (
               <div className="grid gap-2">
                 <Label>{t('settings.products.select-product')}</Label>
-                <Select 
-                  value={formData.product_id?.toString() || ''} 
+                <Select
+                  value={formData.product_id?.toString() || ''}
                   onValueChange={(value) => setFormData({ ...formData, product_id: value ? parseInt(value) : null })}
                 >
                   <SelectTrigger>
@@ -292,6 +359,28 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
                 </Select>
               </div>
             )}
+
+            {/* Icon */}
+            <div className="grid gap-2">
+              <Label>Icon (optional)</Label>
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-md border border-border flex items-center justify-center bg-muted/20">
+                  {formData.icon ? (
+                    <IconDisplay iconKey={formData.icon} className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Smile className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setIconPickerOpen(true)}>
+                  {formData.icon ? 'Change' : 'Pick Icon'}
+                </Button>
+                {formData.icon && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setFormData((p) => ({ ...p, icon: null }))}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
@@ -305,6 +394,14 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Icon Picker */}
+      <IconPickerDialog
+        open={iconPickerOpen}
+        onOpenChange={setIconPickerOpen}
+        value={formData.icon}
+        onChange={(key) => setFormData((p) => ({ ...p, icon: key }))}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -164,7 +164,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   const productsItems = isErpModule
     ? [{ id: 'erp', label: 'ERP', icon: () => <Package size={16} />, isExternal: true, externalUrl: erpFrontendUrl }]
-    : [{ id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false }];
+    : [
+        { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false },
+        { id: 'product-categories', label: 'Product Categories', icon: () => <Tag size={16} />, isExternal: false },
+      ];
 
   const supportItems = [
     { id: 'open-ticket', label: t('support.open-ticket'), icon: () => <TicketPlus size={16} /> },

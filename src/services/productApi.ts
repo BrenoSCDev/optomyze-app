@@ -15,10 +15,31 @@ export interface ProductMetadata {
 export interface ProductCustomField {
   id: number;
   field_key: string;
-  field_type: 'text' | 'number' | 'select' | 'boolean' | 'date';
+  field_type: 'text' | 'number' | 'select' | 'boolean' | 'date' | 'title' | 'json';
   field_value: string;
   product_id: number;
-  type: 'product';
+  group_id?: number | null;
+  type: 'product' | 'model';
+  icon?: string | null;
+  display_order?: number;
+}
+
+export interface ProductCategory {
+  id: number;
+  company_id: number;
+  name: string;
+  description: string | null;
+  color: string | null;
+  products_count?: number;
+}
+
+export interface ProductFieldGroup {
+  id: number;
+  name: string;
+  icon: string | null;
+  is_default: boolean;
+  display_order: number;
+  fields?: ProductCustomField[];
 }
 
 export interface Product {
@@ -31,8 +52,13 @@ export interface Product {
   type: 'product' | 'service' | 'digital';
   category: string | null;
   is_active: boolean;
+  is_favorite: boolean;
+  is_archived: boolean;
+  archived_at: string | null;
   metadata: ProductMetadata | null;
   fields?: ProductCustomField[];
+  fieldGroups?: ProductFieldGroup[];
+  categories?: ProductCategory[];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -41,8 +67,11 @@ export interface Product {
 export interface ProductFilters {
   search?: string;
   is_active?: boolean | null;
+  is_favorite?: boolean | null;
+  archived?: boolean | null;
   type?: 'product' | 'service' | null;
   category?: string | null;
+  category_id?: number | null;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
   per_page?: number;
@@ -57,7 +86,9 @@ export interface ProductFormData {
   type: 'product' | 'service' | 'digital';
   category?: string;
   is_active: boolean;
+  is_favorite?: boolean;
   metadata?: ProductMetadata;
+  category_ids?: number[];
 }
 
 export interface PaginatedResponse<T> {
@@ -81,8 +112,15 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Paginat
   if (filters.is_active !== null && filters.is_active !== undefined) {
     params.append('is_active', String(filters.is_active));
   }
+  if (filters.is_favorite !== null && filters.is_favorite !== undefined) {
+    params.append('is_favorite', String(filters.is_favorite));
+  }
+  if (filters.archived !== null && filters.archived !== undefined) {
+    params.append('archived', String(filters.archived));
+  }
   if (filters.type) params.append('type', filters.type);
   if (filters.category) params.append('category', filters.category);
+  if (filters.category_id) params.append('category_id', String(filters.category_id));
   if (filters.sort_by) params.append('sort_by', filters.sort_by);
   if (filters.sort_order) params.append('sort_order', filters.sort_order);
   if (filters.per_page) params.append('per_page', String(filters.per_page));
@@ -123,6 +161,24 @@ export const toggleProductActive = async (id: number): Promise<ApiResponse<Produ
   return response.data;
 };
 
+// Toggle product favorite status
+export const toggleProductFavorite = async (id: number): Promise<ApiResponse<Product>> => {
+  const response = await api.post(`/api/products/${id}/toggle-favorite`);
+  return response.data;
+};
+
+// Archive a product
+export const archiveProduct = async (id: number): Promise<ApiResponse<Product>> => {
+  const response = await api.post(`/api/products/${id}/archive`);
+  return response.data;
+};
+
+// Unarchive a product
+export const unarchiveProduct = async (id: number): Promise<ApiResponse<Product>> => {
+  const response = await api.post(`/api/products/${id}/unarchive`);
+  return response.data;
+};
+
 export default {
   getProducts,
   getProduct,
@@ -130,4 +186,7 @@ export default {
   updateProduct,
   deleteProduct,
   toggleProductActive,
+  toggleProductFavorite,
+  archiveProduct,
+  unarchiveProduct,
 };

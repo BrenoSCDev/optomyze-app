@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Package, Briefcase, MonitorDown, AlertCircle, Loader2, ImageIcon, Settings2 } from 'lucide-react';
+import { Package, Briefcase, MonitorDown, AlertCircle, Loader2, ImageIcon, Settings2, Tags, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { createProduct, updateProduct, type Product, type ProductFormData, type ProductCustomField } from '@/services/productApi';
+import { createProduct, updateProduct, type Product, type ProductFormData, type ProductCustomField, type ProductCategory } from '@/services/productApi';
+import { getProductCategories } from '@/services/productCategoryApi';
 import { getSettings, defaultSettings } from '@/services/settingsApi';
 import { useToast } from '@/hooks/use-toast';
 import ProductImageGallery from './ProductImageGallery';
@@ -52,6 +53,8 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('data');
   const [customFields, setCustomFields] = useState<ProductCustomField[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<ProductCategory[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const productSettingsRef = useRef(defaultSettings.product_settings);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -64,9 +67,8 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
   });
 
   useEffect(() => {
-    getSettings().then(s => {
-      productSettingsRef.current = s.product_settings;
-    });
+    getSettings().then(s => { productSettingsRef.current = s.product_settings; });
+    getProductCategories().then(setAvailableCategories).catch(() => {});
   }, []);
 
   // Product ID for image management (either from editing or just created)
@@ -84,6 +86,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         is_active: product.is_active,
       });
       setCustomFields(product.fields || []);
+      setSelectedCategoryIds(product.categories?.map((c) => c.id) ?? []);
       setCreatedProductId(null);
     } else {
       const ps = productSettingsRef.current;
@@ -104,6 +107,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         is_active: ps.default_status === 'active',
       });
       setCustomFields([]);
+      setSelectedCategoryIds([]);
       setCreatedProductId(null);
     }
     setError(null);
@@ -119,6 +123,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
       const submitData = {
         ...formData,
         base_price: parseFloat(String(formData.base_price)) || 0,
+        category_ids: selectedCategoryIds,
       };
 
       if (isEdit && product) {
@@ -296,6 +301,41 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           className="mt-2"
         />
       </div>
+
+      {/* Product Categories (many-to-many) */}
+      {availableCategories.length > 0 && (
+        <div>
+          <Label className="flex items-center gap-1.5">
+            <Tags className="h-3.5 w-3.5" />
+            Categories
+          </Label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {availableCategories.map((cat) => {
+              const selected = selectedCategoryIds.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() =>
+                    setSelectedCategoryIds((prev) =>
+                      selected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id]
+                    )
+                  }
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-all ${
+                    selected
+                      ? 'text-white border-transparent'
+                      : 'bg-transparent text-muted-foreground border-border hover:border-primary/50'
+                  }`}
+                  style={selected ? { backgroundColor: cat.color ?? '#6366f1', borderColor: cat.color ?? '#6366f1' } : {}}
+                >
+                  {cat.name}
+                  {selected && <X className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Description */}
       <div>
