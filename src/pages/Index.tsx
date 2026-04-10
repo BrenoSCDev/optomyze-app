@@ -1,42 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
-import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
-import PlanUsage from '@/components/dashboards/PlanUsage';
-import MetaAds from '@/components/dashboards/MetaAds';
-import GoogleAds from '@/components/dashboards/GoogleAds';
-import GoogleAnalytics from '@/components/dashboards/GoogleAnalytics';
-import TagsDashboard from '@/components/dashboards/TagsDashboard';
-import PreferencesPanel from '@/components/settings/PreferencesPanel';
-import FunnelsDashboard from '@/components/dashboards/FunnelsDashboard';
-import LeadsManagement from '@/components/leads/LeadsManagement';
-import IntegrationsApps from '@/components/integrations/IntegrationsApps';
-import IntegrationPanel from '@/components/integrations/IntegrationPanel';
-import N8nAgents from '@/components/agents/N8nAgents';
-import OptomyzeAgents from '@/components/agents/OptomyzeAgents';
-import ApiTokens from '@/components/api/ApiTokens';
-import ApiSetup from '@/components/api/ApiSetup';
-import { ApiPlayground } from '@/components/api/playground';
-import ManageUsers from '@/components/users/ManageUsers';
-import { ManageTeams } from '@/components/teams';
-import { ManageRoles } from '@/components/roles';
-import WhatsAppInbox from '@/components/chat/WhatsAppInbox';
-import OptomyzeInbox from '@/components/inbox/OptomyzeInbox';
-import OptomyzeCalendar from '@/components/calendars/OptomyzeCalendar';
-import ManageProducts from '@/components/products/ManageProducts';
-import ManageProductCategories from '@/components/products/ManageProductCategories';
-import CrmPanel from '@/components/settings/CrmPanel';
-import ContractsPlaceholder from '@/components/placeholders/ContractsPlaceholder';
-import LeadActivityDashboard from '@/components/reports/LeadActivityDashboard';
-import DealActivityDashboard from '@/components/reports/DealActivityDashboard';
-import TasksDashboard from '@/components/reports/TasksDashboard';
-import SupportPlaceholder from '@/components/placeholders/SupportPlaceholder';
-import OptusChat from '@/components/support/OptusChat';
-import OpenTicket from '@/components/support/OpenTicket';
-import { ManageLeadCompanies } from '@/components/companies';
+
+// Lazy-loaded feature components — each becomes a separate Rollup chunk,
+// dramatically reducing the monolithic bundle that was causing 400 s builds.
+const OptomyzeMetrics        = lazy(() => import('@/components/dashboards/OptomyzeMetrics'));
+const PlanUsage              = lazy(() => import('@/components/dashboards/PlanUsage'));
+const MetaAds                = lazy(() => import('@/components/dashboards/MetaAds'));
+const GoogleAds              = lazy(() => import('@/components/dashboards/GoogleAds'));
+const GoogleAnalytics        = lazy(() => import('@/components/dashboards/GoogleAnalytics'));
+const TagsDashboard          = lazy(() => import('@/components/dashboards/TagsDashboard'));
+const FunnelsDashboard       = lazy(() => import('@/components/dashboards/FunnelsDashboard'));
+const LeadActivityDashboard  = lazy(() => import('@/components/reports/LeadActivityDashboard'));
+const DealActivityDashboard  = lazy(() => import('@/components/reports/DealActivityDashboard'));
+const TasksDashboard         = lazy(() => import('@/components/reports/TasksDashboard'));
+const PreferencesPanel       = lazy(() => import('@/components/settings/PreferencesPanel'));
+const CrmPanel               = lazy(() => import('@/components/settings/CrmPanel'));
+const LeadsManagement        = lazy(() => import('@/components/leads/LeadsManagement'));
+const ManageLeadCompanies    = lazy(() => import('@/components/companies/ManageLeadCompanies').then(m => ({ default: m.ManageLeadCompanies })));
+const IntegrationsApps       = lazy(() => import('@/components/integrations/IntegrationsApps'));
+const IntegrationPanel       = lazy(() => import('@/components/integrations/IntegrationPanel'));
+const N8nAgents              = lazy(() => import('@/components/agents/N8nAgents'));
+const OptomyzeAgents         = lazy(() => import('@/components/agents/OptomyzeAgents'));
+const ApiTokens              = lazy(() => import('@/components/api/ApiTokens'));
+const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
+const ApiPlayground          = lazy(() => import('@/components/api/playground/ApiPlayground'));
+const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
+const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
+const ManageRoles            = lazy(() => import('@/components/roles/ManageRoles'));
+const WhatsAppInbox          = lazy(() => import('@/components/chat/WhatsAppInbox'));
+const OptomyzeInbox          = lazy(() => import('@/components/inbox/OptomyzeInbox'));
+const OptomyzeCalendar       = lazy(() => import('@/components/calendars/OptomyzeCalendar'));
+const ManageProducts         = lazy(() => import('@/components/products/ManageProducts'));
+const ManageProductCategories = lazy(() => import('@/components/products/ManageProductCategories'));
+const ContractsPlaceholder   = lazy(() => import('@/components/placeholders/ContractsPlaceholder'));
+const OptusChat              = lazy(() => import('@/components/support/OptusChat'));
+const OpenTicket             = lazy(() => import('@/components/support/OpenTicket'));
 
 const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -195,7 +198,13 @@ const Index = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                {renderDashboard()}
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-24">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }>
+                  {renderDashboard()}
+                </Suspense>
               </motion.div>
             </AnimatePresence>
           </div>
