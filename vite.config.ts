@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'esnext',
     reportCompressedSize: false,
     rollupOptions: {
       output: {
