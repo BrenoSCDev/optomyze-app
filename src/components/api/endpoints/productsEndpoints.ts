@@ -111,16 +111,19 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
       method: 'GET',
       path: '/product-categories',
       summary: 'List product categories',
-      description: 'Returns all product categories for the company.',
+      description: 'Returns all product categories belonging to your company, ordered alphabetically. Each entry includes a `products_count` with the number of products assigned to that category.',
       queryParams: [],
       exampleResponses: [
         {
           status: 200,
           label: '200 OK',
-          body: [
-            { id: 1, name: "Hardware", description: null, color: "#10b981", products_count: 8 },
-            { id: 2, name: "SaaS",     description: "Software subscriptions", color: "#6366f1", products_count: 14 }
-          ]
+          body: {
+            data: [
+              { id: 1, name: "Hardware",      description: null,                       color: "#10b981", products_count: 8  },
+              { id: 2, name: "SaaS",          description: "Software subscriptions",   color: "#6366f1", products_count: 14 },
+              { id: 3, name: "Subscriptions", description: null,                       color: "#f59e0b", products_count: 5  },
+            ]
+          }
         }
       ]
     },

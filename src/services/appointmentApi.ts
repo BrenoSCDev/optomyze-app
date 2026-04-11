@@ -1,6 +1,14 @@
 import api from './api';
 import { AppointmentType } from './appointmentTypeApi';
 
+export interface AppointmentProduct {
+  id: number;
+  name: string;
+  sku: string;
+  base_price: string;
+  type: string;
+}
+
 export interface Appointment {
   id: number;
   company_id: number;
@@ -18,6 +26,7 @@ export interface Appointment {
   appointment_type?: AppointmentType | null;
   user?: { id: number; name: string; email: string } | null;
   lead?: { id: number; first_name: string; last_name: string } | null;
+  products?: AppointmentProduct[];
 }
 
 export interface CreateAppointmentPayload {
@@ -30,6 +39,7 @@ export interface CreateAppointmentPayload {
   notes?: string;
   status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   lead_timezone?: string;
+  product_ids?: number[];
 }
 
 export const getLeadAppointments = async (leadId: number): Promise<Appointment[]> => {

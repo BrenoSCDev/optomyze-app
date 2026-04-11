@@ -176,7 +176,10 @@ export const defaultSettings: SettingsPanel = {
 export const getSettings = async (): Promise<SettingsPanel> => {
   try {
     const response = await api.get('/api/settings-panel');
-    return response.data;
+    return {
+      product_settings: response.data?.product_settings ?? defaultProductSettings,
+      sales_settings: response.data?.sales_settings ?? defaultSalesSettings,
+    };
   } catch (error) {
     console.warn('Failed to load settings, using defaults:', error);
     return defaultSettings;

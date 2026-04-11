@@ -89,7 +89,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
       setSelectedCategoryIds(product.categories?.map((c) => c.id) ?? []);
       setCreatedProductId(null);
     } else {
-      const ps = productSettingsRef.current;
+      const ps = productSettingsRef.current ?? defaultSettings.product_settings;
       const typeMap: Record<string, 'product' | 'service' | 'digital'> = {
         physical: 'product',
         service: 'service',
