@@ -487,9 +487,9 @@ const FunnelsDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 futuristic-text">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2 futuristic-text">
             {t('funnels.title')}
           </h1>
           <nav className="text-sm text-muted-foreground">
@@ -504,7 +504,7 @@ const FunnelsDashboard = () => {
           }
         }}>
           <DialogTrigger asChild>
-            <Button className="neon-border" size="lg">
+            <Button className="neon-border w-full sm:w-auto" size="lg">
               <Plus className="h-4 w-4 mr-2" />
               {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
             </Button>
