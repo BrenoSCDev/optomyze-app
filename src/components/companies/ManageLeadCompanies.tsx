@@ -58,10 +58,10 @@ export function ManageLeadCompanies() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead-companies'] });
       setShowFormModal(false);
-      toast.success('Company created successfully');
+      toast.success(t('companies.created-success'));
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create company');
+      toast.error(error.response?.data?.message || t('companies.create-error'));
     },
   });
 
@@ -72,10 +72,10 @@ export function ManageLeadCompanies() {
       queryClient.invalidateQueries({ queryKey: ['lead-companies'] });
       setShowFormModal(false);
       setSelectedCompany(null);
-      toast.success('Company updated successfully');
+      toast.success(t('companies.updated-success'));
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update company');
+      toast.error(error.response?.data?.message || t('companies.update-error'));
     },
   });
 
@@ -85,10 +85,10 @@ export function ManageLeadCompanies() {
       queryClient.invalidateQueries({ queryKey: ['lead-companies'] });
       setShowDeleteDialog(false);
       setSelectedCompany(null);
-      toast.success('Company deleted successfully');
+      toast.success(t('companies.deleted-success'));
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete company');
+      toast.error(error.response?.data?.message || t('companies.delete-error'));
     },
   });
 
@@ -184,12 +184,12 @@ export function ManageLeadCompanies() {
     return (
       <div className="flex flex-col items-center justify-center h-[400px] text-center">
         <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">Failed to load companies</h3>
+        <h3 className="text-lg font-medium mb-2">{t('companies.load-error')}</h3>
         <p className="text-muted-foreground mb-4">
-          There was an error loading the company list.
+          {t('companies.load-error-subtitle')}
         </p>
         <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['lead-companies'] })}>
-          Try Again
+          {t('companies.try-again')}
         </Button>
       </div>
     );
@@ -200,9 +200,9 @@ export function ManageLeadCompanies() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Companies</h1>
+          <h1 className="text-2xl font-bold">{t('companies.title')}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Manage companies associated with your leads
+            {t('companies.subtitle')}
           </p>
         </div>
 
@@ -235,7 +235,7 @@ export function ManageLeadCompanies() {
             className="relative"
           >
             <Filter className="h-4 w-4 mr-2" />
-            Filters
+            {t('companies.filters')}
             {activeFilterCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                 {activeFilterCount}
@@ -246,7 +246,7 @@ export function ManageLeadCompanies() {
           {/* Create Button */}
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Company
+            {t('companies.create')}
           </Button>
         </div>
       </div>
@@ -255,7 +255,7 @@ export function ManageLeadCompanies() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by trade name or legal name..."
+          placeholder={t('companies.search-placeholder')}
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           className="pl-9"
@@ -276,17 +276,17 @@ export function ManageLeadCompanies() {
         <div className="flex flex-col items-center justify-center h-[400px] text-center border border-dashed border-border rounded-lg">
           <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">
-            {companies.length === 0 ? 'No companies yet' : 'No companies match your filters'}
+            {companies.length === 0 ? t('companies.no-companies') : t('companies.no-match')}
           </h3>
           <p className="text-muted-foreground mb-4 max-w-sm">
             {companies.length === 0 
-              ? 'Create your first company to start managing your B2B relationships.'
-              : 'Try adjusting your filters or search criteria.'}
+              ? t('companies.no-companies-subtitle')
+              : t('companies.no-match-subtitle')}
           </p>
           {companies.length === 0 && (
             <Button onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Company
+              {t('companies.create')}
             </Button>
           )}
         </div>
