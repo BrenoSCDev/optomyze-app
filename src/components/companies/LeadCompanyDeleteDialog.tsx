@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { LeadCompany } from '@/types/leadCompany';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCompanyDeleteDialogProps {
   open: boolean;
@@ -31,26 +32,27 @@ export function LeadCompanyDeleteDialog({
   onConfirm,
   isLoading,
 }: LeadCompanyDeleteDialogProps) {
+  const { t } = useLanguage();
   if (!company) return null;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Company</AlertDialogTitle>
+          <AlertDialogTitle>{t('companies.delete-title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{company.trade_name}</strong>? 
-            This action cannot be undone and will remove all data associated with this company.
+            {t('companies.delete-description')} <strong>{company.trade_name}</strong>? 
+            {t('companies.delete-warning')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isLoading}>{t('companies.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? 'Deleting...' : 'Delete'}
+            {isLoading ? t('companies.deleting') : t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

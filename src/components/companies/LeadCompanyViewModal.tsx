@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { LeadCompany } from '@/types/leadCompany';
 import { API_STORAGE_URL } from '@/lib/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCompanyViewModalProps {
   open: boolean;
@@ -61,6 +62,7 @@ export function LeadCompanyViewModal({
   onOpenChange,
   company,
 }: LeadCompanyViewModalProps) {
+  const { t } = useLanguage();
   if (!company) return null;
 
   const logoUrl = company.logo_path ? `${API_STORAGE_URL}/${company.logo_path}` : null;
@@ -123,28 +125,26 @@ export function LeadCompanyViewModal({
 
         <ScrollArea className="max-h-[calc(90vh-200px)] px-6 py-4">
           <div className="space-y-6">
-            {/* Identification */}
-            <Section title="Identification">
-              <InfoItem label="Tax ID" value={company.tax_id} />
-              <InfoItem label="Industry" value={company.industry} />
-              <InfoItem label="Company Size" value={company.company_size} />
-              <InfoItem label="Website" value={company.website} icon={Globe} />
+            <Section title={t('companies.section.identification')}>
+              <InfoItem label={t('companies.field.tax-id')} value={company.tax_id} />
+              <InfoItem label={t('companies.field.industry')} value={company.industry} />
+              <InfoItem label={t('companies.field.company-size')} value={company.company_size} />
+              <InfoItem label={t('companies.field.website')} value={company.website} icon={Globe} />
             </Section>
 
             <Separator />
 
-            {/* Contact */}
-            <Section title="Contact">
-              <InfoItem label="Email" value={company.email} icon={Mail} />
-              <InfoItem label="Phone" value={company.phone} icon={Phone} />
-              <InfoItem label="Secondary Phone" value={company.secondary_phone} icon={Phone} />
+            <Section title={t('companies.section.contact')}>
+              <InfoItem label={t('companies.field.email')} value={company.email} icon={Mail} />
+              <InfoItem label={t('companies.field.phone')} value={company.phone} icon={Phone} />
+              <InfoItem label={t('companies.field.secondary-phone')} value={company.secondary_phone} icon={Phone} />
             </Section>
 
             {fullAddress && (
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">Address</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">{t('companies.section.address')}</h4>
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <p className="text-sm">{fullAddress}</p>
@@ -155,17 +155,16 @@ export function LeadCompanyViewModal({
 
             <Separator />
 
-            {/* CRM */}
-            <Section title="CRM Information">
-              <InfoItem label="Source" value={company.source} />
-              <InfoItem label="Status" value={company.status} />
+            <Section title={t('companies.section.crm-info')}>
+              <InfoItem label={t('companies.field.source')} value={company.source} />
+              <InfoItem label={t('companies.field.status')} value={company.status} />
             </Section>
 
             {company.notes && (
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">Notes</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">{t('companies.section.notes')}</h4>
                   <div className="flex items-start gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-sm whitespace-pre-wrap">{company.notes}</p>
@@ -181,13 +180,13 @@ export function LeadCompanyViewModal({
                   {company.created_at && (
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span>Created: {new Date(company.created_at).toLocaleDateString()}</span>
+                      <span>{t('companies.created-at')}: {new Date(company.created_at).toLocaleDateString()}</span>
                     </div>
                   )}
                   {company.updated_at && (
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span>Updated: {new Date(company.updated_at).toLocaleDateString()}</span>
+                      <span>{t('companies.updated-at')}: {new Date(company.updated_at).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
