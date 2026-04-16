@@ -19,6 +19,7 @@ import { LeadCompanyDeleteDialog } from './LeadCompanyDeleteDialog';
 import { LeadCompanyFilters } from './LeadCompanyFilters';
 import leadCompanyApi from '@/services/leadCompanyApi';
 import { LeadCompany, LeadCompanyFilters as FilterType } from '@/types/leadCompany';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type ViewMode = 'card' | 'table';
 
