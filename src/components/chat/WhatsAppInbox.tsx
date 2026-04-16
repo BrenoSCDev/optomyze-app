@@ -152,30 +152,30 @@ const WhatsAppInbox: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 border-b border-border/50 bg-background flex items-center justify-between shrink-0"
+        className="px-3 py-3 sm:px-4 sm:py-4 border-b border-border/50 bg-background flex items-center justify-between gap-3 shrink-0"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-            <FaWhatsapp className="h-5 w-5 text-green-600" />
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+            <FaWhatsapp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent leading-tight truncate">
               {t('chat.inbox.title')}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">
               {t('chat.inbox.description')}
             </p>
           </div>
         </div>
         <Button 
           variant="outline" 
-          size="sm" 
+          size="icon"
           onClick={loadChats}
           disabled={isLoading}
-          className="gap-2"
+          className="shrink-0 h-8 w-8 sm:h-9 sm:w-auto sm:px-3 sm:gap-2"
         >
           <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-          {t('common.refresh')}
+          <span className="hidden sm:inline">{t('common.refresh')}</span>
         </Button>
       </motion.div>
 
