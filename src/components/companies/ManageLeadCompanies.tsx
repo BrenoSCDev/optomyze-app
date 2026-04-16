@@ -25,7 +25,7 @@ type ViewMode = 'card' | 'table';
 
 export function ManageLeadCompanies() {
   const queryClient = useQueryClient();
-  
+  const { t } = useLanguage();
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [showFilters, setShowFilters] = useState(false);
