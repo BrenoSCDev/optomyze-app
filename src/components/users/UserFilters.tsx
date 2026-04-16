@@ -118,8 +118,9 @@ const UserFiltersComponent: React.FC<UserFiltersProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('users.filters.all-roles')}</SelectItem>
+              <SelectItem value="admin">{t('users.roles.admin') || 'Admin'}</SelectItem>
               <SelectItem value="manager">{t('users.filters.manager')}</SelectItem>
-              <SelectItem value="agent">Agent</SelectItem>
+              <SelectItem value="agent">{t('users.roles.agent') || 'Agent'}</SelectItem>
             </SelectContent>
           </Select>
 

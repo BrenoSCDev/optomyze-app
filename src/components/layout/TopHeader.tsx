@@ -317,7 +317,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       children: [
         { id: 'manage-users', label: t('organization.users') },
         { id: 'manage-teams', label: t('organization.teams') },
-        { id: 'manage-roles', label: t('organization.roles') },
       ],
     },
     chat: {

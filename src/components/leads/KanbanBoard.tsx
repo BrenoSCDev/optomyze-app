@@ -706,16 +706,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       {/* View Content */}
       {viewMode === 'kanban' ? (
         <>
-          <style>
-          {`
-            .kanban-board { max-width: 640px; overflow-x: auto; }
-            @media (min-width: 768px) { .kanban-board { max-width: 768px; } }
-            @media (min-width: 1024px) { .kanban-board { max-width: 1024px; } }
-            @media (min-width: 1280px) { .kanban-board { max-width: 1200px; } }
-            @media (min-width: 1536px) { .kanban-board { max-width: 1600px; } }
-          `}
-          </style>
-
           <DndContext
             sensors={sensors}
             collisionDetection={customCollisionDetection}
@@ -724,7 +714,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 kanban-board">
+            <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+            <div className="flex gap-4 pb-4 min-w-max">
               {filteredColumns.map((column, index) => (
                 <KanbanColumn
                   key={column.id}
@@ -742,8 +733,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
                 />
               ))}
             </div>
-            
-            <DragOverlay 
+            </div>
+
+            <DragOverlay
               dropAnimation={{
                 duration: 200,
                 easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',

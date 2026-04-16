@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,6 +23,7 @@ interface UserTableViewProps {
   onView: (user: User) => void;
   onToggleStatus: (user: User) => void;
   onDelete: (user: User) => void;
+  isAgent?: boolean;
 }
 
 const UserTableView: React.FC<UserTableViewProps> = ({
@@ -31,6 +32,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
   onView,
   onToggleStatus,
   onDelete,
+  isAgent = false,
 }) => {
   const { t } = useLanguage();
 
@@ -67,9 +69,10 @@ const UserTableView: React.FC<UserTableViewProps> = ({
             <TableHead>{t('users.table.email')}</TableHead>
             <TableHead>{t('users.table.phone')}</TableHead>
             <TableHead>{t('users.table.role')}</TableHead>
+            <TableHead>{t('users.table.teams') || 'Teams'}</TableHead>
             <TableHead>{t('users.table.status')}</TableHead>
             <TableHead>{t('users.table.last-login')}</TableHead>
-            <TableHead className="w-20">{t('users.table.actions')}</TableHead>
+            {!isAgent && <TableHead className="w-24">{t('users.table.actions')}</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,18 +90,42 @@ const UserTableView: React.FC<UserTableViewProps> = ({
               <TableCell className="text-muted-foreground">{user.email}</TableCell>
               <TableCell className="text-muted-foreground">{user.phone}</TableCell>
               <TableCell>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={getRoleColor(user.role)}
                 >
                   {user.role}
                 </Badge>
               </TableCell>
               <TableCell>
+                {((user.managed_teams && user.managed_teams.length > 0) || (user.teams && user.teams.length > 0)) ? (
+                  <div className="flex flex-wrap gap-1">
+                    {user.managed_teams?.map(team => (
+                      <Badge
+                        key={`mgr-${team.id}`}
+                        variant="outline"
+                        className="text-xs bg-yellow-50 text-yellow-800 border-yellow-200"
+                        title="Manages this team"
+                      >
+                        ★ {team.name}
+                      </Badge>
+                    ))}
+                    {user.teams?.map(team => (
+                      <Badge key={`mbr-${team.id}`} variant="secondary" className="text-xs">
+                        {team.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-xs">—</span>
+                )}
+              </TableCell>
+              <TableCell>
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={user.is_active}
                     onCheckedChange={() => onToggleStatus(user)}
+                    disabled={isAgent}
                   />
                   <span className="text-sm text-muted-foreground">
                     {user.is_active ? t('users.table.active') : t('users.table.inactive')}
@@ -108,16 +135,28 @@ const UserTableView: React.FC<UserTableViewProps> = ({
               <TableCell className="text-muted-foreground text-sm">
                 {getLastLoginText(user.last_login_at)}
               </TableCell>
-              <TableCell>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => onDelete(user)}
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
+              {!isAgent && (
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(user)}
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(user)}
+                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

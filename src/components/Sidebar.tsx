@@ -16,7 +16,6 @@ import {
   BarChart3, 
   Users, 
   UsersRound,
-  Shield,
   Settings, 
   Database, 
   ChevronDown,
@@ -147,7 +146,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   const organizationItems = [
     { id: 'manage-users', label: t('organization.users'), icon: () => <Users size={18}/> },
     { id: 'manage-teams', label: t('organization.teams'), icon: () => <UsersRound size={18}/> },
-    { id: 'manage-roles', label: t('organization.roles'), icon: () => <Shield size={18}/> },
   ];
 
   const chatItems = [

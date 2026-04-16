@@ -1,12 +1,14 @@
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserX, UserCheck, Trash2 } from 'lucide-react';
+import { UserX, UserCheck, Trash2, Pencil } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
+import { usePrivateFile } from '@/hooks/usePrivateFile';
+import optomyzeLogo from '@/assets/optomyze-bg.jpeg';
 
 interface UserCardProps {
   user: User;
@@ -14,6 +16,7 @@ interface UserCardProps {
   onView: (user: User) => void;
   onToggleStatus: (user: User) => void;
   onDelete: (user: User) => void;
+  isAgent?: boolean;
 }
 
 const UserCard: React.FC<UserCardProps> = ({
@@ -22,12 +25,14 @@ const UserCard: React.FC<UserCardProps> = ({
   onView,
   onToggleStatus,
   onDelete,
+  isAgent = false,
 }) => {
   const { t } = useLanguage();
+  const backgroundUrl = usePrivateFile(user.bg_pic);
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? 'bg-green-100 text-green-800 border-green-200' 
+    return isActive
+      ? 'bg-green-100 text-green-800 border-green-200'
       : 'bg-red-100 text-red-800 border-red-200';
   };
 
@@ -37,8 +42,6 @@ const UserCard: React.FC<UserCardProps> = ({
         return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'manager':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'moderator':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -46,7 +49,6 @@ const UserCard: React.FC<UserCardProps> = ({
 
   const getLastSeenText = (lastLogin: string | null) => {
     if (!lastLogin) return t('users.card.never-logged-in');
-    
     try {
       return t('users.card.last-seen') + ' ' + formatDistanceToNow(new Date(lastLogin), { addSuffix: true });
     } catch {
@@ -54,93 +56,99 @@ const UserCard: React.FC<UserCardProps> = ({
     }
   };
 
-  const backgroundStyle = user.background_image_url 
-    ? {
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${user.background_image_url})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }
-    : {
-        background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1))',
-      };
-
   return (
-    <div 
-      className="relative glass-card overflow-hidden hover:scale-102 transition-all duration-300 h-80 group"
-      style={backgroundStyle}
-    >
-      {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
-      
-      {/* Action Buttons */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => onToggleStatus(user)}
-          className="h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white"
-          title={user.is_active ? t('users.card.deactivate') : t('users.card.activate')}
-        >
-          {user.is_active ? (
-            <UserX className="h-4 w-4" />
-          ) : (
-            <UserCheck className="h-4 w-4" />
-          )}
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => onDelete(user)}
-          className="h-8 w-8 bg-red-600/80 backdrop-blur-sm hover:bg-red-700/90 text-white"
-          title={t('users.card.delete')}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="glass-card overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col">
 
-      {/* Status Badge */}
-      <div className="absolute top-4 left-4 z-10">
-        <Badge 
-          variant="outline" 
-          className={`${getStatusColor(user.is_active)} backdrop-blur-sm`}
-        >
-          {user.is_active ? t('users.card.active') : t('users.card.inactive')}
-        </Badge>
-      </div>
+      {/* Cover image */}
+      <div className="relative h-32 shrink-0">
+        <img
+          src={backgroundUrl || optomyzeLogo}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
 
-      {/* User Content */}
-      <div className="relative z-10 p-6 h-full flex flex-col justify-end">
-        {/* Profile Photo */}
-        <div className="mb-4">
-          <Avatar className="h-16 w-16 border-4 border-white/30 shadow-lg">
-            <PrivateAvatarImage path={user.profile_pic} alt={user.name} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
-              {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        {/* Status badge — top left */}
+        <div className="absolute top-3 left-3 z-10">
+          <Badge variant="outline" className={`${getStatusColor(user.is_active)} backdrop-blur-sm text-xs`}>
+            {user.is_active ? t('users.card.active') : t('users.card.inactive')}
+          </Badge>
         </div>
 
-        {/* User Info */}
-        <div className="text-white">
-          <h3 className="text-xl font-bold mb-1 truncate">{user.name}</h3>
-          <p className="text-white/90 text-sm mb-1 truncate">{user.email}</p>
-          <p className="text-white/80 text-xs mb-3 truncate">{user.phone}</p>
-          
-          {/* Role Badge */}
-          <div className="mb-3">
-            <Badge 
-              variant="outline" 
-              className={`${getRoleColor(user.role)} backdrop-blur-sm text-xs`}
+        {/* Action buttons — top right */}
+        {!isAgent && (
+          <div className="absolute top-3 right-3 z-10 flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(user)}
+              className="h-7 w-7 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+              title={t('users.card.edit') || 'Edit'}
             >
-              {user.role}
-            </Badge>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onToggleStatus(user)}
+              className="h-7 w-7 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+              title={user.is_active ? t('users.card.deactivate') : t('users.card.activate')}
+            >
+              {user.is_active ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(user)}
+              className="h-7 w-7 bg-red-600/70 backdrop-blur-sm hover:bg-red-700/90 text-white"
+              title={t('users.card.delete')}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
+        )}
+      </div>
 
-          {/* Last Login */}
-          <p className="text-white/70 text-xs">
-            {getLastSeenText(user.last_login_at)}
-          </p>
+      {/* Avatar overlapping the cover */}
+      <div className="relative px-4 -mt-8">
+        <Avatar className="h-16 w-16 border-4 border-background shadow-md">
+          <PrivateAvatarImage path={user.profile_pic} alt={user.name} />
+          <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
+            {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
+      {/* Info section */}
+      <div className="px-4 pt-2 pb-4 flex flex-col gap-1">
+        <h3 className="text-base font-bold text-foreground truncate">{user.name}</h3>
+        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+        {user.phone && <p className="text-xs text-muted-foreground truncate">{user.phone}</p>}
+
+        {/* Role + Teams */}
+        <div className="flex flex-wrap gap-1 mt-1">
+          <Badge variant="outline" className={`${getRoleColor(user.role)} text-xs`}>
+            {user.role}
+          </Badge>
+          {user.managed_teams?.map(team => (
+            <Badge
+              key={`mgr-${team.id}`}
+              variant="outline"
+              className="bg-yellow-50 text-yellow-800 border-yellow-200 text-xs"
+              title="Manages this team"
+            >
+              ★ {team.name}
+            </Badge>
+          ))}
+          {user.teams?.map(team => (
+            <Badge key={`mbr-${team.id}`} variant="secondary" className="text-xs">
+              {team.name}
+            </Badge>
+          ))}
         </div>
+
+        <p className="text-xs text-muted-foreground mt-1">
+          {getLastSeenText(user.last_login_at)}
+        </p>
       </div>
     </div>
   );

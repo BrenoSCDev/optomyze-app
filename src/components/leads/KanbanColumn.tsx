@@ -119,7 +119,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
       </div>
 
       {/* Column Body */}
-      <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+      <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
         {/* Drag Placeholder - shown only when this column is the drop target */}
         {activeId && isDropTarget && (
           <motion.div

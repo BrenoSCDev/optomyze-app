@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
 } from "@/components/ui/pagination";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -18,12 +18,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { UserPlus, RefreshCw } from 'lucide-react';
+import { UserPlus, RefreshCw, ShieldCheck, Users, UserCog } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { User, UserFilters, ViewMode } from '@/types/user';
 import { userApi } from '@/services/userApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import UserCard from './UserCard';
 import UserTableView from './UserTableView';
 import UserFiltersComponent from './UserFilters';
@@ -44,7 +45,7 @@ const mockUsers: User[] = [
     updated_at: "2025-09-25T19:10:14.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
     profile_pic: "user1.jpg",
-    background_image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+    bg_pic: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
   },
   {
     id: 2,
@@ -59,7 +60,7 @@ const mockUsers: User[] = [
     updated_at: "2025-09-27T15:30:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1494790108755-2616b612b522?w=150&h=150&fit=crop&crop=face",
     profile_pic: "user2.jpg",
-    background_image_url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"
+    bg_pic: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&h=600&fit=crop"
   },
   {
     id: 3,
@@ -74,7 +75,7 @@ const mockUsers: User[] = [
     updated_at: "2025-09-20T08:15:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     profile_pic: "user3.jpg",
-    background_image_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop"
+    bg_pic: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=600&fit=crop"
   },
   {
     id: 4,
@@ -89,7 +90,7 @@ const mockUsers: User[] = [
     updated_at: "2025-09-28T09:45:00.000000Z",
     profile_photo_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     profile_pic: "user4.jpg",
-    background_image_url: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
+    bg_pic: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&h=600&fit=crop"
   }
 ];
 
@@ -98,7 +99,9 @@ const ITEMS_PER_PAGE = 12;
 const ManageUsers = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  
+  const { user: currentUser } = useAuth();
+  const isAgent = currentUser?.role === 'agent';
+
   // State
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,6 +117,7 @@ const ManageUsers = () => {
   });
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
 
   // Load users on component mount
   useEffect(() => {
@@ -173,12 +177,8 @@ const ManageUsers = () => {
 
   // Event handlers
   const handleEdit = (user: User) => {
-    console.log('Edit user:', user);
-    toast({
-      title: t('users.actions.edit-title'),
-      description: `${t('users.actions.edit-description')} ${user.name}`,
-    });
-    // TODO: Implement edit functionality
+    setEditUser(user);
+    setShowCreateDialog(true);
   };
 
   const handleView = (user: User) => {
@@ -237,11 +237,21 @@ const ManageUsers = () => {
   };
 
   const handleCreateUser = () => {
+    setEditUser(null);
     setShowCreateDialog(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setShowCreateDialog(open);
+    if (!open) setEditUser(null);
   };
 
   const handleUserCreated = (newUser: User) => {
     setUsers(prevUsers => [...prevUsers, newUser]);
+  };
+
+  const handleUserUpdated = (updatedUser: User) => {
+    setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
 
   const handleFiltersChange = (newFilters: UserFilters) => {
@@ -335,19 +345,66 @@ const ManageUsers = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleRefresh} 
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
             disabled={loading}
             className="flex items-center gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             {t('users.actions.refresh')}
           </Button>
-          <Button onClick={handleCreateUser} className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
-            {t('users.actions.create-user')}
-          </Button>
+          {!isAgent && (
+            <Button onClick={handleCreateUser} className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              {t('users.actions.create-user')}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Role Info KPI Panel */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-purple-50 dark:bg-purple-950/20 p-4">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/40">
+            <ShieldCheck className="h-4 w-4 text-purple-700 dark:text-purple-300" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-purple-800 dark:text-purple-200">
+              {t('users.roles.admin') || 'Admin'}
+            </p>
+            <p className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
+              {t('users.roles.admin-description') || 'Full access to all company data, users, and settings.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-blue-50 dark:bg-blue-950/20 p-4">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40">
+            <UserCog className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+              {t('users.roles.manager') || 'Manager'}
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+              {t('users.roles.manager-description') || 'Sees own data + team members\' data + unassigned leads and deals.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-gray-50 dark:bg-gray-800/30 p-4">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700/40">
+            <Users className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              {t('users.roles.agent') || 'Agent'}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {t('users.roles.agent-description') || 'Can only view their own leads and deals. Read-only access to team members.'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -391,6 +448,7 @@ const ManageUsers = () => {
                   onView={handleView}
                   onToggleStatus={handleToggleStatus}
                   onDelete={handleDelete}
+                  isAgent={isAgent}
                 />
               ))}
             </div>
@@ -402,6 +460,7 @@ const ManageUsers = () => {
                 onView={handleView}
                 onToggleStatus={handleToggleStatus}
                 onDelete={handleDelete}
+                isAgent={isAgent}
               />
             </div>
           )}
@@ -481,11 +540,13 @@ const ManageUsers = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Create User Dialog */}
+      {/* Create / Edit User Dialog */}
       <UserCreationDialog
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        onOpenChange={handleDialogOpenChange}
         onUserCreated={handleUserCreated}
+        onUserUpdated={handleUserUpdated}
+        editUser={editUser}
       />
     </div>
   );

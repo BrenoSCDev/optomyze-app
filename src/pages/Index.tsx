@@ -31,7 +31,6 @@ const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
 const ApiPlayground          = lazy(() => import('@/components/api/playground/ApiPlayground'));
 const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
 const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
-const ManageRoles            = lazy(() => import('@/components/roles/ManageRoles'));
 const WhatsAppInbox          = lazy(() => import('@/components/chat/WhatsAppInbox'));
 const OptomyzeInbox          = lazy(() => import('@/components/inbox/OptomyzeInbox'));
 const OptomyzeCalendar       = lazy(() => import('@/components/calendars/OptomyzeCalendar'));
@@ -116,7 +115,6 @@ const Index = () => {
       case 'api-playground': return <ApiPlayground />;
       case 'manage-users': return <ManageUsers />;
       case 'manage-teams': return <ManageTeams />;
-      case 'manage-roles': return <ManageRoles />;
       case 'whatsapp-inbox': return <WhatsAppInbox />;
       case 'optomyze-inbox': return <OptomyzeInbox />;
       case 'optomyze-calendar': return <OptomyzeCalendar />;
@@ -181,7 +179,7 @@ const Index = () => {
         )}
 
         <motion.main
-          className="flex-1 transition-all duration-300"
+          className="flex-1 min-w-0 overflow-x-hidden transition-all duration-300"
           initial={false}
           animate={{
             marginLeft: useHeaderLayout

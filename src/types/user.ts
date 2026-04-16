@@ -5,6 +5,11 @@ export interface Company {
   currency?: string;
 }
 
+export interface Team {
+  id: number;
+  name: string;
+}
+
 export interface User {
   id: number;
   name: string;
@@ -18,8 +23,10 @@ export interface User {
   updated_at: string;
   profile_photo_url: string | null;
   profile_pic: string | null;
-  background_image_url: string | null;
+  bg_pic: string | null;
   company?: Company;
+  teams?: Team[];
+  managed_teams?: Team[];
 }
 
 export interface UserFilters {

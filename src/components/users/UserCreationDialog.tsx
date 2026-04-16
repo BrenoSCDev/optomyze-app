@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,29 +27,53 @@ interface UserCreationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUserCreated: (user: User) => void;
+  onUserUpdated?: (user: User) => void;
+  editUser?: User | null;
 }
+
+const EMPTY_FORM = {
+  name: '',
+  email: '',
+  phone: '',
+  role: 'agent',
+  is_active: true,
+};
 
 const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
   open,
   onOpenChange,
   onUserCreated,
+  onUserUpdated,
+  editUser = null,
 }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    role: 'agent',
-    is_active: true,
-  });
+  const isEditMode = !!editUser;
+
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
+
+  // Pre-fill form when opening in edit mode
+  useEffect(() => {
+    if (open) {
+      if (editUser) {
+        setFormData({
+          name: editUser.name,
+          email: editUser.email,
+          phone: editUser.phone ?? '',
+          role: editUser.role,
+          is_active: editUser.is_active,
+        });
+      } else {
+        setFormData(EMPTY_FORM);
+      }
+    }
+  }, [open, editUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
+
+    if (!formData.name.trim() || !formData.email.trim()) {
       toast({
         variant: "destructive",
         title: t('users.create.validation-error'),
@@ -60,28 +84,29 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
 
     try {
       setLoading(true);
-      const newUser = await userApi.createUser(formData);
-      onUserCreated(newUser);
-      onOpenChange(false);
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        role: 'agent',
-        is_active: true,
-      });
 
-      toast({
-        title: t('users.create.success'),
-        description: `${newUser.name} ${t('users.create.success-description')}`,
-      });
+      if (isEditMode && editUser) {
+        const updated = await userApi.updateUser(editUser.id, formData);
+        onUserUpdated?.(updated);
+        toast({
+          title: t('users.edit.success') || 'User updated',
+          description: `${updated.name} ${t('users.edit.success-description') || 'was updated successfully.'}`,
+        });
+      } else {
+        const newUser = await userApi.createUser(formData);
+        onUserCreated(newUser);
+        toast({
+          title: t('users.create.success'),
+          description: `${newUser.name} ${t('users.create.success-description')}`,
+        });
+      }
+
+      onOpenChange(false);
     } catch (error) {
-      console.error('Failed to create user:', error);
+      console.error('Failed to save user:', error);
       toast({
         variant: "destructive",
-        title: t('users.create.error'),
+        title: isEditMode ? (t('users.edit.error') || 'Update failed') : t('users.create.error'),
         description: t('users.errors.try-again'),
       });
     } finally {
@@ -89,30 +114,31 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
     }
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('users.create.title')}</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? (t('users.edit.title') || 'Edit User') : t('users.create.title')}
+          </DialogTitle>
           <DialogDescription>
-            {t('users.create.description')}
+            {isEditMode
+              ? (t('users.edit.description') || 'Update the user information below.')
+              : t('users.create.description')}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">{t('users.create.name')}</Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e) => handleChange('name', e.target.value)}
               placeholder={t('users.create.name-placeholder')}
               required
             />
@@ -124,7 +150,7 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
               id="email"
               type="email"
               value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              onChange={(e) => handleChange('email', e.target.value)}
               placeholder={t('users.create.email-placeholder')}
               required
             />
@@ -136,21 +162,21 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
               id="phone"
               type="tel"
               value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
+              onChange={(e) => handleChange('phone', e.target.value)}
               placeholder={t('users.create.phone-placeholder')}
-              required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="role">{t('users.create.role')}</Label>
-            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+            <Select value={formData.role} onValueChange={(v) => handleChange('role', v)}>
               <SelectTrigger>
                 <SelectValue placeholder={t('users.create.role-placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="agent">{t('users.roles.agent')}</SelectItem>
+                <SelectItem value="admin">{t('users.roles.admin') || 'Admin'}</SelectItem>
                 <SelectItem value="manager">{t('users.roles.manager')}</SelectItem>
+                <SelectItem value="agent">{t('users.roles.agent')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -159,22 +185,24 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
             <Switch
               id="is_active"
               checked={formData.is_active}
-              onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+              onCheckedChange={(checked) => handleChange('is_active', checked)}
             />
             <Label htmlFor="is_active">{t('users.create.active')}</Label>
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               {t('users.create.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? t('users.create.creating') : t('users.create.create')}
+              {loading
+                ? (isEditMode ? 'Saving...' : t('users.create.creating'))
+                : (isEditMode ? (t('users.edit.save') || 'Save changes') : t('users.create.create'))}
             </Button>
           </DialogFooter>
         </form>
