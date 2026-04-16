@@ -302,23 +302,23 @@ const OptomyzeCalendar: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       {/* Header */}
       <motion.div 
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Calendar className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-3">
+            <Calendar className="h-7 w-7 sm:h-8 sm:w-8 text-primary shrink-0" />
             {t('calendar.optomyze.title')}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             {t('calendar.optomyze.description')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} title="Refresh">
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
@@ -332,7 +332,7 @@ const OptomyzeCalendar: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar Grid */}
         <motion.div 
-          className="lg:col-span-2 glass-card p-6"
+          className="lg:col-span-2 glass-card p-3 sm:p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -382,7 +382,7 @@ const OptomyzeCalendar: React.FC = () => {
                     key={index}
                     onClick={() => setSelectedDate(day)}
                     className={`
-                      min-h-[80px] p-2 rounded-lg text-left transition-all
+                      min-h-[60px] sm:min-h-[80px] p-1.5 sm:p-2 rounded-lg text-left transition-all
                       ${isCurrentMonth ? 'bg-white/5 hover:bg-white/10' : 'bg-transparent opacity-40'}
                       ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
                       ${isToday ? 'border border-primary/50' : ''}
@@ -394,11 +394,11 @@ const OptomyzeCalendar: React.FC = () => {
                     `}>
                       {format(day, 'd')}
                     </span>
-                    <div className="mt-1 space-y-1">
+                    <div className="mt-1 space-y-0.5 sm:space-y-1">
                       {dayItems.slice(0, 2).map(item => (
                         <div
                           key={item.id}
-                          className={`text-xs px-1 py-0.5 rounded truncate flex items-center gap-1 ${
+                          className={`text-[10px] sm:text-xs px-1 py-0.5 rounded truncate flex items-center gap-0.5 sm:gap-1 ${
                             item.type === 'appointment' && item.appointmentTypeColor
                               ? 'bg-white/10 text-white border border-white/10'
                               : getItemColor(item)
@@ -408,16 +408,17 @@ const OptomyzeCalendar: React.FC = () => {
                             : undefined}
                         >
                           {item.type === 'task' ? (
-                            <CheckSquare className="h-3 w-3 flex-shrink-0" />
+                            <CheckSquare className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                           ) : item.type === 'appointment' ? (
                             <span
-                              className="w-2 h-2 rounded-full flex-shrink-0 inline-block"
+                              className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 inline-block"
                               style={{ backgroundColor: item.appointmentTypeColor || '#14b8a6' }}
                             />
                           ) : (
-                            <CalendarDays className="h-3 w-3 flex-shrink-0" />
+                            <CalendarDays className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                           )}
-                          <span className="truncate">{item.title}</span>
+                          <span className="truncate hidden sm:inline">{item.title}</span>
+                          <span className="truncate sm:hidden">{item.title.charAt(0)}</span>
                         </div>
                       ))}
                       {dayItems.length > 2 && (
