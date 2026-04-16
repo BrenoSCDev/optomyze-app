@@ -20,7 +20,7 @@ import TopHeader from '@/components/layout/TopHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { profileService } from '@/services/profileApi';
-import optomyzeLogo from '@/assets/optomyze-bg.jpeg';
+import optomyzeLogo from '@/assets/user-banner.jpeg';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();

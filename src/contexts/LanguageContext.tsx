@@ -1167,6 +1167,9 @@ const translations = {
     'stages.entry_requirement_updated': 'Entry requirement updated successfully',
     'stages.entry_requirement_error': 'Failed to update entry requirement',
     'stages.color_label': 'Color',
+    'users.roles.admin-description': 'Full access to all company data, users, and settings.',
+    'users.roles.manager-description': 'Sees own data + team members\' data + unassigned leads and deals.',
+    'users.roles.agent-description': 'Can only view their own leads and deals. Read-only access to the user list.',
 
     // Integrations
     'integrations.title': 'App Integrations',
@@ -1900,6 +1903,10 @@ const translations = {
     
     'users.roles.agent': 'Agent',
     'users.roles.manager': 'Manager',
+    'users.roles.admin': 'Admin',
+    'users.edit.title': 'Edit User',
+    'users.edit.description': 'Update the user information below.',
+    'users.edit.save': 'Save changes',
     'users.actions.exported': 'Users Exported',
     'users.actions.exported-description': 'User data has been exported to CSV',
     
@@ -3808,6 +3815,9 @@ const translations = {
     'stages.entry_requirement_updated': 'Requisito de entrada atualizado com sucesso',
     'stages.entry_requirement_error': 'Falha ao atualizar requisito de entrada',
     'stages.color_label': 'Cor',
+    'users.roles.admin-description': 'Acesso total a todos os dados, usuários e configurações da empresa.',
+    'users.roles.manager-description': 'Vê seus próprios dados + dados dos membros da equipe + leads e negócios sem responsável.',
+    'users.roles.agent-description': 'Pode visualizar apenas seus próprios leads e negócios. Acesso somente leitura à lista de usuários.',
 
     // Integrations
     'integrations.title': 'Integrações de Apps',
@@ -4536,7 +4546,11 @@ const translations = {
     
     'users.roles.agent': 'Agente',
     'users.roles.manager': 'Gerente',
-    
+    'users.roles.admin': 'Admin',
+    'users.edit.title': 'Editar Usuário',
+    'users.edit.description': 'Atualize as informações do usuário abaixo.',
+    'users.edit.save': 'Salvar alterações',
+
     'users.errors.load-failed': 'Falha ao carregar usuários. Usando dados offline.',
     'users.errors.status-failed': 'Falha ao atualizar status do usuário',
     'users.errors.delete-failed': 'Falha ao excluir usuário',
@@ -6899,7 +6913,11 @@ const translations = {
     
     'users.roles.agent': 'Agent',
     'users.roles.manager': 'Manager',
-    
+    'users.roles.admin': 'Admin',
+    'users.edit.title': 'Benutzer bearbeiten',
+    'users.edit.description': 'Aktualisieren Sie die Benutzerinformationen unten.',
+    'users.edit.save': 'Änderungen speichern',
+
     'users.errors.load-failed': 'Fehler beim Laden der Benutzer. Offline-Daten werden verwendet.',
     'users.errors.status-failed': 'Fehler beim Aktualisieren des Benutzerstatus',
     'users.errors.delete-failed': 'Fehler beim Löschen des Benutzers',
@@ -7800,6 +7818,9 @@ const translations = {
     'stages.entry_requirement_updated': 'Eingabeanforderung erfolgreich aktualisiert',
     'stages.entry_requirement_error': 'Fehler beim Aktualisieren der Eingabeanforderung',
     'stages.color_label': 'Farbe',
+    'users.roles.admin-description': 'Vollständiger Zugriff auf alle Unternehmensdaten, Benutzer und Einstellungen.',
+    'users.roles.manager-description': 'Sieht eigene Daten + Daten der Teammitglieder + nicht zugewiesene Leads und Deals.',
+    'users.roles.agent-description': 'Kann nur eigene Leads und Deals einsehen. Nur-Lese-Zugriff auf die Benutzerliste.',
   },
   es: {
     // Navigation
@@ -9369,7 +9390,11 @@ const translations = {
     
     'users.roles.agent': 'Agente',
     'users.roles.manager': 'Gerente',
-    
+    'users.roles.admin': 'Admin',
+    'users.edit.title': 'Editar Usuario',
+    'users.edit.description': 'Actualiza la información del usuario a continuación.',
+    'users.edit.save': 'Guardar cambios',
+
     'users.errors.load-failed': 'Error al cargar usuarios. Usando datos offline.',
     'users.errors.status-failed': 'Error al actualizar estado del usuario',
     'users.errors.delete-failed': 'Error al eliminar usuario',
@@ -10270,6 +10295,9 @@ const translations = {
     'stages.entry_requirement_updated': 'Requisito de entrada actualizado correctamente',
     'stages.entry_requirement_error': 'Error al actualizar el requisito de entrada',
     'stages.color_label': 'Color',
+    'users.roles.admin-description': 'Acceso completo a todos los datos, usuarios y configuraciones de la empresa.',
+    'users.roles.manager-description': 'Ve sus propios datos + datos de los miembros del equipo + leads y tratos sin asignar.',
+    'users.roles.agent-description': 'Solo puede ver sus propios leads y tratos. Acceso de solo lectura a la lista de usuarios.',
   }
 };
 

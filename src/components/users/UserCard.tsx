@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistanceToNow } from 'date-fns';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
-import optomyzeLogo from '@/assets/optomyze-bg.jpeg';
+import optomyzeLogo from '@/assets/user-banner.jpeg';
 
 interface UserCardProps {
   user: User;
