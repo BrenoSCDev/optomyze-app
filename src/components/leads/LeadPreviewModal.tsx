@@ -322,7 +322,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start absolute top-3 right-3 sm:static">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start flex-wrap justify-end">
                       <Button
                         variant="outline" size="sm"
                         className="border-primary/20 text-primary hover:bg-primary/10 hidden sm:inline-flex"
