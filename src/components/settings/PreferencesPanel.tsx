@@ -335,10 +335,10 @@ const PreferencesPanel: React.FC = () => {
                     }`}
                   >
                     <PanelLeft className="h-3.5 w-3.5" />
-                    Sidebar
+                    {t('settings.preferences.sidebar')}
                   </button>
                   <button
-                    onClick={() => { setNavLayout('header'); toast.success('Navigation switched to header'); }}
+                    onClick={() => { setNavLayout('header'); toast.success(t('settings.preferences.toast.nav-header')); }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-border/60 ${
                       navLayout === 'header'
                         ? 'bg-accent/15 text-accent'
@@ -346,7 +346,7 @@ const PreferencesPanel: React.FC = () => {
                     }`}
                   >
                     <PanelTop className="h-3.5 w-3.5" />
-                    Header
+                    {t('settings.preferences.header')}
                   </button>
                 </div>
               </SettingRow>
