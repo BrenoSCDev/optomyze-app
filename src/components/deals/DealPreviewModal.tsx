@@ -243,15 +243,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               {sale && !loading && !error && (
                 <>
                   {/* Header */}
-                  <div className="flex items-start justify-between p-6 pb-4 border-b border-deal/10">
-                    <div className="flex items-start gap-4 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-deal/10">
+                    <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
                       <Avatar className="h-12 w-12 shrink-0 rounded-full">
-                        <AvatarFallback className="bg-deal/20 text-deal text-lg font-semibold rounded-full">
+                        <AvatarFallback className="bg-deal/20 text-deal text-base sm:text-lg font-semibold rounded-full">
                           {getInitials(sale.name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0">
-                        <h2 className="text-2xl font-bold text-foreground truncate">{sale.name}</h2>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">{sale.name}</h2>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge className={`${getStatusColor(sale.status)} capitalize`}>
                             {sale.status}
@@ -276,26 +276,34 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                             </Badge>
                           )}
                           {sale.user && (
-                            <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <User className="h-3.5 w-3.5" />
-                              {sale.user.name}
+                            <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground min-w-0">
+                              <User className="h-3.5 w-3.5 shrink-0" />
+                              <span className="truncate">{sale.user.name}</span>
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-deal/20 text-deal hover:bg-deal/10"
+                        className="border-deal/20 text-deal hover:bg-deal/10 hidden sm:inline-flex"
                         onClick={handleOpenEdit}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="border-deal/20 text-deal hover:bg-deal/10 sm:hidden h-8 w-8"
+                        onClick={handleOpenEdit}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                         <X className="h-5 w-5" />
                       </Button>
                     </div>
