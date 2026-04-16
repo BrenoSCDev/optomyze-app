@@ -141,8 +141,8 @@ const PreferencesPanel: React.FC = () => {
     if (soundId !== 'none') {
       previewSound(soundId);
     }
-    toast.success('Notification sound updated');
-  }, []);
+    toast.success(t('settings.preferences.toast.sound-updated'));
+  }, [t]);
 
   const handlePreviewSound = useCallback((e: React.MouseEvent, id: NotificationSoundId) => {
     e.preventDefault();
@@ -152,8 +152,8 @@ const PreferencesPanel: React.FC = () => {
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage as Language);
     const selectedLang = languages.find(l => l.code === newLanguage);
-    toast.success('Language updated', {
-      description: `Changed to ${selectedLang?.name}`,
+    toast.success(t('settings.preferences.toast.language-updated'), {
+      description: t('settings.preferences.toast.language-changed').replace('{name}', selectedLang?.name || ''),
     });
   };
 
@@ -172,7 +172,7 @@ const PreferencesPanel: React.FC = () => {
 
     const newOrder = arrayMove(menuOrder, oldIndex, newIndex);
     setMenuOrder(newOrder);
-    toast.success('Menu order updated');
+    toast.success(t('settings.preferences.toast.menu-updated'));
   };
 
   const isDefaultOrder = JSON.stringify(menuOrder) === JSON.stringify(DEFAULT_MENU_ORDER);
@@ -186,8 +186,8 @@ const PreferencesPanel: React.FC = () => {
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-foreground">Preferences</h1>
-          <p className="text-sm text-muted-foreground mt-1">Customize your CRM experience</p>
+          <h1 className="text-2xl font-semibold text-foreground">{t('settings.preferences.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('settings.preferences.description')}</p>
         </div>
 
         {/* Info Banner */}
@@ -201,7 +201,7 @@ const PreferencesPanel: React.FC = () => {
             >
               <Info className="h-4 w-4 text-accent mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground flex-1">
-                Your preferences are saved locally in this browser. If you switch browsers or devices, your settings may be different.
+                {t('settings.preferences.local-storage-info')}
               </p>
               <button onClick={dismissBanner} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 <X className="h-3.5 w-3.5" />
@@ -216,8 +216,8 @@ const PreferencesPanel: React.FC = () => {
           {/* 1. Appearance - Mode Toggle */}
           <SettingRow
             icon={isDark ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
-            title="Appearance"
-            description="Switch between dark and light mode"
+            title={t('settings.preferences.appearance')}
+            description={t('settings.preferences.appearance-desc')}
           >
             <div className="flex items-center gap-2">
               <Sun className="h-3.5 w-3.5 text-muted-foreground" />
@@ -225,7 +225,7 @@ const PreferencesPanel: React.FC = () => {
                 checked={isDark}
                 onCheckedChange={(checked) => {
                   setMode(checked ? 'dark' : 'light');
-                  toast.success(`Switched to ${checked ? 'dark' : 'light'} mode`);
+                  toast.success(checked ? t('settings.preferences.toast.dark-mode') : t('settings.preferences.toast.light-mode'));
                 }}
               />
               <Moon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -266,17 +266,17 @@ const PreferencesPanel: React.FC = () => {
               <div className="flex items-start gap-3">
                 <GripVertical className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Customize Menu Order</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Drag items to reorder the sidebar navigation</p>
+                  <p className="text-sm font-medium text-foreground">{t('settings.preferences.menu-order')}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('settings.preferences.menu-order-desc')}</p>
                 </div>
               </div>
               {!isDefaultOrder && (
                 <button
-                  onClick={() => { resetToDefault(); toast.success('Menu order reset to default'); }}
+                  onClick={() => { resetToDefault(); toast.success(t('settings.preferences.toast.menu-reset')); }}
                   className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <RotateCcw className="h-3 w-3" />
-                  Reset
+                  {t('settings.preferences.reset')}
                 </button>
               )}
             </div>
@@ -322,12 +322,12 @@ const PreferencesPanel: React.FC = () => {
             <>
               <SettingRow
                 icon={navLayout === 'sidebar' ? <PanelLeft className="h-4 w-4 text-muted-foreground" /> : <PanelTop className="h-4 w-4 text-muted-foreground" />}
-                title="Navigation Layout"
-                description="Choose between sidebar or top bar navigation"
+                title={t('settings.preferences.nav-layout')}
+                description={t('settings.preferences.nav-layout-desc')}
               >
                 <div className="flex rounded-lg border border-border/60 overflow-hidden">
                   <button
-                    onClick={() => { setNavLayout('sidebar'); toast.success('Navigation switched to sidebar'); }}
+                    onClick={() => { setNavLayout('sidebar'); toast.success(t('settings.preferences.toast.nav-sidebar')); }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
                       navLayout === 'sidebar'
                         ? 'bg-accent/15 text-accent'
