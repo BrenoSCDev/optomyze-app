@@ -1179,7 +1179,11 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {periodicLoading
               ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={i} />)
-              : kpiData.row1.map((kpi, i) => <KPICard key={i} {...kpi} delay={i} />)
+              : kpiData.row1.map((kpi, i) => (
+                <div key={i} className={i === kpiData.row1.length - 1 && kpiData.row1.length % 2 !== 0 ? 'col-span-2 sm:col-span-1' : ''}>
+                  <KPICard {...kpi} delay={i} />
+                </div>
+              ))
             }
           </div>
         );
@@ -1188,7 +1192,11 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {periodicLoading
               ? Array.from({ length: 5 }).map((_, i) => <SkeletonKPICard key={`d${i}`} />)
-              : kpiData.row2.map((kpi, i) => <KPICard key={i} {...kpi} delay={i + 5} />)
+              : kpiData.row2.map((kpi, i) => (
+                <div key={i} className={i === kpiData.row2.length - 1 && kpiData.row2.length % 2 !== 0 ? 'col-span-2 sm:col-span-1' : ''}>
+                  <KPICard {...kpi} delay={i + 5} />
+                </div>
+              ))
             }
           </div>
         );
@@ -1210,7 +1218,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   }, [periodicData, periodicLoading, loading, kpiData]);
 
   return (
-    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div className="space-y-6 px-1 sm:px-0 overflow-x-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1267,16 +1275,18 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
-                <DashboardGridToolbar
-                  gridColumns={gridColumns}
-                  widgets={widgets}
-                  editMode={editMode}
-                  onSetGridColumns={setGridColumns}
-                  onToggleEditMode={() => setEditMode(prev => !prev)}
-                  onToggleVisibility={toggleWidgetVisibility}
-                  onResetLayout={resetLayout}
-                  isErpModule={isErpModule}
-                />
+                <div className="hidden md:flex">
+                  <DashboardGridToolbar
+                    gridColumns={gridColumns}
+                    widgets={widgets}
+                    editMode={editMode}
+                    onSetGridColumns={setGridColumns}
+                    onToggleEditMode={() => setEditMode(prev => !prev)}
+                    onToggleVisibility={toggleWidgetVisibility}
+                    onResetLayout={resetLayout}
+                    isErpModule={isErpModule}
+                  />
+                </div>
                 <DateRangeSelector value={dateRange} onChange={setDateRange} />
               </div>
             </div>
