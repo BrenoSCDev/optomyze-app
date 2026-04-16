@@ -6,7 +6,6 @@
 
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -22,6 +21,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { LeadCompanyFilters as FilterType, COMPANY_STATUSES } from '@/types/leadCompany';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCompanyFiltersProps {
   open: boolean;
@@ -44,6 +44,8 @@ export function LeadCompanyFilters({
   states,
   countries,
 }: LeadCompanyFiltersProps) {
+  const { t } = useLanguage();
+
   const updateFilter = (key: keyof FilterType, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -73,11 +75,11 @@ export function LeadCompanyFilters({
       <SheetContent className="w-[320px] sm:w-[400px]">
         <SheetHeader>
           <div className="flex items-center justify-between">
-            <SheetTitle>Filters</SheetTitle>
+            <SheetTitle>{t('companies.filters')}</SheetTitle>
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-1" />
-                Clear all
+                {t('companies.filter.clear-all')}
               </Button>
             )}
           </div>
@@ -85,16 +87,16 @@ export function LeadCompanyFilters({
 
         <div className="space-y-6 mt-6">
           <div className="space-y-2">
-            <Label>Industry</Label>
+            <Label>{t('companies.field.industry')}</Label>
             <Select 
               value={filters.industry || "_all"} 
               onValueChange={(value) => updateFilter('industry', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All industries" />
+                <SelectValue placeholder={t('companies.filter.all-industries')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="_all">All industries</SelectItem>
+                <SelectItem value="_all">{t('companies.filter.all-industries')}</SelectItem>
                 {industries.map((industry) => (
                   <SelectItem key={industry} value={industry}>
                     {industry}
@@ -105,16 +107,16 @@ export function LeadCompanyFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('companies.field.status')}</Label>
             <Select 
               value={filters.status || "_all"} 
               onValueChange={(value) => updateFilter('status', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder={t('companies.filter.all-statuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="_all">All statuses</SelectItem>
+                <SelectItem value="_all">{t('companies.filter.all-statuses')}</SelectItem>
                 {COMPANY_STATUSES.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
@@ -125,16 +127,16 @@ export function LeadCompanyFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>City</Label>
+            <Label>{t('companies.field.city')}</Label>
             <Select 
               value={filters.city || "_all"} 
               onValueChange={(value) => updateFilter('city', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All cities" />
+                <SelectValue placeholder={t('companies.filter.all-cities')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="_all">All cities</SelectItem>
+                <SelectItem value="_all">{t('companies.filter.all-cities')}</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
@@ -145,16 +147,16 @@ export function LeadCompanyFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>State</Label>
+            <Label>{t('companies.field.state')}</Label>
             <Select 
               value={filters.state || "_all"} 
               onValueChange={(value) => updateFilter('state', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All states" />
+                <SelectValue placeholder={t('companies.filter.all-states')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="_all">All states</SelectItem>
+                <SelectItem value="_all">{t('companies.filter.all-states')}</SelectItem>
                 {states.map((state) => (
                   <SelectItem key={state} value={state}>
                     {state}
@@ -165,16 +167,16 @@ export function LeadCompanyFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>Country</Label>
+            <Label>{t('companies.field.country')}</Label>
             <Select 
               value={filters.country || "_all"} 
               onValueChange={(value) => updateFilter('country', value === "_all" ? "" : value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="All countries" />
+                <SelectValue placeholder={t('companies.filter.all-countries')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="_all">All countries</SelectItem>
+                <SelectItem value="_all">{t('companies.filter.all-countries')}</SelectItem>
                 {countries.map((country) => (
                   <SelectItem key={country} value={country}>
                     {country}
@@ -185,7 +187,7 @@ export function LeadCompanyFilters({
           </div>
 
           <div className="space-y-2">
-            <Label>Has Logo</Label>
+            <Label>{t('companies.field.has-logo')}</Label>
             <Select 
               value={filters.hasLogo} 
               onValueChange={(value) => updateFilter('hasLogo', value as 'all' | 'yes' | 'no')}
@@ -194,9 +196,9 @@ export function LeadCompanyFilters({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="yes">With logo</SelectItem>
-                <SelectItem value="no">Without logo</SelectItem>
+                <SelectItem value="all">{t('companies.filter.all')}</SelectItem>
+                <SelectItem value="yes">{t('companies.filter.with-logo')}</SelectItem>
+                <SelectItem value="no">{t('companies.filter.without-logo')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

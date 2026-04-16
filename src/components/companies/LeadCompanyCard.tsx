@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LeadCompany } from '@/types/leadCompany';
 import { API_STORAGE_URL } from '@/lib/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LeadCompanyCardProps {
   company: LeadCompany;
@@ -28,6 +29,7 @@ const statusColors: Record<string, string> = {
 };
 
 export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompanyCardProps) {
+  const { t } = useLanguage();
   const logoUrl = company.logo_path ? `${API_STORAGE_URL}/${company.logo_path}` : null;
   const initials = company.trade_name
     .split(' ')
@@ -100,7 +102,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             onClick={() => onView(company)}
           >
             <Eye className="h-3.5 w-3.5 mr-1.5" />
-            View
+            {t('companies.view')}
           </Button>
           <Button
             variant="ghost"
@@ -109,7 +111,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             onClick={() => onEdit(company)}
           >
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            Edit
+            {t('common.edit')}
           </Button>
           <Button
             variant="ghost"
@@ -118,7 +120,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             onClick={() => onDelete(company)}
           >
             <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-            Delete
+            {t('common.delete')}
           </Button>
         </div>
       </CardContent>
