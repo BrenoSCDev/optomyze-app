@@ -148,10 +148,10 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: M
   const recoveryRate = totalLost > 0 ? ((totalClosed / (totalClosed + totalLost)) * 100).toFixed(1) : '100';
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-primary" />
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-primary shrink-0" />
           {t('metrics.monthly-revenue-overview')}
         </h3>
         <div className="flex items-center gap-2 text-sm">
@@ -225,7 +225,7 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
   const hasDeals = monthlyData.some((d: any) => d.deals != null);
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
       <h3 className="text-xl font-semibold mb-6 text-center">
         {hasDeals ? 'Leads x Deals per Month' : t('metrics.monthly-lead-flow')}
       </h3>
@@ -357,13 +357,13 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
   const totalLeads = selectedFunnel.total_leads;
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <Filter className="w-5 h-5 text-primary" /> {t('metrics.leads-by-stage')}
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+          <Filter className="w-5 h-5 text-primary shrink-0" /> {t('metrics.leads-by-stage')}
         </h3>
         <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
-          <SelectTrigger className="w-[180px] glass-card">
+          <SelectTrigger className="w-full sm:w-[180px] glass-card">
             <SelectValue placeholder={t('metrics.select-funnel')} />
           </SelectTrigger>
           <SelectContent className="bg-card border-border">
@@ -437,10 +437,10 @@ const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: {
   }));
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.pipeline-vs-closed')}
+        <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-primary shrink-0" /> {t('metrics.pipeline-vs-closed')}
         </h3>
       </div>
 
@@ -562,15 +562,15 @@ const DealsStagesDistributionChart = ({
 
   return (
     <motion.div
-      className="chart-container"
+      className="chart-container overflow-hidden"
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h3 className="text-xl font-semibold flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" /> Deals Stages Distribution
+          <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary shrink-0" /> Deals Stages Distribution
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
             Total Deals: <span className="font-semibold text-foreground">{totalSales}</span>
@@ -579,7 +579,7 @@ const DealsStagesDistributionChart = ({
 
         {showFunnelSelector && (
           <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
-            <SelectTrigger className="w-[180px] glass-card">
+            <SelectTrigger className="w-full sm:w-[180px] glass-card">
               <SelectValue placeholder="Select funnel" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border">
@@ -599,10 +599,10 @@ const DealsStagesDistributionChart = ({
         </div>
       ) : (
         <>
-          <div className="flex flex-col lg:flex-row items-center gap-6">
+          <div className="flex flex-col items-center gap-6">
             {/* Donut Chart */}
-            <div className="relative flex-shrink-0">
-              <ResponsiveContainer width={240} height={240}>
+            <div className="relative flex-shrink-0 w-full max-w-[240px]">
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
                     data={donutData}
@@ -687,7 +687,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
   const totalSteps = funnelSteps.length;
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-pipeline-breakdown')}</h3>
 
       <div className="flex flex-col items-center gap-0 py-4">
@@ -765,9 +765,9 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
   }
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-      <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-        <BarChart3 className="w-5 h-5 text-primary" /> Product Performance
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
+        <BarChart3 className="w-5 h-5 text-primary shrink-0" /> Product Performance
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={data}>
@@ -823,9 +823,9 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
   }
 
   return (
-    <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-      <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-        <Users className="w-5 h-5 text-primary" /> Agent Performance
+    <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+      <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
+        <Users className="w-5 h-5 text-primary shrink-0" /> Agent Performance
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={data}>
