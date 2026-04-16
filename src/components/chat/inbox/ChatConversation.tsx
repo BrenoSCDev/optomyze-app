@@ -553,60 +553,57 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const messageGroups = groupMessagesByDate(localMessages);
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-background" style={{maxHeight: "700px"}}>
+    <div className="flex flex-col h-full min-h-0 bg-background">
       {/* Header */}
-      <div className="p-4 border-b border-border/50 bg-card">
-        <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-b border-border/50 bg-card shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
           {showBackButton && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
+            <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-8 w-8">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
           <ChatHeaderAvatar profilePicPath={chat.profile_pic_url} />
           <div className="flex-1 min-w-0">
             {chat.lead?.id ? (
-              <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left">
+              <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left max-w-full">
                 {getLeadName()}
               </button>
             ) : (
               <h3 className="font-semibold truncate">{getLeadName()}</h3>
             )}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="h-3 w-3" />
-              <span>{chat.phone_number}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-wrap gap-1 justify-end">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+              <Phone className="h-3 w-3 shrink-0" />
+              <span className="truncate">{chat.phone_number}</span>
+              {/* Badges inline on mobile to save vertical space */}
               {chat.lead?.funnel && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 hidden sm:inline-flex">
                   {chat.lead.funnel.name}
                 </Badge>
               )}
               {chat.lead?.stage && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 hidden sm:inline-flex">
                   {chat.lead.stage.name}
                 </Badge>
               )}
             </div>
-            {/* Chat actions menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => setShowClearConfirm(true)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t('chat.inbox.clear-messages')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
+          {/* Chat actions menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setShowClearConfirm(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t('chat.inbox.clear-messages')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
