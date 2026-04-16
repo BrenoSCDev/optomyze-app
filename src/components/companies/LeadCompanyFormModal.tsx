@@ -38,6 +38,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LeadCompany, COMPANY_STATUSES, COMPANY_SIZES } from '@/types/leadCompany';
 import { API_STORAGE_URL } from '@/lib/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const formSchema = z.object({
   legal_name: z.string().min(1, 'Legal name is required').max(255),
@@ -79,6 +80,7 @@ export function LeadCompanyFormModal({
   onSubmit,
   isLoading,
 }: LeadCompanyFormModalProps) {
+  const { t } = useLanguage();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -176,7 +178,7 @@ export function LeadCompanyFormModal({
       <DialogContent className="max-w-2xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle>
-            {isEditing ? 'Edit Company' : 'Create Company'}
+            {isEditing ? t('companies.edit') : t('companies.create')}
           </DialogTitle>
         </DialogHeader>
 
@@ -185,10 +187,10 @@ export function LeadCompanyFormModal({
             <ScrollArea className="max-h-[calc(90vh-140px)] px-6">
               <Tabs defaultValue="identification" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-6">
-                  <TabsTrigger value="identification">Identification</TabsTrigger>
-                  <TabsTrigger value="contact">Contact</TabsTrigger>
-                  <TabsTrigger value="address">Address</TabsTrigger>
-                  <TabsTrigger value="crm">CRM</TabsTrigger>
+                  <TabsTrigger value="identification">{t('companies.tab.identification')}</TabsTrigger>
+                  <TabsTrigger value="contact">{t('companies.tab.contact')}</TabsTrigger>
+                  <TabsTrigger value="address">{t('companies.tab.address')}</TabsTrigger>
+                  <TabsTrigger value="crm">{t('companies.tab.crm')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="identification" className="space-y-6 mt-0 pb-4">
@@ -218,7 +220,7 @@ export function LeadCompanyFormModal({
                           onClick={() => document.getElementById('logo-upload')?.click()}
                         >
                           <Upload className="h-4 w-4 mr-2" />
-                          Upload Logo
+                          {t('companies.upload-logo')}
                         </Button>
                         {logoPreview && (
                           <Button
@@ -228,12 +230,12 @@ export function LeadCompanyFormModal({
                             onClick={removeLogo}
                           >
                             <X className="h-4 w-4 mr-2" />
-                            Remove
+                            {t('companies.remove')}
                           </Button>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        PNG, JPG up to 2MB
+                        {t('companies.logo-hint')}
                       </p>
                     </div>
                   </div>
@@ -244,9 +246,9 @@ export function LeadCompanyFormModal({
                       name="legal_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Legal Name *</FormLabel>
+                          <FormLabel>{t('companies.field.legal-name')} *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Company Legal Name" {...field} />
+                            <Input placeholder={t('companies.field.legal-name')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -257,9 +259,9 @@ export function LeadCompanyFormModal({
                       name="trade_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Trade Name *</FormLabel>
+                          <FormLabel>{t('companies.field.trade-name')} *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Company Trade Name" {...field} />
+                            <Input placeholder={t('companies.field.trade-name')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -273,9 +275,9 @@ export function LeadCompanyFormModal({
                       name="tax_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tax ID</FormLabel>
+                          <FormLabel>{t('companies.field.tax-id')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Tax ID / CNPJ" {...field} />
+                            <Input placeholder={t('companies.field.tax-id')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -286,9 +288,9 @@ export function LeadCompanyFormModal({
                       name="industry"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Industry</FormLabel>
+                          <FormLabel>{t('companies.field.industry')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Technology, Healthcare" {...field} />
+                            <Input placeholder={t('companies.field.industry')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -302,11 +304,11 @@ export function LeadCompanyFormModal({
                       name="company_size"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Size</FormLabel>
+                          <FormLabel>{t('companies.field.company-size')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select size" />
+                                <SelectValue placeholder={t('companies.field.company-size')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -326,7 +328,7 @@ export function LeadCompanyFormModal({
                       name="website"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Website</FormLabel>
+                          <FormLabel>{t('companies.field.website')}</FormLabel>
                           <FormControl>
                             <Input placeholder="https://example.com" {...field} />
                           </FormControl>
@@ -343,7 +345,7 @@ export function LeadCompanyFormModal({
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('companies.field.email')}</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="contact@company.com" {...field} />
                         </FormControl>
@@ -358,7 +360,7 @@ export function LeadCompanyFormModal({
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel>{t('companies.field.phone')}</FormLabel>
                           <FormControl>
                             <Input placeholder="+1 (555) 123-4567" {...field} />
                           </FormControl>
@@ -371,7 +373,7 @@ export function LeadCompanyFormModal({
                       name="secondary_phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Secondary Phone</FormLabel>
+                          <FormLabel>{t('companies.field.secondary-phone')}</FormLabel>
                           <FormControl>
                             <Input placeholder="+1 (555) 987-6543" {...field} />
                           </FormControl>
@@ -390,9 +392,9 @@ export function LeadCompanyFormModal({
                         name="street"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Street</FormLabel>
+                            <FormLabel>{t('companies.field.street')}</FormLabel>
                             <FormControl>
-                              <Input placeholder="Street address" {...field} />
+                              <Input placeholder={t('companies.field.street')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -404,7 +406,7 @@ export function LeadCompanyFormModal({
                       name="number"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Number</FormLabel>
+                          <FormLabel>{t('companies.field.number')}</FormLabel>
                           <FormControl>
                             <Input placeholder="123" {...field} />
                           </FormControl>
@@ -420,9 +422,9 @@ export function LeadCompanyFormModal({
                       name="complement"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Complement</FormLabel>
+                          <FormLabel>{t('companies.field.complement')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Suite, floor, etc." {...field} />
+                            <Input placeholder={t('companies.field.complement')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -433,9 +435,9 @@ export function LeadCompanyFormModal({
                       name="neighborhood"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Neighborhood</FormLabel>
+                          <FormLabel>{t('companies.field.neighborhood')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Neighborhood" {...field} />
+                            <Input placeholder={t('companies.field.neighborhood')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -449,9 +451,9 @@ export function LeadCompanyFormModal({
                       name="city"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
+                          <FormLabel>{t('companies.field.city')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="City" {...field} />
+                            <Input placeholder={t('companies.field.city')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -462,9 +464,9 @@ export function LeadCompanyFormModal({
                       name="state"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>State</FormLabel>
+                          <FormLabel>{t('companies.field.state')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="State / Province" {...field} />
+                            <Input placeholder={t('companies.field.state')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -478,7 +480,7 @@ export function LeadCompanyFormModal({
                       name="postal_code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Postal Code</FormLabel>
+                          <FormLabel>{t('companies.field.postal-code')}</FormLabel>
                           <FormControl>
                             <Input placeholder="12345-678" {...field} />
                           </FormControl>
@@ -491,9 +493,9 @@ export function LeadCompanyFormModal({
                       name="country"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Country</FormLabel>
+                          <FormLabel>{t('companies.field.country')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Country" {...field} />
+                            <Input placeholder={t('companies.field.country')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -509,9 +511,9 @@ export function LeadCompanyFormModal({
                       name="source"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Source</FormLabel>
+                          <FormLabel>{t('companies.field.source')}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. Website, Referral" {...field} />
+                            <Input placeholder={t('companies.field.source')} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -522,11 +524,11 @@ export function LeadCompanyFormModal({
                       name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Status</FormLabel>
+                          <FormLabel>{t('companies.field.status')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select status" />
+                                <SelectValue placeholder={t('companies.field.status')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -548,10 +550,10 @@ export function LeadCompanyFormModal({
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t('companies.field.notes')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Additional notes about this company..."
+                            placeholder={t('companies.field.notes')}
                             className="min-h-[120px] resize-none"
                             {...field}
                           />
@@ -571,10 +573,10 @@ export function LeadCompanyFormModal({
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
               >
-                Cancel
+                {t('companies.cancel')}
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Company'}
+                {isLoading ? t('companies.saving') : isEditing ? t('companies.save-changes') : t('companies.create')}
               </Button>
             </div>
           </form>
