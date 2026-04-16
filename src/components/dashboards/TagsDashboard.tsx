@@ -279,9 +279,9 @@ const TagsDashboard = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 futuristic-text">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 futuristic-text break-words">
             {t('tags.title')}
           </h1>
           <nav className="text-sm text-muted-foreground">
@@ -291,7 +291,7 @@ const TagsDashboard = () => {
         
         <Dialog open={showNewTagModal} onOpenChange={setShowNewTagModal}>
           <DialogTrigger asChild>
-            <Button className="neon-border" size="lg">
+            <Button className="neon-border w-full sm:w-auto shrink-0" size="lg">
               <Plus className="h-4 w-4 mr-2" />
               {t('tags.new-tag')}
             </Button>
