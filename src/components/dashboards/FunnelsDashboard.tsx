@@ -719,7 +719,7 @@ const FunnelsDashboard = () => {
 
         <TabsContent value="sale" className="mt-0">
           {loading ? (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
                 <SkeletonCard key={index} />
               ))}
@@ -727,7 +727,7 @@ const FunnelsDashboard = () => {
           ) : funnels.filter(f => f.type === 'sale').length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {funnels.filter(f => f.type === 'sale').map((funnel) => (
                 <FunnelCard key={funnel.id} funnel={funnel} />
               ))}
@@ -737,7 +737,7 @@ const FunnelsDashboard = () => {
 
         <TabsContent value="deal" className="mt-0">
           {loading ? (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
                 <SkeletonCard key={index} />
               ))}
@@ -745,7 +745,7 @@ const FunnelsDashboard = () => {
           ) : funnels.filter(f => f.type === 'deal').length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {funnels.filter(f => f.type === 'deal').map((funnel) => (
                 <FunnelCard key={funnel.id} funnel={funnel} />
               ))}
