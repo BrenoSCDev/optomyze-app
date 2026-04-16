@@ -156,77 +156,77 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-6">
           <TabsTrigger 
             value="info" 
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <Info className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.info')}</span>
+            <Info className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.info')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="tasks" 
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <ListTodo className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.tasks')}</span>
+            <ListTodo className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
             {tasks.length > 0 && (
-              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {tasks.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger 
             value="documents" 
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <FileText className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.documents-short')}</span>
+            <FileText className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.documents-short')}</span>
             {documents.length > 0 && (
-              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {documents.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger 
             value="observations" 
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <StickyNote className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.observations')}</span>
+            <StickyNote className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.observations')}</span>
             {observations.length > 0 && (
-              <Badge className="ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {observations.length}
               </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger
             value="appointments"
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <Calendar className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.appointments')}</span>
+            <Calendar className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.appointments')}</span>
           </TabsTrigger>
           {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
           {/* <TabsTrigger
             value="contracts"
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <FileSignature className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.contracts')}</span>
+            <FileSignature className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.contracts')}</span>
           </TabsTrigger> */}
           <TabsTrigger
             value="custom-fields"
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.custom-fields') || 'Fields'}</span>
+            <Settings2 className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.custom-fields') || 'Fields'}</span>
           </TabsTrigger>
           <TabsTrigger
             value="chat"
-            className="flex-1 min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
           >
-            <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-            <span>{t('lead-details.tabs.chat')}</span>
+            <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5" />
+            <span className="hidden sm:inline">{t('lead-details.tabs.chat')}</span>
             {chatMessages.length > 0 && (
-              <Badge className="ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
+              <Badge className="ml-1 sm:ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
                 {chatMessages.length}
               </Badge>
             )}
