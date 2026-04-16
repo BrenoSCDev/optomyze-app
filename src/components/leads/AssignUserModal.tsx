@@ -110,7 +110,7 @@ const AssignUserModal: React.FC<AssignUserModalProps> = ({
             <SelectTrigger className="w-full bg-gray-800 border-white/10 text-white">
               <SelectValue placeholder={t('lead-details.select-user-placeholder')} />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-white/10 z-50">
+            <SelectContent className="bg-gray-800 border-white/10 z-[80]">
               {users.map((user) => (
                 <SelectItem
                   key={user.id}
