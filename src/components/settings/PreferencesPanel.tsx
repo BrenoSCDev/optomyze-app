@@ -359,8 +359,8 @@ const PreferencesPanel: React.FC = () => {
             <div className="flex items-start gap-3 mb-4">
               <Search className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">Default Search Target</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Choose what the header search bar queries by default</p>
+                <p className="text-sm font-medium text-foreground">{t('settings.preferences.search-target')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.preferences.search-target-desc')}</p>
               </div>
             </div>
             <div className="ml-7 grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -374,7 +374,7 @@ const PreferencesPanel: React.FC = () => {
                     onClick={() => {
                       setSearchTarget(targetId);
                       setDefaultSearchTarget(targetId);
-                      toast.success(`Search target set to ${config.labelKey}`);
+                      toast.success(t('settings.preferences.toast.search-target').replace('{name}', config.labelKey));
                     }}
                     className={`
                       flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-all duration-200 cursor-pointer
@@ -401,8 +401,8 @@ const PreferencesPanel: React.FC = () => {
             <div className="flex items-start gap-3 mb-4">
               <Volume2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">Notification Sound</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Select the sound for new notifications</p>
+                <p className="text-sm font-medium text-foreground">{t('settings.preferences.notification-sound')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.preferences.notification-sound-desc')}</p>
               </div>
             </div>
             <div className="ml-7">
