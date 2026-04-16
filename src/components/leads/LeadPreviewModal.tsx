@@ -365,7 +365,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                   </div>
 
                   {/* Body */}
-                  <div className="flex-1 overflow-y-auto p-6 scrollbar-dark">
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-dark">
                     {/* Funnel Progress */}
                     {lead.stage && <FunnelProgress stage={lead.stage} />}
 
