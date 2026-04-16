@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import html2canvas from 'html2canvas';
 import { WIDGET_LABELS } from '@/hooks/useDashboardLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardWidgetProps {
   id: string;
@@ -28,14 +29,17 @@ interface DashboardWidgetProps {
 
 const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }: DashboardWidgetProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id, disabled: !editMode });
 
+  const effectiveSpan = isMobile ? 1 : Math.min(colSpan, maxSpan);
+
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition: transition ?? undefined,
-    gridColumn: `span ${Math.min(colSpan, maxSpan)} / span ${Math.min(colSpan, maxSpan)}`,
+    gridColumn: `span ${effectiveSpan} / span ${effectiveSpan}`,
     zIndex: isDragging ? 100 : undefined,
     position: 'relative',
   };
