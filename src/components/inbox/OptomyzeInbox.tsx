@@ -274,7 +274,7 @@ const OptomyzeInbox: React.FC = () => {
   const currentIcon = mode === 'dark' ? optoIcon : optoIconLight;
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col overflow-hidden rounded-xl border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
+    <div className="h-full flex flex-col overflow-hidden min-h-0 rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
       {/* Enhanced header */}
       <div className="flex items-center gap-4 px-5 py-3.5 border-b border-border/40 bg-card/80 shrink-0">
         {/* Icon */}

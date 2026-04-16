@@ -187,25 +187,31 @@ const Index = () => {
               : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
           }}
         >
-          <div className="p-4 sm:p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeSection}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-24">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                }>
-                  {renderDashboard()}
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+          {(() => {
+            const isInboxSection = activeSection === 'whatsapp-inbox' || activeSection === 'optomyze-inbox';
+            return (
+              <div className={isInboxSection ? 'p-0 h-[calc(100vh-4rem)]' : 'p-4 sm:p-8'}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeSection}
+                    initial={{ opacity: 0, y: isInboxSection ? 0 : 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: isInboxSection ? 0 : -20 }}
+                    transition={{ duration: 0.3 }}
+                    className={isInboxSection ? 'h-full' : ''}
+                  >
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center py-24">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    }>
+                      {renderDashboard()}
+                    </Suspense>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            );
+          })()}
         </motion.main>
       </div>
     </div>

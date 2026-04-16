@@ -147,7 +147,7 @@ const WhatsAppInbox: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden min-h-0">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
