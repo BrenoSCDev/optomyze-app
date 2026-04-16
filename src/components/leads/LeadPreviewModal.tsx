@@ -269,33 +269,33 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
               {lead && !loading && !error && (
                 <>
                   {/* Header */}
-                  <div className="flex items-start justify-between p-6 pb-4 border-b border-primary/10">
-                    <div className="flex items-start gap-4 min-w-0">
-                      <Avatar className="h-14 w-14 shrink-0">
-                        <AvatarFallback className="bg-primary/20 text-primary text-lg font-bold">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-primary/10">
+                    <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+                      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 shrink-0">
+                        <AvatarFallback className="bg-primary/20 text-primary text-base sm:text-lg font-bold">
                           {getInitials(lead.first_name, lead.last_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0">
-                        <h2 className="text-2xl font-bold text-foreground truncate">
+                      <div className="min-w-0 flex-1">
+                        <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">
                           {lead.first_name} {lead.last_name}
                         </h2>
 
                         {/* Company & Job Title */}
                         {(lead.lead_company || lead.job_title) && (
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {lead.lead_company && (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
                                 {lead.lead_company.logo_path ? (
-                                  <img src={`${API_STORAGE_URL}/${lead.lead_company.logo_path}`} alt="" className="w-4 h-4 rounded object-cover" />
+                                  <img src={`${API_STORAGE_URL}/${lead.lead_company.logo_path}`} alt="" className="w-4 h-4 rounded object-cover shrink-0" />
                                 ) : (
-                                  <Building2 className="w-4 h-4 text-primary" />
+                                  <Building2 className="w-4 h-4 text-primary shrink-0" />
                                 )}
-                                <span className="text-sm text-foreground font-medium">{lead.lead_company.legal_name}</span>
+                                <span className="text-sm text-foreground font-medium truncate">{lead.lead_company.legal_name}</span>
                               </div>
                             )}
-                            {lead.lead_company && lead.job_title && <span className="text-muted-foreground">•</span>}
-                            {lead.job_title && <span className="text-sm text-muted-foreground">{lead.job_title}</span>}
+                            {lead.lead_company && lead.job_title && <span className="text-muted-foreground hidden sm:inline">•</span>}
+                            {lead.job_title && <span className="text-sm text-muted-foreground truncate">{lead.job_title}</span>}
                           </div>
                         )}
 
@@ -308,13 +308,13 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                             <span className="text-xs text-muted-foreground capitalize">{lead.priority}</span>
                           </div>
                           {lead.email && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" /> {lead.email}
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 min-w-0 max-w-full">
+                              <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{lead.email}</span>
                             </span>
                           )}
                           {lead.phone && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" /> {lead.ddi} {lead.phone}
+                              <Phone className="h-3 w-3 shrink-0" /> {lead.ddi} {lead.phone}
                             </span>
                           )}
                           <span className="text-xs text-muted-foreground">#{lead.id}</span>
@@ -322,23 +322,30 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start absolute top-3 right-3 sm:static">
                       <Button
                         variant="outline" size="sm"
-                        className="border-primary/20 text-primary hover:bg-primary/10"
+                        className="border-primary/20 text-primary hover:bg-primary/10 hidden sm:inline-flex"
                         onClick={() => setEditModalOpen(true)}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         {t('lead-details.edit-lead')}
                       </Button>
+                      <Button
+                        variant="outline" size="icon"
+                        className="border-primary/20 text-primary hover:bg-primary/10 sm:hidden h-8 w-8"
+                        onClick={() => setEditModalOpen(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-background border-border z-[60]">
+                        <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
                           <DropdownMenuItem onClick={() => setAssignUserModalOpen(true)} className="cursor-pointer">
                             <UserCheck className="w-4 h-4 mr-2" />
                             {t('lead-details.assign-user')}
@@ -351,7 +358,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         </DropdownMenuContent>
                       </DropdownMenu>
 
-                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                         <X className="h-5 w-5" />
                       </Button>
                     </div>
