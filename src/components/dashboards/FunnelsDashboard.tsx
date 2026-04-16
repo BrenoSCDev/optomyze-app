@@ -306,17 +306,17 @@ const FunnelsDashboard = () => {
   const FunnelCard = ({ funnel }: { funnel: Funnel }) => (
     <Card className="glass-card hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
       {/* Header with Status and Actions */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg transition-colors ${
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-white/10 gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`p-2 rounded-lg shrink-0 transition-colors ${
             funnel.is_active 
               ? 'bg-green-500/20 text-green-400 group-hover:bg-green-500/30' 
               : 'bg-red-500/20 text-red-400 group-hover:bg-red-500/30'
           }`}>
             <Filter className="h-5 w-5" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground truncate">
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
               {funnel.name}
             </h3>
             <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ const FunnelsDashboard = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {/* View Funnel Button */}
           <Button
             variant="ghost"
