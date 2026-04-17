@@ -815,4 +815,27 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   );
 };
 
+const NotificationAvatar = ({ notif }: { notif: AppNotification }) => {
+  const pic =
+    notif.type === 'lead_created' ? notif.creator.profile_pic
+    : notif.type === 'group_created' ? notif.creatorPic
+    : notif.type === 'private_message' ? notif.senderPic
+    : null;
+  const name =
+    notif.type === 'lead_created' ? notif.creator.name
+    : notif.type === 'group_created' ? notif.creatorName
+    : notif.type === 'private_message' ? notif.senderName
+    : '';
+  const url = usePrivateFile(pic);
+  return (
+    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      {url ? (
+        <img src={url} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-primary font-semibold text-xs">{name?.charAt(0).toUpperCase()}</span>
+      )}
+    </div>
+  );
+};
+
 export default TopHeader;
