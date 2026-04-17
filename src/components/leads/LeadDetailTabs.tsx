@@ -168,7 +168,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <ListTodo className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
             {tasks.length > 0 && (
-              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {tasks.length}
               </Badge>
             )}
