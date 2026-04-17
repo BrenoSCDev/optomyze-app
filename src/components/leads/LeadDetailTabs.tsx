@@ -168,7 +168,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <ListTodo className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
             {tasks.length > 0 && (
-              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {tasks.length}
               </Badge>
             )}
@@ -180,7 +180,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <FileText className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.documents-short')}</span>
             {documents.length > 0 && (
-              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {documents.length}
               </Badge>
             )}
@@ -192,7 +192,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <StickyNote className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.observations')}</span>
             {observations.length > 0 && (
-              <Badge className="ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
+              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
                 {observations.length}
               </Badge>
             )}
@@ -226,7 +226,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.chat')}</span>
             {chatMessages.length > 0 && (
-              <Badge className="ml-1 sm:ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
+              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
                 {chatMessages.length}
               </Badge>
             )}
