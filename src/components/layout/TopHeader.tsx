@@ -713,7 +713,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               </div>
             </div>
             <DropdownMenuSeparator />
-            <div className="max-h-72 overflow-y-auto">
+            <div className="max-h-72 overflow-y-auto scrollbar-dark">
               {notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center">
                   <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
