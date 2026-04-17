@@ -728,29 +728,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   >
                     <div className="flex items-start gap-3 w-full">
                       <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${notif.read ? 'bg-transparent' : 'bg-primary'}`} />
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {(() => {
-                          const pic = notif.type === 'lead_created' ? notif.creator.profile_pic
-                            : notif.type === 'group_created' ? notif.creatorPic
-                            : notif.type === 'private_message' ? notif.senderPic
-                            : null;
-                          const name = notif.type === 'lead_created' ? notif.creator.name
-                            : notif.type === 'group_created' ? notif.creatorName
-                            : notif.type === 'private_message' ? notif.senderName
-                            : '';
-                          // lead_created pics use storage path, chat pics are already relative/absolute URLs
-                          const avatarUrl = pic
-                            ? notif.type === 'lead_created'
-                              ? getStorageUrl(pic)
-                              : pic.startsWith('http') ? pic : `${import.meta.env.VITE_API_BASE_URL || ''}/${pic.replace(/^\//, '')}`
-                            : null;
-                          return avatarUrl ? (
-                            <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-primary font-semibold text-xs">{name?.charAt(0).toUpperCase()}</span>
-                          );
-                        })()}
-                      </div>
+                      <NotificationAvatar notif={notif} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm leading-tight ${notif.read ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                           {notif.message}
