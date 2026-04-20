@@ -850,21 +850,24 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
 
 // ============= DATE RANGE SELECTOR =============
 
-const DateRangeSelector = ({ value, onChange }: { value: DateRange; onChange: (v: DateRange) => void }) => (
-  <div className="flex items-center gap-2">
-    <Calendar className="w-4 h-4 text-muted-foreground" />
-    <Select value={value} onValueChange={(v) => onChange(v as DateRange)}>
-      <SelectTrigger className="w-[160px] h-9 glass-card text-sm">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent className="bg-card border-border">
-        {DATE_RANGE_OPTIONS.map(opt => (
-          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-);
+const DateRangeSelector = ({ value, onChange }: { value: DateRange; onChange: (v: DateRange) => void }) => {
+  const { t } = useLanguage();
+  return (
+    <div className="flex items-center gap-2">
+      <Calendar className="w-4 h-4 text-muted-foreground" />
+      <Select value={value} onValueChange={(v) => onChange(v as DateRange)}>
+        <SelectTrigger className="w-[160px] h-9 glass-card text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-card border-border">
+          {DATE_RANGE_OPTIONS.map(opt => (
+            <SelectItem key={opt.value} value={opt.value}>{t(`metrics.range.${opt.value}`)}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
 
 // ============= TAB BUTTON =============
 
