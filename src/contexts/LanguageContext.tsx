@@ -1025,6 +1025,15 @@ const translations = {
     
     // Optomyze Metrics
     'metrics.tab.periodic': 'Periodic Performance',
+    'metrics.deals-stages-distribution': 'Deals Stages Distribution',
+    'metrics.total-deals': 'Total Deals',
+    'metrics.no-deal-funnels': 'No deal funnels available.',
+    'metrics.no-deals-in-funnel-period': 'No deals registered in this funnel for the selected period.',
+    'metrics.product-performance': 'Product Performance',
+    'metrics.no-products-sold': 'No products sold in this period',
+    'metrics.agent-performance': 'Agent Performance',
+    'metrics.no-closed-deals': 'No closed deals in this period',
+    'metrics.aggregated-monthly-trends': 'Aggregated monthly trends',
     'metrics.tab.monthly': 'Monthly Charts',
     'metrics.showing-data-for': 'Showing data for:',
     'metrics.refresh': 'Refresh data',
@@ -3788,6 +3797,15 @@ const translations = {
     
     // Optomyze Metrics
     'metrics.tab.periodic': 'Desempenho Periódico',
+    'metrics.deals-stages-distribution': 'Distribuição das Etapas dos Negócios',
+    'metrics.total-deals': 'Total de Negócios',
+    'metrics.no-deal-funnels': 'Nenhum funil de negócios disponível.',
+    'metrics.no-deals-in-funnel-period': 'Nenhum negócio registrado neste funil para o período selecionado.',
+    'metrics.product-performance': 'Desempenho de Produtos',
+    'metrics.no-products-sold': 'Nenhum produto vendido neste período',
+    'metrics.agent-performance': 'Desempenho de Agentes',
+    'metrics.no-closed-deals': 'Nenhum negócio fechado neste período',
+    'metrics.aggregated-monthly-trends': 'Tendências mensais agregadas',
     'metrics.tab.monthly': 'Gráficos Mensais',
     'metrics.showing-data-for': 'Exibindo dados de:',
     'metrics.refresh': 'Atualizar dados',
@@ -6443,6 +6461,15 @@ const translations = {
     
     // Optomyze Metrics
     'metrics.tab.periodic': 'Periodische Leistung',
+    'metrics.deals-stages-distribution': 'Verteilung der Geschäftsphasen',
+    'metrics.total-deals': 'Geschäfte insgesamt',
+    'metrics.no-deal-funnels': 'Keine Geschäftstrichter verfügbar.',
+    'metrics.no-deals-in-funnel-period': 'Keine Geschäfte in diesem Trichter für den ausgewählten Zeitraum.',
+    'metrics.product-performance': 'Produktleistung',
+    'metrics.no-products-sold': 'In diesem Zeitraum wurden keine Produkte verkauft',
+    'metrics.agent-performance': 'Agentenleistung',
+    'metrics.no-closed-deals': 'Keine abgeschlossenen Geschäfte in diesem Zeitraum',
+    'metrics.aggregated-monthly-trends': 'Aggregierte monatliche Trends',
     'metrics.tab.monthly': 'Monatliche Diagramme',
     'metrics.showing-data-for': 'Daten für:',
     'metrics.refresh': 'Daten aktualisieren',
@@ -9035,6 +9062,15 @@ const translations = {
     
     // Optomyze Metrics
     'metrics.tab.periodic': 'Rendimiento Periódico',
+    'metrics.deals-stages-distribution': 'Distribución de Etapas de Negocios',
+    'metrics.total-deals': 'Total de Negocios',
+    'metrics.no-deal-funnels': 'No hay funis de negocios disponibles.',
+    'metrics.no-deals-in-funnel-period': 'No hay negocios registrados en este funil para el período seleccionado.',
+    'metrics.product-performance': 'Rendimiento de Productos',
+    'metrics.no-products-sold': 'No se vendieron productos en este período',
+    'metrics.agent-performance': 'Rendimiento de Agentes',
+    'metrics.no-closed-deals': 'No hay negocios cerrados en este período',
+    'metrics.aggregated-monthly-trends': 'Tendencias mensuales agregadas',
     'metrics.tab.monthly': 'Gráficos Mensuales',
     'metrics.showing-data-for': 'Mostrando datos de:',
     'metrics.refresh': 'Actualizar datos',
