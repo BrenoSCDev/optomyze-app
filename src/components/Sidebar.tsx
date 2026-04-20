@@ -81,8 +81,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   const navigate = useNavigate();
   const location = useLocation();
 
-  const logo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
-  const icon = mode === 'dark' ? OptoIcon : OptoIconLight;
+  // Sidebar is always dark midnight-blue — always use the white logo variants
+  const logo = optomyzeLogo;
+  const icon = OptoIcon;
 
   const handleSectionNavigation = (sectionId: string) => {
     if (sectionId === 'leads') {
@@ -322,7 +323,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <img src={logo} alt="Optomyze" className={mode === 'dark' ? 'h-7' : 'h-4'} />
+              <img src={logo} alt="Optomyze" className="h-7" />
             </motion.div>
           )}
         </AnimatePresence>
