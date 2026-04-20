@@ -84,7 +84,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
-  const headerLogo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
+  // Header is always dark midnight-blue — always use the white logo variant
+  const headerLogo = optomyzeLogo;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
