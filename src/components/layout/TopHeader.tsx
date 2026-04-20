@@ -490,7 +490,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
-              className="w-full pl-10 pr-10 bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
+              className="w-full pl-10 pr-10 bg-background border-border focus:border-primary/50 focus:ring-primary/20"
             />
             
             <AnimatePresence>
@@ -563,7 +563,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
-              className="w-48 h-8 pl-8 pr-8 text-xs bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20"
+              className="w-48 h-8 pl-8 pr-8 text-xs bg-background/20 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
             />
             <AnimatePresence>
               {showResults && searchResults.length > 0 && (
