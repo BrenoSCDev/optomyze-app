@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
@@ -205,10 +206,9 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
   const lead = leadData?.lead;
 
-  return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
+  const modalTree = (
+    <AnimatePresence>
+      {isOpen && (
           <>
             {/* Overlay */}
             <motion.div
@@ -447,7 +447,12 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(modalTree, document.body)}
 
       {/* Sub-modals */}
       {lead && (

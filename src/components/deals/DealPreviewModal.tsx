@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
@@ -177,10 +178,9 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
   const currency = sale?.currency || companyCurrency;
 
-  return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
+  const modalTree = (
+    <AnimatePresence>
+      {isOpen && (
           <>
             {/* Overlay */}
             <motion.div
@@ -687,7 +687,12 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(modalTree, document.body)}
 
       {/* Upload Modal */}
       {sale && (
