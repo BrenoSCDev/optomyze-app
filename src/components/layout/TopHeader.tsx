@@ -367,7 +367,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   return (
     <>
     <motion.header
-      className="fixed top-0 left-0 w-full z-50 h-16 backdrop-blur-md flex items-center px-4 sm:px-6 rounded-none"
+      className="fixed top-0 left-0 w-full z-40 h-16 backdrop-blur-md flex items-center px-4 sm:px-6 rounded-none"
       style={{
         background: headerNavMode ? 'hsl(var(--sidebar-bg))' : 'hsl(var(--card))',
         borderBottom: headerNavMode
