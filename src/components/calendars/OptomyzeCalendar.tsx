@@ -339,7 +339,7 @@ const OptomyzeCalendar: React.FC = () => {
         >
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-xl font-semibold text-foreground">
               {format(currentDate, 'MMMM yyyy')}
             </h2>
             <div className="flex items-center gap-2">
@@ -383,14 +383,14 @@ const OptomyzeCalendar: React.FC = () => {
                     onClick={() => setSelectedDate(day)}
                     className={`
                       min-h-[60px] sm:min-h-[80px] p-1.5 sm:p-2 rounded-lg text-left transition-all
-                      ${isCurrentMonth ? 'bg-white/5 hover:bg-white/10' : 'bg-transparent opacity-40'}
+                      ${isCurrentMonth ? 'bg-muted/40 hover:bg-muted/70' : 'bg-transparent opacity-40'}
                       ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
                       ${isToday ? 'border border-primary/50' : ''}
                     `}
                   >
                     <span className={`
                       text-sm font-medium
-                      ${isToday ? 'text-primary' : isCurrentMonth ? 'text-white' : 'text-gray-500'}
+                      ${isToday ? 'text-primary' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
                     `}>
                       {format(day, 'd')}
                     </span>
@@ -400,7 +400,7 @@ const OptomyzeCalendar: React.FC = () => {
                           key={item.id}
                           className={`text-[10px] sm:text-xs px-1 py-0.5 rounded truncate flex items-center gap-0.5 sm:gap-1 ${
                             item.type === 'appointment' && item.appointmentTypeColor
-                              ? 'bg-white/10 text-white border border-white/10'
+                              ? 'bg-muted text-foreground border border-border'
                               : getItemColor(item)
                           }`}
                           style={item.type === 'appointment' && item.appointmentTypeColor
@@ -441,7 +441,7 @@ const OptomyzeCalendar: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-lg font-semibold text-white mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : t('calendar.select-date')}
           </h3>
 
@@ -451,9 +451,9 @@ const OptomyzeCalendar: React.FC = () => {
             </div>
           ) : selectedDateItems.length === 0 ? (
             <div className="text-center py-12">
-              <Calendar className="h-12 w-12 text-gray-500 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">{t('calendar.no-events')}</p>
-              <p className="text-gray-500 text-xs mt-1">{t('calendar.no-events-description')}</p>
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">{t('calendar.no-events')}</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">{t('calendar.no-events-description')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -462,7 +462,7 @@ const OptomyzeCalendar: React.FC = () => {
                   key={item.id}
                   className={`p-4 rounded-lg border hover:scale-[1.02] transition-transform ${
                     item.type === 'appointment' && item.appointmentTypeColor
-                      ? 'bg-white/5 border-white/10'
+                      ? 'bg-muted/40 border-border'
                       : getItemColor(item)
                   }`}
                   style={item.type === 'appointment' && item.appointmentTypeColor
@@ -481,13 +481,13 @@ const OptomyzeCalendar: React.FC = () => {
                       ) : (
                         <CalendarDays className="h-4 w-4" />
                       )}
-                      <h4 className="font-medium text-white">{item.title}</h4>
+                      <h4 className="font-medium text-foreground">{item.title}</h4>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="outline"
                         className={item.type === 'appointment'
-                          ? 'text-xs capitalize border-white/20 text-white/70'
+                          ? 'text-xs capitalize border-border text-muted-foreground'
                           : getItemColor(item)}
                         style={item.type === 'appointment' && item.appointmentTypeColor
                           ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
@@ -526,13 +526,13 @@ const OptomyzeCalendar: React.FC = () => {
 
                   {/* Description */}
                   {item.description && (
-                    <div className="mt-2 flex items-start gap-2 text-sm text-gray-300">
-                      <FileText className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
+                    <div className="mt-2 flex items-start gap-2 text-sm text-foreground/80">
+                      <FileText className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
                       <p className="line-clamp-2">{item.description}</p>
                     </div>
                   )}
 
-                  <div className="mt-3 space-y-2 text-sm text-gray-400">
+                  <div className="mt-3 space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       <span>
@@ -611,15 +611,15 @@ const OptomyzeCalendar: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3 className="text-lg font-semibold text-white mb-4">{t('calendar.upcoming-events')}</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{t('calendar.upcoming-events')}</h3>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : upcomingItems.length === 0 ? (
           <div className="text-center py-8">
-            <Clock className="h-10 w-10 text-gray-500 mx-auto mb-2" />
-            <p className="text-gray-400 text-sm">No upcoming events or tasks</p>
+            <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground text-sm">No upcoming events or tasks</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -632,14 +632,14 @@ const OptomyzeCalendar: React.FC = () => {
                 }}
                 className={`p-4 rounded-lg border hover:scale-[1.02] transition-transform cursor-pointer ${
                   item.type === 'appointment' && item.appointmentTypeColor
-                    ? 'bg-white/5 border-white/10'
+                    ? 'bg-muted/40 border-border'
                     : getItemColor(item)
                 }`}
                 style={item.type === 'appointment' && item.appointmentTypeColor
                   ? { borderLeftColor: item.appointmentTypeColor, borderLeftWidth: 4 }
                   : undefined}
               >
-                <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
                   {item.type === 'task' ? (
                     <CheckSquare className="h-3 w-3" />
                   ) : item.type === 'appointment' ? (
@@ -652,10 +652,10 @@ const OptomyzeCalendar: React.FC = () => {
                   )}
                   <span>{format(item.date, 'MMM d, HH:mm')}</span>
                 </div>
-                <h4 className="font-medium text-white text-sm">{item.title}</h4>
+                <h4 className="font-medium text-foreground text-sm">{item.title}</h4>
                 <div className="flex flex-col gap-0.5 mt-1">
                   {item.attendee && (
-                    <p className="text-xs text-gray-400">{item.attendee}</p>
+                    <p className="text-xs text-muted-foreground">{item.attendee}</p>
                   )}
                   {item.leadName && item.leadId && (
                     item.funnelId ? (
@@ -670,11 +670,11 @@ const OptomyzeCalendar: React.FC = () => {
                         <ExternalLink className="h-3 w-3" />
                       </button>
                     ) : (
-                      <p className="text-xs text-gray-400">{item.leadName}</p>
+                      <p className="text-xs text-muted-foreground">{item.leadName}</p>
                     )
                   )}
                   {item.timezone && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-xs text-muted-foreground/70 flex items-center gap-1">
                       <Globe className="h-3 w-3" />{item.timezone}
                     </p>
                   )}
