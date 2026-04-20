@@ -206,11 +206,9 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
   const lead = leadData?.lead;
 
-  return (
-    <>
-      {typeof document !== 'undefined' && createPortal(
-      <AnimatePresence>
-        {isOpen && (
+  const modalTree = (
+    <AnimatePresence>
+      {isOpen && (
           <>
             {/* Overlay */}
             <motion.div
