@@ -178,11 +178,9 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
   const currency = sale?.currency || companyCurrency;
 
-  return (
-    <>
-      {typeof document !== 'undefined' && createPortal(
-      <AnimatePresence>
-        {isOpen && (
+  const modalTree = (
+    <AnimatePresence>
+      {isOpen && (
           <>
             {/* Overlay */}
             <motion.div
@@ -689,7 +687,12 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(modalTree, document.body)}
 
       {/* Upload Modal */}
       {sale && (

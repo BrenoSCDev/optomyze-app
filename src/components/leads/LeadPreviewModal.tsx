@@ -447,7 +447,12 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      {typeof document !== 'undefined' && createPortal(modalTree, document.body)}
 
       {/* Sub-modals */}
       {lead && (
