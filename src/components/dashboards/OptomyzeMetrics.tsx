@@ -1146,7 +1146,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   const getPipelineData      = () => periodicData?.data?.estimated_vs_closed_value?.funnels || null;
   const getDealsByFunnelStage = (): DealsByFunnelStage | null => periodicData?.data?.deals_by_funnel_stage || null;
 
-  const selectedRangeLabel = DATE_RANGE_OPTIONS.find(o => o.value === dateRange)?.label || 'Last 30 Days';
+  const selectedRangeLabel = t(`metrics.range.${dateRange}`);
 
   if (error) {
     return (
@@ -1236,13 +1236,13 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
         <TabButton active={activeTab === 'periodic'} onClick={() => setActiveTab('periodic')}>
           <span className="relative z-10 flex items-center gap-1.5">
             <TrendingUp className="w-3 h-3" />
-            Periodic Performance
+            {t('metrics.tab.periodic')}
           </span>
         </TabButton>
         <TabButton active={activeTab === 'monthly'} onClick={() => setActiveTab('monthly')}>
           <span className="relative z-10 flex items-center gap-1.5">
             <Calendar className="w-3 h-3" />
-            Monthly Charts
+            {t('metrics.tab.monthly')}
           </span>
         </TabButton>
       </div>
@@ -1263,12 +1263,12 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
             {/* Date Range Filter + Grid Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs sm:text-sm text-muted-foreground">Showing data for:</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{t('metrics.showing-data-for')}</span>
                 <span className="text-xs sm:text-sm font-medium text-foreground">{selectedRangeLabel}</span>
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  title="Refresh data"
+                  title={t('metrics.refresh')}
                   onClick={fetchMetricsData}
                   disabled={loading}
                   className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
@@ -1294,7 +1294,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
             {editMode && (
               <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm text-muted-foreground">
                 <GripVertical className="w-4 h-4 text-primary" />
-                <span>Drag widgets to reorder. Hover over a widget for expand/download options. Click the grid icon again to exit.</span>
+                <span>{t('metrics.edit-mode-hint')}</span>
               </div>
             )}
 
