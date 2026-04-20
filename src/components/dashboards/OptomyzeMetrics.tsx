@@ -518,6 +518,7 @@ const DealsStagesDistributionChart = ({
   dealsFunnelData: DealsByFunnelStage | null;
   isLoading: boolean;
 }) => {
+  const { t } = useLanguage();
   const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
 
   useEffect(() => {
@@ -537,9 +538,9 @@ const DealsStagesDistributionChart = ({
     return (
       <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-          <BarChart3 className="w-5 h-5 text-primary" /> Deals Stages Distribution
+          <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.deals-stages-distribution')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">No deal funnels available.</p>
+        <p className="text-muted-foreground text-center py-8">{t('metrics.no-deal-funnels')}</p>
       </motion.div>
     );
   }
@@ -570,10 +571,10 @@ const DealsStagesDistributionChart = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary shrink-0" /> Deals Stages Distribution
+            <BarChart3 className="w-5 h-5 text-primary shrink-0" /> {t('metrics.deals-stages-distribution')}
           </h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Total Deals: <span className="font-semibold text-foreground">{totalSales}</span>
+            {t('metrics.total-deals')}: <span className="font-semibold text-foreground">{totalSales}</span>
           </p>
         </div>
 
@@ -595,7 +596,7 @@ const DealsStagesDistributionChart = ({
 
       {totalSales === 0 ? (
         <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-          No deals registered in this funnel for the selected period.
+          {t('metrics.no-deals-in-funnel-period')}
         </div>
       ) : (
         <>
@@ -751,15 +752,16 @@ interface ProductPerformanceItem {
 }
 
 const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: ProductPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
+  const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
     return (
       <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-          <BarChart3 className="w-5 h-5 text-primary" /> Product Performance
+          <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.product-performance')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">No products sold in this period</p>
+        <p className="text-muted-foreground text-center py-8">{t('metrics.no-products-sold')}</p>
       </motion.div>
     );
   }
@@ -767,7 +769,7 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
   return (
     <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
-        <BarChart3 className="w-5 h-5 text-primary shrink-0" /> Product Performance
+        <BarChart3 className="w-5 h-5 text-primary shrink-0" /> {t('metrics.product-performance')}
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={data}>
@@ -809,15 +811,16 @@ interface AgentPerformanceItem {
 }
 
 const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { data: AgentPerformanceItem[] | null; isLoading: boolean; currencySymbol?: string }) => {
+  const { t } = useLanguage();
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
     return (
       <motion.div className="chart-container" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
-          <Users className="w-5 h-5 text-primary" /> Agent Performance
+          <Users className="w-5 h-5 text-primary" /> {t('metrics.agent-performance')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">No closed deals in this period</p>
+        <p className="text-muted-foreground text-center py-8">{t('metrics.no-closed-deals')}</p>
       </motion.div>
     );
   }
@@ -825,7 +828,7 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
   return (
     <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
-        <Users className="w-5 h-5 text-primary shrink-0" /> Agent Performance
+        <Users className="w-5 h-5 text-primary shrink-0" /> {t('metrics.agent-performance')}
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={data}>
@@ -1338,7 +1341,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                <span>Aggregated monthly trends — {monthlyYear}</span>
+                <span>{t('metrics.aggregated-monthly-trends')} — {monthlyYear}</span>
               </div>
               <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
                 <SelectTrigger className="w-[120px] h-8 text-sm">
