@@ -84,8 +84,11 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
-  // Header is always dark midnight-blue — always use the white logo variant
-  const headerLogo = optomyzeLogo;
+  // Logo swaps with header background:
+  // - Header nav mode → midnight-blue bg → white logo
+  // - Sidebar mode (light theme) → card bg → dark logo
+  // - Sidebar mode (dark theme) → dark bg → white logo
+  const headerLogo = headerNavMode || mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -364,10 +367,16 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   return (
     <>
     <motion.header
-      className="fixed top-0 left-0 w-full z-50 h-16 backdrop-blur-md flex items-center px-4 sm:px-6 rounded-none text-[hsl(var(--sidebar-text-active))]"
+      className="fixed top-0 left-0 w-full z-50 h-16 backdrop-blur-md flex items-center px-4 sm:px-6 rounded-none"
       style={{
-        background: 'hsl(var(--sidebar-bg))',
-        borderBottom: '1px solid hsl(var(--sidebar-border))',
+        background: headerNavMode ? 'hsl(var(--sidebar-bg))' : 'hsl(var(--card))',
+        borderBottom: headerNavMode
+          ? '1px solid hsl(var(--sidebar-border))'
+          : '1px solid hsl(var(--border))',
+        color: headerNavMode
+          ? 'hsl(var(--sidebar-text-active))'
+          : 'hsl(var(--card-foreground))',
+        transition: 'background 0.4s ease, border-color 0.4s ease, color 0.4s ease',
       }}
       initial={false}
       animate={{ 
