@@ -188,7 +188,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
               onClick={onClose}
             />
 
@@ -198,7 +198,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed inset-x-0 bottom-0 top-[5vh] z-[101] flex flex-col rounded-t-2xl border border-deal/20 bg-background overflow-hidden"
+              className="fixed inset-x-0 bottom-0 top-[5vh] z-[60] flex flex-col rounded-t-2xl border border-deal/20 bg-background overflow-hidden"
             >
               {/* Loading State */}
               {loading && (
