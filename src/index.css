@@ -35,7 +35,7 @@
     --muted: 228 40% 94%;
     --muted-foreground: 240 10% 38%;
 
-    --accent: 271 91% 55%;
+    --accent: 240 22% 25%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
@@ -59,7 +59,7 @@
 
     /* Glow Effects */
     --glow-primary: 0 0 20px hsl(240 22% 15% / 0.15);
-    --glow-accent: 0 0 30px hsl(271 91% 65% / 0.2);
+    --glow-accent: 0 0 30px hsl(240 22% 25% / 0.18);
 
     /* Deal Accent */
     --deal-accent: 199 89% 48%;
