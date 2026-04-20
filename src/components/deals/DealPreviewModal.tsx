@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
@@ -179,6 +180,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
   return (
     <>
+      {typeof document !== 'undefined' && createPortal(
       <AnimatePresence>
         {isOpen && (
           <>
