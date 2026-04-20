@@ -207,10 +207,10 @@ const ChatList: React.FC<ChatListProps> = ({
               transition={{ delay: index * 0.05 }}
               onClick={() => onSelectChat(chat)}
               className={cn(
-                "p-3 rounded-lg cursor-pointer transition-all duration-200",
-                "hover:bg-accent/50",
+                "p-3 rounded-lg cursor-pointer transition-all duration-200 group",
+                "hover:bg-muted/60",
                 selectedChat?.id === chat.id 
-                  ? "bg-accent border-l-2 border-green-500" 
+                  ? "bg-muted border-l-2 border-green-500 text-foreground" 
                   : "bg-background/50"
               )}
             >
