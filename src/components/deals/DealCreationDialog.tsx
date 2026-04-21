@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, Search, Loader2, Package, Calculator, DollarSign, Tag, Briefcase, FileText, Percent, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -407,438 +408,424 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const maxDiscountPercent = pricingRulesRef.current.maxDiscountPercent;
   const allowPriceOverride = pricingRulesRef.current.allowPriceOverride;
 
-  return (
+  const modalTree = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={handleClose}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-gray-900 border border-white/10 shadow-2xl flex flex-col max-h-[90vh]"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-deal/20 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-deal">
-                <Briefcase className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-white">{isEditMode ? 'Edit Deal' : 'Create New Deal'}</h2>
-            </div>
-            <button onClick={handleClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors" disabled={isSubmitting}>
-              <X className="h-5 w-5 text-white/70" />
-            </button>
-          </div>
-
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-deal/50 scrollbar-track-white/5">
-            <div className="space-y-6">
-
-              {/* 1. Lead Search */}
-              <div className="space-y-3">
-                <Label className="text-white font-medium flex items-center gap-2">
-                  <User className="w-4 h-4" /> Lead {!isEditMode && '*'}
-                </Label>
-                {isEditMode ? (
-                  <div className="flex items-center gap-2 p-2 bg-deal/10 border border-deal/20 rounded-lg">
-                    <User className="w-4 h-4 text-deal" />
-                    <span className="text-sm text-white">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : 'Unknown Lead'}</span>
-                    <span className="ml-auto text-xs text-white/30">locked</span>
-                  </div>
-                ) : (
-                  <>
-                    <div ref={leadSearchRef} className="relative">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                        <Input
-                          value={leadQuery}
-                          onChange={(e) => handleLeadSearch(e.target.value)}
-                          onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
-                          placeholder="Search lead by name..."
-                          className="pl-9 bg-white/5 border-deal/20 text-white placeholder:text-white/40"
-                          disabled={isSubmitting}
-                        />
-                        {isSearchingLeads && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-deal animate-spin" />}
-                      </div>
-                      {showLeadDropdown && leadResults.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                          {leadResults.map(lead => (
-                            <button
-                              key={lead.id}
-                              onClick={() => handleSelectLead(lead)}
-                              className="w-full text-left px-4 py-2.5 hover:bg-white/10 transition-colors flex items-center justify-between"
-                            >
-                              <span className="text-white text-sm">{lead.first_name} {lead.last_name}</span>
-                              <span className="text-xs text-white/40">{lead.products.length} product(s)</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {selectedLead && (
-                      <div className="flex items-center gap-2 p-2 bg-deal/10 border border-deal/20 rounded-lg">
-                        <User className="w-4 h-4 text-deal" />
-                        <span className="text-sm text-white">{selectedLead.first_name} {selectedLead.last_name}</span>
-                        <button onClick={() => { setSelectedLead(null); setLeadQuery(''); }} className="ml-auto text-white/40 hover:text-white">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* 2. Deal Info */}
-              <div className="space-y-3">
-                <Label className="text-white font-medium flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" /> Deal Information
-                </Label>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">Deal Name *</Label>
-                    <Input value={dealName} onChange={e => setDealName(e.target.value)} placeholder="Enter deal name..."
-                      className="bg-white/5 border-deal/20 text-white placeholder:text-white/40" disabled={isSubmitting} maxLength={100} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">Stage *</Label>
-                    <Select value={stageId} onValueChange={setStageId} disabled={isSubmitting}>
-                      <SelectTrigger className="bg-white/5 border-deal/20 text-white">
-                        <SelectValue placeholder="Select stage" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-white/10">
-                        {sortedStages.map(s => (
-                          <SelectItem key={s.id} value={s.id.toString()} className="text-white hover:bg-gray-700">{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+      {isOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={handleClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-border bg-muted/20 p-6 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-gradient-deal p-2">
+                  <Briefcase className="h-5 w-5 text-deal-foreground" />
                 </div>
+                <h2 className="text-xl font-semibold text-foreground">{isEditMode ? 'Edit Deal' : 'Create New Deal'}</h2>
               </div>
+              <button
+                onClick={handleClose}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                disabled={isSubmitting}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-              {/* 3. Products of Interest */}
-              {selectedLead && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-dark">
+              <div className="space-y-6">
                 <div className="space-y-3">
-                  <Label className="text-white font-medium flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Products
+                  <Label className="flex items-center gap-2 font-medium text-foreground">
+                    <User className="h-4 w-4" /> Lead {!isEditMode && '*'}
                   </Label>
-
-                  {leadProducts.length > 0 ? (
-                    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
-                      <table className="w-full text-sm">
-                        <thead className="bg-white/5">
-                          <tr>
-                            <th className="text-left p-3 text-gray-400 font-medium">Product</th>
-                            <th className="text-center p-3 text-gray-400 font-medium">Qty</th>
-                            <th className="text-right p-3 text-gray-400 font-medium">Unit Price</th>
-                            <th className="text-right p-3 text-gray-400 font-medium">Total</th>
-                            <th className="w-10 p-3"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {leadProducts.map(p => (
-                            <tr key={p.id} className="border-t border-white/5">
-                              <td className="p-3 text-white">{p.name}</td>
-                              <td className="p-3 text-center text-gray-300">{p.pivot.quantity}</td>
-                              <td className="p-3 text-right text-gray-300">{formatPrice(parseFloat(p.pivot.unit_price))}</td>
-                              <td className="p-3 text-right text-deal font-medium">{formatPrice(parseFloat(p.pivot.total_price))}</td>
-                              {!isEditMode && (
-                              <td className="p-3 text-center">
-                                <button
-                                  onClick={() => handleRemoveProduct(p.id)}
-                                  disabled={isSubmitting || isAddingProduct}
-                                  className="text-white/30 hover:text-rose-400 transition-colors disabled:opacity-50"
-                                  title="Remove product"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </td>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot className="bg-white/5">
-                          <tr>
-                            <td colSpan={4} className="p-3 text-right text-gray-400 font-medium">Subtotal</td>
-                            <td className="p-3 text-right text-white font-semibold">{formatPrice(productsSubtotal)}</td>
-                          </tr>
-                        </tfoot>
-                      </table>
+                  {isEditMode ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
+                      <User className="h-4 w-4 text-deal" />
+                      <span className="text-sm text-foreground">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : 'Unknown Lead'}</span>
+                      <span className="ml-auto text-xs text-muted-foreground">locked</span>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-500 italic">No products of interest. You can add one below or enter the deal value manually.</p>
-                      {pricingModel === 'product' && (
-                        <div className="space-y-1">
-                          <Label className="text-gray-400 text-sm">Deal Value</Label>
-                          <CurrencyInput
-                            value={manualValue}
-                            onValueChange={setManualValue}
-                            placeholder="$0.00"
-                            className="bg-white/5 border-deal/20 text-white placeholder:text-white/40"
-                            disabled={isSubmitting || !allowPriceOverride}
+                    <>
+                      <div ref={leadSearchRef} className="relative">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            value={leadQuery}
+                            onChange={(e) => handleLeadSearch(e.target.value)}
+                            onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
+                            placeholder="Search lead by name..."
+                            className="border-input bg-background pl-9 text-foreground placeholder:text-muted-foreground"
+                            disabled={isSubmitting}
                           />
+                          {isSearchingLeads && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-deal" />}
+                        </div>
+                        {showLeadDropdown && leadResults.length > 0 && (
+                          <div className="absolute z-[80] mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border bg-popover shadow-xl">
+                            {leadResults.map((lead) => (
+                              <button
+                                key={lead.id}
+                                onClick={() => handleSelectLead(lead)}
+                                className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-muted"
+                              >
+                                <span className="text-sm text-popover-foreground">{lead.first_name} {lead.last_name}</span>
+                                <span className="text-xs text-muted-foreground">{lead.products.length} product(s)</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {selectedLead && (
+                        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
+                          <User className="h-4 w-4 text-deal" />
+                          <span className="text-sm text-foreground">{selectedLead.first_name} {selectedLead.last_name}</span>
+                          <button onClick={() => { setSelectedLead(null); setLeadQuery(''); }} className="ml-auto text-muted-foreground transition-colors hover:text-foreground">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
-
-                  {/* Add Product Search — hidden in edit mode */}
-                  {!isEditMode && <div ref={productSearchRef} className="relative">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                      <Input
-                        value={productQuery}
-                        onChange={(e) => handleProductSearch(e.target.value)}
-                        onFocus={() => productResults.length > 0 && setShowProductDropdown(true)}
-                        placeholder="Search product to add..."
-                        className="pl-9 bg-white/5 border-deal/20 text-white placeholder:text-white/40"
-                        disabled={isSubmitting || isAddingProduct}
-                      />
-                      {(isSearchingProducts || isAddingProduct) && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-deal animate-spin" />}
-                    </div>
-                    {showProductDropdown && productResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                        {productResults.map(product => (
-                          <button
-                            key={product.id}
-                            onClick={() => handleAddProduct(product)}
-                            className="w-full text-left px-4 py-2.5 hover:bg-white/10 transition-colors flex items-center justify-between"
-                            disabled={isAddingProduct}
-                          >
-                            <span className="text-white text-sm">{product.name}</span>
-                            <span className="text-xs text-white/40">{formatPrice(product.base_price)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>}
                 </div>
-              )}
 
-              {/* 4. Pricing Model */}
-              {selectedLead && (
                 <div className="space-y-3">
-                  <Label className="text-white font-medium flex items-center gap-2">
-                    <Calculator className="w-4 h-4" /> Pricing Model
+                  <Label className="flex items-center gap-2 font-medium text-foreground">
+                    <Briefcase className="h-4 w-4" /> Deal Information
                   </Label>
-                  <RadioGroup value={pricingModel} onValueChange={v => setPricingModel(v as PricingModel)} className="flex flex-wrap gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="product" id="dm-product" className="border-white/30" />
-                      <Label htmlFor="dm-product" className="cursor-pointer text-gray-300">Product</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="commission" id="dm-commission" className="border-white/30" />
-                      <Label htmlFor="dm-commission" className="cursor-pointer text-gray-300">Commission</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="hybrid" id="dm-hybrid" className="border-white/30" />
-                      <Label htmlFor="dm-hybrid" className="cursor-pointer text-gray-300">Hybrid</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
-
-              {/* 4b. Commission Section */}
-              {selectedLead && showCommissionSection && (
-                <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-                  <Label className="text-white font-medium flex items-center gap-2">
-                    <Percent className="w-4 h-4" /> Commission
-                  </Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label className="text-gray-400 text-sm">Type</Label>
-                      <Select value={commissionType} onValueChange={v => setCommissionType(v as ChargeType)}>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
-                          <SelectItem value="fixed" className="text-white hover:bg-gray-700">Fixed</SelectItem>
+                      <Label className="text-sm text-muted-foreground">Deal Name *</Label>
+                      <Input
+                        value={dealName}
+                        onChange={(e) => setDealName(e.target.value)}
+                        placeholder="Enter deal name..."
+                        className="border-input bg-background text-foreground placeholder:text-muted-foreground"
+                        disabled={isSubmitting}
+                        maxLength={100}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Stage *</Label>
+                      <Select value={stageId} onValueChange={setStageId} disabled={isSubmitting}>
+                        <SelectTrigger className="border-input bg-background text-foreground">
+                          <SelectValue placeholder="Select stage" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[80]">
+                          {sortedStages.map((s) => (
+                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-gray-400 text-sm">Value</Label>
-                      {commissionType === 'fixed' ? (
-                        <CurrencyInput
-                          value={commissionValue}
-                          onValueChange={setCommissionValue}
-                          placeholder="$0.00"
-                          className="bg-white/5 border-white/10 text-white"
-                        />
-                      ) : (
-                        <Input type="number" min={0} max={100} step={0.01}
-                          value={commissionValue} onChange={e => setCommissionValue(Number(e.target.value))}
-                          className="bg-white/5 border-white/10 text-white" placeholder="5" />
-                      )}
-                    </div>
-                    {commissionType === 'percentage' && (
+                  </div>
+                </div>
+
+                {selectedLead && (
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2 font-medium text-foreground">
+                      <FileText className="h-4 w-4" /> Products
+                    </Label>
+
+                    {leadProducts.length > 0 ? (
+                      <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
+                        <table className="w-full text-sm">
+                          <thead className="bg-muted/40">
+                            <tr>
+                              <th className="p-3 text-left font-medium text-muted-foreground">Product</th>
+                              <th className="p-3 text-center font-medium text-muted-foreground">Qty</th>
+                              <th className="p-3 text-right font-medium text-muted-foreground">Unit Price</th>
+                              <th className="p-3 text-right font-medium text-muted-foreground">Total</th>
+                              <th className="w-10 p-3"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {leadProducts.map((p) => (
+                              <tr key={p.id} className="border-t border-border/70">
+                                <td className="p-3 text-foreground">{p.name}</td>
+                                <td className="p-3 text-center text-muted-foreground">{p.pivot.quantity}</td>
+                                <td className="p-3 text-right text-muted-foreground">{formatPrice(parseFloat(p.pivot.unit_price))}</td>
+                                <td className="p-3 text-right font-medium text-deal">{formatPrice(parseFloat(p.pivot.total_price))}</td>
+                                {!isEditMode && (
+                                  <td className="p-3 text-center">
+                                    <button
+                                      onClick={() => handleRemoveProduct(p.id)}
+                                      disabled={isSubmitting || isAddingProduct}
+                                      className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
+                                      title="Remove product"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="bg-muted/40">
+                            <tr>
+                              <td colSpan={4} className="p-3 text-right font-medium text-muted-foreground">Subtotal</td>
+                              <td className="p-3 text-right font-semibold text-foreground">{formatPrice(productsSubtotal)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    ) : (
                       <div className="space-y-2">
-                        <Label className="text-gray-400 text-sm">Reference</Label>
-                        <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white text-sm">
-                          {formatPrice(productsSubtotal)}
+                        <p className="text-sm italic text-muted-foreground">No products of interest. You can add one below or enter the deal value manually.</p>
+                        {pricingModel === 'product' && (
+                          <div className="space-y-1">
+                            <Label className="text-sm text-muted-foreground">Deal Value</Label>
+                            <CurrencyInput
+                              value={manualValue}
+                              onValueChange={setManualValue}
+                              placeholder="$0.00"
+                              className="border-input bg-background text-foreground placeholder:text-muted-foreground"
+                              disabled={isSubmitting || !allowPriceOverride}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!isEditMode && (
+                      <div ref={productSearchRef} className="relative">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            value={productQuery}
+                            onChange={(e) => handleProductSearch(e.target.value)}
+                            onFocus={() => productResults.length > 0 && setShowProductDropdown(true)}
+                            placeholder="Search product to add..."
+                            className="border-input bg-background pl-9 text-foreground placeholder:text-muted-foreground"
+                            disabled={isSubmitting || isAddingProduct}
+                          />
+                          {(isSearchingProducts || isAddingProduct) && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-deal" />}
                         </div>
+                        {showProductDropdown && productResults.length > 0 && (
+                          <div className="absolute z-[80] mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-border bg-popover shadow-xl">
+                            {productResults.map((product) => (
+                              <button
+                                key={product.id}
+                                onClick={() => handleAddProduct(product)}
+                                className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-muted"
+                                disabled={isAddingProduct}
+                              >
+                                <span className="text-sm text-popover-foreground">{product.name}</span>
+                                <span className="text-xs text-muted-foreground">{formatPrice(product.base_price)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                  {commissionSubtotal > 0 && (
-                    <div className="flex justify-end text-sm">
-                      <span className="text-gray-400">Commission subtotal:</span>
-                      <span className="ml-2 text-deal font-medium">{formatPrice(commissionSubtotal)}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* 5. Charges */}
-              {selectedLead && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-white font-medium flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" /> Additional Charges
+                {selectedLead && (
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2 font-medium text-foreground">
+                      <Calculator className="h-4 w-4" /> Pricing Model
                     </Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addCharge} className="deal-glass-card text-xs border-deal/20">
-                      <Plus className="w-3 h-3 mr-1" /> Add Charge
-                    </Button>
+                    <RadioGroup value={pricingModel} onValueChange={(v) => setPricingModel(v as PricingModel)} className="flex flex-wrap gap-4">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="product" id="dm-product" className="border-border" />
+                        <Label htmlFor="dm-product" className="cursor-pointer text-muted-foreground">Product</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="commission" id="dm-commission" className="border-border" />
+                        <Label htmlFor="dm-commission" className="cursor-pointer text-muted-foreground">Commission</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hybrid" id="dm-hybrid" className="border-border" />
+                        <Label htmlFor="dm-hybrid" className="cursor-pointer text-muted-foreground">Hybrid</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
-                  {charges.length > 0 ? (
-                    <div className="space-y-2">
-                      {charges.map(charge => (
-                        <div key={charge.id} className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg">
-                          <Input placeholder="Name" value={charge.name} onChange={e => updateCharge(charge.id, 'name', e.target.value)}
-                            className="flex-1 bg-white/5 border-white/10 text-white text-sm" />
-                          <Select value={charge.type} onValueChange={v => updateCharge(charge.id, 'type', v)}>
-                            <SelectTrigger className="w-28 bg-white/5 border-white/10 text-white text-sm"><SelectValue /></SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-white/10">
-                              <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
-                              <SelectItem value="fixed" className="text-white hover:bg-gray-700">Fixed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {charge.type === 'fixed' ? (
-                            <CurrencyInput value={charge.value} onValueChange={v => updateCharge(charge.id, 'value', v)}
-                              placeholder="$0.00" className="w-24 bg-white/5 border-white/10 text-white text-sm" />
-                          ) : (
-                            <Input type="number" min={0} max={100} step={0.01} value={charge.value}
-                              onChange={e => updateCharge(charge.id, 'value', Number(e.target.value))}
-                              className="w-24 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
-                          )}
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeCharge(charge.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">No additional charges.</p>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* 6. Discounts */}
-              {selectedLead && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-white font-medium flex items-center gap-2">
-                      <Tag className="w-4 h-4" /> Discounts
+                {selectedLead && showCommissionSection && (
+                  <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+                    <Label className="flex items-center gap-2 font-medium text-foreground">
+                      <Percent className="h-4 w-4" /> Commission
                     </Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addDiscount} className="deal-glass-card text-xs border-deal/20">
-                      <Plus className="w-3 h-3 mr-1" /> Add Discount
-                    </Button>
-                  </div>
-                  {discounts.length > 0 ? (
-                    <div className="space-y-2">
-                      {discounts.map(discount => (
-                        <div key={discount.id} className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg">
-                          <Input placeholder="Name" value={discount.name} onChange={e => updateDiscount(discount.id, 'name', e.target.value)}
-                            className="flex-1 bg-white/5 border-white/10 text-white text-sm" />
-                          <Select value={discount.type} onValueChange={v => updateDiscount(discount.id, 'type', v)}>
-                            <SelectTrigger className="w-28 bg-white/5 border-white/10 text-white text-sm"><SelectValue /></SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-white/10">
-                              <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
-                              <SelectItem value="fixed" className="text-white hover:bg-gray-700">Fixed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {discount.type === 'fixed' ? (
-                            <CurrencyInput value={discount.value} onValueChange={v => updateDiscount(discount.id, 'value', v)}
-                              placeholder="$0.00" className="w-24 bg-white/5 border-white/10 text-white text-sm" />
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <Input type="number" min={0} max={maxDiscountPercent} step={0.01} value={discount.value}
-                                onChange={e => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))}
-                                className="w-16 bg-white/5 border-white/10 text-white text-sm" placeholder="0" />
-                              <span className="text-xs text-white/40 whitespace-nowrap">/ {maxDiscountPercent}%</span>
-                            </div>
-                          )}
-                          <Button type="button" variant="ghost" size="icon" onClick={() => removeDiscount(discount.id)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Type</Label>
+                        <Select value={commissionType} onValueChange={(v) => setCommissionType(v as ChargeType)}>
+                          <SelectTrigger className="border-input bg-background text-foreground"><SelectValue /></SelectTrigger>
+                          <SelectContent className="z-[80]">
+                            <SelectItem value="percentage">%</SelectItem>
+                            <SelectItem value="fixed">Fixed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Value</Label>
+                        {commissionType === 'fixed' ? (
+                          <CurrencyInput value={commissionValue} onValueChange={setCommissionValue} placeholder="$0.00" className="border-input bg-background text-foreground" />
+                        ) : (
+                          <Input type="number" min={0} max={100} step={0.01} value={commissionValue} onChange={(e) => setCommissionValue(Number(e.target.value))} className="border-input bg-background text-foreground" placeholder="5" />
+                        )}
+                      </div>
+                      {commissionType === 'percentage' && (
+                        <div className="space-y-2">
+                          <Label className="text-sm text-muted-foreground">Reference</Label>
+                          <div className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground">
+                            {formatPrice(productsSubtotal)}
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">No discounts.</p>
-                  )}
-                </div>
-              )}
-
-              {/* 7. Notes */}
-              {selectedLead && (
-                <div className="space-y-2">
-                  <Label className="text-white font-medium">Notes</Label>
-                  <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..."
-                    className="bg-white/5 border-deal/20 text-white placeholder:text-white/40 resize-none" rows={3} disabled={isSubmitting} />
-                </div>
-              )}
-
-              {/* 8. Calculation Summary */}
-              {selectedLead && (
-                <div className="p-4 bg-deal/10 border border-deal/20 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-300">Subtotal</span>
-                    <span className="text-white">{formatPrice(baseSubtotal)}</span>
+                    {commissionSubtotal > 0 && (
+                      <div className="flex justify-end text-sm">
+                        <span className="text-muted-foreground">Commission subtotal:</span>
+                        <span className="ml-2 font-medium text-deal">{formatPrice(commissionSubtotal)}</span>
+                      </div>
+                    )}
                   </div>
-                  {chargesTotal > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Charges</span>
-                      <span className="text-emerald-400">+{formatPrice(chargesTotal)}</span>
+                )}
+
+                {selectedLead && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2 font-medium text-foreground">
+                        <DollarSign className="h-4 w-4" /> Additional Charges
+                      </Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addCharge} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
+                        <Plus className="mr-1 h-3 w-3" /> Add Charge
+                      </Button>
                     </div>
-                  )}
-                  {discountsTotal > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-300">Discounts</span>
-                      <span className="text-rose-400">-{formatPrice(discountsTotal)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-lg font-semibold pt-2 border-t border-deal/20">
-                    <span className="text-white">Final Total</span>
-                    <span className="text-deal">{formatPrice(finalTotal)}</span>
+                    {charges.length > 0 ? (
+                      <div className="space-y-2">
+                        {charges.map((charge) => (
+                          <div key={charge.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
+                            <Input placeholder="Name" value={charge.name} onChange={(e) => updateCharge(charge.id, 'name', e.target.value)} className="flex-1 border-input bg-background text-foreground text-sm" />
+                            <Select value={charge.type} onValueChange={(v) => updateCharge(charge.id, 'type', v)}>
+                              <SelectTrigger className="w-28 border-input bg-background text-foreground text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent className="z-[80]">
+                                <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="fixed">Fixed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {charge.type === 'fixed' ? (
+                              <CurrencyInput value={charge.value} onValueChange={(v) => updateCharge(charge.id, 'value', v)} placeholder="$0.00" className="w-24 border-input bg-background text-foreground text-sm" />
+                            ) : (
+                              <Input type="number" min={0} max={100} step={0.01} value={charge.value} onChange={(e) => updateCharge(charge.id, 'value', Number(e.target.value))} className="w-24 border-input bg-background text-foreground text-sm" placeholder="0" />
+                            )}
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeCharge(charge.id)} className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic text-muted-foreground">No additional charges.</p>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500 italic mt-2">Preview — final values calculated by the server.</p>
-                </div>
-              )}
+                )}
+
+                {selectedLead && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="flex items-center gap-2 font-medium text-foreground">
+                        <Tag className="h-4 w-4" /> Discounts
+                      </Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addDiscount} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
+                        <Plus className="mr-1 h-3 w-3" /> Add Discount
+                      </Button>
+                    </div>
+                    {discounts.length > 0 ? (
+                      <div className="space-y-2">
+                        {discounts.map((discount) => (
+                          <div key={discount.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
+                            <Input placeholder="Name" value={discount.name} onChange={(e) => updateDiscount(discount.id, 'name', e.target.value)} className="flex-1 border-input bg-background text-foreground text-sm" />
+                            <Select value={discount.type} onValueChange={(v) => updateDiscount(discount.id, 'type', v)}>
+                              <SelectTrigger className="w-28 border-input bg-background text-foreground text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent className="z-[80]">
+                                <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="fixed">Fixed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {discount.type === 'fixed' ? (
+                              <CurrencyInput value={discount.value} onValueChange={(v) => updateDiscount(discount.id, 'value', v)} placeholder="$0.00" className="w-24 border-input bg-background text-foreground text-sm" />
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <Input type="number" min={0} max={maxDiscountPercent} step={0.01} value={discount.value} onChange={(e) => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))} className="w-16 border-input bg-background text-foreground text-sm" placeholder="0" />
+                                <span className="whitespace-nowrap text-xs text-muted-foreground">/ {maxDiscountPercent}%</span>
+                              </div>
+                            )}
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeDiscount(discount.id)} className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm italic text-muted-foreground">No discounts.</p>
+                    )}
+                  </div>
+                )}
+
+                {selectedLead && (
+                  <div className="space-y-2">
+                    <Label className="font-medium text-foreground">Notes</Label>
+                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes..." className="resize-none border-input bg-background text-foreground placeholder:text-muted-foreground" rows={3} disabled={isSubmitting} />
+                  </div>
+                )}
+
+                {selectedLead && (
+                  <div className="space-y-2 rounded-lg border border-deal/20 bg-deal/10 p-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-foreground">{formatPrice(baseSubtotal)}</span>
+                    </div>
+                    {chargesTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Charges</span>
+                        <span className="text-emerald-500">+{formatPrice(chargesTotal)}</span>
+                      </div>
+                    )}
+                    {discountsTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Discounts</span>
+                        <span className="text-destructive">-{formatPrice(discountsTotal)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-deal/20 pt-2 text-lg font-semibold">
+                      <span className="text-foreground">Final Total</span>
+                      <span className="text-deal">{formatPrice(finalTotal)}</span>
+                    </div>
+                    <p className="mt-2 text-xs italic text-muted-foreground">Preview — final values calculated by the server.</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex gap-3 p-6 border-t border-deal/20 shrink-0">
-            <button type="button" onClick={handleClose}
-              className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white hover:bg-deal/10 transition-colors"
-              disabled={isSubmitting}>
-              Cancel
-            </button>
-            <button type="button" onClick={handleSubmit}
-              className="flex-1 px-4 py-3 rounded-lg bg-gradient-deal text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              disabled={isSubmitting || (!isEditMode && !selectedLead)}>
-              {isSubmitting
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> {isEditMode ? 'Saving...' : 'Creating...'}</>
-                : <><Briefcase className="w-4 h-4" /> {isEditMode ? 'Save Changes' : 'Create Deal'}</>
-              }
-            </button>
-          </div>
-        </motion.div>
-      </div>
+            <div className="flex gap-3 border-t border-border bg-muted/20 p-6 shrink-0">
+              <button type="button" onClick={handleClose} className="flex-1 rounded-lg border border-input bg-background px-4 py-3 text-foreground transition-colors hover:bg-muted" disabled={isSubmitting}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleSubmit} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-deal px-4 py-3 font-medium text-deal-foreground transition-opacity hover:opacity-90 disabled:opacity-50" disabled={isSubmitting || (!isEditMode && !selectedLead)}>
+                {isSubmitting
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> {isEditMode ? 'Saving...' : 'Creating...'}</>
+                  : <><Briefcase className="h-4 w-4" /> {isEditMode ? 'Save Changes' : 'Create Deal'}</>
+                }
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(modalTree, document.body);
 };
