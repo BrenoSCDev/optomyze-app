@@ -110,45 +110,45 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-white/10">
+      <DialogContent className="sm:max-w-md border-border bg-card text-card-foreground z-[80]">
         <DialogHeader>
-          <DialogTitle className="text-white">{t('documents.upload-title')}</DialogTitle>
+          <DialogTitle className="text-foreground">{t('documents.upload-title')}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-gray-300">{t('documents.title-field')} *</Label>
+            <Label htmlFor="title" className="text-foreground">{t('documents.title-field')} *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t('documents.title-placeholder')}
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+              className="border-border bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-gray-300">{t('documents.description-field')}</Label>
+            <Label htmlFor="description" className="text-foreground">{t('documents.description-field')}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('documents.description-placeholder')}
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 min-h-[80px]"
+              className="min-h-[80px] border-border bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-300">{t('documents.file-field')} *</Label>
+            <Label className="text-foreground">{t('documents.file-field')} *</Label>
             <div
               onClick={() => fileInputRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               className={`
-                border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                rounded-lg border-2 border-dashed p-6 text-center cursor-pointer transition-colors
                 ${file 
                   ? 'border-primary/50 bg-primary/10' 
-                  : 'border-white/20 hover:border-white/40 bg-white/5'
+                  : 'border-border bg-muted/40 hover:bg-muted/70 hover:border-primary/40'
                 }
               `}
             >
@@ -163,14 +163,14 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 <div className="flex items-center justify-center gap-3">
                   <FileText className="w-8 h-8 text-primary" />
                   <div className="text-left">
-                    <p className="text-white font-medium text-sm">{file.name}</p>
-                    <p className="text-gray-400 text-xs">{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-gray-400 hover:text-red-400"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
                       setFile(null);
@@ -181,11 +181,11 @@ const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 </div>
               ) : (
                 <>
-                  <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">
+                  <Upload className="mx-auto mb-2 w-8 h-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
                     {t('documents.drag-drop')}
                   </p>
-                  <p className="text-gray-500 text-xs mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {t('documents.file-types')}
                   </p>
                 </>

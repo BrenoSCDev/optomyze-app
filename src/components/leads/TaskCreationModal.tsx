@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Calendar as CalendarIcon, Search, UserCheck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  // Lead search (only when leadId prop is not provided)
   const isStandaloneMode = leadId === undefined;
   const [leadQuery, setLeadQuery] = useState('');
   const [leadResults, setLeadResults] = useState<TaskLeadResult[]>([]);
@@ -78,7 +78,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
       setLeadResults([]);
 
       if (editTask) {
-        // Pre-fill form with existing task data
         setFormData({
           title: editTask.title || '',
           description: editTask.description || '',
@@ -89,7 +88,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           reminder: editTask.reminder || false
         });
       } else {
-        // Reset form for new task
         setFormData({
           title: '',
           description: '',
@@ -103,7 +101,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     }
   }, [isOpen, editTask]);
 
-  // Lead search debounce
   useEffect(() => {
     if (!isStandaloneMode || leadQuery.length < 3) {
       setLeadResults([]);
@@ -118,7 +115,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
         setLeadResults(results);
         setShowLeadDropdown(true);
       } catch {
-        // ignore
       } finally {
         setLeadSearchLoading(false);
       }
@@ -166,12 +162,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
       };
 
       if (isEditMode && editTask) {
-        // Update existing task
         const updatedTask = await taskApi.updateTask(editTask.id, payload);
         toast.success(t('tasks.modal.update-success'));
         onTaskUpdated?.(updatedTask);
       } else {
-        // Create new task
         const result = await taskApi.createTask(payload);
         toast.success(t('tasks.modal.create-success'));
         onTaskCreated(result.task, result.transaction);
@@ -187,52 +181,48 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
+  const modalTree = (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
-        <motion.div 
-          className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto scrollbar-thin"
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <motion.div
+          className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card text-card-foreground shadow-2xl scrollbar-thin"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.2 }}
         >
           <form onSubmit={handleSubmit}>
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <h3 className="text-xl font-semibold text-white">
+            <div className="flex items-center justify-between border-b border-border p-6">
+              <h3 className="text-xl font-semibold text-foreground">
                 {isEditMode ? t('tasks.modal.edit-title') : t('tasks.modal.create-title')}
               </h3>
-              <button 
-                type="button" 
-                onClick={onClose} 
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            
-            {/* Body */}
-            <div className="p-6 space-y-5">
 
-              {/* Lead search — only in standalone mode */}
+            <div className="space-y-5 p-6">
               {isStandaloneMode && (
                 <div>
-                  <Label className="text-white mb-2 block">
-                    Associate with Lead <span className="text-gray-500 font-normal text-xs">(optional)</span>
+                  <Label className="mb-2 block text-foreground">
+                    Associate with Lead <span className="text-muted-foreground font-normal text-xs">(optional)</span>
                   </Label>
                   {selectedLead ? (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/15 border border-primary/30">
+                    <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2">
                       <UserCheck className="w-4 h-4 text-primary shrink-0" />
-                      <span className="text-sm text-white flex-1">
+                      <span className="text-sm text-foreground flex-1">
                         {selectedLead.first_name} {selectedLead.last_name}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSelectedLead(null)}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
@@ -240,26 +230,26 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                   ) : (
                     <div className="relative">
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
                           value={leadQuery}
                           onChange={(e) => setLeadQuery(e.target.value)}
                           placeholder="Search by name (min 3 chars)…"
-                          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
+                          className="pl-9 bg-background border-border text-foreground placeholder:text-muted-foreground"
                           onBlur={() => setTimeout(() => setShowLeadDropdown(false), 150)}
                           onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
                         />
                         {leadSearchLoading && (
-                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
                         )}
                       </div>
                       {showLeadDropdown && leadResults.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 rounded-lg border border-white/10 bg-gray-900 shadow-lg overflow-hidden">
+                        <div className="absolute z-[80] w-full mt-1 overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
                           {leadResults.map((lead) => (
                             <button
                               key={lead.id}
                               type="button"
-                              className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                              className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
                               onMouseDown={() => {
                                 setSelectedLead(lead);
                                 setLeadQuery('');
@@ -272,7 +262,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                         </div>
                       )}
                       {showLeadDropdown && leadResults.length === 0 && !leadSearchLoading && leadQuery.length >= 3 && (
-                        <div className="absolute z-10 w-full mt-1 rounded-lg border border-white/10 bg-gray-900 shadow-lg px-3 py-2 text-sm text-gray-500">
+                        <div className="absolute z-[80] w-full mt-1 rounded-lg border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-lg">
                           No leads found
                         </div>
                       )}
@@ -281,24 +271,22 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </div>
               )}
 
-              {/* Title */}
               <div>
-                <Label htmlFor="title" className="text-white mb-2 block">
-                  {t('tasks.modal.title-label')} <span className="text-red-400">*</span>
+                <Label htmlFor="title" className="mb-2 block text-foreground">
+                  {t('tasks.modal.title-label')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder={t('tasks.modal.title-placeholder')}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary"
+                  className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                   required
                 />
               </div>
 
-              {/* Description */}
               <div>
-                <Label htmlFor="description" className="text-white mb-2 block">
+                <Label htmlFor="description" className="mb-2 block text-foreground">
                   {t('tasks.modal.description-label')}
                 </Label>
                 <Textarea
@@ -306,47 +294,46 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder={t('tasks.modal.description-placeholder')}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-primary resize-none min-h-[100px]"
+                  className="min-h-[100px] resize-none bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                   rows={4}
                 />
               </div>
 
-              {/* Priority & Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white mb-2 block">{t('tasks.modal.priority-label')}</Label>
+                  <Label className="mb-2 block text-foreground">{t('tasks.modal.priority-label')}</Label>
                   <Select
                     value={formData.priority}
-                    onValueChange={(value) => setFormData(prev => ({ 
-                      ...prev, 
-                      priority: value as 'low' | 'medium' | 'high' | 'urgent' 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      priority: value as 'low' | 'medium' | 'high' | 'urgent'
                     }))}
                   >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-white/10">
-                      <SelectItem value="low" className="text-gray-300 focus:bg-white/10 focus:text-white">
+                    <SelectContent className="bg-popover border-border text-popover-foreground z-[80]">
+                      <SelectItem value="low">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-gray-500" />
+                          <span className="w-2 h-2 rounded-full bg-muted-foreground" />
                           {t('tasks.priority.low')}
                         </span>
                       </SelectItem>
-                      <SelectItem value="medium" className="text-gray-300 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="medium">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="w-2 h-2 rounded-full bg-[hsl(var(--deal-accent))]" />
                           {t('tasks.priority.medium')}
                         </span>
                       </SelectItem>
-                      <SelectItem value="high" className="text-gray-300 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="high">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-orange-500" />
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
                           {t('tasks.priority.high')}
                         </span>
                       </SelectItem>
-                      <SelectItem value="urgent" className="text-gray-300 focus:bg-white/10 focus:text-white">
+                      <SelectItem value="urgent">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-red-500" />
+                          <span className="w-2 h-2 rounded-full bg-destructive" />
                           {t('tasks.priority.urgent')}
                         </span>
                       </SelectItem>
@@ -355,52 +342,43 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </div>
 
                 <div>
-                  <Label className="text-white mb-2 block">{t('tasks.modal.status-label')}</Label>
+                  <Label className="mb-2 block text-foreground">{t('tasks.modal.status-label')}</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => setFormData(prev => ({ 
-                      ...prev, 
-                      status: value as 'pending' | 'in_progress' | 'completed' | 'cancelled' 
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      status: value as 'pending' | 'in_progress' | 'completed' | 'cancelled'
                     }))}
                   >
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-white/10">
-                      <SelectItem value="pending" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        {t('tasks.status.pending')}
-                      </SelectItem>
-                      <SelectItem value="in_progress" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        {t('tasks.status.in_progress')}
-                      </SelectItem>
-                      <SelectItem value="completed" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        {t('tasks.status.completed')}
-                      </SelectItem>
-                      <SelectItem value="cancelled" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                        {t('tasks.status.cancelled')}
-                      </SelectItem>
+                    <SelectContent className="bg-popover border-border text-popover-foreground z-[80]">
+                      <SelectItem value="pending">{t('tasks.status.pending')}</SelectItem>
+                      <SelectItem value="in_progress">{t('tasks.status.in_progress')}</SelectItem>
+                      <SelectItem value="completed">{t('tasks.status.completed')}</SelectItem>
+                      <SelectItem value="cancelled">{t('tasks.status.cancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* Due Date */}
               <div>
-                <Label className="text-white mb-2 block">{t('tasks.modal.due-date-label')}</Label>
+                <Label className="mb-2 block text-foreground">{t('tasks.modal.due-date-label')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal bg-white/5 border-white/10 hover:bg-white/10",
-                        !formData.due_date && "text-gray-500"
+                        'w-full justify-start text-left font-normal bg-background border-border hover:bg-muted',
+                        !formData.due_date && 'text-muted-foreground'
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.due_date ? format(formData.due_date, "PPP") : t('tasks.modal.select-due-date')}
+                      {formData.due_date ? format(formData.due_date, 'PPP') : t('tasks.modal.select-due-date')}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-gray-900 border-white/10" align="start">
+                  <PopoverContent className="w-auto p-0 bg-popover border-border text-popover-foreground z-[80]" align="start">
                     <Calendar
                       mode="single"
                       selected={formData.due_date}
@@ -412,10 +390,9 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </Popover>
               </div>
 
-              {/* Creator Info (Edit Mode Only) */}
               {isEditMode && editTask?.creator && (
-                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                  <Label className="text-gray-400 text-xs mb-2 block">{t('tasks.modal.created-by')}</Label>
+                <div className="rounded-lg border border-border bg-muted/50 p-4">
+                  <Label className="mb-2 block text-xs text-muted-foreground">{t('tasks.modal.created-by')}</Label>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                       <span className="text-primary text-sm font-medium">
@@ -423,39 +400,32 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                       </span>
                     </div>
                     <div>
-                      <p className="text-white text-sm font-medium">{editTask.creator.name}</p>
-                      <p className="text-gray-400 text-xs">{editTask.creator.email}</p>
+                      <p className="text-sm font-medium text-foreground">{editTask.creator.name}</p>
+                      <p className="text-xs text-muted-foreground">{editTask.creator.email}</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Assigned To */}
               <div>
-                <Label className="text-white mb-2 block">{t('tasks.modal.assigned-to-label')}</Label>
+                <Label className="mb-2 block text-foreground">{t('tasks.modal.assigned-to-label')}</Label>
                 <Select
                   value={formData.assigned_to}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, assigned_to: value }))}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder={t('tasks.modal.select-user')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-900 border-white/10">
-                    <SelectItem value="unassigned" className="text-gray-300 focus:bg-white/10 focus:text-white">
-                      {t('tasks.modal.unassigned')}
-                    </SelectItem>
+                  <SelectContent className="bg-popover border-border text-popover-foreground z-[80]">
+                    <SelectItem value="unassigned">{t('tasks.modal.unassigned')}</SelectItem>
                     {loadingUsers ? (
-                      <div className="p-2 text-center text-gray-400 text-sm">{t('tasks.modal.loading-users')}</div>
+                      <div className="p-2 text-center text-sm text-muted-foreground">{t('tasks.modal.loading-users')}</div>
                     ) : (
                       users.map((user) => (
-                        <SelectItem 
-                          key={user.id} 
-                          value={user.id.toString()} 
-                          className="text-gray-300 focus:bg-white/10 focus:text-white"
-                        >
+                        <SelectItem key={user.id} value={user.id.toString()}>
                           <div className="flex flex-col">
                             <span>{user.name}</span>
-                            <span className="text-gray-500 text-xs">{user.email}</span>
+                            <span className="text-xs text-muted-foreground">{user.email}</span>
                           </div>
                         </SelectItem>
                       ))
@@ -464,11 +434,10 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 </Select>
               </div>
 
-              {/* Reminder Switch */}
-              <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 p-4">
                 <div>
-                  <Label className="text-white">{t('tasks.modal.reminder-label')}</Label>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('tasks.modal.reminder-description')}</p>
+                  <Label className="text-foreground">{t('tasks.modal.reminder-label')}</Label>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t('tasks.modal.reminder-description')}</p>
                 </div>
                 <Switch
                   checked={formData.reminder}
@@ -476,15 +445,13 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                 />
               </div>
             </div>
-            
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10">
+
+            <div className="flex items-center justify-end gap-3 border-t border-border p-6">
               <Button
                 type="button"
                 onClick={onClose}
                 variant="outline"
                 disabled={loading}
-                className="border-white/10 hover:bg-white/10"
               >
                 {t('tasks.modal.cancel')}
               </Button>
@@ -508,6 +475,8 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
       </div>
     </AnimatePresence>
   );
+
+  return createPortal(modalTree, document.body);
 };
 
 export default TaskCreationModal;

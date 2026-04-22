@@ -141,7 +141,7 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
     <div className="space-y-6">
       {/* Create New Observation */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-white flex items-center gap-2">
+        <h4 className="flex items-center gap-2 text-sm font-medium text-foreground">
           <Plus className="w-4 h-4 text-primary" />
           {t('observations.add-new')}
         </h4>
@@ -149,7 +149,7 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           placeholder={t('observations.placeholder')}
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 min-h-[100px] resize-none"
+          className="min-h-[100px] resize-none border-border bg-background text-foreground placeholder:text-muted-foreground"
           disabled={isSubmitting}
         />
         <div className="flex justify-end">
@@ -176,30 +176,29 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
 
       {/* Observations List */}
       {sortedObservations.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
-            <StickyNote className="w-6 h-6 text-amber-500/60" />
+        <div className="py-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <StickyNote className="w-6 h-6 text-primary/70" />
           </div>
-          <p className="text-gray-400 text-sm">{t('observations.empty')}</p>
+          <p className="text-sm text-muted-foreground">{t('observations.empty')}</p>
         </div>
       ) : (
         <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wide">
+          <h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
             {t('observations.list')} ({sortedObservations.length})
           </h4>
           
           {sortedObservations.map((observation) => (
             <div 
               key={observation.id}
-              className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3"
+              className="space-y-3 rounded-lg border border-border bg-muted/30 p-4"
             >
               {editingId === observation.id ? (
-                // Edit Mode
                 <div className="space-y-3">
                   <Textarea
                     value={editingNote}
                     onChange={(e) => setEditingNote(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white min-h-[80px] resize-none"
+                    className="min-h-[80px] resize-none border-border bg-background text-foreground placeholder:text-muted-foreground"
                     disabled={isUpdating}
                   />
                   <div className="flex justify-end gap-2">
@@ -228,17 +227,16 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
                   </div>
                 </div>
               ) : (
-                // View Mode
                 <>
-                  <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                     {observation.note}
                   </p>
                   
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center justify-between border-t border-border pt-2">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <User className="w-3.5 h-3.5" />
                       <span>{observation.user?.name || t('observations.unknown-user')}</span>
-                      <span className="text-gray-600">•</span>
+                      <span>•</span>
                       <span>{formatDate(observation.created_at)}</span>
                     </div>
                     
@@ -247,17 +245,17 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleStartEdit(observation)}
-                        className="h-7 w-7 p-0 hover:bg-white/10"
+                        className="h-7 w-7 p-0 hover:bg-muted"
                       >
-                        <Edit2 className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+                        <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeleteId(observation.id)}
-                        className="h-7 w-7 p-0 hover:bg-red-500/10"
+                        className="h-7 w-7 p-0 hover:bg-destructive/10"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
                       </Button>
                     </div>
                   </div>
@@ -270,26 +268,26 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent className="bg-gray-900 border-white/10">
+        <AlertDialogContent className="border-border bg-background text-foreground z-[80]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
+            <AlertDialogTitle className="text-foreground">
               {t('observations.delete-title')}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {t('observations.delete-description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
               disabled={isDeleting}
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              className="border-border bg-background text-foreground hover:bg-muted"
             >
               {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
