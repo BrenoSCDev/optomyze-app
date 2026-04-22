@@ -611,6 +611,8 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
       </div>
     </AnimatePresence>
   );
+
+  return createPortal(modalTree, document.body);
 };
 
 export default LeadEditModal;
