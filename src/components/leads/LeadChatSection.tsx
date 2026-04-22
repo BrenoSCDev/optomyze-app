@@ -337,62 +337,64 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   // Empty state - no WhatsApp chat associated
   if (!chat) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 px-4">
-        <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-          <FaWhatsapp className="w-8 h-8 text-green-500/60" />
-        </div>
-        <h4 className="text-white font-medium mb-1">{t('lead-details.tabs.chat-empty')}</h4>
-        <p className="text-gray-400 text-sm text-center max-w-xs mb-6">
-          {t('lead-details.tabs.chat-start-desc')}
-        </p>
+      <div className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="flex flex-col items-center justify-center px-4 py-8">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted text-primary">
+            <FaWhatsapp className="h-8 w-8" />
+          </div>
+          <h4 className="mb-1 text-center font-medium text-foreground">{t('lead-details.tabs.chat-empty')}</h4>
+          <p className="mb-6 max-w-xs text-center text-sm text-muted-foreground">
+            {t('lead-details.tabs.chat-start-desc')}
+          </p>
 
-        <div className="w-full max-w-sm space-y-3">
-          {leadPhone && (
-            <div className="flex items-center gap-2 text-sm text-gray-400 bg-white/5 rounded-lg px-3 py-2">
-              <Phone className="h-4 w-4 text-green-500 shrink-0" />
-              <span>{leadPhone}</span>
-            </div>
-          )}
-
-          <Select
-            value={selectedInstanceId}
-            onValueChange={setSelectedInstanceId}
-            disabled={loadingInstances}
-          >
-            <SelectTrigger className="bg-white/10 border-white/10 text-white">
-              <SelectValue placeholder={t('chat.inbox.select-instance')} />
-            </SelectTrigger>
-            <SelectContent>
-              {instances.map(inst => (
-                <SelectItem key={inst.id} value={String(inst.id)}>
-                  {inst.instance_name.split('_')[0]}
-                  <span className="ml-2 text-xs text-muted-foreground">({inst.status})</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Textarea
-            value={startMessage}
-            onChange={e => setStartMessage(e.target.value)}
-            placeholder={t('chat.inbox.type-message')}
-            disabled={isStarting}
-            className="bg-white/10 border-white/10 text-white placeholder:text-gray-500 resize-none"
-            rows={3}
-          />
-
-          <Button
-            onClick={handleStartConversation}
-            disabled={!selectedInstanceId || !startMessage.trim() || isStarting}
-            className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
-          >
-            {isStarting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MessageCirclePlus className="h-4 w-4" />
+          <div className="w-full max-w-sm space-y-3">
+            {leadPhone && (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                <Phone className="h-4 w-4 shrink-0 text-primary" />
+                <span>{leadPhone}</span>
+              </div>
             )}
-            {t('chat.inbox.start-conversation')}
-          </Button>
+
+            <Select
+              value={selectedInstanceId}
+              onValueChange={setSelectedInstanceId}
+              disabled={loadingInstances}
+            >
+              <SelectTrigger className="border-border bg-background text-foreground">
+                <SelectValue placeholder={t('chat.inbox.select-instance')} />
+              </SelectTrigger>
+              <SelectContent className="border-border bg-popover text-popover-foreground">
+                {instances.map(inst => (
+                  <SelectItem key={inst.id} value={String(inst.id)}>
+                    {inst.instance_name.split('_')[0]}
+                    <span className="ml-2 text-xs text-muted-foreground">({inst.status})</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Textarea
+              value={startMessage}
+              onChange={e => setStartMessage(e.target.value)}
+              placeholder={t('chat.inbox.type-message')}
+              disabled={isStarting}
+              className="resize-none border-border bg-background text-foreground placeholder:text-muted-foreground"
+              rows={3}
+            />
+
+            <Button
+              onClick={handleStartConversation}
+              disabled={!selectedInstanceId || !startMessage.trim() || isStarting}
+              className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isStarting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCirclePlus className="h-4 w-4" />
+              )}
+              {t('chat.inbox.start-conversation')}
+            </Button>
+          </div>
         </div>
       </div>
     );
