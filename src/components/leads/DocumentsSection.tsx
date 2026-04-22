@@ -52,11 +52,10 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
 
   const getFileIcon = (path: string) => {
     const ext = getFileExtension(path);
-    if (ext === 'pdf') return <FileText className="w-5 h-5 text-red-400" />;
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-5 h-5 text-blue-400" />;
-    if (['doc', 'docx'].includes(ext)) return <FileText className="w-5 h-5 text-blue-500" />;
-    if (['xls', 'xlsx'].includes(ext)) return <FileText className="w-5 h-5 text-green-500" />;
-    return <File className="w-5 h-5 text-gray-400" />;
+    if (['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'doc', 'docx', 'xls', 'xlsx'].includes(ext)) {
+      return <FileText className="h-5 w-5 text-primary" />;
+    }
+    return <File className="h-5 w-5 text-muted-foreground" />;
   };
 
   const isPreviewSupported = (path: string) => {
@@ -109,14 +108,14 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
   return (
     <>
       <motion.div 
-        className="glass-card p-6"
+        className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-white">{t('documents.title')}</h3>
-          <Button onClick={onUploadClick} size="sm" className="bg-primary hover:bg-primary/80">
+          <h3 className="text-xl font-semibold text-foreground">{t('documents.title')}</h3>
+          <Button onClick={onUploadClick} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Upload className="w-4 h-4 mr-2" />
             {t('documents.upload')}
           </Button>
@@ -124,27 +123,29 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
 
         {documents.length === 0 ? (
           <div className="text-center py-8">
-            <FileText className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">{t('documents.no-documents')}</p>
-            <p className="text-gray-500 text-xs mt-1">{t('documents.no-documents-description')}</p>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <FileText className="h-6 w-6" />
+            </div>
+            <p className="text-sm text-foreground">{t('documents.no-documents')}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('documents.no-documents-description')}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {documents.map((doc) => (
               <div 
                 key={doc.id} 
-                className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-3 transition-colors hover:bg-muted/70"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/10">
+                  <div className="rounded-lg border border-border bg-background p-2">
                     {getFileIcon(doc.path)}
                   </div>
                   <div>
-                    <p className="text-white font-medium text-sm">{doc.title}</p>
+                    <p className="text-sm font-medium text-foreground">{doc.title}</p>
                     {doc.description && (
-                      <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{doc.description}</p>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{doc.description}</p>
                     )}
-                    <p className="text-gray-500 text-xs mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {formatDate(doc.created_at)}
                     </p>
                   </div>
@@ -153,7 +154,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-gray-400 hover:text-white"
+                    className="h-8 w-8 text-muted-foreground hover:bg-background hover:text-foreground"
                     onClick={() => handlePreviewClick(doc)}
                   >
                     <Eye className="w-4 h-4" />
@@ -161,7 +162,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-gray-400 hover:text-red-400"
+                    className="h-8 w-8 text-muted-foreground hover:bg-background hover:text-destructive"
                     onClick={() => handleDeleteClick(doc)}
                     disabled={deletingId === doc.id}
                   >
@@ -180,15 +181,16 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
 
       {/* Document Preview Modal */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden [&>button]:hidden">
-          <DialogHeader className="p-4 border-b border-white/10">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] border-border bg-card p-0 overflow-hidden text-card-foreground [&>button]:z-[80] [&>button]:text-muted-foreground">
+          <DialogHeader className="border-b border-border p-4">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-white truncate pr-4">{previewDoc?.title}</DialogTitle>
+              <DialogTitle className="truncate pr-4 text-foreground">{previewDoc?.title}</DialogTitle>
               <div className="flex items-center gap-2">
                 <Button 
                   onClick={() => previewDoc && handleDownload(previewDoc)}
                   size="sm" 
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                  variant="outline"
+                  className="border-border bg-background text-foreground hover:bg-muted"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   {t('documents.download')}
@@ -197,7 +199,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   onClick={() => setPreviewDoc(null)}
                   size="sm" 
                   variant="ghost"
-                  className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10"
+                  className="border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <X className="w-4 h-4 mr-2" />
                   {t('documents.close')}
@@ -218,14 +220,14 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
               </div>
             ) : (
               <div className="text-center py-16">
-                <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-400 mb-2">{t('documents.preview-not-available')}</p>
-                <p className="text-gray-500 text-sm mb-6">
+                <File className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+                <p className="mb-2 text-foreground">{t('documents.preview-not-available')}</p>
+                <p className="mb-6 text-sm text-muted-foreground">
                   {t('documents.download-to-view')}
                 </p>
                 <Button 
                   onClick={() => previewDoc && handleDownload(previewDoc)}
-                  className="bg-primary hover:bg-primary/80"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   {t('documents.download-file')}
@@ -238,20 +240,20 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
-        <AlertDialogContent className="bg-gray-900 border-white/10">
+        <AlertDialogContent className="border-border bg-card text-card-foreground">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">{t('documents.delete-title')}</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
+            <AlertDialogTitle className="text-foreground">{t('documents.delete-title')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               {t('documents.delete-confirm')} "{confirmDelete?.title}"? {t('documents.delete-warning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+            <AlertDialogCancel className="border-border bg-background text-foreground hover:bg-muted">
               {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t('common.delete')}
             </AlertDialogAction>
