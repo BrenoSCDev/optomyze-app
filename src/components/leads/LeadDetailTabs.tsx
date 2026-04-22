@@ -147,7 +147,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
   return (
     <motion.div 
-      className="glass-card p-6"
+      className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
@@ -316,9 +316,9 @@ const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string
 // Metric Card Component
 const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) => {
   const colorClasses = {
-    purple: 'bg-purple-600/20 text-purple-400 border-purple-600/30',
-    green: 'bg-green-600/20 text-green-400 border-green-600/30',
-    blue: 'bg-blue-600/20 text-blue-400 border-blue-600/30'
+    purple: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    green: 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30',
+    blue: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
   };
 
   return (

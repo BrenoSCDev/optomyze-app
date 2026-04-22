@@ -54,24 +54,24 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
   const progressPercentage = ((currentStageIndex + 1) / totalStages) * 100;
 
   return (
-    <div className="glass-card p-4 mb-4">
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-4 mb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h4 className="text-sm font-medium text-white">{funnel.name}</h4>
-          <p className="text-xs text-gray-400">
+          <h4 className="text-sm font-medium text-foreground">{funnel.name}</h4>
+          <p className="text-xs text-muted-foreground">
             {t('lead-details.current-stage')}: <span className="text-primary font-medium">{stage.name}</span>
           </p>
         </div>
         <div className="text-right">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-muted-foreground">
             {currentStageIndex + 1} / {totalStages}
           </span>
         </div>
       </div>
 
       {/* Progress Bar (full width) */}
-      <div className="mb-3 bg-white/10 rounded-full h-1.5 overflow-hidden">
+      <div className="mb-3 bg-muted rounded-full h-1.5 overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-300"
           style={{ width: `${progressPercentage}%` }}
@@ -93,10 +93,10 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
               <div className={`
                 w-5 h-5 rounded-full flex items-center justify-center transition-all
                 ${isCompleted 
-                  ? 'bg-green-500/20 text-green-400' 
+                  ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
                   : isCurrent 
                     ? 'bg-primary/20 text-primary ring-2 ring-primary/30' 
-                    : 'bg-white/5 text-gray-500'
+                    : 'bg-muted text-muted-foreground'
                 }
               `}>
                 {isCompleted ? (
@@ -107,7 +107,7 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
               </div>
               <span className={`
                 text-[10px] mt-1 truncate max-w-[70px] text-center
-                ${isCurrent ? 'text-primary font-medium' : isCompleted ? 'text-gray-400' : 'text-gray-500'}
+                ${isCurrent ? 'text-primary font-medium' : isCompleted ? 'text-muted-foreground' : 'text-muted-foreground/70'}
               `}>
                 {s.name}
               </span>
