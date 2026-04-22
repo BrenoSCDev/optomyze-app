@@ -48,9 +48,9 @@
     --radius: 0.75rem;
 
     /* Glassmorphism */
-    --glass-bg: 40 33% 99% / 0.9;
-    --glass-border: 240 22% 15% / 0.07;
-    --glass-hover: 40 33% 98% / 0.95;
+    --glass-bg: 0 0% 100% / 1;
+    --glass-border: 228 30% 82% / 1;
+    --glass-hover: 228 100% 99% / 1;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(240 22% 15%), hsl(240 22% 22%));
@@ -212,9 +212,10 @@
 @layer components {
   /* Base glass card */
   .glass-card {
-    @apply backdrop-blur-md rounded-xl shadow-2xl;
+    @apply backdrop-blur-md rounded-xl;
     background: hsl(var(--glass-bg));
     border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 3px 0 hsl(var(--foreground) / 0.06), 0 1px 2px -1px hsl(var(--foreground) / 0.04);
     transition: var(--transition-smooth);
   }
   
