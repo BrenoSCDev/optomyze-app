@@ -171,12 +171,13 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
   };
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
+  const modalTree = (
     <AnimatePresence>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
         <motion.div 
-          className="glass-card w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+          className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
