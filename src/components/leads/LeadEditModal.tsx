@@ -182,10 +182,10 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
         >
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
-              <h3 className="text-xl font-semibold text-white">{t('lead-details.edit-modal-title')}</h3>
-              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-white/10">
-                <X className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
+              <h3 className="text-xl font-semibold text-foreground">{t('lead-details.edit-modal-title')}</h3>
+              <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-accent">
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             
@@ -193,7 +193,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
             <div className="flex-1 overflow-hidden flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
                 <div className="px-6 pt-4 shrink-0">
-                  <TabsList className="grid w-full grid-cols-3 bg-white/5">
+                  <TabsList className="grid w-full grid-cols-3 bg-muted">
                     <TabsTrigger 
                       value="contact" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
@@ -223,33 +223,33 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                   <TabsContent value="contact" className="mt-0 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="first_name" className="text-white">
-                          {t('lead-details.first-name')} <span className="text-red-400">*</span>
+                        <Label htmlFor="first_name" className="text-foreground">
+                          {t('lead-details.first-name')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="first_name"
                           value={formData.first_name}
                           onChange={(e) => updateField('first_name', e.target.value)}
                           required
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="last_name" className="text-white">
-                          {t('lead-details.last-name')} <span className="text-red-400">*</span>
+                        <Label htmlFor="last_name" className="text-foreground">
+                          {t('lead-details.last-name')} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                           id="last_name"
                           value={formData.last_name}
                           onChange={(e) => updateField('last_name', e.target.value)}
                           required
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white">
+                      <Label htmlFor="email" className="text-foreground">
                         {t('lead-details.email')}
                       </Label>
                       <Input
@@ -257,58 +257,58 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         type="email"
                         value={formData.email}
                         onChange={(e) => updateField('email', e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="ddi" className="text-white">
+                        <Label htmlFor="ddi" className="text-foreground">
                           {t('lead-details.country-code')}
                         </Label>
                         <Input
                           id="ddi"
                           value={formData.ddi}
                           onChange={(e) => updateField('ddi', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                       <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="phone" className="text-white">
+                        <Label htmlFor="phone" className="text-foreground">
                           {t('lead-details.phone')}
                         </Label>
                         <Input
                           id="phone"
                           value={formData.phone}
                           onChange={(e) => updateField('phone', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="currency" className="text-white">
+                      <Label htmlFor="currency" className="text-foreground">
                         {t('lead-details.currency')}
                       </Label>
                       <Select
                         value={formData.currency}
                         onValueChange={(value) => updateField('currency', value)}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-background border-border text-foreground">
                           <SelectValue placeholder={t('lead-details.currency')} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="USD" className="text-white hover:bg-white/10">$ USD - US Dollar</SelectItem>
-                          <SelectItem value="EUR" className="text-white hover:bg-white/10">€ EUR - Euro</SelectItem>
-                          <SelectItem value="GBP" className="text-white hover:bg-white/10">£ GBP - British Pound</SelectItem>
-                          <SelectItem value="BRL" className="text-white hover:bg-white/10">R$ BRL - Brazilian Real</SelectItem>
-                          <SelectItem value="CAD" className="text-white hover:bg-white/10">C$ CAD - Canadian Dollar</SelectItem>
-                          <SelectItem value="AUD" className="text-white hover:bg-white/10">A$ AUD - Australian Dollar</SelectItem>
-                          <SelectItem value="JPY" className="text-white hover:bg-white/10">¥ JPY - Japanese Yen</SelectItem>
-                          <SelectItem value="CNY" className="text-white hover:bg-white/10">¥ CNY - Chinese Yuan</SelectItem>
-                          <SelectItem value="INR" className="text-white hover:bg-white/10">₹ INR - Indian Rupee</SelectItem>
-                          <SelectItem value="MXN" className="text-white hover:bg-white/10">$ MXN - Mexican Peso</SelectItem>
-                          <SelectItem value="CHF" className="text-white hover:bg-white/10">CHF CHF - Swiss Franc</SelectItem>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="USD" className="text-popover-foreground hover:bg-accent focus:bg-accent">$ USD - US Dollar</SelectItem>
+                          <SelectItem value="EUR" className="text-popover-foreground hover:bg-accent focus:bg-accent">€ EUR - Euro</SelectItem>
+                          <SelectItem value="GBP" className="text-popover-foreground hover:bg-accent focus:bg-accent">£ GBP - British Pound</SelectItem>
+                          <SelectItem value="BRL" className="text-popover-foreground hover:bg-accent focus:bg-accent">R$ BRL - Brazilian Real</SelectItem>
+                          <SelectItem value="CAD" className="text-popover-foreground hover:bg-accent focus:bg-accent">C$ CAD - Canadian Dollar</SelectItem>
+                          <SelectItem value="AUD" className="text-popover-foreground hover:bg-accent focus:bg-accent">A$ AUD - Australian Dollar</SelectItem>
+                          <SelectItem value="JPY" className="text-popover-foreground hover:bg-accent focus:bg-accent">¥ JPY - Japanese Yen</SelectItem>
+                          <SelectItem value="CNY" className="text-popover-foreground hover:bg-accent focus:bg-accent">¥ CNY - Chinese Yuan</SelectItem>
+                          <SelectItem value="INR" className="text-popover-foreground hover:bg-accent focus:bg-accent">₹ INR - Indian Rupee</SelectItem>
+                          <SelectItem value="MXN" className="text-popover-foreground hover:bg-accent focus:bg-accent">$ MXN - Mexican Peso</SelectItem>
+                          <SelectItem value="CHF" className="text-popover-foreground hover:bg-accent focus:bg-accent">CHF CHF - Swiss Franc</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -317,7 +317,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                   {/* Address Tab */}
                   <TabsContent value="address" className="mt-0 space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="address_line_1" className="text-white">
+                      <Label htmlFor="address_line_1" className="text-foreground">
                         {t('lead-details.address-line-1')}
                       </Label>
                       <Input
@@ -325,12 +325,12 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         value={formData.address_line_1}
                         onChange={(e) => updateField('address_line_1', e.target.value)}
                         placeholder={t('lead-details.address-line-1-placeholder')}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="address_line_2" className="text-white">
+                      <Label htmlFor="address_line_2" className="text-foreground">
                         {t('lead-details.address-line-2')}
                       </Label>
                       <Input
@@ -338,49 +338,49 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         value={formData.address_line_2}
                         onChange={(e) => updateField('address_line_2', e.target.value)}
                         placeholder={t('lead-details.address-line-2-placeholder')}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="neighborhood" className="text-white">
+                        <Label htmlFor="neighborhood" className="text-foreground">
                           {t('lead-details.neighborhood')}
                         </Label>
                         <Input
                           id="neighborhood"
                           value={formData.neighborhood}
                           onChange={(e) => updateField('neighborhood', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="city" className="text-white">
+                        <Label htmlFor="city" className="text-foreground">
                           {t('lead-details.city')}
                         </Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => updateField('city', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="state" className="text-white">
+                        <Label htmlFor="state" className="text-foreground">
                           {t('lead-details.state')}
                         </Label>
                         <Input
                           id="state"
                           value={formData.state}
                           onChange={(e) => updateField('state', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state_code" className="text-white">
+                        <Label htmlFor="state_code" className="text-foreground">
                           {t('lead-details.state-code')}
                         </Label>
                         <Input
@@ -388,31 +388,31 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                           value={formData.state_code}
                           onChange={(e) => updateField('state_code', e.target.value)}
                           maxLength={3}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="postal_code" className="text-white">
+                        <Label htmlFor="postal_code" className="text-foreground">
                           {t('lead-details.postal-code')}
                         </Label>
                         <Input
                           id="postal_code"
                           value={formData.postal_code}
                           onChange={(e) => updateField('postal_code', e.target.value)}
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-background border-border text-foreground"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="country" className="text-white">
+                      <Label htmlFor="country" className="text-foreground">
                         {t('lead-details.country')}
                       </Label>
                       <Input
                         id="country"
                         value={formData.country}
                         onChange={(e) => updateField('country', e.target.value)}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
                   </TabsContent>
@@ -421,7 +421,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                   <TabsContent value="tracking" className="mt-0 space-y-4">
                     {/* Company Selection */}
                     <div className="space-y-2">
-                      <Label htmlFor="lead_company_id" className="text-white">
+                      <Label htmlFor="lead_company_id" className="text-foreground">
                         {t('lead-details.company')}
                       </Label>
                       <Select
@@ -431,18 +431,18 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                           lead_company_id: value === '_none' ? null : Number(value) 
                         }))}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-background border-border text-foreground">
                           <SelectValue placeholder={t('lead-details.select-company')} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="_none" className="text-white hover:bg-white/10">
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="_none" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <span className="text-muted-foreground">{t('lead-details.no-company')}</span>
                           </SelectItem>
                           {companies.map((company) => (
                             <SelectItem 
                               key={company.id} 
                               value={company.id.toString()} 
-                              className="text-white hover:bg-white/10"
+                              className="text-popover-foreground hover:bg-accent focus:bg-accent"
                             >
                               {company.legal_name}
                             </SelectItem>
@@ -453,7 +453,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
                     {/* Job Title */}
                     <div className="space-y-2">
-                      <Label htmlFor="job_title" className="text-white">
+                      <Label htmlFor="job_title" className="text-foreground">
                         {t('lead-details.job-title')}
                       </Label>
                       <Input
@@ -461,30 +461,30 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         value={formData.job_title}
                         onChange={(e) => updateField('job_title', e.target.value)}
                         placeholder={t('lead-details.job-title-placeholder')}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     </div>
 
                     {/* Active Status */}
                     <div className="space-y-2">
-                      <Label htmlFor="is_active" className="text-white">
+                      <Label htmlFor="is_active" className="text-foreground">
                         {t('lead-details.status-label')}
                       </Label>
                       <Select
                         value={formData.is_active ? 'active' : 'inactive'}
                         onValueChange={(value) => setFormData(prev => ({ ...prev, is_active: value === 'active' }))}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-background border-border text-foreground">
                           <SelectValue placeholder={t('lead-details.status-select')} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="active" className="text-white hover:bg-white/10">
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="active" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                               {t('lead-details.active')}
                             </div>
                           </SelectItem>
-                          <SelectItem value="inactive" className="text-white hover:bg-white/10">
+                          <SelectItem value="inactive" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                               {t('lead-details.inactive')}
@@ -496,36 +496,36 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
                     {/* Priority */}
                     <div className="space-y-2">
-                      <Label htmlFor="priority" className="text-white">
+                      <Label htmlFor="priority" className="text-foreground">
                         {t('lead-details.priority-label')}
                       </Label>
                       <Select
                         value={formData.priority}
                         onValueChange={(value) => updateField('priority', value)}
                       >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-background border-border text-foreground">
                           <SelectValue placeholder={t('lead-details.priority-select')} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="low" className="text-white hover:bg-white/10">
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="low" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                               {t('lead-details.priority-low')}
                             </div>
                           </SelectItem>
-                          <SelectItem value="medium" className="text-white hover:bg-white/10">
+                          <SelectItem value="medium" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                               {t('lead-details.priority-medium')}
                             </div>
                           </SelectItem>
-                          <SelectItem value="high" className="text-white hover:bg-white/10">
+                          <SelectItem value="high" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
                               {t('lead-details.priority-high')}
                             </div>
                           </SelectItem>
-                          <SelectItem value="urgent" className="text-white hover:bg-white/10">
+                          <SelectItem value="urgent" className="text-popover-foreground hover:bg-accent focus:bg-accent">
                             <div className="flex items-center gap-2">
                               <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                               {t('lead-details.priority-urgent')}
@@ -538,8 +538,8 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                     {/* Tags Display */}
                     {lead.tags && lead.tags.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-white">{t('lead-details.tags')}</Label>
-                        <div className="flex flex-wrap gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
+                        <Label className="text-foreground">{t('lead-details.tags')}</Label>
+                        <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg border border-border">
                           {lead.tags.map((tag) => (
                             <Badge 
                               key={tag.id} 
@@ -555,14 +555,14 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                             </Badge>
                           ))}
                         </div>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           {t('lead-details.tags-manage-hint')}
                         </p>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <Label htmlFor="notes" className="text-white">
+                      <Label htmlFor="notes" className="text-foreground">
                         {t('lead-details.notes')}
                       </Label>
                       <Textarea
@@ -571,7 +571,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         onChange={(e) => updateField('notes', e.target.value)}
                         rows={6}
                         placeholder={t('lead-details.notes-placeholder')}
-                        className="bg-white/5 border-white/10 text-white resize-none"
+                        className="bg-background border-border text-foreground resize-none"
                       />
                     </div>
                   </TabsContent>
@@ -580,7 +580,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
             </div>
             
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10 shrink-0">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border shrink-0">
               <Button
                 type="button"
                 onClick={onClose}
