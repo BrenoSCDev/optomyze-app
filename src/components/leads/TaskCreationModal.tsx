@@ -327,7 +327,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                       </SelectItem>
                       <SelectItem value="high">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="w-2 h-2 rounded-full bg-primary/60" />
                           {t('tasks.priority.high')}
                         </span>
                       </SelectItem>
