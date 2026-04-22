@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, User, MapPin, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
