@@ -27,7 +27,8 @@ import {
   CheckCircle,
   XCircle,
   CircleDot,
-  GitBranch
+  GitBranch,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,7 @@ import api from '@/services/api';
 import { downloadPrivateFile } from '@/hooks/usePrivateFile';
 import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from './SaleDocumentUploadModal';
+import DealPreviewModal from '@/components/deals/DealPreviewModal';
 
 interface SaleProduct {
   id: number;
@@ -194,6 +196,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [localStatus, setLocalStatus] = useState(sale.status);
   const [localStage, setLocalStage] = useState(sale.stage);
+  const [dealPreviewOpen, setDealPreviewOpen] = useState(false);
   const getStatusColor = (status: string) => {
     const colors = {
       'pending': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
@@ -435,9 +438,18 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                   {sale.user.name}
                 </span>
               )}
-            </div>
           </div>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setDealPreviewOpen(true)}
+          className="gap-1.5"
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          {t('lead-details.view-deal')}
+        </Button>
+      </div>
       </div>
 
       {/* Notes */}
@@ -887,6 +899,12 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DealPreviewModal
+        isOpen={dealPreviewOpen}
+        onClose={() => setDealPreviewOpen(false)}
+        dealId={String(sale.id)}
+      />
 
     </motion.div>
   );

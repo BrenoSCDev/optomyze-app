@@ -2492,6 +2492,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Deal History',
+    'lead-details.view-deal': 'View Deal',
     'lead-details.no-purchases': 'No purchases recorded yet',
     'lead-details.order': 'Order',
     'lead-details.sale-status.pending': 'Pending',
@@ -3694,6 +3695,39 @@ const translations = {
     'sale.validation.name-required': 'Nome do negócio é obrigatório',
     'sale.validation.funnel-required': 'Selecione um funil',
     'sale.validation.stage-required': 'Selecione uma etapa',
+    'sale.modal-title': 'Criar Nova Venda',
+    'sale.selected-products': 'Produtos Selecionados',
+    'sale.product-name': 'Produto',
+    'sale.qty': 'Qtd',
+    'sale.unit-price': 'Preço Unitário',
+    'sale.total': 'Total',
+    'sale.products-subtotal': 'Subtotal de Produtos',
+    'sale.pricing-model': 'Modelo de Precificação',
+    'sale.pricing-product': 'Produto',
+    'sale.pricing-commission': 'Comissão',
+    'sale.pricing-hybrid': 'Híbrido',
+    'sale.commission-section': 'Comissão',
+    'sale.commission-type': 'Tipo',
+    'sale.commission-value': 'Valor',
+    'sale.reference-value': 'Valor de Referência',
+    'sale.reference-value-hint': 'Baseado no subtotal de produtos',
+    'sale.commission-subtotal': 'Subtotal de Comissão',
+    'sale.type-percentage': 'Porcentagem',
+    'sale.type-fixed': 'Fixo',
+    'sale.additional-charges': 'Taxas Adicionais',
+    'sale.add-charge': 'Adicionar Taxa',
+    'sale.charge-name': 'Nome da taxa (ex: ICMS)',
+    'sale.no-charges': 'Nenhuma taxa adicional',
+    'sale.notes': 'Observações',
+    'sale.notes-placeholder': 'Adicione observações sobre este negócio...',
+    'sale.subtotal': 'Subtotal',
+    'sale.charges-total': 'Taxas',
+    'sale.final-total': 'Total',
+    'sale.preview-note': 'Estes valores são apenas para visualização.',
+    'sale.create-sale': 'Criar Venda',
+    'sale.creating': 'Criando...',
+    'sale.created-success': 'Negócio criado com sucesso',
+    'sale.created-error': 'Erro ao criar o negócio',
 
     'tags.title': 'Gerenciamento de Tags',
     'tags.breadcrumb': 'Configurações / Tags',
@@ -5257,6 +5291,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Histórico de Negócios',
+    'lead-details.view-deal': 'Ver Negócio',
     'lead-details.no-purchases': 'Nenhuma compra registrada ainda',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendente',
@@ -7781,6 +7816,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Deal-Historie',
+    'lead-details.view-deal': 'Deal anzeigen',
     'lead-details.no-purchases': 'Noch keine Käufe verzeichnet',
     'lead-details.order': 'Bestellung',
     'lead-details.sale-status.pending': 'Ausstehend',
@@ -10415,6 +10451,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Historial de Negocios',
+    'lead-details.view-deal': 'Ver Negocio',
     'lead-details.no-purchases': 'Aún no hay compras registradas',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendiente',
