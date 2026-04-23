@@ -242,18 +242,47 @@ const OptomyzeCalendar: React.FC = () => {
     }
   };
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  // Compute days to render based on view mode
+  const calendarDays = useMemo(() => {
+    if (viewMode === 'day') {
+      return [currentDate];
+    }
+    if (viewMode === 'week') {
+      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return eachDayOfInterval({ start: wStart, end: wEnd });
+    }
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [currentDate, viewMode]);
 
-  const goToPreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  const goToPrevious = () => {
+    if (viewMode === 'day') setCurrentDate(addDays(currentDate, -1));
+    else if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
+    else setCurrentDate(subMonths(currentDate, 1));
+  };
+  const goToNext = () => {
+    if (viewMode === 'day') setCurrentDate(addDays(currentDate, 1));
+    else if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
+    else setCurrentDate(addMonths(currentDate, 1));
+  };
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(new Date());
   };
+
+  const headerLabel = useMemo(() => {
+    if (viewMode === 'day') return format(currentDate, 'EEEE, MMMM d, yyyy');
+    if (viewMode === 'week') {
+      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return `${format(wStart, 'MMM d')} - ${format(wEnd, 'MMM d, yyyy')}`;
+    }
+    return format(currentDate, 'MMMM yyyy');
+  }, [currentDate, viewMode]);
 
   const getItemsForDate = (date: Date): CalendarItem[] => {
     return calendarItems.filter(item => isSameDay(item.date, date));
