@@ -80,7 +80,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
         {/* Stage Total Value */}
         {column.totalValue > 0 && (
           <Badge className="text-xs font-medium w-fit bg-deal/15 text-deal border-deal/30">
-            {formatCurrency(column.totalValue, column.currency)}
+            {formatCurrency(column.totalValue, companyCurrency)}
           </Badge>
         )}
       </div>
