@@ -151,7 +151,7 @@ const LoginForm = () => {
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className="text-sm text-white/60 hover:text-white transition-colors"
+              className="text-sm text-white hover:text-white/80 transition-colors"
               disabled={isLoading}
             >
               {t('auth.forgot-password')}
