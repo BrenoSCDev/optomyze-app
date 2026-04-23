@@ -582,7 +582,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
             </div>
             
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-border shrink-0">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 p-4 sm:p-6 border-t border-border shrink-0">
               <Button
                 type="button"
                 onClick={onClose}
