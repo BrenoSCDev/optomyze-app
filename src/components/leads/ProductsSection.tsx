@@ -1,17 +1,26 @@
 /**
  * PRODUCTS SECTION
- * 
- * Displays products of interest linked to a lead with selection capability
+ *
+ * Manages the lead's products of interest.
+ * Backend no longer ships products with the lead payload — instead, this
+ * section provides a search-driven multi-select that resolves products via
+ * the global product search endpoint and associates them with the lead.
  */
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Package, Plus, ImageOff, ShoppingCart } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Package, Plus, ImageOff, ShoppingCart, Search, Loader2, X,
+  Minus, Check,
+} from 'lucide-react';
 import { PrivateImage } from '@/components/ui/PrivateImage';
+import { searchProducts, addProductsToLead, ProductSearchResult } from '@/services/leadProductSearchApi';
+import { toast } from 'sonner';
 
 export interface LeadProduct {
   id: number;
@@ -29,14 +38,16 @@ export interface LeadProduct {
 }
 
 interface ProductsSectionProps {
+  leadId: number;
   products: LeadProduct[];
-  onAddProducts?: () => void;
+  onProductsChanged: () => void;
   onStartPurchase?: (selectedProducts: LeadProduct[]) => void;
 }
 
-const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsSectionProps) => {
+const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase }: ProductsSectionProps) => {
   const { t } = useLanguage();
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const formatPrice = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
@@ -70,8 +81,8 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
   };
 
   return (
-    <motion.div 
-      className="glass-card p-6"
+    <motion.div
+      className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35 }}
@@ -82,19 +93,20 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
           {t('lead-details.products-of-interest')}
         </h3>
         <div className="flex items-center gap-2">
+          {selectedProductIds.size > 0 && (
+            <Button
+              onClick={handleStartPurchase}
+              size="sm"
+              className="bg-primary hover:bg-primary/80"
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              {t('sale.start-purchase')}
+            </Button>
+          )}
           <Button
-            onClick={handleStartPurchase}
+            onClick={() => setSearchOpen(true)}
+            variant="outline"
             size="sm"
-            className="bg-primary hover:bg-primary/80"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            {t('sale.start-purchase')}
-          </Button>
-          <Button
-            onClick={onAddProducts} 
-            variant="outline" 
-            size="sm"
-            className="glass-card"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t('lead-details.add-products')}
@@ -110,10 +122,10 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
-            <ProductCard 
-              key={product.id} 
-              product={product} 
-              formatPrice={formatPrice} 
+            <ProductCard
+              key={product.id}
+              product={product}
+              formatPrice={formatPrice}
               getImageUrl={getImageUrl}
               isSelected={selectedProductIds.has(product.id)}
               onToggleSelect={() => toggleProductSelection(product.id)}
@@ -121,6 +133,17 @@ const ProductsSection = ({ products, onAddProducts, onStartPurchase }: ProductsS
           ))}
         </div>
       )}
+
+      <ProductSearchPanel
+        leadId={leadId}
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        existingIds={products.map(p => p.id)}
+        onProductsAdded={() => {
+          setSearchOpen(false);
+          onProductsChanged();
+        }}
+      />
     </motion.div>
   );
 };
@@ -139,22 +162,20 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
   const showQuantityDetails = product.quantity > 1;
 
   return (
-    <div 
-      className={`relative bg-muted/50 border rounded-lg overflow-hidden hover:bg-muted transition-colors cursor-pointer ${
+    <div
+      className={`relative bg-muted/40 border rounded-lg overflow-hidden hover:bg-muted transition-colors cursor-pointer ${
         isSelected ? 'border-primary bg-primary/10' : 'border-border'
       }`}
       onClick={onToggleSelect}
     >
-      {/* Checkbox Overlay */}
       <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={isSelected}
           onCheckedChange={onToggleSelect}
-          className="bg-muted border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          className="bg-background border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
       </div>
 
-      {/* Product Image */}
       <div className="aspect-video w-full bg-muted flex items-center justify-center relative overflow-hidden">
         {imageUrl ? (
           <PrivateImage
@@ -165,13 +186,8 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
         ) : (
           <ImageOff className="w-8 h-8 text-muted-foreground/50" />
         )}
-        {/* Fallback icon container */}
-        <div className="absolute inset-0 hidden fallback-active:flex items-center justify-center">
-          <ImageOff className="w-8 h-8 text-muted-foreground/50" />
-        </div>
       </div>
 
-      {/* Product Info */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h4 className="text-foreground font-medium text-sm line-clamp-2">{product.name}</h4>
@@ -180,7 +196,6 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
           </Badge>
         </div>
 
-        {/* Pricing */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground text-xs">{t('lead-details.total-price')}</span>
@@ -202,6 +217,251 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
         </div>
       </div>
     </div>
+  );
+};
+
+interface ProductSearchPanelProps {
+  leadId: number;
+  open: boolean;
+  onClose: () => void;
+  existingIds: number[];
+  onProductsAdded: () => void;
+}
+
+interface SelectedItem {
+  id: number;
+  name: string;
+  base_price: number;
+  quantity: number;
+}
+
+const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
+  leadId, open, onClose, existingIds, onProductsAdded,
+}) => {
+  const { t } = useLanguage();
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<ProductSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [selected, setSelected] = useState<SelectedItem[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const debounceRef = useRef<number | null>(null);
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setQuery('');
+      setResults([]);
+      setSelected([]);
+    }
+  }, [open]);
+
+  // Debounced search
+  useEffect(() => {
+    if (!open) return;
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+    debounceRef.current = window.setTimeout(async () => {
+      setSearching(true);
+      try {
+        const data = await searchProducts(query.trim());
+        setResults(data);
+      } catch (e) {
+        console.error('Product search failed', e);
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [query, open]);
+
+  const isSelected = (id: number) => selected.some(s => s.id === id);
+  const isAlreadyLinked = (id: number) => existingIds.includes(id);
+
+  const toggleSelect = (product: ProductSearchResult) => {
+    if (isAlreadyLinked(product.id)) return;
+    setSelected(prev => {
+      if (prev.some(s => s.id === product.id)) {
+        return prev.filter(s => s.id !== product.id);
+      }
+      return [...prev, { id: product.id, name: product.name, base_price: product.base_price, quantity: 1 }];
+    });
+  };
+
+  const updateQty = (id: number, qty: number) => {
+    if (qty < 1) return;
+    setSelected(prev => prev.map(s => s.id === id ? { ...s, quantity: qty } : s));
+  };
+
+  const removeSelected = (id: number) => {
+    setSelected(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleSubmit = async () => {
+    if (selected.length === 0) return;
+    setSubmitting(true);
+    try {
+      await addProductsToLead(leadId, selected.map(s => ({ id: s.id, quantity: s.quantity })));
+      toast.success(t('lead-details.products-added-success'));
+      onProductsAdded();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
+          className="overflow-hidden mt-4"
+        >
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                {t('lead-details.product-search-title')}
+              </h4>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('lead-details.product-search-placeholder')}
+                className="pl-9"
+                autoFocus
+              />
+              {searching && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+              )}
+            </div>
+
+            {/* Results */}
+            <div className="max-h-64 overflow-y-auto rounded-md border border-border bg-background">
+              {query.trim().length < 2 ? (
+                <p className="text-xs text-muted-foreground p-3 text-center">
+                  {t('lead-details.product-search-hint')}
+                </p>
+              ) : results.length === 0 && !searching ? (
+                <p className="text-xs text-muted-foreground p-3 text-center">
+                  {t('lead-details.product-search-empty')}
+                </p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {results.map((r) => {
+                    const linked = isAlreadyLinked(r.id);
+                    const checked = isSelected(r.id);
+                    return (
+                      <li
+                        key={r.id}
+                        className={`flex items-center gap-3 p-2.5 ${
+                          linked ? 'opacity-60' : 'hover:bg-muted/60 cursor-pointer'
+                        }`}
+                        onClick={() => !linked && toggleSelect(r)}
+                      >
+                        <Checkbox
+                          checked={checked || linked}
+                          disabled={linked}
+                          onCheckedChange={() => toggleSelect(r)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground truncate">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(r.base_price)}
+                          </p>
+                        </div>
+                        {linked && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">
+                            <Check className="w-3 h-3 mr-1" />
+                            {t('lead-details.product-already-linked')}
+                          </Badge>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Selected list with quantity */}
+            {selected.length > 0 && (
+              <div className="rounded-md border border-border bg-background p-2 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground px-1">
+                  {t('lead-details.selected-products-count').replace('{count}', selected.length.toString())}
+                </p>
+                {selected.map((s) => (
+                  <div key={s.id} className="flex items-center gap-2 p-2 rounded bg-muted/40">
+                    <span className="flex-1 text-sm text-foreground truncate">{s.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button" variant="outline" size="icon" className="h-7 w-7"
+                        onClick={() => updateQty(s.id, s.quantity - 1)}
+                        disabled={s.quantity <= 1}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={s.quantity}
+                        onChange={(e) => updateQty(s.id, parseInt(e.target.value) || 1)}
+                        className="w-14 h-7 text-center text-sm"
+                      />
+                      <Button
+                        type="button" variant="outline" size="icon" className="h-7 w-7"
+                        onClick={() => updateQty(s.id, s.quantity + 1)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Button
+                      type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                      onClick={() => removeSelected(s.id)}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" size="sm" onClick={onClose} disabled={submitting}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmit}
+                disabled={selected.length === 0 || submitting}
+              >
+                {submitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('lead-details.adding')}</>
+                ) : (
+                  <><Plus className="w-4 h-4 mr-2" />{t('lead-details.add-products-confirm')}</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
