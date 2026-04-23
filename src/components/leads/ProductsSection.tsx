@@ -85,17 +85,17 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
 
   return (
     <motion.div
-      className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm"
+      className="rounded-xl border border-border bg-card p-4 sm:p-6 text-card-foreground shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35 }}
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          {t('lead-details.products-of-interest')}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <h3 className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+          <Package className="w-5 h-5 text-primary shrink-0" />
+          <span className="truncate">{t('lead-details.products-of-interest')}</span>
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {onStartPurchase && (
             <Button
               onClick={handleStartPurchase}
