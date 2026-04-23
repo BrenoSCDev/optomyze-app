@@ -2492,6 +2492,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Deal History',
+    'lead-details.view-deal': 'View Deal',
     'lead-details.no-purchases': 'No purchases recorded yet',
     'lead-details.order': 'Order',
     'lead-details.sale-status.pending': 'Pending',
@@ -5290,6 +5291,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Histórico de Negócios',
+    'lead-details.view-deal': 'Ver Negócio',
     'lead-details.no-purchases': 'Nenhuma compra registrada ainda',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendente',
@@ -7814,6 +7816,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Deal-Historie',
+    'lead-details.view-deal': 'Deal anzeigen',
     'lead-details.no-purchases': 'Noch keine Käufe verzeichnet',
     'lead-details.order': 'Bestellung',
     'lead-details.sale-status.pending': 'Ausstehend',
@@ -10448,6 +10451,7 @@ const translations = {
 
     // Purchase History
     'lead-details.purchase-history': 'Historial de Negocios',
+    'lead-details.view-deal': 'Ver Negocio',
     'lead-details.no-purchases': 'Aún no hay compras registradas',
     'lead-details.order': 'Pedido',
     'lead-details.sale-status.pending': 'Pendiente',
