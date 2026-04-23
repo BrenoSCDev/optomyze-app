@@ -215,7 +215,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                                     {parseFloat(deal.discount_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-rose-400">
                                         <TrendingDown className="h-2.5 w-2.5" />
-                                        -{formatCurrency(parseFloat(deal.discount_total), deal.currency)}
+                                        -{formatCurrency(parseFloat(deal.discount_total))}
                                       </span>
                                     )}
                                   </div>
