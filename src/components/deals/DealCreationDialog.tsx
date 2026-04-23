@@ -310,7 +310,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   const finalTotal = Math.max(0, baseSubtotal + chargesTotal - discountsTotal);
 
-  const formatPrice = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const formatPrice = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(value);
 
   // Charges/Discounts CRUD
   const addCharge = () => setCharges([...charges, { id: generateId(), name: '', type: 'percentage', value: 0 }]);
