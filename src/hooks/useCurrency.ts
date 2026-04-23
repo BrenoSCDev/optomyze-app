@@ -69,7 +69,8 @@ export function useCurrency() {
   /** Short format for axis ticks / compact display */
   const formatCompact = useCallback(
     (amount: number, overrideCurrency?: string) => {
-      const sym = CURRENCY_SYMBOLS[overrideCurrency || currencyCode] || (overrideCurrency || currencyCode);
+      const code = normalizeCurrency(overrideCurrency || currencyCode);
+      const sym = CURRENCY_SYMBOLS[code] || code;
       if (amount >= 1_000_000) return `${sym}${(amount / 1_000_000).toFixed(1)}M`;
       if (amount >= 1_000) return `${sym}${(amount / 1_000).toFixed(0)}k`;
       return `${sym}${amount.toLocaleString()}`;
