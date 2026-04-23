@@ -256,10 +256,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<SelectedItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  // Per-row pending state for linked product edits (qty change / removal)
-  const [pendingLinkedId, setPendingLinkedId] = useState<number | null>(null);
-  // Local override for linked qty so the user sees instant feedback before refetch
+  // Local override for linked qty so the user sees instant feedback before submit
   const [linkedQtyOverrides, setLinkedQtyOverrides] = useState<Record<number, number>>({});
+  // Linked product IDs the user marked for removal in this session (only applied on submit)
+  const [removedLinkedIds, setRemovedLinkedIds] = useState<Set<number>>(new Set());
   const debounceRef = useRef<number | null>(null);
 
   // Reset on close
