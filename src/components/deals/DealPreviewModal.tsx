@@ -176,7 +176,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
-  const currency = sale?.currency || companyCurrency;
+  const currency = companyCurrency;
 
   const modalTree = (
     <AnimatePresence>
