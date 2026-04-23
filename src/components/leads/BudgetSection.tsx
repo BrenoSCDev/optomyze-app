@@ -55,6 +55,8 @@ const getStatusBadge = (status: QuoteStatus, t: (key: string) => string) => {
 
 const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', erpBudgetIds = [] }: BudgetSectionProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
+  const formatCurrency = buildFormatCurrency(companyCurrency);
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [budgets, setBudgets] = useState<ERPBudgetResponse[]>([]);
   const [loading, setLoading] = useState(true);
