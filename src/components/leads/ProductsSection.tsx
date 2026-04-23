@@ -94,7 +94,7 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
           {t('lead-details.products-of-interest')}
         </h3>
         <div className="flex items-center gap-2">
-          {selectedProductIds.size > 0 && (
+          {onStartPurchase && (
             <Button
               onClick={handleStartPurchase}
               size="sm"
