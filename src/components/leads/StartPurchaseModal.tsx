@@ -298,15 +298,15 @@ const StartPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
             <Briefcase className="w-5 h-5 text-primary" />
             {t('sale.deal-modal-title')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-white/5">
+        <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-dark">
           <div className="space-y-6 pb-4 pr-2">
             {/* 0. Deal Information */}
             <div className="space-y-4">
