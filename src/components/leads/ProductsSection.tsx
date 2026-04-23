@@ -242,6 +242,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   leadId, open, onClose, existingIds, onProductsAdded,
 }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
