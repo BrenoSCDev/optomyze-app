@@ -85,6 +85,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const isEditMode = !!editDeal;
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const salesSettingsRef = useRef(defaultSettings.sales_settings);
   const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
