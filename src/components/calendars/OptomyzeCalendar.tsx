@@ -86,13 +86,18 @@ interface CalendarItem {
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
+
+  // Lead preview modal state
+  const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
+
   // Modal states
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
+  const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
   const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
   const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
 
