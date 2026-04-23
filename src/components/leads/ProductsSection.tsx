@@ -8,6 +8,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -93,7 +94,7 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
           {t('lead-details.products-of-interest')}
         </h3>
         <div className="flex items-center gap-2">
-          {selectedProductIds.size > 0 && (
+          {onStartPurchase && (
             <Button
               onClick={handleStartPurchase}
               size="sm"
@@ -317,20 +318,29 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
     }
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          className="overflow-hidden mt-4"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
         >
-          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.18 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-xl rounded-xl border border-border bg-card text-card-foreground shadow-2xl p-5 space-y-3"
+          >
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Search className="w-4 h-4" />
+              <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Search className="w-4 h-4 text-primary" />
                 {t('lead-details.product-search-title')}
               </h4>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
@@ -402,7 +412,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
 
             {/* Selected list with quantity */}
             {selected.length > 0 && (
-              <div className="rounded-md border border-border bg-background p-2 space-y-2">
+              <div className="rounded-md border border-border bg-background p-2 space-y-2 max-h-56 overflow-y-auto">
                 <p className="text-xs font-medium text-muted-foreground px-1">
                   {t('lead-details.selected-products-count').replace('{count}', selected.length.toString())}
                 </p>
@@ -458,10 +468,11 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                 )}
               </Button>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
