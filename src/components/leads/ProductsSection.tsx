@@ -301,11 +301,21 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const isSelected = (id: number) => selected.some(s => s.id === id);
   const findLinked = (id: number) => linkedProducts.find(l => l.id === id);
   const isAlreadyLinked = (id: number) => !!findLinked(id);
+  const isRemoved = (id: number) => removedLinkedIds.has(id);
   const linkedQtyOf = (id: number) =>
     linkedQtyOverrides[id] ?? findLinked(id)?.quantity ?? 1;
 
   const toggleSelect = (product: ProductSearchResult) => {
-    if (isAlreadyLinked(product.id)) return;
+    if (isAlreadyLinked(product.id) && !isRemoved(product.id)) return;
+    // If user previously marked the linked product for removal, clicking again undoes it
+    if (isAlreadyLinked(product.id) && isRemoved(product.id)) {
+      setRemovedLinkedIds(prev => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+      return;
+    }
     setSelected(prev => {
       if (prev.some(s => s.id === product.id)) {
         return prev.filter(s => s.id !== product.id);
@@ -323,46 +333,49 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
     setSelected(prev => prev.filter(s => s.id !== id));
   };
 
-  // Linked-product mutations
-  const handleLinkedQtyChange = async (productId: number, nextQty: number) => {
+  // Linked-product local edits (no backend call until submit)
+  const handleLinkedQtyChange = (productId: number, nextQty: number) => {
     if (nextQty < 1) return;
     setLinkedQtyOverrides(prev => ({ ...prev, [productId]: nextQty }));
-    setPendingLinkedId(productId);
-    try {
-      await updateLeadProductQuantity(leadId, productId, nextQty);
-      onLinkedChanged();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
-      // Revert override on failure
-      setLinkedQtyOverrides(prev => {
-        const copy = { ...prev };
-        delete copy[productId];
-        return copy;
-      });
-    } finally {
-      setPendingLinkedId(null);
-    }
   };
 
-  const handleLinkedRemove = async (productId: number) => {
-    setPendingLinkedId(productId);
-    try {
-      await removeProductFromLead(leadId, productId);
-      onLinkedChanged();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
-    } finally {
-      setPendingLinkedId(null);
-    }
+  const handleLinkedRemove = (productId: number) => {
+    setRemovedLinkedIds(prev => {
+      const next = new Set(prev);
+      next.add(productId);
+      return next;
+    });
+    // Also clear any local qty override for this id
+    setLinkedQtyOverrides(prev => {
+      const copy = { ...prev };
+      delete copy[productId];
+      return copy;
+    });
   };
+
+  // Detect whether anything changed vs the original linked list
+  const hasChanges = useMemo(() => {
+    if (selected.length > 0) return true;
+    if (removedLinkedIds.size > 0) return true;
+    return Object.entries(linkedQtyOverrides).some(([id, qty]) => {
+      const original = linkedProducts.find(l => l.id === Number(id));
+      return original && original.quantity !== qty;
+    });
+  }, [selected, removedLinkedIds, linkedQtyOverrides, linkedProducts]);
 
   const handleSubmit = async () => {
-    if (selected.length === 0) return;
+    if (!hasChanges) return;
     setSubmitting(true);
     try {
-      await addProductsToLead(leadId, selected.map(s => ({ id: s.id, quantity: s.quantity })));
+      // Build the full desired list: kept linked (with overridden qty) + newly selected
+      const keptLinked = linkedProducts
+        .filter(l => !removedLinkedIds.has(l.id))
+        .map(l => ({ id: l.id, quantity: linkedQtyOverrides[l.id] ?? l.quantity }));
+      const payload = [
+        ...keptLinked,
+        ...selected.map(s => ({ id: s.id, quantity: s.quantity })),
+      ];
+      await addProductsToLead(leadId, payload);
       toast.success(t('lead-details.products-added-success'));
       onProductsAdded();
     } catch (e: any) {
