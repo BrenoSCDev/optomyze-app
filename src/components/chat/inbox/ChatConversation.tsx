@@ -608,13 +608,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
+      <ScrollArea className="flex-1 min-h-0 p-4 w-full overflow-x-hidden" ref={scrollAreaRef} scrollbarVariant="dark">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center h-full py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : localMessages.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 w-full min-w-0">
             {/* Load more indicator at top */}
             {isLoadingMoreMessages && (
               <div className="flex justify-center py-2">
