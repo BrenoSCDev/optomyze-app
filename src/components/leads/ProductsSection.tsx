@@ -21,7 +21,7 @@ import {
   Minus, Check,
 } from 'lucide-react';
 import { PrivateImage } from '@/components/ui/PrivateImage';
-import { searchProducts, addProductsToLead, updateLeadProductQuantity, removeProductFromLead, ProductSearchResult } from '@/services/leadProductSearchApi';
+import { searchProducts, addProductsToLead, ProductSearchResult } from '@/services/leadProductSearchApi';
 import { toast } from 'sonner';
 
 export interface LeadProduct {
@@ -256,10 +256,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<SelectedItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  // Per-row pending state for linked product edits (qty change / removal)
-  const [pendingLinkedId, setPendingLinkedId] = useState<number | null>(null);
-  // Local override for linked qty so the user sees instant feedback before refetch
+  // Local override for linked qty so the user sees instant feedback before submit
   const [linkedQtyOverrides, setLinkedQtyOverrides] = useState<Record<number, number>>({});
+  // Linked product IDs the user marked for removal in this session (only applied on submit)
+  const [removedLinkedIds, setRemovedLinkedIds] = useState<Set<number>>(new Set());
   const debounceRef = useRef<number | null>(null);
 
   // Reset on close
@@ -268,6 +268,8 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
       setQuery('');
       setResults([]);
       setSelected([]);
+      setLinkedQtyOverrides({});
+      setRemovedLinkedIds(new Set());
     }
   }, [open]);
 
@@ -299,11 +301,21 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const isSelected = (id: number) => selected.some(s => s.id === id);
   const findLinked = (id: number) => linkedProducts.find(l => l.id === id);
   const isAlreadyLinked = (id: number) => !!findLinked(id);
+  const isRemoved = (id: number) => removedLinkedIds.has(id);
   const linkedQtyOf = (id: number) =>
     linkedQtyOverrides[id] ?? findLinked(id)?.quantity ?? 1;
 
   const toggleSelect = (product: ProductSearchResult) => {
-    if (isAlreadyLinked(product.id)) return;
+    if (isAlreadyLinked(product.id) && !isRemoved(product.id)) return;
+    // If user previously marked the linked product for removal, clicking again undoes it
+    if (isAlreadyLinked(product.id) && isRemoved(product.id)) {
+      setRemovedLinkedIds(prev => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        return next;
+      });
+      return;
+    }
     setSelected(prev => {
       if (prev.some(s => s.id === product.id)) {
         return prev.filter(s => s.id !== product.id);
@@ -321,46 +333,49 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
     setSelected(prev => prev.filter(s => s.id !== id));
   };
 
-  // Linked-product mutations
-  const handleLinkedQtyChange = async (productId: number, nextQty: number) => {
+  // Linked-product local edits (no backend call until submit)
+  const handleLinkedQtyChange = (productId: number, nextQty: number) => {
     if (nextQty < 1) return;
     setLinkedQtyOverrides(prev => ({ ...prev, [productId]: nextQty }));
-    setPendingLinkedId(productId);
-    try {
-      await updateLeadProductQuantity(leadId, productId, nextQty);
-      onLinkedChanged();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
-      // Revert override on failure
-      setLinkedQtyOverrides(prev => {
-        const copy = { ...prev };
-        delete copy[productId];
-        return copy;
-      });
-    } finally {
-      setPendingLinkedId(null);
-    }
   };
 
-  const handleLinkedRemove = async (productId: number) => {
-    setPendingLinkedId(productId);
-    try {
-      await removeProductFromLead(leadId, productId);
-      onLinkedChanged();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
-    } finally {
-      setPendingLinkedId(null);
-    }
+  const handleLinkedRemove = (productId: number) => {
+    setRemovedLinkedIds(prev => {
+      const next = new Set(prev);
+      next.add(productId);
+      return next;
+    });
+    // Also clear any local qty override for this id
+    setLinkedQtyOverrides(prev => {
+      const copy = { ...prev };
+      delete copy[productId];
+      return copy;
+    });
   };
+
+  // Detect whether anything changed vs the original linked list
+  const hasChanges = useMemo(() => {
+    if (selected.length > 0) return true;
+    if (removedLinkedIds.size > 0) return true;
+    return Object.entries(linkedQtyOverrides).some(([id, qty]) => {
+      const original = linkedProducts.find(l => l.id === Number(id));
+      return original && original.quantity !== qty;
+    });
+  }, [selected, removedLinkedIds, linkedQtyOverrides, linkedProducts]);
 
   const handleSubmit = async () => {
-    if (selected.length === 0) return;
+    if (!hasChanges) return;
     setSubmitting(true);
     try {
-      await addProductsToLead(leadId, selected.map(s => ({ id: s.id, quantity: s.quantity })));
+      // Build the full desired list: kept linked (with overridden qty) + newly selected
+      const keptLinked = linkedProducts
+        .filter(l => !removedLinkedIds.has(l.id))
+        .map(l => ({ id: l.id, quantity: linkedQtyOverrides[l.id] ?? l.quantity }));
+      const payload = [
+        ...keptLinked,
+        ...selected.map(s => ({ id: s.id, quantity: s.quantity })),
+      ];
+      await addProductsToLead(leadId, payload);
       toast.success(t('lead-details.products-added-success'));
       onProductsAdded();
     } catch (e: any) {
@@ -429,14 +444,14 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                 <ul className="divide-y divide-border">
                   {results.map((r) => {
                     const linked = isAlreadyLinked(r.id);
+                    const removed = isRemoved(r.id);
                     const checked = isSelected(r.id);
                     const linkedQty = linkedQtyOf(r.id);
-                    const isPending = pendingLinkedId === r.id;
                     return (
                       <li
                         key={r.id}
                         className={`flex items-center gap-3 p-2.5 ${
-                          linked ? 'bg-muted/30' : 'hover:bg-muted/60 cursor-pointer'
+                          linked ? (removed ? 'bg-destructive/10 opacity-70' : 'bg-muted/30') : 'hover:bg-muted/60 cursor-pointer'
                         }`}
                         onClick={() => !linked && toggleSelect(r)}
                       >
@@ -450,16 +465,16 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                         {linked && (
                           <Badge variant="secondary" className="text-[10px] shrink-0">
                             <Check className="w-3 h-3 mr-1" />
-                            {t('lead-details.product-already-linked')}
+                            {removed ? t('common.delete') : t('lead-details.product-already-linked')}
                           </Badge>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground truncate">{r.name}</p>
+                          <p className={`text-sm truncate ${removed ? 'text-foreground line-through' : 'text-foreground'}`}>{r.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(r.base_price)}
                           </p>
                         </div>
-                        {linked && (
+                        {linked && !removed && (
                           <div
                             className="flex items-center gap-1 shrink-0"
                             onClick={(e) => e.stopPropagation()}
@@ -467,7 +482,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                             <Button
                               type="button" variant="outline" size="icon" className="h-7 w-7"
                               onClick={() => handleLinkedQtyChange(r.id, linkedQty - 1)}
-                              disabled={isPending || linkedQty <= 1}
+                              disabled={linkedQty <= 1}
                             >
                               <Minus className="w-3 h-3" />
                             </Button>
@@ -479,31 +494,37 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                                 const v = parseInt(e.target.value) || 1;
                                 setLinkedQtyOverrides(prev => ({ ...prev, [r.id]: v }));
                               }}
-                              onBlur={(e) => {
-                                const v = parseInt(e.target.value) || 1;
-                                if (v !== (findLinked(r.id)?.quantity ?? 1)) {
-                                  handleLinkedQtyChange(r.id, v);
-                                }
-                              }}
                               className="w-14 h-7 text-center text-sm"
-                              disabled={isPending}
                             />
                             <Button
                               type="button" variant="outline" size="icon" className="h-7 w-7"
                               onClick={() => handleLinkedQtyChange(r.id, linkedQty + 1)}
-                              disabled={isPending}
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
                             <Button
                               type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                               onClick={() => handleLinkedRemove(r.id)}
-                              disabled={isPending}
                               title={t('common.delete')}
                             >
-                              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                              <X className="w-3.5 h-3.5" />
                             </Button>
                           </div>
+                        )}
+                        {linked && removed && (
+                          <Button
+                            type="button" variant="outline" size="sm" className="h-7 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRemovedLinkedIds(prev => {
+                                const next = new Set(prev);
+                                next.delete(r.id);
+                                return next;
+                              });
+                            }}
+                          >
+                            {t('common.cancel')}
+                          </Button>
                         )}
                       </li>
                     );
@@ -561,7 +582,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
               <Button
                 size="sm"
                 onClick={handleSubmit}
-                disabled={selected.length === 0 || submitting}
+                disabled={!hasChanges || submitting}
               >
                 {submitting ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('lead-details.adding')}</>
