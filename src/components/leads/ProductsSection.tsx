@@ -397,7 +397,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-foreground truncate">{r.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(r.base_price)}
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(r.base_price)}
                           </p>
                         </div>
                         {linked && (
