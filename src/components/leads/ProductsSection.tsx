@@ -21,7 +21,7 @@ import {
   Minus, Check,
 } from 'lucide-react';
 import { PrivateImage } from '@/components/ui/PrivateImage';
-import { searchProducts, addProductsToLead, ProductSearchResult } from '@/services/leadProductSearchApi';
+import { searchProducts, addProductsToLead, updateLeadProductQuantity, removeProductFromLead, ProductSearchResult } from '@/services/leadProductSearchApi';
 import { toast } from 'sonner';
 
 export interface LeadProduct {
