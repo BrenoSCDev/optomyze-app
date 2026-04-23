@@ -192,35 +192,35 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
             </div>
             
             {/* Tabs */}
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-                <div className="px-6 pt-4 shrink-0">
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full min-h-0">
+                <div className="px-4 sm:px-6 pt-4 shrink-0">
                   <TabsList className="grid w-full grid-cols-3 bg-muted">
                     <TabsTrigger 
                       value="contact" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <User className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.contact')}
+                      <User className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.contact')}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="address" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <MapPin className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.address')}
+                      <MapPin className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.address')}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="tracking" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <Tag className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.tracking')}
+                      <Tag className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.tracking')}</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 min-h-0 scrollbar-dark">
                   {/* Contact Tab */}
                   <TabsContent value="contact" className="mt-0 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
