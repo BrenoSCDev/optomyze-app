@@ -56,7 +56,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
@@ -69,7 +69,8 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
     ? `${deal.lead.first_name} ${deal.lead.last_name || ''}`.trim()
     : 'No lead';
 
-  const currency = deal.currency || companyCurrency;
+  // Always display in company currency for consistency
+  const currency = companyCurrency;
   const chargesTotal = deal.charges_total || 0;
   const discountTotal = parseFloat(deal.discount_total || '0');
   const subtotal = parseFloat(deal.subtotal || '0');
