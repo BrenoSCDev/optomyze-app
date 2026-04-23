@@ -444,14 +444,14 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                 <ul className="divide-y divide-border">
                   {results.map((r) => {
                     const linked = isAlreadyLinked(r.id);
+                    const removed = isRemoved(r.id);
                     const checked = isSelected(r.id);
                     const linkedQty = linkedQtyOf(r.id);
-                    const isPending = pendingLinkedId === r.id;
                     return (
                       <li
                         key={r.id}
                         className={`flex items-center gap-3 p-2.5 ${
-                          linked ? 'bg-muted/30' : 'hover:bg-muted/60 cursor-pointer'
+                          linked ? (removed ? 'bg-destructive/10 opacity-70' : 'bg-muted/30') : 'hover:bg-muted/60 cursor-pointer'
                         }`}
                         onClick={() => !linked && toggleSelect(r)}
                       >
@@ -465,16 +465,16 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                         {linked && (
                           <Badge variant="secondary" className="text-[10px] shrink-0">
                             <Check className="w-3 h-3 mr-1" />
-                            {t('lead-details.product-already-linked')}
+                            {removed ? t('common.delete') : t('lead-details.product-already-linked')}
                           </Badge>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground truncate">{r.name}</p>
+                          <p className={`text-sm truncate ${removed ? 'text-foreground line-through' : 'text-foreground'}`}>{r.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(r.base_price)}
                           </p>
                         </div>
-                        {linked && (
+                        {linked && !removed && (
                           <div
                             className="flex items-center gap-1 shrink-0"
                             onClick={(e) => e.stopPropagation()}
@@ -482,7 +482,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                             <Button
                               type="button" variant="outline" size="icon" className="h-7 w-7"
                               onClick={() => handleLinkedQtyChange(r.id, linkedQty - 1)}
-                              disabled={isPending || linkedQty <= 1}
+                              disabled={linkedQty <= 1}
                             >
                               <Minus className="w-3 h-3" />
                             </Button>
@@ -494,31 +494,37 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                                 const v = parseInt(e.target.value) || 1;
                                 setLinkedQtyOverrides(prev => ({ ...prev, [r.id]: v }));
                               }}
-                              onBlur={(e) => {
-                                const v = parseInt(e.target.value) || 1;
-                                if (v !== (findLinked(r.id)?.quantity ?? 1)) {
-                                  handleLinkedQtyChange(r.id, v);
-                                }
-                              }}
                               className="w-14 h-7 text-center text-sm"
-                              disabled={isPending}
                             />
                             <Button
                               type="button" variant="outline" size="icon" className="h-7 w-7"
                               onClick={() => handleLinkedQtyChange(r.id, linkedQty + 1)}
-                              disabled={isPending}
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
                             <Button
                               type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                               onClick={() => handleLinkedRemove(r.id)}
-                              disabled={isPending}
                               title={t('common.delete')}
                             >
-                              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                              <X className="w-3.5 h-3.5" />
                             </Button>
                           </div>
+                        )}
+                        {linked && removed && (
+                          <Button
+                            type="button" variant="outline" size="sm" className="h-7 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRemovedLinkedIds(prev => {
+                                const next = new Set(prev);
+                                next.delete(r.id);
+                                return next;
+                              });
+                            }}
+                          >
+                            {t('common.cancel')}
+                          </Button>
                         )}
                       </li>
                     );
