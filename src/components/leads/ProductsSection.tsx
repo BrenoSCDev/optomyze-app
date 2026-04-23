@@ -268,6 +268,8 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
       setQuery('');
       setResults([]);
       setSelected([]);
+      setLinkedQtyOverrides({});
+      setRemovedLinkedIds(new Set());
     }
   }, [open]);
 
