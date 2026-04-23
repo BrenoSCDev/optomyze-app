@@ -25,36 +25,36 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 
 // Color mapping for event types
 const eventTypeColors: Record<string, string> = {
-  call: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  meeting: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  internal: 'bg-green-500/20 text-green-400 border-green-500/30',
-  deadline: 'bg-red-500/20 text-red-400 border-red-500/30',
-  reminder: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  other: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  call: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40',
+  meeting: 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/40',
+  internal: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40',
+  deadline: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
+  reminder: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40',
+  other: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/40',
 };
 
 // Color mapping for task priorities
 const taskPriorityColors: Record<string, string> = {
-  urgent: 'bg-red-500/20 text-red-400 border-red-500/30',
-  high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  low: 'bg-green-500/20 text-green-400 border-green-500/30',
+  urgent: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
+  high: 'bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-500/40',
+  medium: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40',
+  low: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40',
 };
 
 // Color mapping for task statuses
 const taskStatusColors: Record<string, string> = {
-  pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  pending: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40',
+  in_progress: 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40',
+  completed: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40',
+  cancelled: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/40',
 };
 
 // Color mapping for appointment statuses
 const appointmentStatusColors: Record<string, string> = {
-  scheduled: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-  no_show: 'bg-red-500/20 text-red-400 border-red-500/30',
+  scheduled: 'bg-teal-500/20 text-teal-700 dark:text-teal-400 border-teal-500/40',
+  completed: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40',
+  cancelled: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/40',
+  no_show: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
 };
 
 // Unified calendar item type
