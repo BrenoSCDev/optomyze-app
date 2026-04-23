@@ -663,20 +663,16 @@ const OptomyzeCalendar: React.FC = () => {
                     <p className="text-xs text-muted-foreground">{item.attendee}</p>
                   )}
                   {item.leadName && item.leadId && (
-                    item.funnelId ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
-                        }}
-                        className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
-                      >
-                        {item.leadName}
-                        <ExternalLink className="h-3 w-3" />
-                      </button>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">{item.leadName}</p>
-                    )
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewLeadId(String(item.leadId));
+                      }}
+                      className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                    >
+                      {item.leadName}
+                      <ExternalLink className="h-3 w-3" />
+                    </button>
                   )}
                   {item.timezone && (
                     <p className="text-xs text-muted-foreground/70 flex items-center gap-1">
