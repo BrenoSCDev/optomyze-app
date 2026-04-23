@@ -141,11 +141,12 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
         leadId={leadId}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
-        existingIds={products.map(p => p.id)}
+        linkedProducts={products.map(p => ({ id: p.id, name: p.name, quantity: p.quantity }))}
         onProductsAdded={() => {
           setSearchOpen(false);
           onProductsChanged();
         }}
+        onLinkedChanged={onProductsChanged}
       />
     </motion.div>
   );
