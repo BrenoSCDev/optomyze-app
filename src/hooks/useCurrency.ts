@@ -46,12 +46,14 @@ function normalizeCurrency(input?: string | null): string {
  */
 export function useCurrency() {
   const { user } = useAuth();
-  const currencyCode = user?.company?.currency || 'USD';
+  const currencyCode = normalizeCurrency(user?.company?.currency);
   const symbol = CURRENCY_SYMBOLS[currencyCode] || currencyCode;
 
   const formatCurrency = useCallback(
     (amount: number | string, overrideCurrency?: string) => {
-      const code = overrideCurrency || currencyCode;
+      const code = normalizeCurrency(overrideCurrency) === 'USD' && !overrideCurrency
+        ? currencyCode
+        : normalizeCurrency(overrideCurrency || currencyCode);
       const num = typeof amount === 'string' ? parseFloat(amount) : amount;
       if (isNaN(num)) return `${CURRENCY_SYMBOLS[code] || code}0.00`;
       return new Intl.NumberFormat('en-US', {
