@@ -163,9 +163,9 @@ const StartPurchaseModal = ({
 
   // Format currency
   const formatPrice = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: companyCurrency,
     }).format(value);
   };
 
