@@ -123,7 +123,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                 </Badge>
                 {column.totalValue > 0 && (
                   <Badge className="text-xs font-medium bg-deal/15 text-deal border-deal/30">
-                    {formatCurrency(column.totalValue, column.currency)}
+                    {formatCurrency(column.totalValue)}
                   </Badge>
                 )}
               </div>
