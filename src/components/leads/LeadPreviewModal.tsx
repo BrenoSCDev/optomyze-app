@@ -47,7 +47,7 @@ import TaskCreationModal from './TaskCreationModal';
 import TaskDeleteDialog from './TaskDeleteDialog';
 import DocumentUploadModal from './DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from './AssignUserModal';
-import AddProductsModal from './AddProductsModal';
+
 import StartPurchaseModal from './StartPurchaseModal';
 import LeadEditModal from './LeadEditModal';
 import { Task } from '@/services/taskApi';
@@ -76,7 +76,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
-  const [addProductsModalOpen, setAddProductsModalOpen] = useState(false);
+  
   const [startPurchaseModalOpen, setStartPurchaseModalOpen] = useState(false);
   const [selectedProductsForPurchase, setSelectedProductsForPurchase] = useState<LeadProduct[]>([]);
   const [isDeletingLead, setIsDeletingLead] = useState(false);
@@ -398,8 +398,9 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                           />
                         ) : (
                           <ProductsSection
+                            leadId={lead.id}
                             products={lead.products || []}
-                            onAddProducts={() => setAddProductsModalOpen(true)}
+                            onProductsChanged={() => leadId && fetchLeadData(leadId)}
                             onStartPurchase={handleStartPurchase}
                           />
                         )}
@@ -491,14 +492,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
             users={leadData?.users || []}
             currentAssignedUserId={lead.assigned_user?.id}
             onUserAssigned={handleUserAssigned}
-          />
-          <AddProductsModal
-            isOpen={addProductsModalOpen}
-            onClose={() => setAddProductsModalOpen(false)}
-            leadId={lead.id}
-            products={leadData?.products || []}
-            leadProducts={lead.products?.map((p: any) => ({ id: p.id, quantity: p.quantity })) || []}
-            onProductsAdded={() => leadId && fetchLeadData(leadId)}
           />
           <StartPurchaseModal
             isOpen={startPurchaseModalOpen}
