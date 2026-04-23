@@ -582,7 +582,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
               <Button
                 size="sm"
                 onClick={handleSubmit}
-                disabled={selected.length === 0 || submitting}
+                disabled={!hasChanges || submitting}
               >
                 {submitting ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('lead-details.adding')}</>
