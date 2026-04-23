@@ -98,7 +98,8 @@ const OptomyzeCalendar: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
   const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
-  const createEventMutation = useCreateCalendarEvent();
+
+  const { data, isLoading, error, refetch, isFetching } = useCalendarEvents();
   const updateEventMutation = useUpdateCalendarEvent();
   const deleteEventMutation = useDeleteCalendarEvent();
 
