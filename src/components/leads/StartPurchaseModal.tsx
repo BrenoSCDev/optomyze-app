@@ -6,6 +6,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +63,7 @@ const StartPurchaseModal = ({
   onSaleCreated 
 }: StartPurchaseModalProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const salesSettingsRef = useRef(defaultSettings.sales_settings);
   const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
@@ -161,9 +163,9 @@ const StartPurchaseModal = ({
 
   // Format currency
   const formatPrice = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: companyCurrency,
     }).format(value);
   };
 

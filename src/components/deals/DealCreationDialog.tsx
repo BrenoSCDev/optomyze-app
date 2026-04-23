@@ -14,6 +14,7 @@ import { X, Plus, Trash2, Search, Loader2, Package, Calculator, DollarSign, Tag,
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
@@ -84,6 +85,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const isEditMode = !!editDeal;
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const salesSettingsRef = useRef(defaultSettings.sales_settings);
   const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
@@ -308,7 +310,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   const finalTotal = Math.max(0, baseSubtotal + chargesTotal - discountsTotal);
 
-  const formatPrice = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const formatPrice = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(value);
 
   // Charges/Discounts CRUD
   const addCharge = () => setCharges([...charges, { id: generateId(), name: '', type: 'percentage', value: 0 }]);

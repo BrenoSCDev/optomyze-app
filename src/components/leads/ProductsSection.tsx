@@ -11,6 +11,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -50,10 +51,11 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const { currencyCode: companyCurrency } = useCurrency();
   const formatPrice = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: companyCurrency,
     }).format(value);
   };
 
@@ -240,6 +242,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   leadId, open, onClose, existingIds, onProductsAdded,
 }) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -394,7 +397,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-foreground truncate">{r.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(r.base_price)}
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(r.base_price)}
                           </p>
                         </div>
                         {linked && (

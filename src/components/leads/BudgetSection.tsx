@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,12 +26,12 @@ interface BudgetSectionProps {
   erpBudgetIds?: number[];
 }
 
-// Currency formatting helper
-const formatCurrency = (value: number | string): string => {
+// Currency formatting helper (locale-agnostic, uses provided currency code)
+const buildFormatCurrency = (currencyCode: string) => (value: number | string): string => {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currencyCode,
   }).format(numValue);
 };
 
@@ -54,6 +55,8 @@ const getStatusBadge = (status: QuoteStatus, t: (key: string) => string) => {
 
 const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', erpBudgetIds = [] }: BudgetSectionProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
+  const formatCurrency = buildFormatCurrency(companyCurrency);
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [budgets, setBudgets] = useState<ERPBudgetResponse[]>([]);
   const [loading, setLoading] = useState(true);
