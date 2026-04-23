@@ -47,7 +47,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
   if (loading) {
     return (
       <motion.div 
-        className="glass-card p-6"
+        className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
@@ -67,13 +67,13 @@ const TasksSection: React.FC<TasksSectionProps> = ({
 
   return (
     <motion.div 
-      className="glass-card p-6"
+      className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35 }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+        <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
           <ListTodo className="w-5 h-5" />
           {t('tasks.title')}
           {tasks.length > 0 && (
@@ -112,13 +112,13 @@ const EmptyTasksState: React.FC<{ onCreateTask: () => void }> = ({ onCreateTask 
   const { t } = useLanguage();
   
   return (
-    <div className="text-center py-12">
+      <div className="py-12 text-center">
       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
         <ListTodo className="w-8 h-8 text-primary/60" />
       </div>
-      <h4 className="text-white font-medium mb-2">{t('tasks.no-tasks')}</h4>
-      <p className="text-gray-400 text-sm mb-4">{t('tasks.no-tasks-description')}</p>
-      <Button onClick={onCreateTask} variant="outline" size="sm" className="glass-card">
+      <h4 className="mb-2 font-medium text-foreground">{t('tasks.no-tasks')}</h4>
+      <p className="mb-4 text-sm text-muted-foreground">{t('tasks.no-tasks-description')}</p>
+      <Button onClick={onCreateTask} variant="outline" size="sm" className="border-border bg-background hover:bg-muted">
         <Plus className="w-4 h-4 mr-2" />
         {t('tasks.create-first')}
       </Button>
@@ -147,20 +147,20 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
 
   const getPriorityBadge = (priority: string) => {
     const styles = {
-      low: 'bg-gray-600/20 text-gray-400 border-gray-600/30',
-      medium: 'bg-blue-600/20 text-blue-400 border-blue-600/30',
-      high: 'bg-orange-600/20 text-orange-400 border-orange-600/30',
-      urgent: 'bg-red-600/20 text-red-400 border-red-600/30'
+      low: 'border-border bg-muted text-muted-foreground',
+      medium: 'border-primary/20 bg-primary/10 text-primary',
+      high: 'border-accent/40 bg-accent text-accent-foreground',
+      urgent: 'border-destructive/30 bg-destructive/10 text-destructive'
     };
     return styles[priority as keyof typeof styles] || styles.medium;
   };
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      pending: 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
-      in_progress: 'bg-blue-600/20 text-blue-400 border-blue-600/30',
-      completed: 'bg-green-600/20 text-green-400 border-green-600/30',
-      cancelled: 'bg-gray-600/20 text-gray-400 border-gray-600/30'
+      pending: 'border-border bg-muted text-muted-foreground',
+      in_progress: 'border-primary/20 bg-primary/10 text-primary',
+      completed: 'border-accent/40 bg-accent text-accent-foreground',
+      cancelled: 'border-border bg-muted text-muted-foreground'
     };
     return styles[status as keyof typeof styles] || styles.pending;
   };
@@ -203,7 +203,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
 
   return (
     <motion.div 
-      className={`group rounded-lg border border-white/10 p-4 transition-all hover:border-white/20 ${
+      className={`group rounded-lg border border-border bg-background/60 p-4 transition-all hover:bg-muted/40 ${
         isDimmed ? 'opacity-60' : ''
       }`}
       initial={{ opacity: 0, y: 10 }}
@@ -214,20 +214,20 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h4 className={`text-white font-medium mb-2 ${isCompleted ? 'line-through' : ''}`}>
+          <h4 className={`mb-2 font-medium text-foreground ${isCompleted ? 'line-through' : ''}`}>
             {task.title}
           </h4>
           
           {/* Description */}
           {task.description && (
             <div className="mb-3">
-              <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
                 {displayDescription}
               </p>
               {hasLongDescription && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="text-primary text-xs mt-1 flex items-center gap-1 hover:text-primary/80 transition-colors"
+                  className="mt-1 flex items-center gap-1 text-xs text-primary transition-colors hover:text-primary/80"
                 >
                   {expanded ? (
                     <>{t('tasks.card.see-less')} <ChevronUp className="w-3 h-3" /></>
@@ -256,21 +256,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           {/* Actions Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 md:opacity-0 opacity-100 hover:bg-white/10 transition-all">
-                <MoreVertical className="w-4 h-4 text-gray-400" />
+               <button className="rounded-md p-1.5 opacity-100 transition-all hover:bg-muted md:opacity-0 md:group-hover:opacity-100">
+                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-gray-900 border-white/10">
+             <DropdownMenuContent align="end" className="border-border bg-popover text-popover-foreground">
               <DropdownMenuItem 
                 onClick={onEdit}
-                className="text-gray-300 focus:bg-white/10 focus:text-white cursor-pointer"
+                 className="cursor-pointer focus:bg-muted focus:text-foreground"
               >
                 <Pencil className="w-4 h-4 mr-2" />
                 {t('tasks.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={onDelete}
-                className="text-red-400 focus:bg-red-600/20 focus:text-red-400 cursor-pointer"
+                 className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 {t('tasks.delete')}
@@ -279,14 +279,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           </DropdownMenu>
 
           {task.reminder && (
-            <div className="flex items-center gap-1.5 text-xs text-amber-400">
+            <div className="flex items-center gap-1.5 text-xs text-primary">
               <Bell className="w-3.5 h-3.5" />
               <span>{t('tasks.reminder')}</span>
             </div>
           )}
           {task.due_date ? (
             <div className={`flex items-center gap-1.5 text-xs ${
-              isOverdue ? 'text-red-400' : 'text-gray-400'
+              isOverdue ? 'text-destructive' : 'text-muted-foreground'
             }`}>
               <Calendar className="w-3.5 h-3.5" />
               <span className={isOverdue ? 'font-medium' : ''}>
@@ -294,7 +294,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="w-3.5 h-3.5" />
               <span>{t('tasks.no-due-date')}</span>
             </div>
@@ -303,24 +303,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
       </div>
       
       {/* Creator and Assignee Info */}
-      <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-3 text-xs">
         {task.creator && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">{t('tasks.card.created-by')}</span>
+            <span className="text-muted-foreground">{t('tasks.card.created-by')}</span>
             <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-gray-400" />
-              <span className="text-gray-300">{task.creator.name}</span>
-              <span className="text-gray-500">({task.creator.email})</span>
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-foreground">{task.creator.name}</span>
+              <span className="text-muted-foreground">({task.creator.email})</span>
             </div>
           </div>
         )}
         {task.assignee && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">{t('tasks.assigned-to')}</span>
+            <span className="text-muted-foreground">{t('tasks.assigned-to')}</span>
             <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-primary" />
-              <span className="text-gray-300">{task.assignee.name}</span>
-              <span className="text-gray-500">({task.assignee.email})</span>
+              <User className="h-3.5 w-3.5 text-primary" />
+              <span className="text-foreground">{task.assignee.name}</span>
+              <span className="text-muted-foreground">({task.assignee.email})</span>
             </div>
           </div>
         )}
