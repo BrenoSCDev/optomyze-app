@@ -175,52 +175,52 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
   const modalTree = (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-[70] overflow-y-auto">
         <motion.div 
-          className="w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+          className="w-full max-w-2xl sm:mx-4 max-h-[100dvh] sm:max-h-[90vh] h-[100dvh] sm:h-auto overflow-hidden flex flex-col rounded-t-2xl sm:rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
         >
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
-              <h3 className="text-xl font-semibold text-foreground">{t('lead-details.edit-modal-title')}</h3>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('lead-details.edit-modal-title')}</h3>
               <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-accent">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             
             {/* Tabs */}
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-                <div className="px-6 pt-4 shrink-0">
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full min-h-0">
+                <div className="px-4 sm:px-6 pt-4 shrink-0">
                   <TabsList className="grid w-full grid-cols-3 bg-muted">
                     <TabsTrigger 
                       value="contact" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <User className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.contact')}
+                      <User className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.contact')}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="address" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <MapPin className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.address')}
+                      <MapPin className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.address')}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="tracking" 
                       className="text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
                     >
-                      <Tag className="w-3.5 h-3.5 mr-1.5" />
-                      {t('lead-details.edit.tracking')}
+                      <Tag className="w-3.5 h-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{t('lead-details.edit.tracking')}</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 min-h-0 scrollbar-dark">
                   {/* Contact Tab */}
                   <TabsContent value="contact" className="mt-0 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -582,7 +582,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
             </div>
             
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-border shrink-0">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 p-4 sm:p-6 border-t border-border shrink-0">
               <Button
                 type="button"
                 onClick={onClose}

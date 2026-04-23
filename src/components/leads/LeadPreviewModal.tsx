@@ -365,14 +365,14 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                   </div>
 
                   {/* Body */}
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-dark">
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 scrollbar-dark">
                     {/* Funnel Progress */}
                     {lead.stage && <FunnelProgress stage={lead.stage} />}
 
                     {/* Main Content Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
                       {/* Left Column */}
-                      <div className="lg:col-span-2 space-y-6">
+                      <div className="lg:col-span-2 space-y-6 min-w-0">
                         <LeadDetailTabs
                           lead={lead}
                           tasks={leadData.tasks || []}
@@ -407,7 +407,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                       </div>
 
                       {/* Right Column */}
-                      <div className="space-y-6">
+                      <div className="space-y-6 min-w-0">
                         <motion.div
                           className="glass-card p-6"
                           initial={{ opacity: 0, y: 20 }}
