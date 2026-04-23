@@ -63,6 +63,7 @@ const StartPurchaseModal = ({
   onSaleCreated 
 }: StartPurchaseModalProps) => {
   const { t } = useLanguage();
+  const { currencyCode: companyCurrency } = useCurrency();
 
   const salesSettingsRef = useRef(defaultSettings.sales_settings);
   const pricingRulesRef = useRef(defaultSettings.product_settings.pricing_rules);
