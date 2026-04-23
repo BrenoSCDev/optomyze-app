@@ -555,11 +555,11 @@ const OptomyzeCalendar: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
                         <span>Lead: </span>
-                        {item.funnelId ? (
+                        {item.leadId ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                              setPreviewLeadId(String(item.leadId));
                             }}
                             className="text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
                           >
