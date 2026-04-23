@@ -247,7 +247,7 @@ interface SelectedItem {
 }
 
 const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
-  leadId, open, onClose, existingIds, onProductsAdded,
+  leadId, open, onClose, linkedProducts, onProductsAdded, onLinkedChanged,
 }) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
@@ -256,6 +256,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<SelectedItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // Per-row pending state for linked product edits (qty change / removal)
+  const [pendingLinkedId, setPendingLinkedId] = useState<number | null>(null);
+  // Local override for linked qty so the user sees instant feedback before refetch
+  const [linkedQtyOverrides, setLinkedQtyOverrides] = useState<Record<number, number>>({});
   const debounceRef = useRef<number | null>(null);
 
   // Reset on close
