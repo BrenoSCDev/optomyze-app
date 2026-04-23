@@ -184,8 +184,8 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
         >
           <form onSubmit={handleSubmit} className="flex flex-col h-full">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
-              <h3 className="text-xl font-semibold text-foreground">{t('lead-details.edit-modal-title')}</h3>
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border shrink-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground">{t('lead-details.edit-modal-title')}</h3>
               <button type="button" onClick={onClose} className="p-2 rounded-lg hover:bg-accent">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
