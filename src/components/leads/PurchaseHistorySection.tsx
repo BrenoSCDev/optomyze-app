@@ -438,9 +438,18 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
                   {sale.user.name}
                 </span>
               )}
-            </div>
           </div>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setDealPreviewOpen(true)}
+          className="gap-1.5"
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          {t('lead-details.view-deal')}
+        </Button>
+      </div>
       </div>
 
       {/* Notes */}
