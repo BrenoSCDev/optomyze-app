@@ -7,21 +7,23 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { 
-  useCalendarEvents, 
-  useCreateCalendarEvent, 
-  useUpdateCalendarEvent, 
-  useDeleteCalendarEvent 
+import {
+  useCalendarEvents,
+  useCreateCalendarEvent,
+  useUpdateCalendarEvent,
+  useDeleteCalendarEvent
 } from '@/hooks/useCalendarEvents';
 import { CalendarTask, CalendarEvent, CalendarAppointment } from '@/services/calendarApi';
 import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
+
+type CalendarViewMode = 'month' | 'week' | 'day';
 
 // Color mapping for event types
 const eventTypeColors: Record<string, string> = {
@@ -84,10 +86,13 @@ interface CalendarItem {
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
+
+  // Lead preview modal state
+  const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
+
   // Modal states
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -237,18 +242,47 @@ const OptomyzeCalendar: React.FC = () => {
     }
   };
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  // Compute days to render based on view mode
+  const calendarDays = useMemo(() => {
+    if (viewMode === 'day') {
+      return [currentDate];
+    }
+    if (viewMode === 'week') {
+      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return eachDayOfInterval({ start: wStart, end: wEnd });
+    }
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [currentDate, viewMode]);
 
-  const goToPreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const goToNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  const goToPrevious = () => {
+    if (viewMode === 'day') setCurrentDate(addDays(currentDate, -1));
+    else if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
+    else setCurrentDate(subMonths(currentDate, 1));
+  };
+  const goToNext = () => {
+    if (viewMode === 'day') setCurrentDate(addDays(currentDate, 1));
+    else if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
+    else setCurrentDate(addMonths(currentDate, 1));
+  };
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(new Date());
   };
+
+  const headerLabel = useMemo(() => {
+    if (viewMode === 'day') return format(currentDate, 'EEEE, MMMM d, yyyy');
+    if (viewMode === 'week') {
+      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return `${format(wStart, 'MMM d')} - ${format(wEnd, 'MMM d, yyyy')}`;
+    }
+    return format(currentDate, 'MMMM yyyy');
+  }, [currentDate, viewMode]);
 
   const getItemsForDate = (date: Date): CalendarItem[] => {
     return calendarItems.filter(item => isSameDay(item.date, date));
@@ -337,52 +371,128 @@ const OptomyzeCalendar: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {/* Month Navigation */}
-          <div className="flex items-center justify-between mb-6">
+          {/* Navigation */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <h2 className="text-xl font-semibold text-foreground">
-              {format(currentDate, 'MMMM yyyy')}
+              {headerLabel}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* View mode switcher */}
+              <div className="inline-flex rounded-md border border-border bg-muted/30 p-0.5">
+                {(['month', 'week', 'day'] as CalendarViewMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors capitalize ${
+                      viewMode === mode
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
               <Button variant="outline" size="sm" onClick={goToToday}>
                 {t('calendar.today')}
               </Button>
-              <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
+              <Button variant="ghost" size="icon" onClick={goToPrevious}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={goToNextMonth}>
+              <Button variant="ghost" size="icon" onClick={goToNext}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Week Days Header */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {weekDays.map(day => (
-              <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                {day}
-              </div>
-            ))}
-          </div>
+          {/* Week Days Header (only for month/week) */}
+          {viewMode !== 'day' && (
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {weekDays.map(day => (
+                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Calendar Days */}
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
+          ) : viewMode === 'day' ? (
+            // Day view: single full-width column
+            <div>
+              {(() => {
+                const day = calendarDays[0];
+                const dayItems = getItemsForDate(day);
+                const isToday = isSameDay(day, new Date());
+                return (
+                  <div className={`rounded-lg border ${isToday ? 'border-primary/50' : 'border-border'} bg-muted/30 p-4 min-h-[400px]`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`text-lg font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        {format(day, 'EEEE, MMMM d')}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {dayItems.length} {dayItems.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                    {dayItems.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground text-sm">
+                        {t('calendar.no-events')}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {dayItems.map(item => (
+                          <button
+                            key={item.id}
+                            onClick={() => setSelectedDate(day)}
+                            className={`w-full text-left text-sm px-3 py-2 rounded flex items-center gap-2 ${
+                              item.type === 'appointment' && item.appointmentTypeColor
+                                ? 'bg-muted text-foreground border border-border'
+                                : getItemColor(item)
+                            }`}
+                            style={item.type === 'appointment' && item.appointmentTypeColor
+                              ? { borderLeftColor: item.appointmentTypeColor, borderLeftWidth: 3 }
+                              : undefined}
+                          >
+                            {item.type === 'task' ? (
+                              <CheckSquare className="h-4 w-4 flex-shrink-0" />
+                            ) : item.type === 'appointment' ? (
+                              <span
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0 inline-block"
+                                style={{ backgroundColor: item.appointmentTypeColor || '#14b8a6' }}
+                              />
+                            ) : (
+                              <CalendarDays className="h-4 w-4 flex-shrink-0" />
+                            )}
+                            <span className="font-medium truncate">{item.title}</span>
+                            <span className="ml-auto text-xs opacity-80">{formatTime(item.date, item.allDay)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
           ) : (
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day, index) => {
                 const dayItems = getItemsForDate(day);
-                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isCurrentMonth = viewMode === 'week' ? true : isSameMonth(day, currentDate);
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
                 const isToday = isSameDay(day, new Date());
+                const cellMinH = viewMode === 'week' ? 'min-h-[160px] sm:min-h-[220px]' : 'min-h-[60px] sm:min-h-[80px]';
+                const itemLimit = viewMode === 'week' ? 6 : 2;
 
                 return (
                   <button
                     key={index}
                     onClick={() => setSelectedDate(day)}
                     className={`
-                      min-h-[60px] sm:min-h-[80px] p-1.5 sm:p-2 rounded-lg text-left transition-all
+                      ${cellMinH} p-1.5 sm:p-2 rounded-lg text-left transition-all
                       ${isCurrentMonth ? 'bg-muted/40 hover:bg-muted/70' : 'bg-transparent opacity-40'}
                       ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}
                       ${isToday ? 'border border-primary/50' : ''}
@@ -395,7 +505,7 @@ const OptomyzeCalendar: React.FC = () => {
                       {format(day, 'd')}
                     </span>
                     <div className="mt-1 space-y-0.5 sm:space-y-1">
-                      {dayItems.slice(0, 2).map(item => (
+                      {dayItems.slice(0, itemLimit).map(item => (
                         <div
                           key={item.id}
                           className={`text-[10px] sm:text-xs px-1 py-0.5 rounded truncate flex items-center gap-0.5 sm:gap-1 ${
@@ -421,9 +531,9 @@ const OptomyzeCalendar: React.FC = () => {
                           <span className="truncate sm:hidden">{item.title.charAt(0)}</span>
                         </div>
                       ))}
-                      {dayItems.length > 2 && (
+                      {dayItems.length > itemLimit && (
                         <div className="text-xs text-muted-foreground">
-                          +{dayItems.length - 2} {t('calendar.more')}
+                          +{dayItems.length - itemLimit} {t('calendar.more')}
                         </div>
                       )}
                     </div>
@@ -550,11 +660,11 @@ const OptomyzeCalendar: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
                         <span>Lead: </span>
-                        {item.funnelId ? (
+                        {item.leadId ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
+                              setPreviewLeadId(String(item.leadId));
                             }}
                             className="text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
                           >
@@ -658,20 +768,16 @@ const OptomyzeCalendar: React.FC = () => {
                     <p className="text-xs text-muted-foreground">{item.attendee}</p>
                   )}
                   {item.leadName && item.leadId && (
-                    item.funnelId ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/leads/${item.funnelId}/lead/${item.leadId}`);
-                        }}
-                        className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
-                      >
-                        {item.leadName}
-                        <ExternalLink className="h-3 w-3" />
-                      </button>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">{item.leadName}</p>
-                    )
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewLeadId(String(item.leadId));
+                      }}
+                      className="text-xs text-primary hover:text-primary/80 hover:underline inline-flex items-center gap-1 transition-colors"
+                    >
+                      {item.leadName}
+                      <ExternalLink className="h-3 w-3" />
+                    </button>
                   )}
                   {item.timezone && (
                     <p className="text-xs text-muted-foreground/70 flex items-center gap-1">
@@ -711,6 +817,13 @@ const OptomyzeCalendar: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         eventTitle={selectedEventForDelete?.title || ''}
         isLoading={deleteEventMutation.isPending}
+      />
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={previewLeadId !== null}
+        onClose={() => setPreviewLeadId(null)}
+        leadId={previewLeadId}
       />
     </div>
   );
