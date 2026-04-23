@@ -86,16 +86,18 @@ export function useCurrency() {
  * but need Intl formatting without the hook.
  */
 export function formatCurrencyValue(amount: number | string, currency: string = 'USD'): string {
+  const code = normalizeCurrency(currency);
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(num)) return `${CURRENCY_SYMBOLS[currency] || currency}0.00`;
+  if (isNaN(num)) return `${CURRENCY_SYMBOLS[code] || code}0.00`;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(num);
 }
 
 export function getCurrencySymbol(currency: string = 'USD'): string {
-  return CURRENCY_SYMBOLS[currency] || currency;
+  const code = normalizeCurrency(currency);
+  return CURRENCY_SYMBOLS[code] || code;
 }
