@@ -21,7 +21,7 @@ import {
   Minus, Check,
 } from 'lucide-react';
 import { PrivateImage } from '@/components/ui/PrivateImage';
-import { searchProducts, addProductsToLead, ProductSearchResult } from '@/services/leadProductSearchApi';
+import { searchProducts, addProductsToLead, updateLeadProductQuantity, removeProductFromLead, ProductSearchResult } from '@/services/leadProductSearchApi';
 import { toast } from 'sonner';
 
 export interface LeadProduct {
@@ -141,11 +141,12 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
         leadId={leadId}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
-        existingIds={products.map(p => p.id)}
+        linkedProducts={products.map(p => ({ id: p.id, name: p.name, quantity: p.quantity }))}
         onProductsAdded={() => {
           setSearchOpen(false);
           onProductsChanged();
         }}
+        onLinkedChanged={onProductsChanged}
       />
     </motion.div>
   );
@@ -223,12 +224,19 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
   );
 };
 
+interface LinkedProductLite {
+  id: number;
+  name: string;
+  quantity: number;
+}
+
 interface ProductSearchPanelProps {
   leadId: number;
   open: boolean;
   onClose: () => void;
-  existingIds: number[];
+  linkedProducts: LinkedProductLite[];
   onProductsAdded: () => void;
+  onLinkedChanged: () => void;
 }
 
 interface SelectedItem {
@@ -239,7 +247,7 @@ interface SelectedItem {
 }
 
 const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
-  leadId, open, onClose, existingIds, onProductsAdded,
+  leadId, open, onClose, linkedProducts, onProductsAdded, onLinkedChanged,
 }) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
@@ -248,6 +256,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<SelectedItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  // Per-row pending state for linked product edits (qty change / removal)
+  const [pendingLinkedId, setPendingLinkedId] = useState<number | null>(null);
+  // Local override for linked qty so the user sees instant feedback before refetch
+  const [linkedQtyOverrides, setLinkedQtyOverrides] = useState<Record<number, number>>({});
   const debounceRef = useRef<number | null>(null);
 
   // Reset on close
@@ -285,7 +297,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   }, [query, open]);
 
   const isSelected = (id: number) => selected.some(s => s.id === id);
-  const isAlreadyLinked = (id: number) => existingIds.includes(id);
+  const findLinked = (id: number) => linkedProducts.find(l => l.id === id);
+  const isAlreadyLinked = (id: number) => !!findLinked(id);
+  const linkedQtyOf = (id: number) =>
+    linkedQtyOverrides[id] ?? findLinked(id)?.quantity ?? 1;
 
   const toggleSelect = (product: ProductSearchResult) => {
     if (isAlreadyLinked(product.id)) return;
@@ -304,6 +319,41 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
 
   const removeSelected = (id: number) => {
     setSelected(prev => prev.filter(s => s.id !== id));
+  };
+
+  // Linked-product mutations
+  const handleLinkedQtyChange = async (productId: number, nextQty: number) => {
+    if (nextQty < 1) return;
+    setLinkedQtyOverrides(prev => ({ ...prev, [productId]: nextQty }));
+    setPendingLinkedId(productId);
+    try {
+      await updateLeadProductQuantity(leadId, productId, nextQty);
+      onLinkedChanged();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
+      // Revert override on failure
+      setLinkedQtyOverrides(prev => {
+        const copy = { ...prev };
+        delete copy[productId];
+        return copy;
+      });
+    } finally {
+      setPendingLinkedId(null);
+    }
+  };
+
+  const handleLinkedRemove = async (productId: number) => {
+    setPendingLinkedId(productId);
+    try {
+      await removeProductFromLead(leadId, productId);
+      onLinkedChanged();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
+    } finally {
+      setPendingLinkedId(null);
+    }
   };
 
   const handleSubmit = async () => {
@@ -380,20 +430,29 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                   {results.map((r) => {
                     const linked = isAlreadyLinked(r.id);
                     const checked = isSelected(r.id);
+                    const linkedQty = linkedQtyOf(r.id);
+                    const isPending = pendingLinkedId === r.id;
                     return (
                       <li
                         key={r.id}
                         className={`flex items-center gap-3 p-2.5 ${
-                          linked ? 'opacity-60' : 'hover:bg-muted/60 cursor-pointer'
+                          linked ? 'bg-muted/30' : 'hover:bg-muted/60 cursor-pointer'
                         }`}
                         onClick={() => !linked && toggleSelect(r)}
                       >
-                        <Checkbox
-                          checked={checked || linked}
-                          disabled={linked}
-                          onCheckedChange={() => toggleSelect(r)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        {!linked && (
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleSelect(r)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                        {linked && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">
+                            <Check className="w-3 h-3 mr-1" />
+                            {t('lead-details.product-already-linked')}
+                          </Badge>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-foreground truncate">{r.name}</p>
                           <p className="text-xs text-muted-foreground">
@@ -401,10 +460,50 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                           </p>
                         </div>
                         {linked && (
-                          <Badge variant="secondary" className="text-[10px] shrink-0">
-                            <Check className="w-3 h-3 mr-1" />
-                            {t('lead-details.product-already-linked')}
-                          </Badge>
+                          <div
+                            className="flex items-center gap-1 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              type="button" variant="outline" size="icon" className="h-7 w-7"
+                              onClick={() => handleLinkedQtyChange(r.id, linkedQty - 1)}
+                              disabled={isPending || linkedQty <= 1}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={linkedQty}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value) || 1;
+                                setLinkedQtyOverrides(prev => ({ ...prev, [r.id]: v }));
+                              }}
+                              onBlur={(e) => {
+                                const v = parseInt(e.target.value) || 1;
+                                if (v !== (findLinked(r.id)?.quantity ?? 1)) {
+                                  handleLinkedQtyChange(r.id, v);
+                                }
+                              }}
+                              className="w-14 h-7 text-center text-sm"
+                              disabled={isPending}
+                            />
+                            <Button
+                              type="button" variant="outline" size="icon" className="h-7 w-7"
+                              onClick={() => handleLinkedQtyChange(r.id, linkedQty + 1)}
+                              disabled={isPending}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                              onClick={() => handleLinkedRemove(r.id)}
+                              disabled={isPending}
+                              title={t('common.delete')}
+                            >
+                              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                            </Button>
+                          </div>
                         )}
                       </li>
                     );

@@ -61,3 +61,17 @@ export const searchProducts = async (query: string): Promise<ProductSearchResult
 export const addProductsToLead = async (leadId: number, products: { id: number; quantity: number }[]): Promise<void> => {
   await api.post(`/api/leads/${leadId}/products`, { products });
 };
+
+/**
+ * Update a single linked product's quantity for a lead.
+ */
+export const updateLeadProductQuantity = async (leadId: number, productId: number, quantity: number): Promise<void> => {
+  await api.put(`/api/leads/${leadId}/products/${productId}`, { quantity });
+};
+
+/**
+ * Remove a linked product from a lead.
+ */
+export const removeProductFromLead = async (leadId: number, productId: number): Promise<void> => {
+  await api.delete(`/api/leads/${leadId}/products/${productId}`);
+};
