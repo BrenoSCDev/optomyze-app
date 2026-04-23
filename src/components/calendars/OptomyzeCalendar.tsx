@@ -100,6 +100,7 @@ const OptomyzeCalendar: React.FC = () => {
   const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
 
   const { data, isLoading, error, refetch, isFetching } = useCalendarEvents();
+  const createEventMutation = useCreateCalendarEvent();
   const updateEventMutation = useUpdateCalendarEvent();
   const deleteEventMutation = useDeleteCalendarEvent();
 
