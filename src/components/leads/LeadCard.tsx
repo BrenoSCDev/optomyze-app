@@ -75,7 +75,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
@@ -84,8 +84,8 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
     }).format(amount);
   };
 
-  // Access lead's currency if available (extended Lead type)
-  const leadCurrency = (lead as any).currency || companyCurrency;
+  // Always use the company's configured currency
+  const leadCurrency = companyCurrency;
 
   return (
     <div className="relative">

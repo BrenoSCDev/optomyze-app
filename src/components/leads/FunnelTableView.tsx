@@ -224,7 +224,7 @@ const FunnelTableView = ({
                 </Badge>
                 {showEstimatedValues && column.valueEstimated > 0 && (
                   <Badge className="text-xs font-medium">
-                    {formatCurrency(column.valueEstimated, column.currency || funnel.currency)}
+                    {formatCurrency(column.valueEstimated)}
                   </Badge>
                 )}
               </div>
@@ -313,7 +313,7 @@ const FunnelTableView = ({
                             <TableCell>
                               {lead.value > 0 ? (
                                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                                  {formatCurrency(lead.value, lead.currency)}
+                                  {formatCurrency(lead.value)}
                                 </Badge>
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>

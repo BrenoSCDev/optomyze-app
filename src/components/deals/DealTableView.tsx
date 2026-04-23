@@ -123,7 +123,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                 </Badge>
                 {column.totalValue > 0 && (
                   <Badge className="text-xs font-medium bg-deal/15 text-deal border-deal/30">
-                    {formatCurrency(column.totalValue, column.currency)}
+                    {formatCurrency(column.totalValue)}
                   </Badge>
                 )}
               </div>
@@ -199,7 +199,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                               <div className="space-y-0.5">
                                 {deal.final_total > 0 ? (
                                   <Badge className="bg-deal/15 text-deal border-deal/30 text-xs">
-                                    {formatCurrency(deal.final_total, deal.currency)}
+                                    {formatCurrency(deal.final_total)}
                                   </Badge>
                                 ) : (
                                   <span className="text-xs text-muted-foreground">—</span>
@@ -209,13 +209,13 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                                     {parseFloat(deal.charges_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
                                         <TrendingUp className="h-2.5 w-2.5" />
-                                        +{formatCurrency(parseFloat(deal.charges_total), deal.currency)}
+                                        +{formatCurrency(parseFloat(deal.charges_total))}
                                       </span>
                                     )}
                                     {parseFloat(deal.discount_total || '0') > 0 && (
                                       <span className="flex items-center gap-0.5 text-[10px] text-rose-400">
                                         <TrendingDown className="h-2.5 w-2.5" />
-                                        -{formatCurrency(parseFloat(deal.discount_total), deal.currency)}
+                                        -{formatCurrency(parseFloat(deal.discount_total))}
                                       </span>
                                     )}
                                   </div>
