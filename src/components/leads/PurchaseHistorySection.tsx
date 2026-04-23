@@ -900,6 +900,12 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      <DealPreviewModal
+        isOpen={dealPreviewOpen}
+        onClose={() => setDealPreviewOpen(false)}
+        dealId={String(sale.id)}
+      />
+
     </motion.div>
   );
 };
