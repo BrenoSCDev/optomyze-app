@@ -818,6 +818,13 @@ const OptomyzeCalendar: React.FC = () => {
         eventTitle={selectedEventForDelete?.title || ''}
         isLoading={deleteEventMutation.isPending}
       />
+
+      {/* Lead Preview Modal */}
+      <LeadPreviewModal
+        isOpen={previewLeadId !== null}
+        onClose={() => setPreviewLeadId(null)}
+        leadId={previewLeadId}
+      />
     </div>
   );
 };
