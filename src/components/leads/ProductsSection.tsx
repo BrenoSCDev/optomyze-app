@@ -224,12 +224,19 @@ const ProductCard = ({ product, formatPrice, getImageUrl, isSelected, onToggleSe
   );
 };
 
+interface LinkedProductLite {
+  id: number;
+  name: string;
+  quantity: number;
+}
+
 interface ProductSearchPanelProps {
   leadId: number;
   open: boolean;
   onClose: () => void;
-  existingIds: number[];
+  linkedProducts: LinkedProductLite[];
   onProductsAdded: () => void;
+  onLinkedChanged: () => void;
 }
 
 interface SelectedItem {
