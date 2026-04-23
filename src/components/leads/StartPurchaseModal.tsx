@@ -298,45 +298,45 @@ const StartPurchaseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
             <Briefcase className="w-5 h-5 text-primary" />
             {t('sale.deal-modal-title')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-white/5">
+        <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 scrollbar-thin scrollbar-dark">
           <div className="space-y-6 pb-4 pr-2">
             {/* 0. Deal Information */}
             <div className="space-y-4">
-              <Label className="text-white font-medium flex items-center gap-2">
+              <Label className="text-foreground font-medium flex items-center gap-2">
                 <Briefcase className="w-4 h-4" />
                 {t('sale.deal-information')}
               </Label>
               
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label className="text-gray-400 text-sm">{t('sale.deal-name')} *</Label>
+                  <Label className="text-muted-foreground text-sm">{t('sale.deal-name')} *</Label>
                   <Input
                     value={dealName}
                     onChange={(e) => setDealName(e.target.value)}
                     placeholder={t('sale.deal-name-placeholder')}
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-background border-border text-foreground"
                     maxLength={100}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">{t('sale.deal-funnel')} *</Label>
+                    <Label className="text-muted-foreground text-sm">{t('sale.deal-funnel')} *</Label>
                     <Select value={selectedFunnelId} onValueChange={handleFunnelChange}>
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue placeholder={t('sale.select-funnel')} />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-white/10">
+                      <SelectContent className="bg-popover border-border">
                         {dealFunnels.map((funnel) => (
-                          <SelectItem key={funnel.id} value={funnel.id.toString()} className="text-white hover:bg-gray-700">
+                          <SelectItem key={funnel.id} value={funnel.id.toString()} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                             {funnel.name}
                           </SelectItem>
                         ))}
@@ -345,18 +345,18 @@ const StartPurchaseModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">{t('sale.deal-stage')} *</Label>
+                    <Label className="text-muted-foreground text-sm">{t('sale.deal-stage')} *</Label>
                     <Select 
                       value={selectedStageId} 
                       onValueChange={setSelectedStageId}
                       disabled={!selectedFunnelId}
                     >
-                      <SelectTrigger className={`bg-white/5 border-white/10 text-white ${!selectedFunnelId ? 'opacity-50' : ''}`}>
+                      <SelectTrigger className={`bg-background border-border text-foreground ${!selectedFunnelId ? 'opacity-50' : ''}`}>
                         <SelectValue placeholder={selectedFunnelId ? t('sale.select-stage') : t('sale.select-funnel-first')} />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-white/10">
+                      <SelectContent className="bg-popover border-border">
                         {availableStages.map((stage) => (
-                          <SelectItem key={stage.id} value={stage.id.toString()} className="text-white hover:bg-gray-700">
+                          <SelectItem key={stage.id} value={stage.id.toString()} className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">
                             {stage.name}
                           </SelectItem>
                         ))}
@@ -369,49 +369,49 @@ const StartPurchaseModal = ({
 
             {/* 1. Selected Products Summary */}
             <div className="space-y-3">
-              <Label className="text-white font-medium flex items-center gap-2">
+              <Label className="text-foreground font-medium flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 {t('sale.selected-products')}
               </Label>
               {selectedProducts.length > 0 ? (
-                <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
+                <div className="bg-muted/40 border border-border rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-white/5">
+                    <thead className="bg-muted/40">
                       <tr>
-                        <th className="text-left p-3 text-gray-400 font-medium">{t('sale.product-name')}</th>
-                        <th className="text-center p-3 text-gray-400 font-medium">{t('sale.qty')}</th>
-                        <th className="text-right p-3 text-gray-400 font-medium">{t('sale.unit-price')}</th>
-                        <th className="text-right p-3 text-gray-400 font-medium">{t('sale.total')}</th>
+                        <th className="text-left p-3 text-muted-foreground font-medium">{t('sale.product-name')}</th>
+                        <th className="text-center p-3 text-muted-foreground font-medium">{t('sale.qty')}</th>
+                        <th className="text-right p-3 text-muted-foreground font-medium">{t('sale.unit-price')}</th>
+                        <th className="text-right p-3 text-muted-foreground font-medium">{t('sale.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedProducts.map((product) => (
-                        <tr key={product.id} className="border-t border-white/5">
-                          <td className="p-3 text-white">{product.name}</td>
-                          <td className="p-3 text-center text-gray-300">{product.quantity}</td>
-                          <td className="p-3 text-right text-gray-300">{formatPrice(product.unit_price)}</td>
+                        <tr key={product.id} className="border-t border-border">
+                          <td className="p-3 text-foreground">{product.name}</td>
+                          <td className="p-3 text-center text-foreground/80">{product.quantity}</td>
+                          <td className="p-3 text-right text-foreground/80">{formatPrice(product.unit_price)}</td>
                           <td className="p-3 text-right text-primary font-medium">{formatPrice(product.total_price)}</td>
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-white/5">
+                    <tfoot className="bg-muted/40">
                       <tr>
-                        <td colSpan={3} className="p-3 text-right text-gray-400 font-medium">{t('sale.products-subtotal')}</td>
-                        <td className="p-3 text-right text-white font-semibold">{formatPrice(productsSubtotal)}</td>
+                        <td colSpan={3} className="p-3 text-right text-muted-foreground font-medium">{t('sale.products-subtotal')}</td>
+                        <td className="p-3 text-right text-foreground font-semibold">{formatPrice(productsSubtotal)}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-500 italic">{t('sale.no-products-selected')}</p>
+                  <p className="text-sm text-muted-foreground italic">{t('sale.no-products-selected')}</p>
                   <div className="space-y-1">
-                    <Label className="text-gray-400 text-sm">{t('sale.deal-value')}</Label>
+                    <Label className="text-muted-foreground text-sm">{t('sale.deal-value')}</Label>
                     <CurrencyInput
                       value={manualValue}
                       onValueChange={setManualValue}
                       placeholder="$0.00"
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-background border-border text-foreground"
                       disabled={!allowPriceOverride}
                     />
                   </div>
@@ -421,7 +421,7 @@ const StartPurchaseModal = ({
 
             {/* 2. Pricing Model Selection */}
             <div className="space-y-3">
-              <Label className="text-white font-medium flex items-center gap-2">
+              <Label className="text-foreground font-medium flex items-center gap-2">
                 <Calculator className="w-4 h-4" />
                 {t('sale.pricing-model')}
               </Label>
@@ -431,50 +431,50 @@ const StartPurchaseModal = ({
                 className="flex flex-wrap gap-4"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="product" id="product" className="border-white/30" />
-                  <Label htmlFor="product" className="cursor-pointer text-gray-300">{t('sale.pricing-product')}</Label>
+                  <RadioGroupItem value="product" id="product" className="" />
+                  <Label htmlFor="product" className="cursor-pointer text-foreground">{t('sale.pricing-product')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="commission" id="commission" className="border-white/30" />
-                  <Label htmlFor="commission" className="cursor-pointer text-gray-300">{t('sale.pricing-commission')}</Label>
+                  <RadioGroupItem value="commission" id="commission" className="" />
+                  <Label htmlFor="commission" className="cursor-pointer text-foreground">{t('sale.pricing-commission')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="hybrid" id="hybrid" className="border-white/30" />
-                  <Label htmlFor="hybrid" className="cursor-pointer text-gray-300">{t('sale.pricing-hybrid')}</Label>
+                  <RadioGroupItem value="hybrid" id="hybrid" className="" />
+                  <Label htmlFor="hybrid" className="cursor-pointer text-foreground">{t('sale.pricing-hybrid')}</Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* 3. Commission Section (Conditional) */}
             {showCommissionSection && (
-              <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-                <Label className="text-white font-medium flex items-center gap-2">
+              <div className="space-y-4 p-4 bg-muted/40 border border-border rounded-lg">
+                <Label className="text-foreground font-medium flex items-center gap-2">
                   <Percent className="w-4 h-4" />
                   {t('sale.commission-section')}
                 </Label>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">{t('sale.commission-type')}</Label>
+                    <Label className="text-muted-foreground text-sm">{t('sale.commission-type')}</Label>
                     <Select value={commissionType} onValueChange={(v) => setCommissionType(v as ChargeType)}>
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                      <SelectTrigger className="bg-background border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-white/10">
-                        <SelectItem value="percentage" className="text-white hover:bg-gray-700">{t('sale.type-percentage')}</SelectItem>
-                        <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="percentage" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">{t('sale.type-percentage')}</SelectItem>
+                        <SelectItem value="fixed" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">{t('sale.type-fixed')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-gray-400 text-sm">{t('sale.commission-value')}</Label>
+                    <Label className="text-muted-foreground text-sm">{t('sale.commission-value')}</Label>
                     {commissionType === 'fixed' ? (
                       <CurrencyInput
                         value={commissionValue}
                         onValueChange={setCommissionValue}
                         placeholder="$0.00"
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                       />
                     ) : (
                       <Input
@@ -484,7 +484,7 @@ const StartPurchaseModal = ({
                         step={0.01}
                         value={commissionValue}
                         onChange={(e) => setCommissionValue(Number(e.target.value))}
-                        className="bg-white/5 border-white/10 text-white"
+                        className="bg-background border-border text-foreground"
                         placeholder="5"
                       />
                     )}
@@ -492,18 +492,18 @@ const StartPurchaseModal = ({
 
                   {commissionType === 'percentage' && (
                     <div className="space-y-2">
-                      <Label className="text-gray-400 text-sm">{t('sale.reference-value')}</Label>
-                      <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white">
+                      <Label className="text-muted-foreground text-sm">{t('sale.reference-value')}</Label>
+                      <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-foreground">
                         {formatPrice(productsSubtotal)}
                       </div>
-                      <p className="text-xs text-gray-500">{t('sale.reference-value-hint')}</p>
+                      <p className="text-xs text-muted-foreground">{t('sale.reference-value-hint')}</p>
                     </div>
                   )}
                 </div>
 
                 {commissionSubtotal > 0 && (
                   <div className="flex justify-end text-sm">
-                    <span className="text-gray-400">{t('sale.commission-subtotal')}:</span>
+                    <span className="text-muted-foreground">{t('sale.commission-subtotal')}:</span>
                     <span className="ml-2 text-primary font-medium">{formatPrice(commissionSubtotal)}</span>
                   </div>
                 )}
@@ -513,7 +513,7 @@ const StartPurchaseModal = ({
             {/* 4. Additional Charges */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-white font-medium flex items-center gap-2">
+                <Label className="text-foreground font-medium flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
                   {t('sale.additional-charges')}
                 </Label>
@@ -532,20 +532,20 @@ const StartPurchaseModal = ({
               {charges.length > 0 && (
                 <div className="space-y-2">
                   {charges.map((charge) => (
-                    <div key={charge.id} className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg">
+                    <div key={charge.id} className="flex items-center gap-2 p-3 bg-muted/40 border border-border rounded-lg">
                       <Input
                         placeholder={t('sale.charge-name')}
                         value={charge.name}
                         onChange={(e) => updateCharge(charge.id, 'name', e.target.value)}
-                        className="flex-1 bg-white/5 border-white/10 text-white text-sm"
+                        className="flex-1 bg-background border-border text-foreground text-sm"
                       />
                       <Select value={charge.type} onValueChange={(v) => updateCharge(charge.id, 'type', v)}>
-                        <SelectTrigger className="w-28 bg-white/5 border-white/10 text-white text-sm">
+                        <SelectTrigger className="w-28 bg-background border-border text-foreground text-sm">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
-                          <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="percentage" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">%</SelectItem>
+                          <SelectItem value="fixed" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">{t('sale.type-fixed')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {charge.type === 'fixed' ? (
@@ -553,7 +553,7 @@ const StartPurchaseModal = ({
                           value={charge.value}
                           onValueChange={(v) => updateCharge(charge.id, 'value', v)}
                           placeholder="$0.00"
-                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                          className="w-24 bg-background border-border text-foreground text-sm"
                         />
                       ) : (
                         <Input
@@ -563,7 +563,7 @@ const StartPurchaseModal = ({
                           step={0.01}
                           value={charge.value}
                           onChange={(e) => updateCharge(charge.id, 'value', Number(e.target.value))}
-                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                          className="w-24 bg-background border-border text-foreground text-sm"
                           placeholder="0"
                         />
                       )}
@@ -572,7 +572,7 @@ const StartPurchaseModal = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => removeCharge(charge.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -582,14 +582,14 @@ const StartPurchaseModal = ({
               )}
 
               {charges.length === 0 && (
-                <p className="text-sm text-gray-500 italic">{t('sale.no-charges')}</p>
+                <p className="text-sm text-muted-foreground italic">{t('sale.no-charges')}</p>
               )}
             </div>
 
             {/* 4b. Discounts */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-white font-medium flex items-center gap-2">
+                <Label className="text-foreground font-medium flex items-center gap-2">
                   <Tag className="w-4 h-4" />
                   {t('sale.discounts')}
                 </Label>
@@ -608,20 +608,20 @@ const StartPurchaseModal = ({
               {discounts.length > 0 && (
                 <div className="space-y-2">
                   {discounts.map((discount) => (
-                    <div key={discount.id} className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg">
+                    <div key={discount.id} className="flex items-center gap-2 p-3 bg-muted/40 border border-border rounded-lg">
                       <Input
                         placeholder={t('sale.discount-name')}
                         value={discount.name}
                         onChange={(e) => updateDiscount(discount.id, 'name', e.target.value)}
-                        className="flex-1 bg-white/5 border-white/10 text-white text-sm"
+                        className="flex-1 bg-background border-border text-foreground text-sm"
                       />
                       <Select value={discount.type} onValueChange={(v) => updateDiscount(discount.id, 'type', v)}>
-                        <SelectTrigger className="w-28 bg-white/5 border-white/10 text-white text-sm">
+                        <SelectTrigger className="w-28 bg-background border-border text-foreground text-sm">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-white/10">
-                          <SelectItem value="percentage" className="text-white hover:bg-gray-700">%</SelectItem>
-                          <SelectItem value="fixed" className="text-white hover:bg-gray-700">{t('sale.type-fixed')}</SelectItem>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="percentage" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">%</SelectItem>
+                          <SelectItem value="fixed" className="text-popover-foreground focus:bg-accent focus:text-accent-foreground">{t('sale.type-fixed')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {discount.type === 'fixed' ? (
@@ -629,7 +629,7 @@ const StartPurchaseModal = ({
                           value={discount.value}
                           onValueChange={(v) => updateDiscount(discount.id, 'value', v)}
                           placeholder="$0.00"
-                          className="w-24 bg-white/5 border-white/10 text-white text-sm"
+                          className="w-24 bg-background border-border text-foreground text-sm"
                         />
                       ) : (
                         <div className="flex items-center gap-1">
@@ -640,10 +640,10 @@ const StartPurchaseModal = ({
                             step={0.01}
                             value={discount.value}
                             onChange={(e) => updateDiscount(discount.id, 'value', Math.min(Number(e.target.value), maxDiscountPercent))}
-                            className="w-16 bg-white/5 border-white/10 text-white text-sm"
+                            className="w-16 bg-background border-border text-foreground text-sm"
                             placeholder="0"
                           />
-                          <span className="text-xs text-white/40 whitespace-nowrap">/ {maxDiscountPercent}%</span>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">/ {maxDiscountPercent}%</span>
                         </div>
                       )}
                       <Button
@@ -651,7 +651,7 @@ const StartPurchaseModal = ({
                         variant="ghost"
                         size="icon"
                         onClick={() => removeDiscount(discount.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -661,18 +661,18 @@ const StartPurchaseModal = ({
               )}
 
               {discounts.length === 0 && (
-                <p className="text-sm text-gray-500 italic">{t('sale.no-discounts')}</p>
+                <p className="text-sm text-muted-foreground italic">{t('sale.no-discounts')}</p>
               )}
             </div>
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label className="text-white font-medium">{t('sale.notes')}</Label>
+              <Label className="text-foreground font-medium">{t('sale.notes')}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t('sale.notes-placeholder')}
-                className="bg-white/5 border-white/10 text-white resize-none"
+                className="bg-background border-border text-foreground resize-none"
                 rows={3}
               />
             </div>
@@ -680,23 +680,23 @@ const StartPurchaseModal = ({
             {/* 5. Live Calculation Section */}
             <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-300">{t('sale.subtotal')}</span>
-                <span className="text-white">{formatPrice(baseSubtotal)}</span>
+                <span className="text-muted-foreground">{t('sale.subtotal')}</span>
+                <span className="text-foreground">{formatPrice(baseSubtotal)}</span>
               </div>
               {chargesTotal > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">{t('sale.charges-total')}</span>
-                  <span className="text-green-400">+{formatPrice(chargesTotal)}</span>
+                  <span className="text-muted-foreground">{t('sale.charges-total')}</span>
+                  <span className="text-emerald-500 dark:text-emerald-400">+{formatPrice(chargesTotal)}</span>
                 </div>
               )}
               {discountsTotal > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-300">{t('sale.discounts-total')}</span>
-                  <span className="text-red-400">-{formatPrice(discountsTotal)}</span>
+                  <span className="text-muted-foreground">{t('sale.discounts-total')}</span>
+                  <span className="text-destructive">-{formatPrice(discountsTotal)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-semibold pt-2 border-t border-primary/20">
-                <span className="text-white">{t('sale.final-total')}</span>
+                <span className="text-foreground">{t('sale.final-total')}</span>
                 <span className="text-primary">{formatPrice(finalTotal)}</span>
               </div>
               <p className="text-xs text-gray-500 italic mt-2">{t('sale.preview-note')}</p>
@@ -704,7 +704,7 @@ const StartPurchaseModal = ({
           </div>
         </div>
 
-        <DialogFooter className="mt-4 border-t border-white/10 pt-4">
+        <DialogFooter className="mt-4 border-t border-border pt-4">
           <Button variant="outline" onClick={handleClose} disabled={isSubmitting} className="glass-card">
             {t('common.cancel')}
           </Button>

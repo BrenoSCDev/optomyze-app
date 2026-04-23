@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -112,8 +113,9 @@ const AddProductsModal = ({
   };
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[70] flex items-center justify-center">
         {/* Backdrop */}
@@ -127,16 +129,16 @@ const AddProductsModal = ({
         
         {/* Modal */}
         <motion.div
-          className="relative bg-gray-900 border border-white/10 rounded-lg shadow-xl w-full max-w-lg mx-4 overflow-hidden"
+          className="relative bg-card text-card-foreground border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 overflow-hidden"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-foreground">
                 {t('lead-details.add-products')}
               </h2>
             </div>
@@ -144,7 +146,7 @@ const AddProductsModal = ({
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -154,7 +156,7 @@ const AddProductsModal = ({
           <ScrollArea className="max-h-[300px]">
             <div className="p-4 space-y-2">
               {products.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-muted-foreground">
                   {t('lead-details.no-products-available')}
                 </div>
               ) : (
@@ -167,18 +169,17 @@ const AddProductsModal = ({
                       key={product.id}
                       className={`p-3 rounded-lg border transition-colors ${
                         isSelected 
-                          ? 'bg-primary/10 border-primary/30' 
-                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                          ? 'bg-primary/10 border-primary/40' 
+                          : 'bg-muted/40 border-border hover:bg-muted'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleProduct(product.id)}
-                          className="border-white/30"
                         />
                         <div className="flex-1 min-w-0">
-                          <span className="text-white font-medium truncate block">
+                          <span className="text-foreground font-medium truncate block">
                             {product.name}
                           </span>
                         </div>
@@ -189,7 +190,7 @@ const AddProductsModal = ({
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-7 w-7 border-white/20"
+                              className="h-7 w-7"
                               onClick={() => updateQuantity(product.id, quantity - 1)}
                               disabled={quantity <= 1}
                             >
@@ -199,13 +200,13 @@ const AddProductsModal = ({
                               type="number"
                               value={quantity}
                               onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 1)}
-                              className="w-14 h-7 text-center bg-white/5 border-white/20 text-sm"
+                              className="w-14 h-7 text-center text-sm"
                               min={1}
                             />
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-7 w-7 border-white/20"
+                              className="h-7 w-7"
                               onClick={() => updateQuantity(product.id, quantity + 1)}
                             >
                               <Plus className="w-3 h-3" />
@@ -222,15 +223,15 @@ const AddProductsModal = ({
 
           {/* Selected Count */}
           {selectedProducts.length > 0 && (
-            <div className="px-4 py-2 border-t border-white/10 bg-white/5">
-              <span className="text-sm text-gray-400">
+            <div className="px-4 py-2 border-t border-border bg-muted/40">
+              <span className="text-sm text-muted-foreground">
                 {t('lead-details.selected-products-count').replace('{count}', selectedProducts.length.toString())}
               </span>
             </div>
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-4 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 p-4 border-t border-border">
             <Button
               variant="outline"
               onClick={handleClose}
@@ -254,7 +255,8 @@ const AddProductsModal = ({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
