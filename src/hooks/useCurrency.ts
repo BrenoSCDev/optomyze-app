@@ -19,6 +19,27 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   CHF: 'CHF',
 };
 
+/** Reverse map: symbol -> ISO code so backends sending symbols still work. */
+const SYMBOL_TO_CODE: Record<string, string> = {
+  '$': 'USD',
+  '€': 'EUR',
+  '£': 'GBP',
+  'R$': 'BRL',
+  '¥': 'JPY',
+  '₹': 'INR',
+};
+
+/** Validate / normalize whatever the backend gives us into a 3-letter ISO code. */
+function normalizeCurrency(input?: string | null): string {
+  if (!input) return 'USD';
+  const trimmed = String(input).trim();
+  if (!trimmed) return 'USD';
+  if (SYMBOL_TO_CODE[trimmed]) return SYMBOL_TO_CODE[trimmed];
+  // ISO codes are 3 alphabetic letters
+  if (/^[A-Za-z]{3}$/.test(trimmed)) return trimmed.toUpperCase();
+  return 'USD';
+}
+
 /**
  * Returns the company currency code from auth context, defaulting to 'USD'.
  * Also provides a `formatCurrency` helper and the raw symbol.
