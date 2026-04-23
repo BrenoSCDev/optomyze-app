@@ -430,20 +430,29 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                   {results.map((r) => {
                     const linked = isAlreadyLinked(r.id);
                     const checked = isSelected(r.id);
+                    const linkedQty = linkedQtyOf(r.id);
+                    const isPending = pendingLinkedId === r.id;
                     return (
                       <li
                         key={r.id}
                         className={`flex items-center gap-3 p-2.5 ${
-                          linked ? 'opacity-60' : 'hover:bg-muted/60 cursor-pointer'
+                          linked ? 'bg-muted/30' : 'hover:bg-muted/60 cursor-pointer'
                         }`}
                         onClick={() => !linked && toggleSelect(r)}
                       >
-                        <Checkbox
-                          checked={checked || linked}
-                          disabled={linked}
-                          onCheckedChange={() => toggleSelect(r)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        {!linked && (
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => toggleSelect(r)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                        {linked && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0">
+                            <Check className="w-3 h-3 mr-1" />
+                            {t('lead-details.product-already-linked')}
+                          </Badge>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-foreground truncate">{r.name}</p>
                           <p className="text-xs text-muted-foreground">
@@ -451,10 +460,50 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                           </p>
                         </div>
                         {linked && (
-                          <Badge variant="secondary" className="text-[10px] shrink-0">
-                            <Check className="w-3 h-3 mr-1" />
-                            {t('lead-details.product-already-linked')}
-                          </Badge>
+                          <div
+                            className="flex items-center gap-1 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              type="button" variant="outline" size="icon" className="h-7 w-7"
+                              onClick={() => handleLinkedQtyChange(r.id, linkedQty - 1)}
+                              disabled={isPending || linkedQty <= 1}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={linkedQty}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value) || 1;
+                                setLinkedQtyOverrides(prev => ({ ...prev, [r.id]: v }));
+                              }}
+                              onBlur={(e) => {
+                                const v = parseInt(e.target.value) || 1;
+                                if (v !== (findLinked(r.id)?.quantity ?? 1)) {
+                                  handleLinkedQtyChange(r.id, v);
+                                }
+                              }}
+                              className="w-14 h-7 text-center text-sm"
+                              disabled={isPending}
+                            />
+                            <Button
+                              type="button" variant="outline" size="icon" className="h-7 w-7"
+                              onClick={() => handleLinkedQtyChange(r.id, linkedQty + 1)}
+                              disabled={isPending}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                              onClick={() => handleLinkedRemove(r.id)}
+                              disabled={isPending}
+                              title={t('common.delete')}
+                            >
+                              {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
+                            </Button>
+                          </div>
                         )}
                       </li>
                     );
