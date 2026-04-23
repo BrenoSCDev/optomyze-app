@@ -544,8 +544,6 @@ const OptomyzeCalendar: React.FC = () => {
           )}
         </motion.div>
 
-        </motion.div>
-
         {/* Selected Day Events */}
         <motion.div 
           className="glass-card p-6"
