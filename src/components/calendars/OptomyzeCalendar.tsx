@@ -7,21 +7,23 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { 
-  useCalendarEvents, 
-  useCreateCalendarEvent, 
-  useUpdateCalendarEvent, 
-  useDeleteCalendarEvent 
+import {
+  useCalendarEvents,
+  useCreateCalendarEvent,
+  useUpdateCalendarEvent,
+  useDeleteCalendarEvent
 } from '@/hooks/useCalendarEvents';
 import { CalendarTask, CalendarEvent, CalendarAppointment } from '@/services/calendarApi';
 import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
+
+type CalendarViewMode = 'month' | 'week' | 'day';
 
 // Color mapping for event types
 const eventTypeColors: Record<string, string> = {
