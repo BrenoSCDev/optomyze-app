@@ -1496,6 +1496,7 @@ const translations = {
     // Common additions
     'common.characters': 'characters',
     'common.close': 'Close',
+    'common.download': 'Download',
 
     // API Documentation
     'api.api': 'API',
@@ -4347,6 +4348,7 @@ const translations = {
     // Common additions
     'common.characters': 'caracteres',
     'common.close': 'Fechar',
+    'common.download': 'Baixar',
 
     // API Documentation
     'api.api': 'API',
@@ -7008,6 +7010,7 @@ const translations = {
     // Common additions
     'common.characters': 'Zeichen',
     'common.close': 'Schließen',
+    'common.download': 'Herunterladen',
 
     // API Documentation
     'api.api': 'API',
@@ -9688,6 +9691,7 @@ const translations = {
     // Common additions
     'common.characters': 'caracteres',
     'common.close': 'Cerrar',
+    'common.download': 'Descargar',
 
     // API Documentation
     'api.api': 'API',
