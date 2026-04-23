@@ -113,8 +113,9 @@ const AddProductsModal = ({
   };
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-[70] flex items-center justify-center">
         {/* Backdrop */}
