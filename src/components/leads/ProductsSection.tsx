@@ -51,10 +51,11 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const { currencyCode: companyCurrency } = useCurrency();
   const formatPrice = (value: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: companyCurrency,
     }).format(value);
   };
 
