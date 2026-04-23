@@ -26,12 +26,12 @@ interface BudgetSectionProps {
   erpBudgetIds?: number[];
 }
 
-// Currency formatting helper
-const formatCurrency = (value: number | string): string => {
+// Currency formatting helper (locale-agnostic, uses provided currency code)
+const buildFormatCurrency = (currencyCode: string) => (value: number | string): string => {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currencyCode,
   }).format(numValue);
 };
 
