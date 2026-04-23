@@ -274,7 +274,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
       return sum + (s.deals || []).reduce((dSum: number, d: any) => dSum + (d.final_total || 0), 0);
     }, 0);
   }, [funnel]);
-  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: funnel.currency || companyCurrency }).format(value);
+  const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(value);
 
   return (
     <div className="space-y-6">
