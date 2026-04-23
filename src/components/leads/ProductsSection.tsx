@@ -297,7 +297,10 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
   }, [query, open]);
 
   const isSelected = (id: number) => selected.some(s => s.id === id);
-  const isAlreadyLinked = (id: number) => existingIds.includes(id);
+  const findLinked = (id: number) => linkedProducts.find(l => l.id === id);
+  const isAlreadyLinked = (id: number) => !!findLinked(id);
+  const linkedQtyOf = (id: number) =>
+    linkedQtyOverrides[id] ?? findLinked(id)?.quantity ?? 1;
 
   const toggleSelect = (product: ProductSearchResult) => {
     if (isAlreadyLinked(product.id)) return;
@@ -316,6 +319,41 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
 
   const removeSelected = (id: number) => {
     setSelected(prev => prev.filter(s => s.id !== id));
+  };
+
+  // Linked-product mutations
+  const handleLinkedQtyChange = async (productId: number, nextQty: number) => {
+    if (nextQty < 1) return;
+    setLinkedQtyOverrides(prev => ({ ...prev, [productId]: nextQty }));
+    setPendingLinkedId(productId);
+    try {
+      await updateLeadProductQuantity(leadId, productId, nextQty);
+      onLinkedChanged();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
+      // Revert override on failure
+      setLinkedQtyOverrides(prev => {
+        const copy = { ...prev };
+        delete copy[productId];
+        return copy;
+      });
+    } finally {
+      setPendingLinkedId(null);
+    }
+  };
+
+  const handleLinkedRemove = async (productId: number) => {
+    setPendingLinkedId(productId);
+    try {
+      await removeProductFromLead(leadId, productId);
+      onLinkedChanged();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.response?.data?.message || t('lead-details.products-added-error'));
+    } finally {
+      setPendingLinkedId(null);
+    }
   };
 
   const handleSubmit = async () => {
