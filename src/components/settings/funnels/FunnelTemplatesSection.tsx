@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, GripVertical, Settings2, Copy, FileStack, Loader2, Cog } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Copy, FileStack, Loader2, Cog } from 'lucide-react';
 import { Funnel, FunnelStage, STAGE_COLORS, defaultStageEntryRules, TemplateStageType, StageEntryRequirement } from '@/services/funnelSettingsApi';
 import StageEntryRequirementsModal from '@/components/stages/StageEntryRequirementsModal';
 
@@ -19,8 +19,7 @@ interface Props {
   onAddTemplate: (funnel: Funnel) => Promise<void>;
   onUpdateTemplate: (id: string, updates: Partial<Funnel>) => void;
   onDeleteTemplate: (id: string) => Promise<void>;
-  onEditStage: (stage: FunnelStage) => void;
-  onCreateFunnelFromTemplate: (templateId: string, newFunnelName?: string) => Promise<void>;
+  onCreateFunnelFromTemplate: (templateId: string, newFunnelName?: string, funnelType?: 'sale' | 'deal') => Promise<void>;
   onAddTemplateStage: (templateId: string, stage: Omit<FunnelStage, 'id'>) => Promise<FunnelStage>;
   onUpdateTemplateStage: (templateId: string, stageId: string, updates: Partial<FunnelStage>) => Promise<void>;
   onDeleteTemplateStage: (templateId: string, stageId: string) => Promise<void>;
@@ -66,7 +65,6 @@ const FunnelTemplatesSection = ({
   onAddTemplate,
   onUpdateTemplate,
   onDeleteTemplate,
-  onEditStage,
   onCreateFunnelFromTemplate,
   onAddTemplateStage,
   onUpdateTemplateStage,
@@ -86,6 +84,7 @@ const FunnelTemplatesSection = ({
   const [templateForm, setTemplateForm] = useState<Omit<Funnel, 'id'>>(emptyFunnel);
   const [stageForm, setStageForm] = useState<Omit<FunnelStage, 'id'>>(emptyStage);
   const [newFunnelName, setNewFunnelName] = useState('');
+  const [newFunnelType, setNewFunnelType] = useState<'sale' | 'deal'>('sale');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -221,6 +220,7 @@ const FunnelTemplatesSection = ({
   const handleOpenCreateFromTemplate = () => {
     if (!selectedTemplate) return;
     setNewFunnelName(`${selectedTemplate.name} (Copy)`);
+    setNewFunnelType('sale');
     setIsCreateFromTemplateDialogOpen(true);
   };
 
@@ -228,7 +228,7 @@ const FunnelTemplatesSection = ({
     if (!selectedTemplate || !newFunnelName) return;
     setIsSaving(true);
     try {
-      await onCreateFunnelFromTemplate(selectedTemplate.id, newFunnelName);
+      await onCreateFunnelFromTemplate(selectedTemplate.id, newFunnelName, newFunnelType);
       setIsCreateFromTemplateDialogOpen(false);
       setNewFunnelName('');
     } finally {
@@ -341,15 +341,6 @@ const FunnelTemplatesSection = ({
                         title={t('stages.configure_entry_requirements')}
                       >
                         <Cog className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => onEditStage(stage)}
-                        title={t('settings.funnels.stage-rules')}
-                      >
-                        <Settings2 className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -505,6 +496,21 @@ const FunnelTemplatesSection = ({
             <p className="text-sm text-muted-foreground">
               {t('settings.funnels.create-from-template-desc')}
             </p>
+            <div className="grid gap-2">
+              <Label>{t('funnels.type')}</Label>
+              <Select
+                value={newFunnelType}
+                onValueChange={(value: 'sale' | 'deal') => setNewFunnelType(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sale">{t('funnels.sales-funnels')}</SelectItem>
+                  <SelectItem value="deal">{t('funnels.deal-funnels')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid gap-2">
               <Label>{t('settings.funnels.new-funnel-name')}</Label>
               <Input

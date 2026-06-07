@@ -101,15 +101,15 @@
     --muted: 0 0% 8%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 271 91% 65%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 85%;
+    --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 15%;
     --input: 0 0% 12%;
-    --ring: 271 81% 56%;
+    --ring: 0 0% 80%;
 
     /* Glassmorphism */
     --glass-bg: 0 0% 8% / 0.6;
@@ -117,13 +117,13 @@
     --glass-hover: 0 0% 12% / 0.8;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 91% 65%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 70%), hsl(0 0% 88%));
     --gradient-dark: linear-gradient(135deg, hsl(0 0% 3%), hsl(0 0% 8%));
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 8% / 0.4), hsl(0 0% 12% / 0.2));
 
     /* Glow Effects */
-    --glow-primary: 0 0 20px hsl(271 81% 56% / 0.3);
-    --glow-accent: 0 0 30px hsl(271 91% 65% / 0.4);
+    --glow-primary: 0 0 20px hsl(0 0% 85% / 0.15);
+    --glow-accent: 0 0 30px hsl(0 0% 85% / 0.2);
 
     /* Deal Accent */
     --deal-accent: 199 89% 58%;

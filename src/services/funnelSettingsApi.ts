@@ -58,7 +58,7 @@ export interface StageAction {
 export interface Funnel {
   id: string;
   name: string;
-  type?: 'regular' | 'model'; // 'model' = template funnel
+  type?: 'sale' | 'deal' | 'model';
   isDefault: boolean;
   appliesTo: 'leads' | 'deals' | 'both';
   stages: FunnelStage[];
@@ -176,7 +176,7 @@ export const defaultFunnelSettings: FunnelSettings = {
     {
       id: 'default-funnel',
       name: 'Default Sales Funnel',
-      type: 'regular',
+      type: 'sale',
       isDefault: true,
       appliesTo: 'both',
       stages: [

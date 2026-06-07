@@ -1,6 +1,6 @@
 /**
  * FUNNELS MANAGEMENT DASHBOARD
- * 
+ *
  * A comprehensive dashboard for managing sales funnels with:
  * - Horizontal card grid layout for displaying all company funnels
  * - Glassmorphism design with futuristic styling
@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree, Users } from 'lucide-react';
+import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree, Users, FileStack, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -23,6 +23,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,8 +47,15 @@ interface Funnel {
   nleads: number;
 }
 
+interface TemplateFunnel {
+  id: number;
+  name: string;
+  stages: { id: number; name: string; order: number }[];
+}
+
 const FunnelsDashboard = () => {
   const [funnels, setFunnels] = useState<Funnel[]>([]);
+  const [templates, setTemplates] = useState<TemplateFunnel[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'sale' | 'deal'>('sale');
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
@@ -57,11 +65,12 @@ const FunnelsDashboard = () => {
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', type: 'sale' as 'sale' | 'deal' });
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [editFormData, setEditFormData] = useState({ name: '', description: '', is_active: true });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
   const [stagesModalFunnelId, setStagesModalFunnelId] = useState<string | null>(null);
-  
+
   const { toast } = useToast();
   const { funnels: authFunnels, updateFunnels, updateFunnel: updateFunnelInContext } = useAuth();
   const { t } = useLanguage();
@@ -69,6 +78,7 @@ const FunnelsDashboard = () => {
 
   useEffect(() => {
     fetchFunnels();
+    fetchTemplates();
   }, []);
 
   const fetchFunnels = async () => {
@@ -78,7 +88,6 @@ const FunnelsDashboard = () => {
       setFunnels(response.data);
     } catch (error) {
       console.error('Error fetching funnels:', error);
-      // Fallback to auth context funnels if API fails
       if (authFunnels && authFunnels.length > 0) {
         const mappedFunnels = authFunnels.map((funnel: any) => ({
           id: funnel.id,
@@ -106,36 +115,54 @@ const FunnelsDashboard = () => {
     }
   };
 
-  const createFunnel = async () => {
-    // Reset form errors
+  const fetchTemplates = async () => {
+    try {
+      const response = await api.get('/api/funnels/templates');
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const openNewFunnelModal = () => {
+    setFormData({ name: '', description: '', type: activeTab });
+    setSelectedTemplateId('');
     setFormErrors({ name: '', description: '' });
-    
-    // Validate form
+    setShowNewFunnelModal(true);
+  };
+
+  const createFunnel = async () => {
+    setFormErrors({ name: '', description: '' });
+
     const errors = { name: '', description: '' };
     if (!formData.name.trim()) {
       errors.name = t('funnels.name-required');
     }
-    if (!formData.description.trim()) {
+    const usingTemplate = !!selectedTemplateId;
+    if (!usingTemplate && !formData.description.trim()) {
       errors.description = t('funnels.description-required');
     }
-    
+
     if (errors.name || errors.description) {
       setFormErrors(errors);
       return;
     }
-    
+
     try {
       setCreating(true);
-      const response = await api.post('/api/funnels', {
+      const payload: any = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        type: formData.type
-      });
-      
-      // Add new funnel to the list
+        description: formData.description.trim() || formData.name.trim(),
+        type: formData.type,
+      };
+      if (usingTemplate) {
+        payload.model_funnel_id = parseInt(selectedTemplateId, 10);
+      }
+
+      const response = await api.post('/api/funnels', payload);
+
       setFunnels(prev => [...prev, response.data]);
-      
-      // Update global context for sidebar
+
       if (updateFunnels) {
         const updatedGlobalFunnels = [...(authFunnels || []), {
           id: response.data.id,
@@ -146,30 +173,25 @@ const FunnelsDashboard = () => {
         }];
         updateFunnels(updatedGlobalFunnels);
       }
-      
-      // Reset form and close modal
-      setFormData({ name: '', description: '', type: activeTab });
+
       setShowNewFunnelModal(false);
-      
+
       toast({
         title: t('common.success'),
         description: t('funnels.success-create'),
       });
     } catch (error: any) {
       console.error('Error creating funnel:', error);
-      
-      // Handle different error types
+
       if (error.response?.status === 401) {
-        // Authentication error - redirect to login
         localStorage.removeItem('optomyze_auth_token');
         localStorage.removeItem('optomyze_user');
         localStorage.removeItem('optomyze_funnels');
         window.location.href = '/login';
         return;
       }
-      
+
       if (error.response?.status === 422 && error.response?.data?.errors) {
-        // Validation errors from server
         const serverErrors = error.response.data.errors;
         setFormErrors({
           name: serverErrors.name?.[0] || '',
@@ -177,13 +199,12 @@ const FunnelsDashboard = () => {
         });
         return;
       }
-      
-      // Network or server errors
+
       const isNetworkError = !error.response;
       toast({
         title: t('common.error'),
-        description: isNetworkError 
-          ? t('funnels.network-error') 
+        description: isNetworkError
+          ? t('funnels.network-error')
           : t('funnels.server-error'),
         variant: "destructive",
         action: isNetworkError ? (
@@ -201,16 +222,14 @@ const FunnelsDashboard = () => {
     try {
       setDeletingFunnelId(funnelId);
       await api.delete(`/api/funnels/${funnelId}`);
-      
-      // Optimistic update
+
       setFunnels(prev => prev.filter(funnel => funnel.id !== funnelId));
-      
-      // Update global context for sidebar
+
       if (updateFunnels) {
         const updatedGlobalFunnels = (authFunnels || []).filter(f => f.id !== funnelId);
         updateFunnels(updatedGlobalFunnels);
       }
-      
+
       toast({
         title: t('common.success'),
         description: t('funnels.success-delete'),
@@ -239,10 +258,8 @@ const FunnelsDashboard = () => {
   };
 
   const updateFunnel = async () => {
-    // Reset form errors
     setEditFormErrors({ name: '', description: '' });
-    
-    // Validate form
+
     const errors = { name: '', description: '' };
     if (!editFormData.name.trim()) {
       errors.name = t('funnels.name-required');
@@ -250,14 +267,14 @@ const FunnelsDashboard = () => {
     if (!editFormData.description.trim()) {
       errors.description = t('funnels.description-required');
     }
-    
+
     if (errors.name || errors.description) {
       setEditFormErrors(errors);
       return;
     }
-    
+
     if (!selectedFunnel) return;
-    
+
     try {
       setUpdating(true);
       const updatedFunnel = await funnelService.updateFunnel(selectedFunnel.id, {
@@ -265,25 +282,23 @@ const FunnelsDashboard = () => {
         description: editFormData.description.trim(),
         is_active: editFormData.is_active
       });
-      
-      // Update funnel in the list
-      setFunnels(prev => prev.map(funnel => 
+
+      setFunnels(prev => prev.map(funnel =>
         funnel.id === selectedFunnel.id ? { ...funnel, ...updatedFunnel } : funnel
       ));
-      
-      // Update global context for sidebar (this will automatically handle active/inactive filtering)
+
       updateFunnelInContext({ ...selectedFunnel, ...updatedFunnel });
-      
+
       setShowEditFunnelModal(false);
       setSelectedFunnel(null);
-      
+
       toast({
         title: t('common.success'),
         description: t('funnels.success-update'),
       });
     } catch (error: any) {
       console.error('Error updating funnel:', error);
-      
+
       if (error.response?.status === 422 && error.response?.data?.errors) {
         const serverErrors = error.response.data.errors;
         setEditFormErrors({
@@ -292,7 +307,7 @@ const FunnelsDashboard = () => {
         });
         return;
       }
-      
+
       toast({
         title: t('common.error'),
         description: t('funnels.error-update'),
@@ -303,14 +318,16 @@ const FunnelsDashboard = () => {
     }
   };
 
+  const selectedTemplate = templates.find(t => t.id === parseInt(selectedTemplateId, 10)) ?? null;
+
   const FunnelCard = ({ funnel }: { funnel: Funnel }) => (
     <Card className="glass-card hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
       {/* Header with Status and Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-white/10 gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className={`p-2 rounded-lg shrink-0 transition-colors ${
-            funnel.is_active 
-              ? 'bg-green-500/20 text-green-400 group-hover:bg-green-500/30' 
+            funnel.is_active
+              ? 'bg-green-500/20 text-green-400 group-hover:bg-green-500/30'
               : 'bg-red-500/20 text-red-400 group-hover:bg-red-500/30'
           }`}>
             <Filter className="h-5 w-5" />
@@ -320,11 +337,11 @@ const FunnelsDashboard = () => {
               {funnel.name}
             </h3>
             <div className="flex items-center gap-2">
-              <Badge 
-                variant={funnel.is_active ? "default" : "secondary"} 
+              <Badge
+                variant={funnel.is_active ? "default" : "secondary"}
                 className={`text-xs ${
-                  funnel.is_active 
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                  funnel.is_active
+                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
                     : 'bg-red-500/20 text-red-400 border-red-500/30'
                 }`}
               >
@@ -336,7 +353,6 @@ const FunnelsDashboard = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* View Funnel Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -347,7 +363,6 @@ const FunnelsDashboard = () => {
             <Eye className="h-4 w-4" />
           </Button>
 
-          {/* Stages Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -358,7 +373,6 @@ const FunnelsDashboard = () => {
             <ListTree className="h-4 w-4" />
           </Button>
 
-          {/* Config Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -368,7 +382,7 @@ const FunnelsDashboard = () => {
           >
             <Cog className="h-4 w-4" />
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -414,10 +428,8 @@ const FunnelsDashboard = () => {
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
           {funnel.description}
         </p>
-        
-        {/* Stats Section */}
+
         <div className="grid grid-cols-2 gap-4">
-          {/* Leads/Deals Count */}
           <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
             <div className="text-2xl font-bold text-primary mb-1">
               {funnel.nleads}
@@ -427,7 +439,6 @@ const FunnelsDashboard = () => {
             </div>
           </div>
 
-          {/* Creation Date */}
           <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
             <div className="text-sm font-medium text-foreground mb-1">
               {funnel.created_at ? new Date(funnel.created_at).toLocaleDateString() : 'N/A'}
@@ -471,13 +482,7 @@ const FunnelsDashboard = () => {
       </div>
       <h3 className="text-lg font-semibold text-foreground mb-2">{t('funnels.no-funnels')}</h3>
       <p className="text-muted-foreground mb-6">{t('funnels.no-funnels-subtitle')}</p>
-      <Button 
-        onClick={() => {
-          setFormData({ name: '', description: '', type: activeTab });
-          setShowNewFunnelModal(true);
-        }}
-        className="neon-border"
-      >
+      <Button onClick={openNewFunnelModal} className="neon-border">
         <Plus className="h-4 w-4 mr-2" />
         {t('funnels.create-funnel')}
       </Button>
@@ -496,24 +501,63 @@ const FunnelsDashboard = () => {
             {t('funnels.breadcrumb')}
           </nav>
         </div>
-        
-        <Dialog open={showNewFunnelModal} onOpenChange={(open) => {
-          setShowNewFunnelModal(open);
-          if (open) {
-            setFormData({ name: '', description: '', type: activeTab });
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button className="neon-border w-full sm:w-auto" size="lg">
-              <Plus className="h-4 w-4 mr-2" />
-              {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
-            </Button>
-          </DialogTrigger>
+
+        <Button className="neon-border w-full sm:w-auto" size="lg" onClick={openNewFunnelModal}>
+          <Plus className="h-4 w-4 mr-2" />
+          {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
+        </Button>
+
+        {/* New Funnel Modal */}
+        <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
           <DialogContent className="glass-card max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-foreground futuristic-text">{t('funnels.create-new')}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 py-6">
+            <div className="space-y-5 py-4">
+
+              {/* Template selector */}
+              {templates.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-foreground">{t('funnels.from-template')}</Label>
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={(val) => {
+                      setSelectedTemplateId(val === 'none' ? '' : val);
+                      setFormErrors({ name: '', description: '' });
+                    }}
+                  >
+                    <SelectTrigger className="glass-card border-muted/30">
+                      <SelectValue placeholder={t('funnels.no-template')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('funnels.no-template')}</SelectItem>
+                      {templates.map(tpl => (
+                        <SelectItem key={tpl.id} value={String(tpl.id)}>
+                          <div className="flex items-center gap-2">
+                            <FileStack className="w-3.5 h-3.5 text-muted-foreground" />
+                            {tpl.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {selectedTemplate && selectedTemplate.stages.length > 0 && (
+                    <div className="rounded-md bg-muted/20 border border-muted/30 px-3 py-2">
+                      <p className="text-xs text-muted-foreground mb-1.5">{t('funnels.template-stages-preview')}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedTemplate.stages.map(s => (
+                          <span key={s.id} className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20">
+                            {s.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="funnel-name" className="text-foreground">
                   {t('funnels.name')} *
@@ -536,36 +580,41 @@ const FunnelsDashboard = () => {
                   </div>
                 )}
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="funnel-description" className="text-foreground">
-                  {t('funnels.description')} *
-                </Label>
-                <Textarea
-                  id="funnel-description"
-                  value={formData.description}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, description: e.target.value }));
-                    if (formErrors.description) setFormErrors(prev => ({ ...prev, description: '' }));
-                  }}
-                  placeholder={t('funnels.description-placeholder')}
-                  className={`glass-card border-muted/30 min-h-[100px] ${formErrors.description ? 'border-red-500' : ''}`}
-                  disabled={creating}
-                />
-                {formErrors.description && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.description}
-                  </div>
-                )}
-              </div>
+
+              {/* Description — hidden when a template is selected */}
+              {!selectedTemplateId && (
+                <div className="space-y-2">
+                  <Label htmlFor="funnel-description" className="text-foreground">
+                    {t('funnels.description')} *
+                  </Label>
+                  <Textarea
+                    id="funnel-description"
+                    value={formData.description}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, description: e.target.value }));
+                      if (formErrors.description) setFormErrors(prev => ({ ...prev, description: '' }));
+                    }}
+                    placeholder={t('funnels.description-placeholder')}
+                    className={`glass-card border-muted/30 min-h-[100px] ${formErrors.description ? 'border-red-500' : ''}`}
+                    disabled={creating}
+                  />
+                  {formErrors.description && (
+                    <div className="flex items-center gap-2 text-red-400 text-sm">
+                      <AlertCircle className="h-4 w-4" />
+                      {formErrors.description}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                variant="outline" 
-              onClick={() => {
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
                   setShowNewFunnelModal(false);
                   setFormData({ name: '', description: '', type: activeTab });
+                  setSelectedTemplateId('');
                   setFormErrors({ name: '', description: '' });
                 }}
                 className="bg-muted/20 border-muted/30 hover:bg-muted/30"
@@ -573,7 +622,7 @@ const FunnelsDashboard = () => {
               >
                 {t('funnels.cancel')}
               </Button>
-              <Button 
+              <Button
                 onClick={createFunnel}
                 className="neon-border"
                 disabled={creating}
@@ -585,8 +634,11 @@ const FunnelsDashboard = () => {
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('common.create')}
+                    {selectedTemplateId
+                      ? <FileStack className="h-4 w-4 mr-2" />
+                      : <Plus className="h-4 w-4 mr-2" />
+                    }
+                    {selectedTemplateId ? t('funnels.create-from-template') : t('common.create')}
                   </>
                 )}
               </Button>
@@ -625,7 +677,7 @@ const FunnelsDashboard = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="edit-funnel-description" className="text-foreground">
                   {t('funnels.description')} *
@@ -661,7 +713,7 @@ const FunnelsDashboard = () => {
                 <Switch
                   id="edit-funnel-active"
                   checked={editFormData.is_active}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setEditFormData(prev => ({ ...prev, is_active: checked }))
                   }
                   disabled={updating}
@@ -669,8 +721,8 @@ const FunnelsDashboard = () => {
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowEditFunnelModal(false);
                   setSelectedFunnel(null);
@@ -682,7 +734,7 @@ const FunnelsDashboard = () => {
               >
                 {t('funnels.cancel')}
               </Button>
-              <Button 
+              <Button
                 onClick={updateFunnel}
                 className="neon-border"
                 disabled={updating}

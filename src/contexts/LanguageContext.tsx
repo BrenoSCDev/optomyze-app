@@ -1248,6 +1248,11 @@ const translations = {
     'funnels.error-load': 'Failed to load funnels. Please try again.',
     'funnels.network-error': 'Network error. Please check your connection and try again.',
     'funnels.server-error': 'Server error. Please contact support if the problem persists.',
+    'funnels.from-template': 'Use a Template',
+    'funnels.no-template': 'No template (blank funnel)',
+    'funnels.template-stages-preview': 'Stages that will be created:',
+    'funnels.type': 'Funnel Type',
+    'funnels.create-from-template': 'Create from Template',
     
     // Stages
     'stages.title': 'Funnel Stages',
@@ -4100,7 +4105,12 @@ const translations = {
     'funnels.error-load': 'Falha ao carregar funis. Tente novamente.',
     'funnels.network-error': 'Erro de rede. Verifique sua conexão e tente novamente.',
     'funnels.server-error': 'Erro do servidor. Entre em contato com o suporte se o problema persistir.',
-    
+    'funnels.from-template': 'Usar um Template',
+    'funnels.no-template': 'Sem template (funil em branco)',
+    'funnels.template-stages-preview': 'Etapas que serão criadas:',
+    'funnels.type': 'Tipo de Funil',
+    'funnels.create-from-template': 'Criar a partir do Template',
+
     // Stages
     'stages.title': 'Estágios do Funil',
     'stages.subtitle': 'Gerenciando estágios para {funnelName}',
@@ -6808,7 +6818,12 @@ const translations = {
     'funnels.error-load': 'Fehler beim Laden der Trichter. Bitte versuchen Sie es erneut.',
     'funnels.network-error': 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
     'funnels.server-error': 'Serverfehler. Bitte kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
-    
+    'funnels.from-template': 'Vorlage verwenden',
+    'funnels.no-template': 'Keine Vorlage (leerer Trichter)',
+    'funnels.template-stages-preview': 'Phasen, die erstellt werden:',
+    'funnels.type': 'Trichtertyp',
+    'funnels.create-from-template': 'Aus Vorlage erstellen',
+
     // Integrations
     'integrations.title': 'App-Integrationen',
     'integrations.breadcrumb': 'Einstellungen / Integrationen / Apps',
@@ -9489,7 +9504,12 @@ const translations = {
     'funnels.error-load': 'Error al cargar embudos. Inténtalo de nuevo.',
     'funnels.network-error': 'Error de red. Verifica tu conexión e inténtalo de nuevo.',
     'funnels.server-error': 'Error del servidor. Contacta soporte si el problema persiste.',
-    
+    'funnels.from-template': 'Usar una Plantilla',
+    'funnels.no-template': 'Sin plantilla (embudo en blanco)',
+    'funnels.template-stages-preview': 'Etapas que se crearán:',
+    'funnels.type': 'Tipo de Embudo',
+    'funnels.create-from-template': 'Crear desde Plantilla',
+
     // Integrations
     'integrations.title': 'Integraciones de Apps',
     'integrations.breadcrumb': 'Configuración / Integraciones / Apps',

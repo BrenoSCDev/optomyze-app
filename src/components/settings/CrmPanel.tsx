@@ -389,7 +389,6 @@ const CrmPanel = () => {
                       onAddTemplate={addFunnelTemplate}
                       onUpdateTemplate={updateFunnel}
                       onDeleteTemplate={deleteFunnelTemplate}
-                      onEditStage={handleEditStage}
                       onCreateFunnelFromTemplate={createFunnelFromTemplate}
                       onAddTemplateStage={addTemplateStage}
                       onUpdateTemplateStage={updateTemplateStage}

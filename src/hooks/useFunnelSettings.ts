@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FunnelSettings, Funnel, FunnelStage, defaultFunnelSettings } from '@/services/funnelSettingsApi';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 
 export const useFunnelSettings = () => {
@@ -13,6 +14,7 @@ export const useFunnelSettings = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { funnels: authFunnels, updateFunnels } = useAuth();
 
   // Load settings from API
   const loadSettings = useCallback(async () => {
@@ -27,7 +29,7 @@ export const useFunnelSettings = () => {
       const mappedFunnels: Funnel[] = funnelsFromApi.map((f: any) => ({
         id: String(f.id),
         name: f.name,
-        type: f.type || 'regular',
+        type: f.type || 'sale',
         isDefault: f.is_default || false,
         appliesTo: f.applies_to || 'both',
         stages: (f.stages || []).map((s: any) => ({
@@ -122,21 +124,21 @@ export const useFunnelSettings = () => {
     }));
   }, []);
 
-  // Add new funnel (regular) via API
+  // Add new funnel via API
   const addFunnel = useCallback(async (funnel: Funnel) => {
     try {
       const response = await api.post('/api/funnels', {
         name: funnel.name,
         description: funnel.name,
-        type: 'regular',
+        type: funnel.type ?? 'sale',
         applies_to: funnel.appliesTo,
         is_default: funnel.isDefault,
       });
-      
+
       const createdFunnel: Funnel = {
         id: String(response.data.id),
         name: response.data.name,
-        type: 'regular',
+        type: response.data.type ?? 'sale',
         isDefault: response.data.is_default || false,
         appliesTo: response.data.applies_to || 'both',
         stages: [],
@@ -407,16 +409,15 @@ export const useFunnelSettings = () => {
   }, []);
 
   // Create funnel from template via API
-  const createFunnelFromTemplate = useCallback(async (templateId: string, newFunnelName?: string) => {
+  const createFunnelFromTemplate = useCallback(async (templateId: string, newFunnelName?: string, funnelType: 'sale' | 'deal' = 'sale') => {
     const template = settings.funnels.find(f => f.id === templateId && f.type === 'model');
     if (!template) return;
 
     try {
-      // Create the new funnel
       const funnelResponse = await api.post('/api/funnels', {
         name: newFunnelName || `${template.name} (Copy)`,
         description: newFunnelName || `${template.name} (Copy)`,
-        type: 'regular', // New funnel from template is always regular
+        type: funnelType,
         applies_to: template.appliesTo,
         is_default: false,
       });
@@ -461,7 +462,7 @@ export const useFunnelSettings = () => {
       const newFunnel: Funnel = {
         id: newFunnelId,
         name: funnelResponse.data.name,
-        type: 'regular',
+        type: funnelType,
         isDefault: false,
         appliesTo: funnelResponse.data.applies_to || 'both',
         stages: createdStages,
@@ -472,6 +473,17 @@ export const useFunnelSettings = () => {
         funnels: [...prev.funnels, newFunnel],
       }));
       setSelectedFunnelId(newFunnel.id);
+
+      if (updateFunnels) {
+        const updatedGlobalFunnels = [...(authFunnels || []), {
+          id: funnelResponse.data.id,
+          name: funnelResponse.data.name,
+          nleads: funnelResponse.data.nleads || 0,
+          is_active: funnelResponse.data.is_active ?? true,
+          type: funnelResponse.data.type,
+        }];
+        updateFunnels(updatedGlobalFunnels);
+      }
 
       toast({
         title: t('common.success'),
@@ -485,7 +497,7 @@ export const useFunnelSettings = () => {
         variant: 'destructive',
       });
     }
-  }, [settings.funnels, toast, t]);
+  }, [settings.funnels, authFunnels, updateFunnels, toast, t]);
 
   // Save settings (mock for now)
   const saveSettings = useCallback(async () => {
