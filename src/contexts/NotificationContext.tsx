@@ -117,7 +117,7 @@ export interface AppointmentNotification {
   };
   lead: { id: number; funnel_id: number; first_name: string; last_name: string } | null;
   assigned_user: { id: number; name: string } | null;
-  actor: { id: number; name: string; profile_pic_url?: string | null };
+  actor: { id: number; name: string; profile_pic_url?: string | null } | null;
   timestamp: string;
   read: boolean;
 }
@@ -254,7 +254,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         ? [lead.first_name, lead.last_name].filter(Boolean).map(n => n.charAt(0).toUpperCase()).join('') || '?'
         : null;
       const scheduledAt = new Date(data.appointment.scheduled_at).toLocaleString();
-      toast.info(data.actor.name, {
+      toast.info(data.actor?.name ?? 'Optomyze CRM', {
         description: `${data.appointment.title} · ${scheduledAt}${data.assigned_user ? ` · ${data.assigned_user.name}` : ''}`,
         icon: initials ? (
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">

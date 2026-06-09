@@ -5,19 +5,22 @@
  * Connected to /api/events for real data with full CRUD support
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { getEcho } from '@/services/echo';
 import {
   useCalendarEvents,
   useCreateCalendarEvent,
   useUpdateCalendarEvent,
   useDeleteCalendarEvent
 } from '@/hooks/useCalendarEvents';
-import { CalendarTask, CalendarEvent, CalendarAppointment } from '@/services/calendarApi';
+import { CalendarTask, CalendarEvent, CalendarAppointment, CalendarEventsResponse } from '@/services/calendarApi';
 import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
@@ -86,6 +89,8 @@ interface CalendarItem {
 
 const OptomyzeCalendar: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth() as { user: { id: number; company_id: number } | null };
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
@@ -103,6 +108,50 @@ const OptomyzeCalendar: React.FC = () => {
   const createEventMutation = useCreateCalendarEvent();
   const updateEventMutation = useUpdateCalendarEvent();
   const deleteEventMutation = useDeleteCalendarEvent();
+
+  // Live appointment updates via private appointments.{company_id} channel
+  useEffect(() => {
+    if (!user?.company_id) return;
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channelName = `appointments.${user.company_id}`;
+    const channel = echo.private(channelName);
+
+    channel.listen('.appointment.live', (payload: any) => {
+      queryClient.setQueryData<CalendarEventsResponse>(['calendarEvents'], (old) => {
+        if (!old) return old;
+
+        if (payload.action === 'created') {
+          const exists = old.appointments.some((a) => a.id === payload.appointment.id);
+          if (exists) return old;
+          return { ...old, appointments: [...old.appointments, payload.appointment as CalendarAppointment] };
+        }
+
+        if (payload.action === 'updated') {
+          return {
+            ...old,
+            appointments: old.appointments.map((a) =>
+              a.id === payload.appointment.id ? (payload.appointment as CalendarAppointment) : a
+            ),
+          };
+        }
+
+        if (payload.action === 'deleted') {
+          return {
+            ...old,
+            appointments: old.appointments.filter((a) => a.id !== payload.id),
+          };
+        }
+
+        return old;
+      });
+    });
+
+    return () => {
+      echo.leave(channelName);
+    };
+  }, [user?.company_id, queryClient]);
 
   // Helper to parse dates correctly (handles date-only strings without timezone shift)
   const parseDateSafe = (dateString: string): Date => {
@@ -315,6 +364,11 @@ const OptomyzeCalendar: React.FC = () => {
       return appointmentStatusColors[item.subType] || appointmentStatusColors.scheduled;
     }
     return eventTypeColors[item.subType] || eventTypeColors.other;
+  };
+
+  // Safely format a subType for display, falling back when it's missing
+  const formatSubType = (subType: string | null | undefined) => {
+    return (subType || 'scheduled').replace('_', ' ');
   };
 
   // Format time display
@@ -603,7 +657,7 @@ const OptomyzeCalendar: React.FC = () => {
                           ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
                           : undefined}
                       >
-                        {item.type === 'task' ? 'Task' : item.subType.replace('_', ' ')}
+                        {item.type === 'task' ? 'Task' : formatSubType(item.subType)}
                       </Badge>
                       {item.type === 'event' && (
                         <>
@@ -792,7 +846,7 @@ const OptomyzeCalendar: React.FC = () => {
                     ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
                     : undefined}
                 >
-                  {item.type === 'task' ? 'Task' : item.type === 'appointment' ? item.subType.replace('_', ' ') : 'Event'}
+                  {item.type === 'task' ? 'Task' : item.type === 'appointment' ? formatSubType(item.subType) : 'Event'}
                 </Badge>
               </div>
             ))}
