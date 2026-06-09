@@ -105,7 +105,24 @@ export interface DealTransactionNotification {
   read: boolean;
 }
 
-export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification | DealTransactionNotification;
+export interface AppointmentNotification {
+  id: string;
+  type: 'appointment_scheduled';
+  message: string;
+  appointment: {
+    id: number;
+    title: string;
+    scheduled_at: string;
+    end_at?: string | null;
+  };
+  lead: { id: number; funnel_id: number; first_name: string; last_name: string } | null;
+  assigned_user: { id: number; name: string } | null;
+  actor: { id: number; name: string; profile_pic_url?: string | null };
+  timestamp: string;
+  read: boolean;
+}
+
+export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification | DealTransactionNotification | AppointmentNotification;
 
 // Global event emitter for lead transactions (used by activity dashboards)
 type LeadTransactionListener = (payload: LeadTransactionNotification['transaction']) => void;
@@ -176,7 +193,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [markAsRead]);
 
   // Add a new notification - STABLE callback
-  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'> | Omit<DealTransactionNotification, 'read'>) => {
+  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'> | Omit<DealTransactionNotification, 'read'> | Omit<AppointmentNotification, 'read'>) => {
     const notification = { ...data, read: false } as AppNotification;
 
     setNotifications(prev => {
@@ -216,20 +233,54 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       // Only toast for important events
       if (data.transaction.is_important) {
         const actor = data.transaction.user?.name ?? (data.transaction.source === 'automation' ? 'Automation' : 'System');
+        const lead = data.transaction.lead;
+        const initials = [lead.first_name, lead.last_name]
+          .filter(Boolean)
+          .map(n => n.charAt(0).toUpperCase())
+          .join('') || '?';
         toast.success(actor, {
           description: data.transaction.description,
+          icon: (
+            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-400 font-bold text-[10px]">{initials}</span>
+            </div>
+          ),
           duration: 4000,
         });
       }
+    } else if (data.type === 'appointment_scheduled') {
+      const lead = data.lead;
+      const initials = lead
+        ? [lead.first_name, lead.last_name].filter(Boolean).map(n => n.charAt(0).toUpperCase()).join('') || '?'
+        : null;
+      const scheduledAt = new Date(data.appointment.scheduled_at).toLocaleString();
+      toast.info(data.actor.name, {
+        description: `${data.appointment.title} · ${scheduledAt}${data.assigned_user ? ` · ${data.assigned_user.name}` : ''}`,
+        icon: initials ? (
+          <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-emerald-500 font-bold text-[10px]">{initials}</span>
+          </div>
+        ) : undefined,
+        duration: 5000,
+      });
     } else if (data.type === 'deal_transaction') {
       const isWonLost = ['won', 'lost'].includes(data.transaction.action);
-      if (isWonLost) {
+      const isCreated = data.transaction.action === 'created';
+      if (isWonLost || isCreated) {
         const actor = data.transaction.user?.name ?? (data.transaction.source === 'automation' ? 'Automation' : 'System');
-        const variant = data.transaction.action === 'won' ? 'success' : 'error';
-        const toastFn = variant === 'success' ? toast.success : toast.error;
+        const lead = data.transaction.deal?.lead;
+        const initials = lead
+          ? [lead.first_name, lead.last_name].filter(Boolean).map(n => n.charAt(0).toUpperCase()).join('') || '?'
+          : null;
+        const toastFn = data.transaction.action === 'lost' ? toast.error : toast.success;
         toastFn(actor, {
           description: data.transaction.description,
-          duration: 5000,
+          icon: initials ? (
+            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-400 font-bold text-[10px]">{initials}</span>
+            </div>
+          ) : undefined,
+          duration: isCreated ? 4000 : 5000,
         });
       }
     }
@@ -319,6 +370,24 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         message: payload.description,
         transaction: txPayload,
         timestamp: payload.created_at ?? new Date().toISOString(),
+      });
+    });
+
+    // Appointment scheduled
+    channel.listen('.appointment.scheduled', (payload: any) => {
+      console.log('🔔 Received appointment.scheduled event:', payload);
+
+      if (payload.actor?.id === user.id) return;
+
+      addNotification({
+        id: payload.id ?? `appointment_${Date.now()}`,
+        type: 'appointment_scheduled',
+        message: payload.message,
+        appointment: payload.appointment,
+        lead: payload.lead ?? null,
+        assigned_user: payload.assigned_user ?? null,
+        actor: payload.actor,
+        timestamp: payload.timestamp ?? new Date().toISOString(),
       });
     });
 

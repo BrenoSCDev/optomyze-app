@@ -483,7 +483,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
               type="submit"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-2 rounded-lg bg-white text-gray-900 hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>

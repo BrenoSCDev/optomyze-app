@@ -593,7 +593,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         {/* Right Side Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {/* View Switcher */}
-          <div className="flex items-center rounded-md border border-white/20 overflow-hidden">
+          <div className="flex items-center rounded-md border dark:border-white/20 overflow-hidden">
             <Button
               variant="ghost"
               size="sm"
@@ -606,7 +606,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 border-l border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-none h-9 px-2.5 border-l dark:border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => handleViewModeChange('table')}
               title={t('funnel.page.view-table') || 'Table'}
             >
@@ -618,7 +618,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           <Button
             variant="outline"
             size="sm"
-            className="glass-card border-white/20 hover:bg-white/10"
+            className="glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground"
             onClick={async () => {
               if (onRefresh) {
                 setIsRefreshing(true);
@@ -647,7 +647,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           <Button
             variant="outline"
             size="sm"
-            className="glass-card border-white/20 hover:bg-white/10"
+            className="glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground"
             onClick={handleExport}
             disabled={isExporting}
           >
@@ -665,7 +665,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               variant="outline"
               size="sm"
               onClick={() => setTagDialogOpen(true)}
-              className="glass-card border-accent/30 hover:bg-accent/10"
+              className="glass-card hover:bg-muted dark:hover:bg-accent/10 hover:text-foreground"
             >
               <Tag className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">{t('funnel.page.create-tag')}</span>
@@ -676,7 +676,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             variant="outline"
             size="sm"
             onClick={() => setFilterDialogOpen(true)}
-            className={`glass-card border-white/20 hover:bg-white/10 ${
+            className={`glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground ${
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
@@ -695,7 +695,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               setSelectedStageId('');
               setLeadDialogOpen(true);
             }}
-            className="bg-gradient-primary hover:opacity-90 text-white font-medium"
           >
             <UserPlus className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">{t('funnel.page.create-lead')}</span>

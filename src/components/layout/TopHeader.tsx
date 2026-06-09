@@ -215,6 +215,9 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     if (notif.type === 'lead_created') {
       setSelectedLeadId(String(notif.lead.id));
       setIsLeadModalOpen(true);
+    } else if (notif.type === 'appointment_scheduled' && notif.lead) {
+      setSelectedLeadId(String(notif.lead.id));
+      setIsLeadModalOpen(true);
     } else if (notif.type === 'private_message') {
       navigate('/?section=optomyze-inbox');
     }
@@ -734,10 +737,10 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   <p className="text-sm text-muted-foreground">{t('header.no-notifications') || 'No notifications yet'}</p>
                 </div>
               ) : (
-                notifications.slice(0, 10).map((notif) => (
+                notifications.slice(0, 10).map((notif, index, arr) => (
                   <DropdownMenuItem
                     key={notif.id}
-                    className={`px-3 py-3 cursor-pointer focus:bg-primary/10 ${!notif.read ? 'bg-primary/5' : ''}`}
+                    className={`px-3 py-3 cursor-pointer focus:bg-primary/10 ${!notif.read ? 'bg-primary/5' : ''} ${index < arr.length - 1 ? 'mb-1' : ''}`}
                     onClick={() => handleNotificationClick(notif)}
                   >
                     <div className="flex items-start gap-3 w-full">
@@ -841,6 +844,33 @@ const NotificationAvatar = ({ notif }: { notif: AppNotification }) => {
     : notif.type === 'private_message' ? notif.senderName
     : '';
   const url = usePrivateFile(pic);
+
+  if (notif.type === 'lead_transaction' || notif.type === 'deal_transaction') {
+    const lead = notif.type === 'lead_transaction'
+      ? notif.transaction.lead
+      : notif.transaction.deal?.lead ?? null;
+    const initials = lead
+      ? [lead.first_name, lead.last_name].filter(Boolean).map(n => n.charAt(0).toUpperCase()).join('') || '?'
+      : '?';
+    return (
+      <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+        <span className="text-blue-400 font-semibold text-xs">{initials}</span>
+      </div>
+    );
+  }
+
+  if (notif.type === 'appointment_scheduled') {
+    const lead = notif.lead;
+    const initials = lead
+      ? [lead.first_name, lead.last_name].filter(Boolean).map(n => n.charAt(0).toUpperCase()).join('') || '?'
+      : '?';
+    return (
+      <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+        <span className="text-emerald-500 font-semibold text-xs">{initials}</span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
       {url ? (

@@ -2,7 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { DefaultRecipients } from '@/services/notificationSettingsApi';
-import { User, Users } from 'lucide-react';
+import { Shield, User, Users } from 'lucide-react';
 
 interface Props {
   recipients: DefaultRecipients;
@@ -11,6 +11,7 @@ interface Props {
 
 // Render recipients dynamically based on API keys
 const recipientIcons: Record<string, typeof User> = {
+  admin: Shield,
   deal_owner: User,
   lead_owner: User,
   team_manager: Users,

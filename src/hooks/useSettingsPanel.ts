@@ -4,10 +4,10 @@ import {
   ProductSettings,
   SalesSettings,
   defaultSettings,
-  getSettings,
   saveSettings,
 } from '@/services/settingsApi';
 import { ApiNotificationSettings } from '@/services/notificationSettingsApi';
+import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -28,14 +28,11 @@ export const useSettingsPanel = () => {
   const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getSettings() as SettingsPanelResponse;
-      
-      // Extract notification settings if present
-      if (response.notificationSettings) {
-        setNotificationSettings(response.notificationSettings);
-      }
-      
-      // Set product/sales settings
+      const { data } = await api.get('/api/settings-panel');
+      const response = data as SettingsPanelResponse;
+
+      setNotificationSettings(response.notificationSettings ?? null);
+
       setSettings({
         product_settings: response.product_settings || defaultSettings.product_settings,
         sales_settings: response.sales_settings || defaultSettings.sales_settings,

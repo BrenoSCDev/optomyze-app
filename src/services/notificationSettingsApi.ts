@@ -9,6 +9,7 @@ export interface NotificationChannels {
 }
 
 export interface DefaultRecipients {
+  admin: boolean;
   deal_owner: boolean;
   lead_owner: boolean;
   team_manager: boolean;

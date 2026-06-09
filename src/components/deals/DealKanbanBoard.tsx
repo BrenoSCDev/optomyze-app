@@ -335,7 +335,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
           {/* Refresh */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
             onClick={async () => {
               if (onRefresh) {
                 setIsRefreshing(true);
@@ -359,7 +359,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
           {/* Export Button */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
             onClick={handleExport}
             disabled={isExporting}
           >
@@ -374,7 +374,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
           {/* Create Tag */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card border-deal/20 hover:bg-deal/10"
+            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
             onClick={() => setTagDialogOpen(true)}
           >
             <Tags className="h-4 w-4 sm:mr-1" />
@@ -383,7 +383,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
 
           <Button
             variant="outline" size="sm"
-            className={`deal-glass-card border-deal/20 hover:bg-deal/10 ${
+            className={`deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground ${
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-deal/50 bg-deal/10' : ''
             }`}
             onClick={() => setFilterDialogOpen(true)}
