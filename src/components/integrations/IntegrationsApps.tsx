@@ -43,6 +43,7 @@ import { useToast } from '../../hooks/use-toast';
 import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
+import InstagramConfigModal from './InstagramConfigModal';
 import { Badge } from '@/components/ui/badge';
 import { RiGeminiLine, RiClaudeFill } from "react-icons/ri";
 
@@ -283,6 +284,7 @@ const IntegrationsApps: React.FC = () => {
   const [showMetaAdsConfigModal, setShowMetaAdsConfigModal] = useState(false);
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
+  const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
   const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -336,7 +338,7 @@ const IntegrationsApps: React.FC = () => {
           name: 'Instagram',
           description: t('integrations.instagram.description') || 'Integrate Instagram DMs to engage with your audience and manage inquiries.',
           available: false,
-          comingSoon: true,
+          beta: true,
           icon: <SiInstagram className="w-6 h-6" />
         },
         {
@@ -472,6 +474,8 @@ const IntegrationsApps: React.FC = () => {
         setShowGoogleAdsConfigModal(true);
       } else if (integrationKey === 'wpp_evo') {
         setShowWhatsAppConfigModal(true);
+      } else if (integrationKey === 'instagram') {
+        setShowInstagramConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -614,6 +618,11 @@ const IntegrationsApps: React.FC = () => {
         <WhatsAppConfigModal
           open={showWhatsAppConfigModal}
           onOpenChange={setShowWhatsAppConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <InstagramConfigModal
+          open={showInstagramConfigModal}
+          onOpenChange={setShowInstagramConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>
