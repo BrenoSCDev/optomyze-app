@@ -1,57 +1,62 @@
 /**
- * WHATSAPP INBOX COMPONENT
- * 
- * Provides WhatsApp inbox management with:
+ * GLOBAL INBOX COMPONENT
+ *
+ * Provides a channel-agnostic inbox aggregating conversations from all
+ * connected messaging channels (WhatsApp today; Instagram, Messenger, SMS in
+ * the future) with:
  * - 3-panel layout: Chat list, Conversation, Details
- * - Message display and chat management
- * - Responsive design for desktop, tablet, and mobile
+ * - Channel filter bar (All / WhatsApp / Instagram / Messenger / SMS)
  * - Real-time updates via WebSocket
+ * - Responsive design for desktop, tablet, and mobile
  */
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { AlertCircle, Inbox as InboxIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { useWhatsApp } from '@/contexts/WhatsAppContext';
-import { fetchWhatsAppChats } from '@/services/whatsappChatApi';
-import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
-import ChatList from './inbox/ChatList';
-import ChatConversation from './inbox/ChatConversation';
-import ChatDetails from './inbox/ChatDetails';
-import StartConversationModal from './inbox/StartConversationModal';
+import { useInbox } from '@/contexts/InboxContext';
+import { fetchInboxChats } from '@/services/globalInboxApi';
+import { InboxChannel, InboxChat, InboxMessage } from '@/types/inbox';
+import ChannelFilterBar from './ChannelFilterBar';
+import ChatList from './ChatList';
+import ChatConversation from './ChatConversation';
+import ChatDetails from './ChatDetails';
+import StartConversationModal from './StartConversationModal';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'list' | 'conversation' | 'details';
 
-const WhatsAppInbox: React.FC = () => {
+const GlobalInbox: React.FC = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  
-  // Use WhatsApp context for state management and real-time updates
-  const { 
-    chats, 
-    setChats, 
-    selectedChat, 
-    setSelectedChat, 
-    isLoading, 
-    setIsLoading 
-  } = useWhatsApp();
-  
+
+  // Use Inbox context for state management and real-time updates
+  const {
+    chats,
+    setChats,
+    selectedChat,
+    setSelectedChat,
+    isLoading,
+    setIsLoading
+  } = useInbox();
+
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<ViewMode>('list');
   const [showStartModal, setShowStartModal] = useState(false);
   const [chatPage, setChatPage] = useState(1);
   const [hasMoreChats, setHasMoreChats] = useState(false);
   const [isLoadingMoreChats, setIsLoadingMoreChats] = useState(false);
+  const [channelFilter, setChannelFilter] = useState<InboxChannel | 'all'>('all');
 
-  // Fetch chats on mount
+  // Fetch chats on mount and whenever the channel filter changes
   useEffect(() => {
     loadChats();
-  }, []);
+    setSelectedChat(null);
+    setMobileView('list');
+  }, [channelFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close chat on Esc key
   useEffect(() => {
@@ -70,14 +75,14 @@ const WhatsAppInbox: React.FC = () => {
     setError(null);
     setChatPage(1);
     try {
-      const response = await fetchWhatsAppChats(1);
+      const response = await fetchInboxChats(1, channelFilter);
       const sortedChats = (response.data || []).sort((a, b) =>
         new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
       );
       setChats(sortedChats);
       setHasMoreChats(response.meta.current_page < response.meta.last_page);
     } catch (err) {
-      console.error('Failed to fetch WhatsApp chats:', err);
+      console.error('Failed to fetch inbox chats:', err);
       setError(t('chat.inbox.error-loading'));
       toast({
         title: t('chat.inbox.error-title'),
@@ -94,7 +99,7 @@ const WhatsAppInbox: React.FC = () => {
     setIsLoadingMoreChats(true);
     const nextPage = chatPage + 1;
     try {
-      const response = await fetchWhatsAppChats(nextPage);
+      const response = await fetchInboxChats(nextPage, channelFilter);
       setChats(prev => {
         const existingIds = new Set(prev.map(c => c.id));
         const newChats = (response.data || []).filter(c => !existingIds.has(c.id));
@@ -111,7 +116,7 @@ const WhatsAppInbox: React.FC = () => {
     }
   };
 
-  const handleSelectChat = (chat: WhatsAppChat) => {
+  const handleSelectChat = (chat: InboxChat) => {
     setSelectedChat(chat);
     setMobileView('conversation');
   };
@@ -129,7 +134,7 @@ const WhatsAppInbox: React.FC = () => {
   };
 
   // ChatConversation manages messages locally — we only update metadata here
-  const handleMessageSent = (message: WhatsAppMessage) => {
+  const handleMessageSent = (message: InboxMessage) => {
     if (!selectedChat) return;
     // Update last_message_at on selectedChat (metadata only, not messages array)
     setSelectedChat(prev => prev ? { ...prev, last_message_at: message.sent_at } : null);
@@ -155,11 +160,11 @@ const WhatsAppInbox: React.FC = () => {
         className="px-3 py-3 sm:px-4 sm:py-4 border-b border-border/50 bg-background flex items-center justify-between gap-3 shrink-0"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-            <FaWhatsapp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+            <InboxIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent leading-tight truncate">
+            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight truncate">
               {t('chat.inbox.title')}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">
@@ -167,8 +172,8 @@ const WhatsAppInbox: React.FC = () => {
             </p>
           </div>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="icon"
           onClick={loadChats}
           disabled={isLoading}
@@ -178,6 +183,9 @@ const WhatsAppInbox: React.FC = () => {
           <span className="hidden sm:inline">{t('common.refresh')}</span>
         </Button>
       </motion.div>
+
+      {/* Channel Filter Bar */}
+      <ChannelFilterBar value={channelFilter} onChange={setChannelFilter} />
 
       {/* Error State */}
       {error && !isLoading && (
@@ -267,6 +275,10 @@ const WhatsAppInbox: React.FC = () => {
                     selectedChat={selectedChat}
                     onSelectChat={handleSelectChat}
                     isLoading={isLoading}
+                    onStartConversation={() => setShowStartModal(true)}
+                    onLoadMore={loadMoreChats}
+                    hasMore={hasMoreChats}
+                    isLoadingMore={isLoadingMoreChats}
                   />
                 </motion.div>
               )}
@@ -318,4 +330,4 @@ const WhatsAppInbox: React.FC = () => {
   );
 };
 
-export default WhatsAppInbox;
+export default GlobalInbox;

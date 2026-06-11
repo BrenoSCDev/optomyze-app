@@ -1,14 +1,14 @@
 /**
  * LEAD CHAT SECTION
- * 
- * WhatsApp chat component for Lead Detail page
- * Displays chat messages and allows sending messages via the associated instance
+ *
+ * Inbox chat widget for the Lead Detail page. Displays the lead's WhatsApp
+ * conversation (via the generic InboxChat/InboxMessage entities) and allows
+ * sending messages through the associated channel instance.
  */
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Phone, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MessageCirclePlus } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,57 +16,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useWhatsApp } from '@/contexts/WhatsAppContext';
+import { useInbox } from '@/contexts/InboxContext';
 import { cn, extractTime } from '@/lib/utils';
 import { getStorageUrl } from '@/lib/constants';
-import { sendWhatsAppMessage, fetchWhatsAppInstances, WhatsAppInstanceOption } from '@/services/whatsappChatApi';
+import { sendInboxMessage, fetchWhatsAppInstances, WhatsAppInstanceOption } from '@/services/globalInboxApi';
 import { toast } from 'sonner';
-import AudioPlayer from '@/components/chat/inbox/AudioPlayer';
-import DocumentMessage from '@/components/chat/inbox/DocumentMessage';
-import ContactMessage from '@/components/chat/inbox/ContactMessage';
+import AudioPlayer from '@/components/inbox/global/AudioPlayer';
+import DocumentMessage from '@/components/inbox/global/DocumentMessage';
+import ContactMessage from '@/components/inbox/global/ContactMessage';
+import ChannelIcon from '@/components/inbox/global/ChannelIcon';
+import { InboxChat, InboxMessage, InboxInstance } from '@/types/inbox';
 
-// Types matching the backend response
-export interface LeadWhatsAppMessage {
-  id: number;
-  whatsapp_evo_chat_id: number;
-  wa_message_id?: string;
-  direction: 'incoming' | 'outgoing';
-  type: string;
-  text: string;
-  media_url?: string | null;
-  media_mime?: string | null;
-  media_size?: number | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  status: string;
-  sent_at: string;
-  created_at: string;
-  updated_at: string;
-  user_id?: number | null;
-  message_mode?: 'external' | 'internal';
-  user?: { id: number; name: string } | null;
-}
-
-export interface LeadWhatsAppInstance {
-  id: number;
-  instance_name: string;
-}
-
-export interface LeadWhatsAppChat {
-  id: number;
-  company_id: number;
-  whatsapp_instance_id: number;
-  lead_id: number;
-  remote_jid: string;
-  phone_number: string;
-  is_group: number;
-  is_archived: number;
-  last_message_at: string;
-  created_at: string;
-  updated_at: string;
-  messages: LeadWhatsAppMessage[];
-  instance: LeadWhatsAppInstance;
-}
+// Re-exported under Lead-prefixed names for Lead-detail consumers (LeadDetailTabs, etc.)
+export type LeadInboxMessage = InboxMessage;
+export type LeadInboxInstance = InboxInstance;
+export type LeadInboxChat = InboxChat;
 
 interface PendingMessage {
   id: string;
@@ -76,10 +40,10 @@ interface PendingMessage {
 }
 
 interface LeadChatSectionProps {
-  chat: LeadWhatsAppChat | null;
+  chat: LeadInboxChat | null;
   leadId: number;
   leadPhone?: string;
-  onMessageSent?: (message: LeadWhatsAppMessage) => void;
+  onMessageSent?: (message: LeadInboxMessage) => void;
 }
 
 const LeadChatSection: React.FC<LeadChatSectionProps> = ({
@@ -89,7 +53,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   onMessageSent
 }) => {
   const { t } = useLanguage();
-  const { chats } = useWhatsApp();
+  const { chats } = useInbox();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -119,49 +83,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   // Watch context for the newly created chat after starting a conversation
   const startedChat = useMemo(() => {
     if (!conversationStarted || initialChat) return null;
-    const found = chats.find(c => c.lead_id === leadId);
-    if (!found) return null;
-    return {
-      id: found.id,
-      company_id: found.company_id,
-      whatsapp_instance_id: found.whatsapp_instance_id,
-      lead_id: found.lead_id,
-      remote_jid: found.remote_jid,
-      phone_number: found.phone_number,
-      is_group: found.is_group,
-      is_archived: found.is_archived,
-      last_message_at: found.last_message_at,
-      created_at: found.created_at,
-      updated_at: found.updated_at,
-      messages: (found.messages || []).map(m => ({
-        id: m.id,
-        whatsapp_evo_chat_id: m.whatsapp_evo_chat_id,
-        wa_message_id: undefined,
-        direction: m.direction,
-        type: m.type,
-        text: m.text || '',
-        media_url: m.media_url,
-        media_mime: m.media_mime,
-        media_size: m.media_size,
-        latitude: m.latitude,
-        longitude: m.longitude,
-        status: m.status,
-        sent_at: m.sent_at,
-        created_at: m.sent_at,
-        updated_at: m.sent_at,
-        user_id: m.user_id,
-        message_mode: m.message_mode,
-        user: m.user,
-      })) as LeadWhatsAppMessage[],
-      instance: found.instance,
-    } as LeadWhatsAppChat;
+    return chats.find(c => c.lead_id === leadId) || null;
   }, [conversationStarted, chats, leadId, initialChat]);
 
   const handleStartConversation = async () => {
     if (!selectedInstanceId || !startMessage.trim()) return;
     setIsStarting(true);
     try {
-      await sendWhatsAppMessage(Number(selectedInstanceId), {
+      await sendInboxMessage(Number(selectedInstanceId), {
         lead_id: leadId,
         text: startMessage.trim(),
         message_mode: 'external',
@@ -178,44 +107,25 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   // REAL-TIME: Merge initial messages with live WebSocket messages
   const chat = useMemo(() => {
     if (!initialChat) return startedChat;
-    
+
     const liveChat = chats.find(c => c.id === initialChat.id);
-    
+
     if (liveChat && liveChat.messages?.length > 0) {
       const initialMessageIds = new Set(initialChat.messages?.map(m => m.id) || []);
-      
-      const newMessages = liveChat.messages
-        .filter(m => !initialMessageIds.has(m.id))
-        .map(m => ({
-          id: m.id,
-          whatsapp_evo_chat_id: m.whatsapp_evo_chat_id,
-          direction: m.direction,
-          type: m.type,
-          text: m.text || '',
-          media_url: m.media_url,
-          media_mime: m.media_mime,
-          media_size: m.media_size,
-          status: m.status,
-          sent_at: m.sent_at,
-          created_at: m.sent_at,
-          updated_at: m.sent_at,
-          user_id: m.user_id,
-          message_mode: m.message_mode,
-          user: m.user,
-        })) as LeadWhatsAppMessage[];
-      
+      const newMessages = liveChat.messages.filter(m => !initialMessageIds.has(m.id));
+
       return {
         ...initialChat,
         messages: [...(initialChat.messages || []), ...newMessages],
         last_message_at: liveChat.last_message_at,
       };
     }
-    
+
     // Handle cleared chat
     if (liveChat && liveChat.messages?.length === 0 && initialChat.messages?.length > 0) {
       return { ...initialChat, messages: [] };
     }
-    
+
     return initialChat;
   }, [initialChat, chats, startedChat]);
 
@@ -235,35 +145,33 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   }, [chat?.messages?.length, pendingMessages.length]);
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !chat?.whatsapp_instance_id) {
+    if (!messageText.trim() || !chat?.channelable_id) {
       return;
     }
 
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
     const currentMode = messageMode;
-    
+
     setMessageText('');
     setIsSending(true);
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
-      await sendWhatsAppMessage(chat.whatsapp_instance_id, {
+      await sendInboxMessage(chat.channelable_id, {
         lead_id: leadId,
         text,
         message_mode: currentMode
       });
 
-      const sentMessage: LeadWhatsAppMessage = {
+      const sentMessage: LeadInboxMessage = {
         id: Date.now(),
-        whatsapp_evo_chat_id: chat.id,
+        inbox_chat_id: chat.id,
         direction: 'outgoing',
         type: 'text',
         text,
         status: 'sent',
         sent_at: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         message_mode: currentMode,
       };
 
@@ -271,7 +179,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
       toast.success(t('chat.inbox.message-sent'));
       onMessageSent?.(sentMessage);
     } catch (error: any) {
-      setPendingMessages(prev => 
+      setPendingMessages(prev =>
         prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
       );
       toast.error(error?.response?.data?.message || t('chat.inbox.message-error'));
@@ -308,15 +216,15 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     } else if (date.toDateString() === yesterday.toDateString()) {
       return t('chat.inbox.yesterday');
     }
-    return date.toLocaleDateString([], { 
-      weekday: 'long', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString([], {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const groupMessagesByDate = (messages: LeadWhatsAppMessage[]) => {
-    const groups: { date: string; messages: LeadWhatsAppMessage[] }[] = [];
+  const groupMessagesByDate = (messages: LeadInboxMessage[]) => {
+    const groups: { date: string; messages: LeadInboxMessage[] }[] = [];
     let currentDate = '';
 
     messages.forEach((message) => {
@@ -332,15 +240,15 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
     return groups;
   };
 
-  const isInternalNote = (message: LeadWhatsAppMessage) => message.message_mode === 'internal';
+  const isInternalNote = (message: LeadInboxMessage) => message.message_mode === 'internal';
 
-  // Empty state - no WhatsApp chat associated
+  // Empty state - no chat associated yet
   if (!chat) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm">
         <div className="flex flex-col items-center justify-center px-4 py-8">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted text-primary">
-            <FaWhatsapp className="h-8 w-8" />
+            <ChannelIcon channel="whatsapp" className="h-8 w-8" />
           </div>
           <h4 className="mb-1 text-center font-medium text-foreground">{t('lead-details.tabs.chat-empty')}</h4>
           <p className="mb-6 max-w-xs text-center text-sm text-muted-foreground">
@@ -401,6 +309,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
   }
 
   const messageGroups = groupMessagesByDate(chat.messages || []);
+  const canSend = !!chat.channelable_id;
 
   return (
     <div className="flex flex-col h-[500px] rounded-lg overflow-hidden border border-white/10">
@@ -408,11 +317,11 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
       <div className="p-3 border-b border-white/10 bg-white/5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-            <FaWhatsapp className="h-5 w-5 text-green-500" />
+            <ChannelIcon channel={chat.channel} className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-white">WhatsApp</span>
+              <span className="font-medium text-white">{t(`chat.inbox.filter-${chat.channel}`)}</span>
               {chat.instance && (
                 <Badge variant="outline" className="text-xs border-white/20 text-gray-400">
                   {chat.instance.instance_name.split('_')[0]}
@@ -421,7 +330,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <Phone className="h-3 w-3" />
-              <span>{chat.phone_number}</span>
+              <span>{chat.external_contact_id}</span>
             </div>
           </div>
         </div>
@@ -439,7 +348,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                     {formatMessageDate(group.date)}
                   </span>
                 </div>
-                
+
                 {/* Messages */}
                 {group.messages.map((message, messageIndex) => (
                   <motion.div
@@ -455,7 +364,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                     <div
                       className={cn(
                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
-                        message.type === 'image' ? "p-1" : 
+                        message.type === 'image' ? "p-1" :
                         message.type === 'audio' ? "px-2 py-1.5" :
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
@@ -478,11 +387,11 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                       )}
 
                       {/* Sender name for outgoing messages */}
-                      {message.direction === 'outgoing' && (message as any).user?.name && (
+                      {message.direction === 'outgoing' && message.user?.name && (
                         <div className={cn(
                           "flex items-center gap-1 mb-1 pb-1 border-b",
-                          isInternalNote(message) 
-                            ? "border-amber-500/30" 
+                          isInternalNote(message)
+                            ? "border-amber-500/30"
                             : "border-white/20"
                         )}>
                           <Phone className={cn(
@@ -493,14 +402,14 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             "text-xs font-semibold",
                             isInternalNote(message) ? "text-amber-300" : "text-green-200"
                           )}>
-                            {(message as any).user.name}
+                            {message.user.name}
                           </span>
                         </div>
                       )}
 
                       {message.type === 'image' && message.media_url ? (
                         <div className="space-y-1">
-                          <button 
+                          <button
                             onClick={() => setLightboxImage(getStorageUrl(message.media_url) || null)}
                             className="block"
                           >
@@ -523,8 +432,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -538,8 +447,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                         </div>
                       ) : message.type === 'audio' && message.media_url ? (
                         <div className="space-y-2">
-                          <AudioPlayer 
-                            src={getStorageUrl(message.media_url) || ''} 
+                          <AudioPlayer
+                            src={getStorageUrl(message.media_url) || ''}
                             isOutgoing={message.direction === 'outgoing'}
                           />
                           {message.text && (
@@ -554,8 +463,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -567,11 +476,11 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             )}
                           </div>
                         </div>
-                      ) : message.type === 'location' && (message as any).latitude != null && (message as any).longitude != null ? (
+                      ) : message.type === 'location' && message.latitude != null && message.longitude != null ? (
                         <div className="space-y-1.5">
                           <div className="rounded-md overflow-hidden">
                             <iframe
-                              src={`https://maps.google.com/maps?q=${(message as any).latitude},${(message as any).longitude}&z=15&output=embed`}
+                              src={`https://maps.google.com/maps?q=${message.latitude},${message.longitude}&z=15&output=embed`}
                               width="240"
                               height="160"
                               className="border-0 w-full"
@@ -580,7 +489,7 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             />
                           </div>
                           <a
-                            href={`https://maps.google.com/?q=${(message as any).latitude},${(message as any).longitude}`}
+                            href={`https://maps.google.com/?q=${message.latitude},${message.longitude}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={cn(
@@ -599,8 +508,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -628,8 +537,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -641,22 +550,23 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             )}
                           </div>
                         </div>
-                      ) : message.type === 'contact' && (message as any).metadata ? (
+                      ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">
                           <ContactMessage
                             contacts={
-                              (message as any).metadata.contacts
-                                ? (message as any).metadata.contacts.map((c: any) => ({
+                              message.metadata.contacts
+                                ? message.metadata.contacts.map((c) => ({
                                     contactName: c.contact_name || '',
                                     contactPhone: c.contact_phone || '',
                                   }))
                                 : [{
-                                    contactName: (message as any).metadata.contact_name || message.text || '',
-                                    contactPhone: (message as any).metadata.contact_phone || '',
+                                    contactName: message.metadata.contact_name || message.text || '',
+                                    contactPhone: message.metadata.contact_phone || '',
                                   }]
                             }
                             isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
-                            instanceId={chat.whatsapp_instance_id}
+                            instanceId={chat.channelable_id ?? undefined}
+                            channel={chat.channel}
                           />
                           <div className={cn(
                             "flex items-center gap-1",
@@ -665,8 +575,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -693,8 +603,8 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-200" 
+                              message.direction === 'outgoing'
+                                ? "text-green-200"
                                 : "text-gray-400"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -778,66 +688,72 @@ const LeadChatSection: React.FC<LeadChatSectionProps> = ({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="p-3 border-t border-white/10 bg-white/5 space-y-2">
-        {/* Message mode toggle */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant={messageMode === 'external' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMessageMode('external')}
-            className={cn(
-              "h-6 text-xs gap-1 rounded-full px-2",
-              messageMode === 'external' ? "bg-green-600 hover:bg-green-700 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
-            )}
-          >
-            <FaWhatsapp className="h-3 w-3" />
-            {t('chat.inbox.mode-external')}
-          </Button>
-          <Button
-            variant={messageMode === 'internal' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMessageMode('internal')}
-            className={cn(
-              "h-6 text-xs gap-1 rounded-full px-2",
-              messageMode === 'internal' ? "bg-amber-500 hover:bg-amber-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
-            )}
-          >
-            <StickyNote className="h-3 w-3" />
-            {t('chat.inbox.mode-internal')}
-          </Button>
-        </div>
+      {canSend ? (
+        <div className="p-3 border-t border-white/10 bg-white/5 space-y-2">
+          {/* Message mode toggle */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant={messageMode === 'external' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMessageMode('external')}
+              className={cn(
+                "h-6 text-xs gap-1 rounded-full px-2",
+                messageMode === 'external' ? "bg-green-600 hover:bg-green-700 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+              )}
+            >
+              <ChannelIcon channel={chat.channel} className="h-3 w-3" />
+              {t('chat.inbox.mode-external')}
+            </Button>
+            <Button
+              variant={messageMode === 'internal' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMessageMode('internal')}
+              className={cn(
+                "h-6 text-xs gap-1 rounded-full px-2",
+                messageMode === 'internal' ? "bg-amber-500 hover:bg-amber-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"
+              )}
+            >
+              <StickyNote className="h-3 w-3" />
+              {t('chat.inbox.mode-internal')}
+            </Button>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <Input
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
-            disabled={isSending}
-            className={cn(
-              "flex-1 bg-white/10 border-white/10 text-white placeholder:text-gray-500",
-              messageMode === 'internal' && "border-amber-700"
-            )}
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!messageText.trim() || isSending}
-            size="icon"
-            className={cn(
-              "shrink-0",
-              messageMode === 'internal'
-                ? "bg-amber-500 hover:bg-amber-600"
-                : "bg-green-600 hover:bg-green-700"
-            )}
-          >
-            {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
+              disabled={isSending}
+              className={cn(
+                "flex-1 bg-white/10 border-white/10 text-white placeholder:text-gray-500",
+                messageMode === 'internal' && "border-amber-700"
+              )}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!messageText.trim() || isSending}
+              size="icon"
+              className={cn(
+                "shrink-0",
+                messageMode === 'internal'
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-green-600 hover:bg-green-700"
+              )}
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-3 border-t border-white/10 bg-white/5 text-center text-sm text-gray-400">
+          {t('chat.inbox.sending-not-available')}
+        </div>
+      )}
 
       {/* Image Lightbox */}
       <AnimatePresence>

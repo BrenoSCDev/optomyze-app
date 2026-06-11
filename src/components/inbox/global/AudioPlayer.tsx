@@ -1,7 +1,7 @@
 /**
  * CUSTOM AUDIO PLAYER COMPONENT
- * 
- * WhatsApp-styled audio player for voice messages
+ *
+ * Chat-bubble audio player for voice messages in the Global Inbox
  */
 
 import React, { useRef, useState, useEffect } from 'react';
@@ -78,7 +78,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
   return (
     <div className="flex items-center gap-2 min-w-[200px] sm:min-w-[240px]">
       <audio ref={audioRef} src={src} preload="metadata" />
-      
+
       {/* Microphone icon */}
       <div className={cn(
         "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
@@ -95,8 +95,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
         onClick={togglePlayPause}
         className={cn(
           "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors",
-          isOutgoing 
-            ? "bg-green-600 hover:bg-green-700 text-white" 
+          isOutgoing
+            ? "bg-green-600 hover:bg-green-700 text-white"
             : "bg-muted hover:bg-muted/80 text-foreground"
         )}
       >

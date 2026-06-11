@@ -1,20 +1,20 @@
 /**
  * CHAT LIST COMPONENT
- * 
- * Left panel displaying list of WhatsApp conversations
+ *
+ * Left panel displaying the list of Global Inbox conversations across all channels
  */
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { WhatsAppChat } from '@/types/whatsappChat';
+import { InboxChat } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
+import InboxAvatar from './InboxAvatar';
 
 const ChatListImageThumb: React.FC<{ path: string | undefined }> = ({ path }) => {
   const url = usePrivateFile(path);
@@ -22,22 +22,10 @@ const ChatListImageThumb: React.FC<{ path: string | undefined }> = ({ path }) =>
   return <img src={url} alt="" className="w-5 h-5 rounded object-cover shrink-0" />;
 };
 
-const ChatAvatar: React.FC<{ path: string | null | undefined; name: string }> = ({ path, name }) => {
-  const url = usePrivateFile(path ?? undefined);
-  if (url) {
-    return <img src={url} alt={name} className="w-10 h-10 rounded-full object-cover shrink-0" />;
-  }
-  return (
-    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-      <FaWhatsapp className="h-5 w-5 text-green-600" />
-    </div>
-  );
-};
-
 interface ChatListProps {
-  chats: WhatsAppChat[];
-  selectedChat: WhatsAppChat | null;
-  onSelectChat: (chat: WhatsAppChat) => void;
+  chats: InboxChat[];
+  selectedChat: InboxChat | null;
+  onSelectChat: (chat: InboxChat) => void;
   isLoading: boolean;
   onStartConversation?: () => void;
   onLoadMore?: () => void;
@@ -76,14 +64,14 @@ const ChatList: React.FC<ChatListProps> = ({
     return () => viewport.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  const getLeadName = (chat: WhatsAppChat): string => {
+  const getLeadName = (chat: InboxChat): string => {
     if (chat.lead?.first_name || chat.lead?.last_name) {
       return `${chat.lead.first_name || ''} ${chat.lead.last_name || ''}`.trim();
     }
-    return chat.phone_number;
+    return chat.contact_name || chat.external_contact_id;
   };
 
-  const getLastMessage = (chat: WhatsAppChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
+  const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage.type === 'image') {
@@ -94,8 +82,8 @@ const ChatList: React.FC<ChatListProps> = ({
         };
       }
       if (lastMessage.type === 'audio') {
-        return { 
-          type: 'audio', 
+        return {
+          type: 'audio',
           text: t('chat.inbox.audio')
         };
       }
@@ -126,7 +114,7 @@ const ChatList: React.FC<ChatListProps> = ({
     const date = new Date(dateString);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) {
       return extractTime(dateString);
     } else if (diffDays === 1) {
@@ -142,7 +130,7 @@ const ChatList: React.FC<ChatListProps> = ({
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <FaWhatsapp className="h-5 w-5 text-green-600" />
+            <Inbox className="h-5 w-5 text-primary" />
             {t('chat.inbox.conversations')}
           </h2>
           {onStartConversation && (
@@ -167,7 +155,7 @@ const ChatList: React.FC<ChatListProps> = ({
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border/50 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <FaWhatsapp className="h-5 w-5 text-green-600" />
+            <Inbox className="h-5 w-5 text-primary" />
             {t('chat.inbox.conversations')}
           </h2>
           {onStartConversation && (
@@ -190,7 +178,7 @@ const ChatList: React.FC<ChatListProps> = ({
     <div className="flex flex-col h-full">
       <div className="p-4 border-b border-border/50">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <FaWhatsapp className="h-5 w-5 text-green-600" />
+          <Inbox className="h-5 w-5 text-primary" />
           {t('chat.inbox.conversations')}
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
@@ -209,13 +197,13 @@ const ChatList: React.FC<ChatListProps> = ({
               className={cn(
                 "p-3 rounded-lg cursor-pointer transition-all duration-200 group",
                 "hover:bg-muted/60",
-                selectedChat?.id === chat.id 
-                  ? "bg-muted border-l-2 border-green-500 text-foreground" 
+                selectedChat?.id === chat.id
+                  ? "bg-muted border-l-2 border-primary text-foreground"
                   : "bg-background/50"
               )}
             >
               <div className="flex items-start gap-3">
-                <ChatAvatar path={chat.profile_pic_url} name={getLeadName(chat)} />
+                <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium truncate">
@@ -290,9 +278,11 @@ const ChatList: React.FC<ChatListProps> = ({
                         {chat.lead.funnel.name}
                       </Badge>
                     )}
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-green-100 text-green-800">
-                      {chat.instance?.instance_name?.split('_')[0] || 'Instance'}
-                    </Badge>
+                    {chat.channel === 'whatsapp' && chat.instance && (
+                      <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-green-100 text-green-800">
+                        {chat.instance.instance_name?.split('_')[0] || 'Instance'}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>

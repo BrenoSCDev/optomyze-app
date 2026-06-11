@@ -31,7 +31,7 @@ const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
 const ApiPlayground          = lazy(() => import('@/components/api/playground/ApiPlayground'));
 const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
 const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
-const WhatsAppInbox          = lazy(() => import('@/components/chat/WhatsAppInbox'));
+const GlobalInbox            = lazy(() => import('@/components/inbox/global/GlobalInbox'));
 const OptomyzeInbox          = lazy(() => import('@/components/inbox/OptomyzeInbox'));
 const OptomyzeCalendar       = lazy(() => import('@/components/calendars/OptomyzeCalendar'));
 const ManageProducts         = lazy(() => import('@/components/products/ManageProducts'));
@@ -115,7 +115,7 @@ const Index = () => {
       case 'api-playground': return <ApiPlayground />;
       case 'manage-users': return <ManageUsers />;
       case 'manage-teams': return <ManageTeams />;
-      case 'whatsapp-inbox': return <WhatsAppInbox />;
+      case 'global-inbox': return <GlobalInbox />;
       case 'optomyze-inbox': return <OptomyzeInbox />;
       case 'optomyze-calendar': return <OptomyzeCalendar />;
       case 'manage-products': return <ManageProducts />;
@@ -188,7 +188,7 @@ const Index = () => {
           }}
         >
           {(() => {
-            const isInboxSection = activeSection === 'whatsapp-inbox' || activeSection === 'optomyze-inbox';
+            const isInboxSection = activeSection === 'global-inbox' || activeSection === 'optomyze-inbox';
             return (
               <div className={isInboxSection ? 'p-0 h-[calc(100vh-4rem)]' : 'p-4 sm:p-8'}>
                 <AnimatePresence mode="wait">

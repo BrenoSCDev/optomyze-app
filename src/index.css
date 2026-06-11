@@ -207,6 +207,14 @@
   .scrollbar-dark::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.4);
   }
+
+  /* Radix ScrollArea sets its inner viewport wrapper to `display: table`
+     inline, which sizes to its content and breaks `truncate`/text-overflow
+     on children. Force it to behave like a normal block container. */
+  [data-radix-scroll-area-viewport] > div {
+    display: block !important;
+    min-width: 0 !important;
+  }
 }
 
 @layer components {

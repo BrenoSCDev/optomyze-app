@@ -1,12 +1,11 @@
 /**
  * CONTACT MESSAGE COMPONENT
- * 
- * Renders a shared WhatsApp contact card with name, phone, and "Start Chat" action.
+ *
+ * Renders a shared contact card with name, phone, and "Start Chat" action.
  */
 
 import React, { useState } from 'react';
 import { User, Phone, MessageSquare, Loader2, Info, Send } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { InboxChannel } from '@/types/inbox';
+import ChannelIcon from './ChannelIcon';
 
 export interface ContactEntry {
   contactName: string;
@@ -25,16 +26,18 @@ interface ContactMessageProps {
   contacts: ContactEntry[];
   isOutgoing: boolean;
   instanceId?: number;
+  channel?: InboxChannel;
 }
 
 interface SingleContactCardProps {
   contact: ContactEntry;
   isOutgoing: boolean;
   instanceId?: number;
+  channel: InboxChannel;
   t: (key: string) => string;
 }
 
-const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoing, instanceId, t }) => {
+const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoing, instanceId, channel, t }) => {
   const [showStartChat, setShowStartChat] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -97,7 +100,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
         <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FaWhatsapp className="h-5 w-5 text-green-500" />
+              <ChannelIcon channel={channel} className="h-5 w-5" />
               {t('chat.inbox.contact-start-chat')}
             </DialogTitle>
             <DialogDescription>
@@ -155,7 +158,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
   );
 };
 
-const ContactMessage: React.FC<ContactMessageProps> = ({ contacts, isOutgoing, instanceId }) => {
+const ContactMessage: React.FC<ContactMessageProps> = ({ contacts, isOutgoing, instanceId, channel = 'whatsapp' }) => {
   const { t } = useLanguage();
 
   if (contacts.length === 1) {
@@ -164,6 +167,7 @@ const ContactMessage: React.FC<ContactMessageProps> = ({ contacts, isOutgoing, i
         contact={contacts[0]}
         isOutgoing={isOutgoing}
         instanceId={instanceId}
+        channel={channel}
         t={t}
       />
     );
@@ -177,6 +181,7 @@ const ContactMessage: React.FC<ContactMessageProps> = ({ contacts, isOutgoing, i
           contact={contact}
           isOutgoing={isOutgoing}
           instanceId={instanceId}
+          channel={channel}
           t={t}
         />
       ))}

@@ -11,7 +11,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu,
-  BarChart3, Users, Settings, Database, Plug, MessageCircle, CalendarDays, Package,
+  BarChart3, Users, Settings, Database, Plug, MessageCircle, Inbox, CalendarDays, Package,
   Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus
 } from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
@@ -42,7 +42,6 @@ import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { getEcho } from '@/services/echo';
 import { IoFunnelOutline } from 'react-icons/io5';
-import { FaWhatsapp } from 'react-icons/fa6';
 import { SiGoogleanalytics, SiGoogleads } from 'react-icons/si';
 import { FaMeta } from 'react-icons/fa6';
 import { RiAppsFill } from 'react-icons/ri';
@@ -327,11 +326,11 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       ],
     },
     chat: {
-      icon: <MessageCircle className="h-3.5 w-3.5" />,
+      icon: <Inbox className="h-3.5 w-3.5" />,
       labelKey: 'nav.chat',
       children: [
-        { id: 'whatsapp-inbox', label: 'WhatsApp Inbox' },
-        { id: 'optomyze-inbox', label: 'Optomyze Inbox' },
+        { id: 'global-inbox', label: t('nav.global-inbox') },
+        { id: 'optomyze-inbox', label: t('nav.optomyze-teams') },
       ],
     },
     calendars: {

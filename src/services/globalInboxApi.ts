@@ -1,30 +1,34 @@
 /**
- * WHATSAPP CHAT API SERVICE
- * 
- * API service for WhatsApp Evolution chat operations
+ * GLOBAL INBOX API SERVICE
+ *
+ * API service for the channel-agnostic Global Inbox (InboxChat / InboxMessage)
  */
 
 import api from './api';
-import { WhatsAppChatResponse, WhatsAppMessage, PaginationMeta } from '@/types/whatsappChat';
+import { InboxChannel, InboxChatResponse, InboxMessage, PaginationMeta } from '@/types/inbox';
 
 /**
- * Fetch paginated WhatsApp chats (20 per page)
+ * Fetch paginated inbox chats (20 per page), optionally filtered by channel
  */
-export const fetchWhatsAppChats = async (page = 1): Promise<WhatsAppChatResponse> => {
-  const response = await api.get('/api/integrations/whatsapp-evo-chat', { params: { page } });
+export const fetchInboxChats = async (page = 1, channel?: InboxChannel | 'all'): Promise<InboxChatResponse> => {
+  const params: Record<string, string | number> = { page };
+  if (channel && channel !== 'all') {
+    params.channel = channel;
+  }
+  const response = await api.get('/api/inbox/chats', { params });
   return response.data;
 };
 
 export interface ChatMessagesResponse {
-  data: WhatsAppMessage[]; // newest first from API
+  data: InboxMessage[]; // newest first from API
   meta: PaginationMeta;
 }
 
 /**
  * Fetch paginated messages for a specific chat (50 per page, newest first)
  */
-export const fetchChatMessages = async (chatId: number, page = 1): Promise<ChatMessagesResponse> => {
-  const response = await api.get(`/api/integrations/whatsapp-evo-chat/${chatId}/messages`, {
+export const fetchInboxChatMessages = async (chatId: number, page = 1): Promise<ChatMessagesResponse> => {
+  const response = await api.get(`/api/inbox/chats/${chatId}/messages`, {
     params: { page },
   });
   return response.data;
@@ -38,8 +42,8 @@ export interface SendMessagePayload {
 
 export interface SentMessageData {
   id: number;
-  whatsapp_evo_chat_id: number;
-  wa_message_id: string;
+  inbox_chat_id: number;
+  external_message_id: string;
   direction: 'incoming' | 'outgoing';
   type?: string;
   text: string;
@@ -61,23 +65,23 @@ export interface SendMessageResponse {
 }
 
 /**
- * Send a WhatsApp message to a lead
+ * Send a text message to a lead via a WhatsApp instance
  */
-export const sendWhatsAppMessage = async (
+export const sendInboxMessage = async (
   instanceId: number,
   payload: SendMessagePayload
 ): Promise<SendMessageResponse> => {
   const response = await api.post(
-    `/api/integrations/whatsapp-evo-chat/message/${instanceId}`,
+    `/api/inbox/instances/${instanceId}/messages`,
     payload
   );
   return response.data;
 };
 
 /**
- * Send a WhatsApp media message (image or audio) to a lead
+ * Send a media message (image or audio) to a lead via a WhatsApp instance
  */
-export const sendWhatsAppMedia = async (
+export const sendInboxMedia = async (
   instanceId: number,
   leadId: number,
   type: 'image' | 'audio',
@@ -90,7 +94,7 @@ export const sendWhatsAppMedia = async (
   formData.append('file', file);
   formData.append('message_mode', messageMode);
   const response = await api.post(
-    `/api/integrations/whatsapp-evo-chat/media/${instanceId}`,
+    `/api/inbox/instances/${instanceId}/media`,
     formData,
     { headers: { 'Content-Type': undefined } }
   );
@@ -100,8 +104,8 @@ export const sendWhatsAppMedia = async (
 /**
  * Clear all messages from a chat
  */
-export const clearWhatsAppChatMessages = async (chatId: number): Promise<{ message: string }> => {
-  const response = await api.delete(`/api/integrations/whatsapp-evo-chats/${chatId}/clear-messages`);
+export const clearInboxChatMessages = async (chatId: number): Promise<{ message: string }> => {
+  const response = await api.delete(`/api/inbox/chats/${chatId}/messages`);
   return response.data;
 };
 
@@ -129,9 +133,9 @@ export interface LeadSearchResult {
 }
 
 /**
- * Search leads by name or phone for WhatsApp conversation
+ * Search leads by name or phone for starting an inbox conversation
  */
-export const searchLeadsForWhatsApp = async (q: string): Promise<LeadSearchResult[]> => {
-  const response = await api.get('/api/integrations/whatsapp-leads/search', { params: { q } });
+export const searchLeadsForInbox = async (q: string): Promise<LeadSearchResult[]> => {
+  const response = await api.get('/api/inbox/leads/search', { params: { q } });
   return response.data;
 };

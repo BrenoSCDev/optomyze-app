@@ -1,24 +1,23 @@
 /**
  * CHAT DETAILS COMPONENT
- * 
- * Right panel displaying lead, instance, and chat metadata
+ *
+ * Right panel displaying lead, channel, and chat metadata
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  User, 
-  Phone, 
-  Layers, 
-  GitBranch, 
-  Server, 
-  Hash, 
-  Calendar, 
+import {
+  User,
+  Phone,
+  Layers,
+  GitBranch,
+  Server,
+  Hash,
+  Calendar,
   Clock,
   ChevronDown,
   X
 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -26,12 +25,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { WhatsAppChat } from '@/types/whatsappChat';
+import { InboxChat } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import ChannelIcon from './ChannelIcon';
 
 interface ChatDetailsProps {
-  chat: WhatsAppChat | null;
+  chat: InboxChat | null;
   onClose?: () => void;
   showCloseButton?: boolean;
   defaultCollapsed?: boolean;
@@ -61,14 +61,14 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
 }) => {
   const { t } = useLanguage();
   const [leadOpen, setLeadOpen] = React.useState(!defaultCollapsed);
-  const [instanceOpen, setInstanceOpen] = React.useState(!defaultCollapsed);
+  const [channelOpen, setChannelOpen] = React.useState(!defaultCollapsed);
   const [metadataOpen, setMetadataOpen] = React.useState(!defaultCollapsed);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString([], { 
+    return date.toLocaleDateString([], {
       year: 'numeric',
-      month: 'short', 
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -116,7 +116,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-green-600" />
+                  <User className="h-4 w-4 text-primary" />
                   <span className="font-medium text-sm">
                     {t('chat.inbox.lead-information')}
                   </span>
@@ -141,7 +141,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 <DetailItem
                   icon={<Phone className="h-4 w-4" />}
                   label={t('chat.inbox.phone')}
-                  value={chat.lead?.phone || chat.phone_number}
+                  value={chat.lead?.phone || chat.external_contact_id}
                 />
                 <DetailItem
                   icon={<Layers className="h-4 w-4" />}
@@ -157,8 +157,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Instance Information */}
-          <Collapsible open={instanceOpen} onOpenChange={setInstanceOpen}>
+          {/* Channel Information */}
+          <Collapsible open={channelOpen} onOpenChange={setChannelOpen}>
             <CollapsibleTrigger asChild>
               <motion.button
                 className={cn(
@@ -167,14 +167,14 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <FaWhatsapp className="h-4 w-4 text-green-600" />
+                  <ChannelIcon channel={chat.channel} className="h-4 w-4" />
                   <span className="font-medium text-sm">
-                    {t('chat.inbox.instance-information')}
+                    {t('chat.inbox.channel-information')}
                   </span>
                 </div>
                 <ChevronDown className={cn(
                   "h-4 w-4 transition-transform",
-                  instanceOpen && "transform rotate-180"
+                  channelOpen && "transform rotate-180"
                 )} />
               </motion.button>
             </CollapsibleTrigger>
@@ -185,14 +185,21 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 className="pt-2 px-1"
               >
                 <DetailItem
-                  icon={<Server className="h-4 w-4" />}
-                  label={t('chat.inbox.instance-name')}
-                  value={chat.instance?.instance_name}
+                  icon={<ChannelIcon channel={chat.channel} className="h-4 w-4" />}
+                  label={t('chat.inbox.channel')}
+                  value={t(`chat.inbox.filter-${chat.channel}`)}
                 />
+                {chat.instance && (
+                  <DetailItem
+                    icon={<Server className="h-4 w-4" />}
+                    label={t('chat.inbox.instance-name')}
+                    value={chat.instance.instance_name}
+                  />
+                )}
                 <DetailItem
                   icon={<Hash className="h-4 w-4" />}
                   label={t('chat.inbox.instance-id')}
-                  value={chat.whatsapp_instance_id}
+                  value={chat.channelable_id}
                 />
               </motion.div>
             </CollapsibleContent>
@@ -208,7 +215,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-green-600" />
+                  <Hash className="h-4 w-4 text-primary" />
                   <span className="font-medium text-sm">
                     {t('chat.inbox.chat-metadata')}
                   </span>
@@ -227,8 +234,8 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
               >
                 <DetailItem
                   icon={<Hash className="h-4 w-4" />}
-                  label={t('chat.inbox.remote-jid')}
-                  value={chat.remote_jid}
+                  label={t('chat.inbox.external-chat-id')}
+                  value={chat.external_chat_id}
                 />
                 <DetailItem
                   icon={<Calendar className="h-4 w-4" />}

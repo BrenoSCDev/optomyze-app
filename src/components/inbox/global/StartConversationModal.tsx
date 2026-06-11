@@ -1,14 +1,16 @@
 /**
  * START CONVERSATION MODAL
  *
- * Allows starting a new WhatsApp conversation from the inbox.
- * Search for an existing lead by name/phone or select one, pick an instance,
- * type the first message, and send.
+ * Allows starting a new conversation from the Global Inbox.
+ * Search for an existing lead by name/phone or select one, pick a WhatsApp
+ * instance, type the first message, and send.
+ *
+ * NOTE: only WhatsApp sending is implemented today (Evolution API). Other
+ * channels are storage-ready but sending is future work.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Phone, Loader2, MessageCirclePlus, User } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,13 +19,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   fetchWhatsAppInstances,
-  searchLeadsForWhatsApp,
-  sendWhatsAppMessage,
+  searchLeadsForInbox,
+  sendInboxMessage,
   WhatsAppInstanceOption,
   LeadSearchResult,
-} from '@/services/whatsappChatApi';
+} from '@/services/globalInboxApi';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ChannelIcon from './ChannelIcon';
 
 interface StartConversationModalProps {
   open: boolean;
@@ -79,7 +82,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
     searchTimeout.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const results = await searchLeadsForWhatsApp(query.trim());
+        const results = await searchLeadsForInbox(query.trim());
         setSearchResults(results);
       } catch {
         setSearchResults([]);
@@ -102,7 +105,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
     if (!selectedLead || !selectedInstanceId || !message.trim()) return;
     setIsSending(true);
     try {
-      await sendWhatsAppMessage(Number(selectedInstanceId), {
+      await sendInboxMessage(Number(selectedInstanceId), {
         lead_id: selectedLead.id,
         text: message.trim(),
         message_mode: 'external',
@@ -122,7 +125,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FaWhatsapp className="h-5 w-5 text-green-500" />
+            <ChannelIcon channel="whatsapp" className="h-5 w-5" />
             {t('chat.inbox.start-conversation')}
           </DialogTitle>
         </DialogHeader>

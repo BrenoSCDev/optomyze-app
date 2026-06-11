@@ -284,13 +284,13 @@ const OptomyzeInbox: React.FC = () => {
 
         {/* Title + breadcrumbs */}
         <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-sm font-semibold text-foreground leading-tight">Optomyze Inbox</h1>
+          <h1 className="text-sm font-semibold text-foreground leading-tight">{t('nav.optomyze-teams')}</h1>
           <nav className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Home className="w-3 h-3 shrink-0" />
             <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
             <span>Inboxes</span>
             <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
-            <span className="text-foreground/80 font-medium truncate">Optomyze Inbox</span>
+            <span className="text-foreground/80 font-medium truncate">{t('nav.optomyze-teams')}</span>
           </nav>
         </div>
 

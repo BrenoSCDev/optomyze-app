@@ -1,27 +1,33 @@
 /**
  * CHAT CONVERSATION COMPONENT
- * 
- * Center panel displaying the message thread
+ *
+ * Center panel displaying the message thread for the Global Inbox.
+ *
+ * NOTE: bubble colors / mode toggle currently use WhatsApp-green styling as
+ * the default look for the only implemented channel. Per-channel theming is
+ * future work once Instagram/Messenger/SMS sending is implemented.
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, User, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Paperclip, Mic } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Paperclip, Mic, Inbox, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { WhatsAppChat, WhatsAppMessage } from '@/types/whatsappChat';
+import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendWhatsAppMessage, sendWhatsAppMedia, clearWhatsAppChatMessages, fetchChatMessages } from '@/services/whatsappChatApi';
+import { sendInboxMessage, sendInboxMedia, clearInboxChatMessages, fetchInboxChatMessages } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import ContactMessage from './ContactMessage';
+import ChannelIcon from './ChannelIcon';
+import InboxAvatar from './InboxAvatar';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,10 +44,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useWhatsApp } from '@/contexts/WhatsAppContext';
+import { useInbox } from '@/contexts/InboxContext';
 
-/** Renders a WhatsApp image message fetched through the authenticated backend. */
-const WhatsAppPrivateImage: React.FC<{
+/** Renders an image message fetched through the authenticated backend. */
+const InboxPrivateImage: React.FC<{
   path: string;
   onOpenLightbox: (url: string) => void;
   isInternalNote: boolean;
@@ -77,8 +83,8 @@ const WhatsAppPrivateImage: React.FC<{
   );
 };
 
-/** Renders a WhatsApp audio message fetched through the authenticated backend. */
-const WhatsAppPrivateAudio: React.FC<{
+/** Renders an audio message fetched through the authenticated backend. */
+const InboxPrivateAudio: React.FC<{
   path: string;
   isOutgoing: boolean;
   isInternalNote: boolean;
@@ -106,8 +112,8 @@ const WhatsAppPrivateAudio: React.FC<{
   );
 };
 
-/** Renders a WhatsApp document message fetched through the authenticated backend. */
-const WhatsAppPrivateDocument: React.FC<{
+/** Renders a document message fetched through the authenticated backend. */
+const InboxPrivateDocument: React.FC<{
   path: string;
   fileName: string;
   mimeType?: string | null;
@@ -144,23 +150,11 @@ const WhatsAppPrivateDocument: React.FC<{
   );
 };
 
-const ChatHeaderAvatar: React.FC<{ profilePicPath: string | null | undefined }> = ({ profilePicPath }) => {
-  const url = usePrivateFile(profilePicPath ?? undefined);
-  if (url) {
-    return <img src={url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />;
-  }
-  return (
-    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-      <User className="h-5 w-5 text-green-600" />
-    </div>
-  );
-};
-
 interface ChatConversationProps {
-  chat: WhatsAppChat | null;
+  chat: InboxChat | null;
   onBack?: () => void;
   showBackButton?: boolean;
-  onMessageSent?: (message: WhatsAppMessage) => void;
+  onMessageSent?: (message: InboxMessage) => void;
 }
 
 interface PendingMessage {
@@ -177,7 +171,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   onMessageSent
 }) => {
   const { t } = useLanguage();
-  const { handleChatCleared, chats: contextChats } = useWhatsApp();
+  const { user: currentUser } = useAuth();
+  const { handleChatCleared, chats: contextChats } = useInbox();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -194,7 +189,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [isClearing, setIsClearing] = useState(false);
 
   // Message pagination state
-  const [localMessages, setLocalMessages] = useState<WhatsAppMessage[]>([]);
+  const [localMessages, setLocalMessages] = useState<InboxMessage[]>([]);
   const [messagePage, setMessagePage] = useState(1);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -228,7 +223,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     localMessageIdsRef.current = new Set();
     setMessagePage(1);
 
-    fetchChatMessages(chat.id, 1)
+    fetchInboxChatMessages(chat.id, 1)
       .then(res => {
         const msgs = [...res.data].reverse(); // API returns newest first; reverse for display
         msgs.forEach(m => localMessageIdsRef.current.add(m.id));
@@ -254,7 +249,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     }
   }, [contextChats, chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Also sync from the chat prop (sent message updates from WhatsAppInbox)
+  // Also sync from the chat prop (sent message updates from GlobalInbox)
   useEffect(() => {
     if (!chat?.messages?.length) return;
     const newMsgs = chat.messages.filter(m => !localMessageIdsRef.current.has(m.id));
@@ -284,7 +279,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setIsLoadingMoreMessages(true);
     const nextPage = messagePage + 1;
     try {
-      const res = await fetchChatMessages(chat.id, nextPage);
+      const res = await fetchInboxChatMessages(chat.id, nextPage);
       const olderMsgs = [...res.data].reverse().filter(m => !localMessageIdsRef.current.has(m.id));
       olderMsgs.forEach(m => localMessageIdsRef.current.add(m.id));
       setLocalMessages(prev => [...olderMsgs, ...prev]);
@@ -315,20 +310,20 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   }, [pendingMessages, scrollToBottom]);
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !chat?.lead?.id || !chat?.whatsapp_instance_id) {
+    if (!messageText.trim() || !chat?.lead?.id || !chat?.channelable_id) {
       return;
     }
 
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
     const currentMode = messageMode;
-    
+
     setMessageText('');
     setIsSending(true);
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
-      const response = await sendWhatsAppMessage(chat.whatsapp_instance_id, {
+      const response = await sendInboxMessage(chat.channelable_id, {
         lead_id: chat.lead.id,
         text,
         message_mode: currentMode
@@ -336,9 +331,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
-      const sentMessage: WhatsAppMessage = {
+      const sentMessage: InboxMessage = {
         id: response.message.id,
-        whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
+        inbox_chat_id: response.message.inbox_chat_id,
         direction: response.message.direction || 'outgoing',
         type: 'text',
         text: response.message.text,
@@ -357,7 +352,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
       onMessageSent?.(sentMessage);
     } catch (error: any) {
-      setPendingMessages(prev => 
+      setPendingMessages(prev =>
         prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
       );
 
@@ -385,20 +380,20 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   };
 
   const handleSendMedia = useCallback(async (file: File, type: 'image' | 'audio') => {
-    if (!chat?.lead?.id || !chat?.whatsapp_instance_id) return;
+    if (!chat?.lead?.id || !chat?.channelable_id) return;
 
     const tempId = `pending-media-${Date.now()}`;
     setIsSendingMedia(true);
     setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: 'external' }]);
 
     try {
-      const response = await sendWhatsAppMedia(chat.whatsapp_instance_id, chat.lead.id, type, file, 'external');
+      const response = await sendInboxMedia(chat.channelable_id, chat.lead.id, type, file, 'external');
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
-      const sentMessage: WhatsAppMessage = {
+      const sentMessage: InboxMessage = {
         id: response.message.id,
-        whatsapp_evo_chat_id: response.message.whatsapp_evo_chat_id,
+        inbox_chat_id: response.message.inbox_chat_id,
         direction: 'outgoing',
         type: type,
         text: null,
@@ -428,7 +423,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     } finally {
       setIsSendingMedia(false);
     }
-  }, [chat?.lead?.id, chat?.whatsapp_instance_id, onMessageSent, t]);
+  }, [chat?.lead?.id, chat?.channelable_id, onMessageSent, t]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -469,7 +464,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     if (!chat) return;
     setIsClearing(true);
     try {
-      await clearWhatsAppChatMessages(chat.id);
+      await clearInboxChatMessages(chat.id);
       handleChatCleared(chat.id);
       setLocalMessages([]);
       localMessageIdsRef.current = new Set();
@@ -490,7 +485,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     if (chat?.lead?.first_name || chat?.lead?.last_name) {
       return `${chat.lead.first_name || ''} ${chat.lead.last_name || ''}`.trim();
     }
-    return chat?.phone_number || '';
+    return chat?.contact_name || chat?.external_contact_id || '';
   };
 
   const formatMessageTime = (dateString: string): string => {
@@ -508,15 +503,15 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     } else if (date.toDateString() === yesterday.toDateString()) {
       return t('chat.inbox.yesterday');
     }
-    return date.toLocaleDateString([], { 
-      weekday: 'long', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString([], {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const groupMessagesByDate = (messages: WhatsAppMessage[]) => {
-    const groups: { date: string; messages: WhatsAppMessage[] }[] = [];
+  const groupMessagesByDate = (messages: InboxMessage[]) => {
+    const groups: { date: string; messages: InboxMessage[] }[] = [];
     let currentDate = '';
 
     messages.forEach((message) => {
@@ -532,14 +527,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     return groups;
   };
 
-  const isInternalNote = (message: WhatsAppMessage) => message.message_mode === 'internal';
+  const isInternalNote = (message: InboxMessage) => message.message_mode === 'internal';
 
   if (!chat) {
     return (
       <div className="flex flex-col h-full items-center justify-center bg-muted/20">
         <div className="text-center space-y-3 p-8">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <FaWhatsapp className="h-8 w-8 text-green-600" />
+          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+            <Inbox className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium">{t('chat.inbox.select-chat')}</h3>
           <p className="text-sm text-muted-foreground max-w-xs">
@@ -551,6 +546,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   }
 
   const messageGroups = groupMessagesByDate(localMessages);
+  const canSend = !!chat.channelable_id;
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-background">
@@ -562,7 +558,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <ChatHeaderAvatar profilePicPath={chat.profile_pic_url} />
+          <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName()} channel={chat.channel} />
           <div className="flex-1 min-w-0">
             {chat.lead?.id ? (
               <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left max-w-full">
@@ -573,7 +569,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             )}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
               <Phone className="h-3 w-3 shrink-0" />
-              <span className="truncate">{chat.phone_number}</span>
+              <span className="truncate">{chat.external_contact_id}</span>
               {/* Badges inline on mobile to save vertical space */}
               {chat.lead?.funnel && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 hidden sm:inline-flex">
@@ -635,7 +631,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     {formatMessageDate(group.date)}
                   </span>
                 </div>
-                
+
                 {/* Messages */}
                 {group.messages.map((message, messageIndex) => (
                   <motion.div
@@ -644,14 +640,21 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: messageIndex * 0.03 }}
                     className={cn(
-                      "flex",
+                      "flex items-end gap-2",
                       message.direction === 'outgoing' ? "justify-end" : "justify-start"
                     )}
                   >
+                    {message.direction === 'incoming' && (
+                      <InboxAvatar
+                        profilePicPath={chat.profile_pic_url}
+                        name={getLeadName()}
+                        size="sm"
+                      />
+                    )}
                     <div
                       className={cn(
                         "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
-                        message.type === 'image' ? "p-1" : 
+                        message.type === 'image' ? "p-1" :
                         message.type === 'audio' ? "px-2 py-1.5" :
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
@@ -673,30 +676,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </div>
                       )}
 
-                      {/* Sender name for outgoing messages */}
-                      {message.direction === 'outgoing' && message.user?.name && (
-                        <div className={cn(
-                          "flex items-center gap-1 mb-1 pb-1 border-b",
-                          isInternalNote(message) 
-                            ? "border-amber-600/30 dark:border-amber-500/30" 
-                            : "border-white/20"
-                        )}>
-                          <User className={cn(
-                            "h-3 w-3 shrink-0",
-                            isInternalNote(message) ? "text-amber-700 dark:text-amber-300" : "text-green-200"
-                          )} />
-                          <span className={cn(
-                            "text-xs font-semibold",
-                            isInternalNote(message) ? "text-amber-700 dark:text-amber-300" : "text-green-200"
-                          )}>
-                            {message.user.name}
-                          </span>
-                        </div>
-                      )}
-
                       {message.type === 'image' && message.media_url ? (
                         <div className="space-y-1">
-                          <WhatsAppPrivateImage
+                          <InboxPrivateImage
                             path={message.media_url}
                             onOpenLightbox={setLightboxImage}
                             isInternalNote={isInternalNote(message)}
@@ -712,7 +694,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </div>
                       ) : message.type === 'audio' && message.media_url ? (
                         <div className="space-y-2">
-                          <WhatsAppPrivateAudio
+                          <InboxPrivateAudio
                             path={message.media_url}
                             isOutgoing={message.direction === 'outgoing'}
                             isInternalNote={isInternalNote(message)}
@@ -757,8 +739,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
+                              message.direction === 'outgoing'
+                                ? "text-green-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -772,7 +754,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </div>
                       ) : message.type === 'document' && message.media_url ? (
                         <div className="space-y-1">
-                          <WhatsAppPrivateDocument
+                          <InboxPrivateDocument
                             path={message.media_url}
                             fileName={message.text || 'Document'}
                             mimeType={message.media_mime}
@@ -798,7 +780,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                   }]
                             }
                             isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
-                            instanceId={chat.whatsapp_instance_id}
+                            instanceId={chat.channelable_id ?? undefined}
+                            channel={chat.channel}
                           />
                           <div className={cn(
                             "flex items-center gap-1",
@@ -807,8 +790,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
+                              message.direction === 'outgoing'
+                                ? "text-green-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -835,8 +818,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             <span className={cn(
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
-                              message.direction === 'outgoing' 
-                                ? "text-green-100" 
+                              message.direction === 'outgoing'
+                                ? "text-green-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
@@ -850,6 +833,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </>
                       )}
                     </div>
+                    {message.direction === 'outgoing' && (
+                      <InboxAvatar
+                        profilePicPath={message.user?.profile_pic}
+                        name={message.user?.name || 'Optomyze'}
+                        size="sm"
+                        icon={!message.user ? <Bot className="h-4 w-4" /> : undefined}
+                      />
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -861,7 +852,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                 key={pending.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex justify-end"
+                className="flex items-end gap-2 justify-end"
               >
                 <div
                   className={cn(
@@ -906,6 +897,12 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     )}
                   </div>
                 </div>
+                <InboxAvatar
+                  profilePicPath={currentUser?.profile_pic}
+                  name={currentUser?.name || 'Optomyze'}
+                  size="sm"
+                  icon={!currentUser ? <Bot className="h-4 w-4" /> : undefined}
+                />
               </motion.div>
             ))}
           </div>
@@ -920,115 +917,121 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-border/50 bg-card space-y-2">
-        {/* Message mode toggle */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant={messageMode === 'external' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMessageMode('external')}
-            className={cn(
-              "h-7 text-xs gap-1.5 rounded-full",
-              messageMode === 'external' && "bg-green-500 hover:bg-green-600 text-white"
-            )}
-          >
-            <FaWhatsapp className="h-3 w-3" />
-            {t('chat.inbox.mode-external')}
-          </Button>
-          <Button
-            variant={messageMode === 'internal' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMessageMode('internal')}
-            className={cn(
-              "h-7 text-xs gap-1.5 rounded-full",
-              messageMode === 'internal' && "bg-amber-500 hover:bg-amber-600 text-white"
-            )}
-          >
-            <StickyNote className="h-3 w-3" />
-            {t('chat.inbox.mode-internal')}
-          </Button>
-        </div>
-
-        {/* Hidden image file input */}
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageSelect}
-        />
-
-        {/* Recording indicator */}
-        {isRecording && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 border border-destructive/30 rounded-lg">
-            <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-            <span className="text-xs text-destructive font-medium flex-1">Recording audio...</span>
-            <button onClick={toggleRecording} className="text-destructive hover:text-destructive/80">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          {messageMode === 'external' && (
+      {canSend ? (
+        <div className="p-4 border-t border-border/50 bg-card space-y-2">
+          {/* Message mode toggle */}
+          <div className="flex items-center gap-1">
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={isSendingMedia || !chat.lead?.id}
-              className="shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
-              title="Send image"
-            >
-              {isSendingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-            </Button>
-          )}
-          <Input
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
-            disabled={isSending || !chat.lead?.id}
-            className={cn(
-              "flex-1",
-              messageMode === 'internal' && "border-amber-300 dark:border-amber-700"
-            )}
-          />
-          {messageMode === 'external' && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleRecording}
-              disabled={isSendingMedia || !chat.lead?.id}
+              variant={messageMode === 'external' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMessageMode('external')}
               className={cn(
-                "shrink-0 h-9 w-9",
-                isRecording
-                  ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
-                  : "text-muted-foreground hover:text-foreground"
+                "h-7 text-xs gap-1.5 rounded-full",
+                messageMode === 'external' && "bg-green-500 hover:bg-green-600 text-white"
               )}
-              title={isRecording ? 'Stop recording' : 'Record audio'}
             >
-              <Mic className="h-4 w-4" />
+              <ChannelIcon channel={chat.channel} className="h-3 w-3" />
+              {t('chat.inbox.mode-external')}
             </Button>
+            <Button
+              variant={messageMode === 'internal' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMessageMode('internal')}
+              className={cn(
+                "h-7 text-xs gap-1.5 rounded-full",
+                messageMode === 'internal' && "bg-amber-500 hover:bg-amber-600 text-white"
+              )}
+            >
+              <StickyNote className="h-3 w-3" />
+              {t('chat.inbox.mode-internal')}
+            </Button>
+          </div>
+
+          {/* Hidden image file input */}
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageSelect}
+          />
+
+          {/* Recording indicator */}
+          {isRecording && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              <span className="text-xs text-destructive font-medium flex-1">Recording audio...</span>
+              <button onClick={toggleRecording} className="text-destructive hover:text-destructive/80">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           )}
-          <Button
-            onClick={handleSendMessage}
-            disabled={!messageText.trim() || isSending || !chat.lead?.id}
-            size="icon"
-            className={cn(
-              "shrink-0",
-              messageMode === 'internal'
-                ? "bg-amber-500 hover:bg-amber-600"
-                : "bg-green-500 hover:bg-green-600"
+
+          <div className="flex items-center gap-2">
+            {messageMode === 'external' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isSendingMedia || !chat.lead?.id}
+                className="shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
+                title="Send image"
+              >
+                {isSendingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+              </Button>
             )}
-          >
-            {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
+            <Input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
+              disabled={isSending || !chat.lead?.id}
+              className={cn(
+                "flex-1",
+                messageMode === 'internal' && "border-amber-300 dark:border-amber-700"
+              )}
+            />
+            {messageMode === 'external' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleRecording}
+                disabled={isSendingMedia || !chat.lead?.id}
+                className={cn(
+                  "shrink-0 h-9 w-9",
+                  isRecording
+                    ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                title={isRecording ? 'Stop recording' : 'Record audio'}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
             )}
-          </Button>
+            <Button
+              onClick={handleSendMessage}
+              disabled={!messageText.trim() || isSending || !chat.lead?.id}
+              size="icon"
+              className={cn(
+                "shrink-0",
+                messageMode === 'internal'
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-green-500 hover:bg-green-600"
+              )}
+            >
+              {isSending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-4 border-t border-border/50 bg-card text-center text-sm text-muted-foreground">
+          {t('chat.inbox.sending-not-available')}
+        </div>
+      )}
 
       {/* Image Lightbox */}
       <AnimatePresence>

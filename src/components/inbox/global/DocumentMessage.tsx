@@ -1,6 +1,6 @@
 /**
  * DOCUMENT MESSAGE COMPONENT
- * 
+ *
  * Renders a document file card inside a chat bubble with icon, filename, size, and download link.
  */
 

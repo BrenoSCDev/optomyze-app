@@ -27,6 +27,7 @@ import {
   Bot,
   Key,
   MessageCircle,
+  Inbox,
   CalendarDays,
   Package,
   FileText,
@@ -50,7 +51,7 @@ import optomyzeLogoLight from '@/assets/optomyze-light.png';
 import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
-import { FaMeta, FaWhatsapp } from "react-icons/fa6";
+import { FaMeta } from "react-icons/fa6";
 import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
@@ -150,8 +151,8 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   ];
 
   const chatItems = [
-    { id: 'whatsapp-inbox',    label: 'WhatsApp Inbox',    icon: () => <FaWhatsapp size={18}/> },
-    { id: 'optomyze-inbox',    label: 'Optomyze Inbox',    icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'global-inbox',      label: t('nav.global-inbox'), icon: () => <MessageCircle size={18}/> },
+    { id: 'optomyze-inbox',    label: t('nav.optomyze-teams'),    icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const calendarsItems = [
@@ -279,7 +280,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     integrations: () => renderExpandableSection('integrations', <Plug className="h-5 w-5" />, t('nav.integrations'), integrationsItems),
     api: () => renderExpandableSection('api', <Database className="h-5 w-5" />, t('nav.api'), apiItems),
     organization: () => renderExpandableSection('organization', <Building className="h-5 w-5" />, t('nav.organization'), organizationItems, { roleGated: true }),
-    chat: () => renderExpandableSection('chat', <MessageCircle className="h-5 w-5" />, t('nav.chat'), chatItems),
+    chat: () => renderExpandableSection('chat', <Inbox className="h-5 w-5" />, t('nav.chat'), chatItems),
     calendars: () => renderExpandableSection('calendars', <CalendarDays className="h-5 w-5" />, t('nav.calendars'), calendarsItems),
     products: () => renderExpandableSection('products', <Package className="h-5 w-5" />, t('nav.products'), productsItems),
     support: () => renderExpandableSection('support', <Headphones className="h-5 w-5" />, t('nav.support'), supportItems),

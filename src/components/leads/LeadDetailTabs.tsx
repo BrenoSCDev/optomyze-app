@@ -42,7 +42,7 @@ import DocumentsSection from './DocumentsSection';
 import ObservationsSection from './ObservationsSection';
 import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
-import LeadChatSection, { LeadWhatsAppChat, LeadWhatsAppMessage } from './LeadChatSection';
+import LeadChatSection, { LeadInboxChat, LeadInboxMessage } from './LeadChatSection';
 import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 import LeadAppointmentsTab from './LeadAppointmentsTab';
 
@@ -95,7 +95,7 @@ interface Lead {
   assigned_user?: AssignedUser | null;
   products?: LeadProduct[];
   observations?: Observation[];
-  whats_app_evo_chat?: LeadWhatsAppChat | null;
+  whatsapp_inbox_chat?: LeadInboxChat | null;
   timezone?: string | null;
 }
 
@@ -132,16 +132,16 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   const [activeTab, setActiveTab] = useState('info');
   
   // Local state for chat messages to avoid page refresh
-  const [chatMessages, setChatMessages] = useState<LeadWhatsAppMessage[]>(
-    lead.whats_app_evo_chat?.messages || []
+  const [chatMessages, setChatMessages] = useState<LeadInboxMessage[]>(
+    lead.whatsapp_inbox_chat?.messages || []
   );
 
   // Build chat object with local messages state
-  const chatWithLocalMessages: LeadWhatsAppChat | null = lead.whats_app_evo_chat 
-    ? { ...lead.whats_app_evo_chat, messages: chatMessages }
+  const chatWithLocalMessages: LeadInboxChat | null = lead.whatsapp_inbox_chat
+    ? { ...lead.whatsapp_inbox_chat, messages: chatMessages }
     : null;
 
-  const handleChatMessageSent = (message: LeadWhatsAppMessage) => {
+  const handleChatMessageSent = (message: LeadInboxMessage) => {
     setChatMessages(prev => [...prev, message]);
   };
 

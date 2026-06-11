@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
   Moon, Sun, Globe, GripVertical, PanelLeft, PanelTop, Search, Volume2, Info, X, RotateCcw,
-  BarChart3, Users, Settings as SettingsIcon, PieChart, Plug, Database, Building, MessageCircle,
+  BarChart3, Users, Settings as SettingsIcon, PieChart, Plug, Database, Building, Inbox,
   CalendarDays, Package, Headphones, Play, VolumeX
 } from 'lucide-react';
 import { MdCurrencyExchange } from 'react-icons/md';
@@ -61,7 +61,7 @@ const SECTION_META: Record<string, { icon: React.ReactNode; labelKey: string }> 
   integrations: { icon: <Plug className="h-4 w-4" />, labelKey: 'nav.integrations' },
   api: { icon: <Database className="h-4 w-4" />, labelKey: 'nav.api' },
   organization: { icon: <Building className="h-4 w-4" />, labelKey: 'nav.organization' },
-  chat: { icon: <MessageCircle className="h-4 w-4" />, labelKey: 'nav.chat' },
+  chat: { icon: <Inbox className="h-4 w-4" />, labelKey: 'nav.chat' },
   calendars: { icon: <CalendarDays className="h-4 w-4" />, labelKey: 'nav.calendars' },
   products: { icon: <Package className="h-4 w-4" />, labelKey: 'nav.products' },
   support: { icon: <Headphones className="h-4 w-4" />, labelKey: 'nav.support' },

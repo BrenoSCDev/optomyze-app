@@ -8,7 +8,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { MenuOrderProvider } from "./contexts/MenuOrderContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
-import { WhatsAppProvider } from "./contexts/WhatsAppContext";
+import { InboxProvider } from "./contexts/InboxContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -29,7 +29,7 @@ const App = () => (
         <MenuOrderProvider>
         <BrowserRouter>
           <NotificationProvider>
-            <WhatsAppProvider>
+            <InboxProvider>
               <TooltipProvider>
               <Toaster />
               <Sonner position="top-right" richColors />
@@ -97,7 +97,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </TooltipProvider>
-            </WhatsAppProvider>
+            </InboxProvider>
           </NotificationProvider>
         </BrowserRouter>
         </MenuOrderProvider>
