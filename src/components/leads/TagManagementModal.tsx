@@ -115,32 +115,32 @@ const TagManagementModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 w-full max-w-md mx-4"
+          className="bg-popover backdrop-blur-md rounded-lg border border-border w-full max-w-md mx-4"
         >
           {/* Modal Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div>
-              <h3 className="text-xl font-semibold text-white">Manage Tags</h3>
-              <p className="text-gray-400 text-sm mt-1">
+              <h3 className="text-xl font-semibold text-foreground">Manage Tags</h3>
+              <p className="text-muted-foreground text-sm mt-1">
                 {lead ? `${lead.name}` : 'Select tags for this lead'}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg hover:bg-accent transition-colors"
             >
-              <X className="w-5 h-5 text-gray-400" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
-          
+
           {/* Modal Body */}
           <div className="p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-3">
+                <label className="block text-sm font-medium text-foreground mb-3">
                   Select Tags
                 </label>
-                
+
                 <MultiSelect
                   options={availableTags}
                   selected={selectedTags}
@@ -151,18 +151,18 @@ const TagManagementModal = ({
                   className="w-full"
                 />
               </div>
-              
+
               {/* Selected Tags Preview */}
               {selectedTags.length > 0 && (
-                <div className="mt-4 p-3 bg-purple-600/10 rounded-lg border border-purple-600/20">
-                  <p className="text-sm font-medium text-purple-300 mb-2">
+                <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
                     Selected Tags ({selectedTags.length})
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedTags.map((tag) => (
                       <span
                         key={tag.id}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-600/20 text-purple-400 text-xs"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-400 text-xs"
                       >
                         {tag.name}
                         <button
@@ -170,7 +170,7 @@ const TagManagementModal = ({
                             e.stopPropagation();
                             setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
                           }}
-                          className="hover:text-purple-300"
+                          className="hover:text-purple-900 dark:hover:text-purple-300"
                           disabled={isLoading}
                         >
                           <X className="w-3 h-3" />
@@ -183,20 +183,20 @@ const TagManagementModal = ({
 
               {/* Loading State */}
               {isLoading && (
-                <div className="mt-4 flex items-center gap-2 text-purple-400">
+                <div className="mt-4 flex items-center gap-2 text-purple-600 dark:text-purple-400">
                   <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full" />
                   <span className="text-sm">Updating tags...</span>
                 </div>
               )}
             </div>
           </div>
-          
+
           {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
             >
               Cancel
             </button>

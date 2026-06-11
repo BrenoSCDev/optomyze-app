@@ -58,6 +58,19 @@ export const leadService = {
     }
   },
 
+  // Move lead to a different funnel (placed in that funnel's entry stage)
+  async moveLeadToFunnel(leadId, funnelId) {
+    try {
+      const response = await api.post(`/api/leads/${leadId}/move-funnel`, {
+        funnel_id: funnelId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error moving lead to funnel:', error);
+      throw error;
+    }
+  },
+
   // Submit lost reason for a lead
   async submitLostReason(leadId, lostReasonId) {
     try {

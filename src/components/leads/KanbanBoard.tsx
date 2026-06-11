@@ -70,6 +70,13 @@ import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 import LeadPreviewModal from './LeadPreviewModal';
 import LostReasonModal from './LostReasonModal';
+import AssignUserModal, { CompanyUser } from './AssignUserModal';
+import MoveFunnelModal from './MoveFunnelModal';
+import { userApi } from '@/services/userApi';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface KanbanBoardProps {
   funnel: any;
@@ -86,7 +93,7 @@ interface KanbanBoardProps {
 
 const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated, onRefresh }: KanbanBoardProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, funnels: allFunnels } = useAuth();
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
@@ -130,6 +137,29 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   // Lead preview modal state
   const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Company users (for the Assign User action)
+  const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
+
+  // Lead card "more actions" state
+  const [assignUserTarget, setAssignUserTarget] = useState<any | null>(null);
+  const [moveFunnelTarget, setMoveFunnelTarget] = useState<any | null>(null);
+  const [deleteLeadTarget, setDeleteLeadTarget] = useState<any | null>(null);
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
+
+  // Fetch company users once for the Assign User modal
+  useEffect(() => {
+    userApi.getUsers()
+      .then(users => setCompanyUsers(users as unknown as CompanyUser[]))
+      .catch(() => setCompanyUsers([]));
+  }, []);
+
+  // Funnels of the same type the current lead can be moved to
+  const moveFunnelOptions = useMemo(() => {
+    return (allFunnels || [])
+      .filter((f: any) => f.is_active && f.type === funnel.type && Number(f.id) !== Number(funnel.id))
+      .map((f: any) => ({ id: f.id, name: f.name }));
+  }, [allFunnels, funnel.id, funnel.type]);
 
   // Handle export to Excel
   const handleExport = useCallback(async () => {
@@ -506,36 +536,18 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
   // Handle tags updated with API response data
   const handleTagsUpdated = (leadId: string, updatedLead: any) => {
-    const transformedLead = {
-      id: updatedLead.id.toString(),
-      name: `${updatedLead.first_name} ${updatedLead.last_name}`,
-      email: updatedLead.email,
-      phone: updatedLead.phone,
-      company: updatedLead.custom_fields?.industry || 'N/A',
-      title: updatedLead.custom_fields?.title || 'Contact',
-      score: parseFloat(updatedLead.ai_score || '0'),
-      value: parseFloat(updatedLead.estimated_value || '0'),
-      source: updatedLead.source_platform || 'Direct',
-      tags: Array.isArray(updatedLead.tags) ? updatedLead.tags.map((tag: any) => tag.name || tag) : [],
-      lastActivity: updatedLead.updated_at ? timeAgo(updatedLead.updated_at) : 'No activity',
-      priority: updatedLead.priority || 'medium',
-      stage: updatedLead.stage_id.toString(),
-      avatar: updatedLead.platform_data?.profile_picture,
-      notes: updatedLead.notes,
-      createdAt: updatedLead.created_at,
-      assignedTo: updatedLead.assigned_to,
-      assigned_user: updatedLead.assigned_user,
-      currency: updatedLead.currency || companyCurrency,
-      initialMessage: updatedLead.initial_message,
-      contactMethods: updatedLead.contact_methods || [],
-      preferredContact: updatedLead.preferred_contact_method || 'email'
-    };
+    const updatedTags = Array.isArray(updatedLead.tags)
+      ? updatedLead.tags.map((tag: any) => tag.name || tag)
+      : [];
 
+    // Only merge the tags into the existing lead - the tags-update endpoint
+    // doesn't return the full lead payload (e.g. assigned_user, value), so
+    // rebuilding the whole card from it would wipe those fields out.
     setColumns(prevColumns => {
       return prevColumns.map(column => ({
         ...column,
-        leads: column.leads.map(lead => 
-          lead.id === leadId ? transformedLead : lead
+        leads: column.leads.map(lead =>
+          lead.id === leadId ? { ...lead, tags: updatedTags } : lead
         )
       }));
     });
@@ -543,6 +555,67 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     if (onTagsUpdated) {
       onTagsUpdated(leadId, updatedLead);
     }
+  };
+
+  // Remove a lead from all columns (used after delete / move to another funnel)
+  const removeLeadFromColumns = (leadId: string) => {
+    setColumns(prevColumns => prevColumns.map(col => ({
+      ...col,
+      leads: col.leads.filter((lead: any) => lead.id !== leadId)
+    })));
+  };
+
+  // Handle delete lead click - open confirmation dialog
+  const handleDeleteLeadClick = (lead: any) => {
+    setDeleteLeadTarget(lead);
+  };
+
+  // Confirm lead deletion
+  const handleConfirmDeleteLead = async () => {
+    if (!deleteLeadTarget) return;
+    try {
+      setIsDeletingLead(true);
+      await leadService.deleteLead(deleteLeadTarget.id);
+      toast.success(t('lead-details.delete-lead-success'));
+      removeLeadFromColumns(deleteLeadTarget.id);
+      setDeleteLeadTarget(null);
+      onRefresh?.();
+    } catch {
+      toast.error(t('lead-details.delete-lead-error'));
+    } finally {
+      setIsDeletingLead(false);
+    }
+  };
+
+  // Handle assign user click - open assign user modal
+  const handleAssignUserClick = (lead: any) => {
+    setAssignUserTarget(lead);
+  };
+
+  // Merge the newly assigned user into the lead card
+  const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
+    if (!assignUserTarget) return;
+    const leadId = assignUserTarget.id;
+    setColumns(prevColumns => prevColumns.map(col => ({
+      ...col,
+      leads: col.leads.map((lead: any) =>
+        lead.id === leadId
+          ? { ...lead, assignedTo: userId, assigned_user: { id: userId, name: userName, email: userEmail } }
+          : lead
+      )
+    })));
+  };
+
+  // Handle move-to-funnel click - open move funnel modal
+  const handleMoveFunnelClick = (lead: any) => {
+    setMoveFunnelTarget(lead);
+  };
+
+  // After a lead has been moved to a different funnel, remove it from this board
+  const handleLeadMovedToFunnel = (leadId: string) => {
+    removeLeadFromColumns(leadId);
+    setMoveFunnelTarget(null);
+    onRefresh?.();
   };
 
   return (
@@ -723,6 +796,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
                   onAddLead={handleAddLead}
                   onTagClick={handleTagClick}
                   onLeadClick={handleLeadClick}
+                  onDeleteLead={handleDeleteLeadClick}
+                  onAssignUser={handleAssignUserClick}
+                  onMoveFunnel={handleMoveFunnelClick}
                   activeId={activeId}
                   overId={overId}
                   stageValueEstimated={(column as any).valueEstimated}
@@ -827,6 +903,45 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onClose={() => setLostReasonLeadId(null)}
         leadId={lostReasonLeadId || ''}
       />
+
+      {/* Assign User Modal */}
+      <AssignUserModal
+        isOpen={!!assignUserTarget}
+        onClose={() => setAssignUserTarget(null)}
+        leadId={assignUserTarget ? Number(assignUserTarget.id) : 0}
+        users={companyUsers}
+        currentAssignedUserId={assignUserTarget?.assigned_user?.id}
+        onUserAssigned={handleUserAssigned}
+      />
+
+      {/* Move Funnel Modal */}
+      <MoveFunnelModal
+        isOpen={!!moveFunnelTarget}
+        onClose={() => setMoveFunnelTarget(null)}
+        leadId={moveFunnelTarget?.id || ''}
+        funnels={moveFunnelOptions}
+        onMoved={handleLeadMovedToFunnel}
+      />
+
+      {/* Delete Lead Confirmation */}
+      <AlertDialog open={!!deleteLeadTarget} onOpenChange={(open) => !open && setDeleteLeadTarget(null)}>
+        <AlertDialogContent className="bg-background border-border z-[80]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.delete-lead-title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('lead-details.delete-lead-confirmation')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingLead}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteLead}
+              disabled={isDeletingLead}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingLead ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('common.deleting')}</> : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Entry Requirement Errors Modal */}
       {entryErrors && (

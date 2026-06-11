@@ -8,20 +8,31 @@ import { Lead } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
-import { 
-  Mail, 
-  Phone, 
-  Clock, 
+import {
+  Mail,
+  Phone,
+  Clock,
   TrendingUp,
   GripVertical,
   Tag,
-  User
+  MoreVertical,
+  UserCheck,
+  GitBranch,
+  Trash2
 } from 'lucide-react';
 import {
   useDraggable,
 } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import UserAvatar from '@/components/ui/user-avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface LeadCardProps {
   lead: Lead;
@@ -29,11 +40,14 @@ interface LeadCardProps {
   isMoving?: boolean;
   onTagClick?: (lead: Lead) => void;
   onLeadClick?: (leadId: string) => void;
+  onDeleteLead?: (lead: Lead) => void;
+  onAssignUser?: (lead: Lead) => void;
+  onMoveFunnel?: (lead: Lead) => void;
   showEstimatedValue?: boolean;
   showAssignedUser?: boolean;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, onDeleteLead, onAssignUser, onMoveFunnel, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
   const {
@@ -122,9 +136,6 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
           >
             {lead.name}
           </button>
-          <p className="text-xs text-muted-foreground truncate">
-            {lead.company} - {lead.title}
-          </p>
         </div>
         
         {/* Lead Score & Tag Icon */}
@@ -146,6 +157,53 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
             >
               <Tag className="w-3 h-3 text-gray-400 group-hover:text-purple-400" />
             </button>
+          )}
+
+          {/* More Actions Menu */}
+          {(onAssignUser || onMoveFunnel || onDeleteLead) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 transition-all duration-200 group"
+                  title={t('lead-card.more-actions')}
+                >
+                  <MoreVertical className="w-3 h-3 text-gray-400 group-hover:text-primary" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
+                {onAssignUser && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onAssignUser(lead); }}
+                    className="cursor-pointer"
+                  >
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    {t('lead-details.assign-user')}
+                  </DropdownMenuItem>
+                )}
+                {onMoveFunnel && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onMoveFunnel(lead); }}
+                    className="cursor-pointer"
+                  >
+                    <GitBranch className="w-4 h-4 mr-2" />
+                    {t('lead-card.move-funnel')}
+                  </DropdownMenuItem>
+                )}
+                {onDeleteLead && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => { e.stopPropagation(); onDeleteLead(lead); }}
+                      className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t('lead-details.delete-lead')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
@@ -214,7 +272,11 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       {/* Assigned User */}
       {showAssignedUser && (lead as any).assigned_user && (
         <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10">
-          <User className="h-3 w-3 text-muted-foreground" />
+          <UserAvatar
+            name={(lead as any).assigned_user.name}
+            profilePicPath={(lead as any).assigned_user.profile_pic}
+            className="w-5 h-5 text-[9px]"
+          />
           <span className="text-xs text-muted-foreground">
             {(lead as any).assigned_user.name}
           </span>

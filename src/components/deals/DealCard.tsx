@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { 
   GripVertical,
-  User,
   Clock,
   FileText,
   Mail,
@@ -25,6 +24,7 @@ import {
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import UserAvatar from '@/components/ui/user-avatar';
 
 interface DealCardProps {
   deal: any;
@@ -266,7 +266,11 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
 
             {deal.user && (
               <div className="flex items-center gap-1">
-                <User className="h-2.5 w-2.5 text-deal/60" />
+                <UserAvatar
+                  name={deal.user.name}
+                  profilePicPath={deal.user.profile_pic}
+                  className="w-4 h-4 text-[8px]"
+                />
                 <span className="text-[10px] text-muted-foreground">{deal.user.name}</span>
               </div>
             )}

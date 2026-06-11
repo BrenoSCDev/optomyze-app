@@ -88,18 +88,18 @@ const DealTagManagementModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-black/80 backdrop-blur-md rounded-lg border border-white/10 w-full max-w-md mx-4"
+          className="bg-popover backdrop-blur-md rounded-lg border border-border w-full max-w-md mx-4"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <div>
-              <h3 className="text-xl font-semibold text-white">Manage Tags</h3>
-              <p className="text-gray-400 text-sm mt-1">
+              <h3 className="text-xl font-semibold text-foreground">Manage Tags</h3>
+              <p className="text-muted-foreground text-sm mt-1">
                 {deal ? deal.name : 'Select tags for this deal'}
               </p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-              <X className="w-5 h-5 text-gray-400" />
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-accent transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
@@ -107,7 +107,7 @@ const DealTagManagementModal = ({
           <div className="p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-3">Select Tags</label>
+                <label className="block text-sm font-medium text-foreground mb-3">Select Tags</label>
                 <MultiSelect
                   options={availableTags}
                   selected={selectedTags}
@@ -157,11 +157,11 @@ const DealTagManagementModal = ({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
             >
               Cancel
             </button>

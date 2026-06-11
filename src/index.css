@@ -281,6 +281,21 @@
     background: hsl(var(--sidebar-item-active));
   }
 
+  /* Header nav mode menu items (always sit on a dark sidebar-colored bar) */
+  .header-nav-item {
+    color: hsl(var(--sidebar-text));
+  }
+
+  .header-nav-item:hover {
+    color: hsl(var(--sidebar-text-hover));
+    background: hsl(var(--sidebar-item-hover));
+  }
+
+  .header-nav-item.active {
+    color: hsl(var(--sidebar-text-active));
+    background: hsl(var(--sidebar-item-active));
+  }
+
   /* KPI Card */
   .kpi-card {
     @apply glass-card p-6 hover:scale-105;

@@ -32,6 +32,9 @@ interface KanbanColumnProps {
   onAddLead: (columnId: string) => void;
   onTagClick?: (lead: any) => void;
   onLeadClick?: (leadId: string) => void;
+  onDeleteLead?: (lead: any) => void;
+  onAssignUser?: (lead: any) => void;
+  onMoveFunnel?: (lead: any) => void;
   activeId?: string | null;
   overId?: string | null;
   stageValueEstimated?: number;
@@ -40,7 +43,7 @@ interface KanbanColumnProps {
   showAssignedUser?: boolean;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const { currencyCode: companyCurrency } = useCurrency();
   
@@ -147,12 +150,15 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, activ
                 opacity: activeId === lead.id ? 0.3 : 1,
               }}
             >
-              <LeadCard 
-                lead={lead} 
+              <LeadCard
+                lead={lead}
                 isDragging={activeId === lead.id}
                 isMoving={false}
                 onTagClick={onTagClick}
                 onLeadClick={onLeadClick}
+                onDeleteLead={onDeleteLead}
+                onAssignUser={onAssignUser}
+                onMoveFunnel={onMoveFunnel}
                 showEstimatedValue={showEstimatedValues}
                 showAssignedUser={showAssignedUser}
               />

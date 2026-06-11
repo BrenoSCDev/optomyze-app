@@ -314,7 +314,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       children: [
         { id: 'api-tokens', label: 'API Tokens' },
         { id: 'api-setup', label: 'API Setup' },
-        { id: 'api-playground', label: t('api.playground.title') },
       ],
     },
     organization: {
@@ -435,10 +434,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                 <DropdownMenu key={sectionId}>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-                        isActive
-                          ? 'text-foreground bg-white/[0.08]'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+                      className={`header-nav-item flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                        isActive ? 'active' : ''
                       }`}
                     >
                       {config.icon}

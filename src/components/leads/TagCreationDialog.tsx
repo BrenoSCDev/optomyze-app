@@ -75,20 +75,20 @@ export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-dialog border-white/20">
+      <DialogContent className="glass-modal sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
+          <DialogTitle className="flex items-center gap-2">
             <Tags className="h-5 w-5" />
             Create New Tag
           </DialogTitle>
-          <DialogDescription className="text-white/70">
+          <DialogDescription>
             Create a new tag to organize and categorize your leads.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="tagName" className="text-white">
+            <Label htmlFor="tagName">
               Tag Name
             </Label>
             <Input
@@ -97,18 +97,16 @@ export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreat
               value={tagName}
               onChange={(e) => setTagName(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="glass-card border-white/20 bg-white/5 text-white placeholder:text-white/50"
               disabled={isLoading}
             />
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="glass-card border-white/20 hover:bg-white/10 text-white"
           >
             Cancel
           </Button>
