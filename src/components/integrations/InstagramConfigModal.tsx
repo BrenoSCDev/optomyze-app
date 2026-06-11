@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
@@ -294,10 +295,14 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
   const isWebhookListening =
     webhookTesting &&
     (webhookTestStatus === 'waiting' || webhookTestStatus === 'verification_attempt' || webhookTestStatus === 'verified');
-  const isWebhookTerminal =
-    webhookTestStatus === 'subscribed' ||
-    webhookTestStatus === 'verification_failed' ||
-    webhookTestStatus === 'subscription_failed';
+
+  const webhookPhase: 'idle' | 'listening' | 'success' | 'failure' = isWebhookListening
+    ? 'listening'
+    : webhookTestStatus === 'subscribed'
+      ? 'success'
+      : webhookTestStatus === 'verification_failed' || webhookTestStatus === 'subscription_failed'
+        ? 'failure'
+        : 'idle';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -411,7 +416,7 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                       <p className="text-sm text-muted-foreground truncate">@{integration.username}</p>
                     )}
                   </div>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Badge className="bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     {t('integrations.instagram.status-connected')}
                   </Badge>
@@ -441,7 +446,7 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                       {t('integrations.instagram.webhook-title')}
                     </h3>
                     {integration.webhook_status === 'verified' ? (
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                      <Badge className="bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
                         {t('integrations.instagram.webhook-status-verified')}
                       </Badge>
@@ -484,74 +489,163 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                     </AlertDescription>
                   </Alert>
 
-                  {!webhookTestStatus && (
-                    <Button type="button" variant="outline" onClick={handleTestWebhook}>
-                      {t('integrations.instagram.test-webhook')}
-                    </Button>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {webhookPhase === 'idle' && (
+                      <motion.div
+                        key="idle"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Button type="button" variant="outline" onClick={handleTestWebhook}>
+                          {t('integrations.instagram.test-webhook')}
+                        </Button>
+                      </motion.div>
+                    )}
 
-                  {/* Animated "listening" state - n8n-style ping/radar loader */}
-                  {isWebhookListening && (
-                    <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-8">
-                      <div className="relative flex h-16 w-16 items-center justify-center">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/20" />
-                        <span
-                          className="absolute inline-flex h-3/4 w-3/4 animate-ping rounded-full bg-primary/30"
-                          style={{ animationDelay: '300ms' }}
-                        />
-                        <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                          <Webhook className="h-5 w-5 text-primary-foreground" />
-                        </span>
-                      </div>
-                      <div className="space-y-1 text-center">
-                        <p className="font-medium text-foreground">
-                          {webhookTestStatus === 'waiting' && t('integrations.instagram.webhook-waiting')}
-                          {webhookTestStatus === 'verification_attempt' && t('integrations.instagram.webhook-verification-attempt')}
-                          {webhookTestStatus === 'verified' && t('integrations.instagram.webhook-verified')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t('integrations.instagram.webhook-listening-hint')}
-                        </p>
-                      </div>
-                      <Button type="button" variant="outline" size="sm" onClick={handleStopWebhookTest}>
-                        <X className="mr-2 h-4 w-4" />
-                        {t('integrations.instagram.stop-listening')}
-                      </Button>
-                    </div>
-                  )}
+                    {/* Listening state - n8n-style ping/radar loader that shifts toward green as verification progresses */}
+                    {webhookPhase === 'listening' && (
+                      <motion.div
+                        key="listening"
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className={`flex flex-col items-center gap-4 rounded-lg border border-dashed px-4 py-8 transition-colors duration-500 ${
+                          webhookTestStatus === 'verified'
+                            ? 'border-green-500/30 bg-green-500/5'
+                            : 'border-primary/30 bg-primary/5'
+                        }`}
+                      >
+                        <div className="relative flex h-16 w-16 items-center justify-center">
+                          <span
+                            className={`absolute inline-flex h-full w-full animate-ping rounded-full transition-colors duration-500 ${
+                              webhookTestStatus === 'verified' ? 'bg-green-500/20' : 'bg-primary/20'
+                            }`}
+                          />
+                          <span
+                            className={`absolute inline-flex h-3/4 w-3/4 animate-ping rounded-full transition-colors duration-500 ${
+                              webhookTestStatus === 'verified' ? 'bg-green-500/30' : 'bg-primary/30'
+                            }`}
+                            style={{ animationDelay: '300ms' }}
+                          />
+                          <span
+                            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-500 ${
+                              webhookTestStatus === 'verified' ? 'bg-green-500' : 'bg-primary'
+                            }`}
+                          >
+                            <Webhook className={`h-5 w-5 ${webhookTestStatus === 'verified' ? 'text-white' : 'text-primary-foreground'}`} />
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-center">
+                          <AnimatePresence mode="wait">
+                            <motion.p
+                              key={webhookTestStatus}
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.2 }}
+                              className="font-medium text-foreground"
+                            >
+                              {webhookTestStatus === 'waiting' && t('integrations.instagram.webhook-waiting')}
+                              {webhookTestStatus === 'verification_attempt' && t('integrations.instagram.webhook-verification-attempt')}
+                              {webhookTestStatus === 'verified' && t('integrations.instagram.webhook-verified')}
+                            </motion.p>
+                          </AnimatePresence>
+                          <p className="text-xs text-muted-foreground">
+                            {t('integrations.instagram.webhook-listening-hint')}
+                          </p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={handleStopWebhookTest}>
+                          <X className="mr-2 h-4 w-4" />
+                          {t('integrations.instagram.stop-listening')}
+                        </Button>
+                      </motion.div>
+                    )}
 
-                  {/* Terminal result - success or failure */}
-                  {isWebhookTerminal && (
-                    <Alert className={
-                      webhookTestStatus === 'subscribed'
-                        ? 'border-green-500/50 bg-green-500/10'
-                        : 'border-destructive/50 bg-destructive/10'
-                    }>
-                      {webhookTestStatus === 'subscribed' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
-                      {webhookTestStatus === 'verification_failed' && <XCircle className="h-4 w-4 text-destructive" />}
-                      {webhookTestStatus === 'subscription_failed' && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                      <AlertDescription className="flex items-center justify-between gap-3">
-                        <span>
-                          {webhookTestStatus === 'subscribed' && t('integrations.instagram.webhook-subscribed')}
-                          {webhookTestStatus === 'verification_failed' && (
-                            <>
-                              {t('integrations.instagram.webhook-verification-failed')}
-                              {webhookTestReason ? `: ${webhookTestReason}` : ''}
-                            </>
+                    {/* Success state - celebratory pop animation */}
+                    {webhookPhase === 'success' && (
+                      <motion.div
+                        key="success"
+                        initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="flex flex-col items-center gap-4 rounded-lg border border-green-500/30 bg-green-500/5 px-4 py-8"
+                      >
+                        <div className="relative flex h-16 w-16 items-center justify-center">
+                          <motion.span
+                            initial={{ scale: 0.5, opacity: 0.6 }}
+                            animate={{ scale: 1.8, opacity: 0 }}
+                            transition={{ duration: 0.7, ease: 'easeOut' }}
+                            className="absolute inline-flex h-full w-full rounded-full bg-green-500/30"
+                          />
+                          <motion.span
+                            initial={{ scale: 0, rotate: -45 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 380, damping: 18, delay: 0.1 }}
+                            className="relative inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500"
+                          >
+                            <CheckCircle2 className="h-6 w-6 text-white" />
+                          </motion.span>
+                        </div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2, duration: 0.25 }}
+                          className="space-y-1 text-center"
+                        >
+                          <p className="font-medium text-foreground">
+                            {t('integrations.instagram.webhook-subscribed')}
+                          </p>
+                        </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3, duration: 0.25 }}
+                        >
+                          <Button type="button" variant="outline" size="sm" onClick={handleDismissWebhookResult}>
+                            {t('common.close')}
+                          </Button>
+                        </motion.div>
+                      </motion.div>
+                    )}
+
+                    {/* Failure state - subtle shake to draw attention */}
+                    {webhookPhase === 'failure' && (
+                      <motion.div
+                        key="failure"
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.97 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex flex-col items-center gap-4 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-8"
+                      >
+                        <motion.div
+                          initial={{ x: 0 }}
+                          animate={{ x: [0, -6, 6, -4, 4, 0] }}
+                          transition={{ duration: 0.4, delay: 0.05 }}
+                          className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/15"
+                        >
+                          {webhookTestStatus === 'verification_failed' && <XCircle className="h-6 w-6 text-destructive" />}
+                          {webhookTestStatus === 'subscription_failed' && <AlertTriangle className="h-6 w-6 text-destructive" />}
+                        </motion.div>
+                        <div className="space-y-1 text-center max-w-sm">
+                          <p className="font-medium text-foreground">
+                            {webhookTestStatus === 'verification_failed' && t('integrations.instagram.webhook-verification-failed')}
+                            {webhookTestStatus === 'subscription_failed' && t('integrations.instagram.webhook-subscription-failed')}
+                          </p>
+                          {webhookTestReason && (
+                            <p className="text-xs text-muted-foreground">{webhookTestReason}</p>
                           )}
-                          {webhookTestStatus === 'subscription_failed' && (
-                            <>
-                              {t('integrations.instagram.webhook-subscription-failed')}
-                              {webhookTestReason ? `: ${webhookTestReason}` : ''}
-                            </>
-                          )}
-                        </span>
-                        <Button type="button" variant="ghost" size="sm" onClick={handleDismissWebhookResult}>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={handleDismissWebhookResult}>
                           {t('integrations.instagram.test-again')}
                         </Button>
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </>
             )}
