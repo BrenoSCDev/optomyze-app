@@ -2788,6 +2788,7 @@ const translations = {
 
     // Lead Card - More Actions
     'lead-card.more-actions': 'More Actions',
+    'lead-card.manage-tags': 'Manage Tags',
     'lead-card.move-funnel': 'Move to Funnel',
     'lead-card.move-funnel-title': 'Move Lead to Funnel',
     'lead-card.move-funnel-description': 'Select the funnel to move this lead to. The lead will be placed in the entry stage of the selected funnel.',
@@ -5560,6 +5561,7 @@ const translations = {
 
     // Lead Card - More Actions
     'lead-card.more-actions': 'Mais Ações',
+    'lead-card.manage-tags': 'Gerenciar Tags',
     'lead-card.move-funnel': 'Mover para Funil',
     'lead-card.move-funnel-title': 'Mover Lead para Funil',
     'lead-card.move-funnel-description': 'Selecione o funil para o qual deseja mover este lead. O lead será colocado na etapa de entrada do funil selecionado.',
@@ -8158,6 +8160,7 @@ const translations = {
 
     // Lead Card - More Actions
     'lead-card.more-actions': 'Weitere Aktionen',
+    'lead-card.manage-tags': 'Tags verwalten',
     'lead-card.move-funnel': 'In Funnel verschieben',
     'lead-card.move-funnel-title': 'Lead in Funnel verschieben',
     'lead-card.move-funnel-description': 'Wählen Sie den Funnel aus, in den dieser Lead verschoben werden soll. Der Lead wird in der Eingangsphase des ausgewählten Funnels platziert.',
@@ -10766,6 +10769,7 @@ const translations = {
 
     // Lead Card - More Actions
     'lead-card.more-actions': 'Más Acciones',
+    'lead-card.manage-tags': 'Gestionar Etiquetas',
     'lead-card.move-funnel': 'Mover a Funnel',
     'lead-card.move-funnel-title': 'Mover Lead a Funnel',
     'lead-card.move-funnel-description': 'Seleccione el funnel al que desea mover este lead. El lead se colocará en la etapa de entrada del funnel seleccionado.',

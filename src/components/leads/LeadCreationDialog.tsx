@@ -50,12 +50,18 @@ const phoneMasks = {
 };
 
 const platformOptions = [
-  { value: "WhatsApp", label: "WhatsApp", icon: "📱" },
-  { value: "Facebook", label: "Facebook", icon: "📘" },
-  { value: "Instagram", label: "Instagram", icon: "📷" },
-  { value: "Telegram", label: "Telegram", icon: "✈️" },
-  { value: "SMS", label: "SMS", icon: "💬" },
-  { value: "Direct", label: "Direct", icon: "🔗" }
+  { value: "whatsapp", label: "WhatsApp", icon: "📱" },
+  { value: "facebook", label: "Facebook", icon: "📘" },
+  { value: "instagram", label: "Instagram", icon: "📷" },
+  { value: "meta_ads", label: "Meta Ads", icon: "📣" },
+  { value: "google_ads", label: "Google Ads", icon: "🔍" },
+  { value: "telegram", label: "Telegram", icon: "✈️" },
+  { value: "phone", label: "Phone", icon: "☎️" },
+  { value: "sms", label: "SMS", icon: "💬" },
+  { value: "email", label: "Email", icon: "📧" },
+  { value: "website", label: "Website", icon: "🌐" },
+  { value: "api", label: "API", icon: "🔌" },
+  { value: "other", label: "Other", icon: "🔗" }
 ];
 
 export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
@@ -78,7 +84,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
     email: '',
     phone: '',
     ddi: '+55',
-    source_platform: 'Direct',
+    source_platform: 'other',
     company_id: user?.company_id || '1',
     funnel_id: funnelId,
     stage_id: ''
@@ -213,7 +219,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
         email: '',
         phone: '',
         ddi: '+55',
-        source_platform: 'Direct',
+        source_platform: 'other',
         company_id: user?.company_id || '1',
         funnel_id: funnelId,
         stage_id: formData.stage_id

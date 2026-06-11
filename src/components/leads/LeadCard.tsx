@@ -6,13 +6,11 @@
 
 import { Lead } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import {
   Mail,
   Phone,
   Clock,
-  TrendingUp,
   GripVertical,
   Tag,
   MoreVertical,
@@ -26,6 +24,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
+import SourcePlatformIcon from './SourcePlatformIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,14 +60,6 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
   };
-  const getInitials = (name: string) => {
-    const parts = name.split(' ').filter(n => n.length > 0 && !n.includes('-'));
-    if (parts.length === 0) return '';
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    // Only first name initial + first last name initial
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'border-l-red-500';
@@ -76,16 +67,6 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       case 'medium': return 'border-l-yellow-500';
       case 'low': return 'border-l-green-500';
       default: return 'border-l-gray-500';
-    }
-  };
-
-  const getSourceColor = (source: string) => {
-    switch (source) {
-      case 'Meta Ads': return 'bg-blue-500/20 text-blue-400';
-      case 'Google Ads': return 'bg-green-500/20 text-green-400';
-      case 'Organic': return 'bg-purple-500/20 text-purple-400';
-      case 'Referral': return 'bg-orange-500/20 text-orange-400';
-      default: return 'bg-gray-500/20 text-gray-400';
     }
   };
 
@@ -114,53 +95,32 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
         layout
       >
         {/* Lead Header */}
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
             <div {...listeners} className="cursor-grab active:cursor-grabbing">
               <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
             </div>
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                {getInitials(lead.name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={lead.name}
+              profilePicPath={lead.avatar}
+              className="w-10 h-10 text-sm font-medium"
+            />
           </div>
-        
-        <div className="flex-1 min-w-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onLeadClick?.(lead.id);
-            }}
-            className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
-          >
-            {lead.name}
-          </button>
-        </div>
-        
-        {/* Lead Score & Tag Icon */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 text-accent" />
-            <span className="text-xs font-medium text-accent">{lead.score}%</span>
-          </div>
-          
-          {/* Tag Management Button */}
-          {onTagClick && (
+
+          <div className="flex-1 min-w-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onTagClick(lead);
+                onLeadClick?.(lead.id);
               }}
-              className="p-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-400/50 transition-all duration-200 group"
-              title="Manage Tags"
+              className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors cursor-pointer text-left w-full"
             >
-              <Tag className="w-3 h-3 text-gray-400 group-hover:text-purple-400" />
+              {lead.name}
             </button>
-          )}
+          </div>
 
           {/* More Actions Menu */}
-          {(onAssignUser || onMoveFunnel || onDeleteLead) && (
+          {(onTagClick || onAssignUser || onMoveFunnel || onDeleteLead) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -172,6 +132,15 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
+                {onTagClick && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onTagClick(lead); }}
+                    className="cursor-pointer"
+                  >
+                    <Tag className="w-4 h-4 mr-2" />
+                    {t('lead-card.manage-tags')}
+                  </DropdownMenuItem>
+                )}
                 {onAssignUser && (
                   <DropdownMenuItem
                     onClick={(e) => { e.stopPropagation(); onAssignUser(lead); }}
@@ -206,7 +175,6 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
             </DropdownMenu>
           )}
         </div>
-      </div>
 
       {/* Contact Info */}
       <div className="space-y-1 mb-3">
@@ -261,11 +229,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
         </div>
         
         <div className="flex items-center gap-2">
-          <Badge
-            className={`text-xs px-2 py-0.5 ${getSourceColor(lead.source)}`}
-          >
-            {lead.source}
-          </Badge>
+          <SourcePlatformIcon source={lead.source} />
         </div>
       </div>
 

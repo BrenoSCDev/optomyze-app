@@ -4,6 +4,20 @@
  * Comprehensive type definitions for the leads management system
  */
 
+export type SourcePlatform =
+  | 'whatsapp'
+  | 'facebook'
+  | 'instagram'
+  | 'meta_ads'
+  | 'google_ads'
+  | 'telegram'
+  | 'phone'
+  | 'sms'
+  | 'email'
+  | 'website'
+  | 'api'
+  | 'other';
+
 export interface Lead {
   id: string;
   name: string;
@@ -13,7 +27,7 @@ export interface Lead {
   title: string;
   score: number;
   value: number;
-  source: 'Meta Ads' | 'Google Ads' | 'Organic' | 'Referral' | 'Direct';
+  source: SourcePlatform;
   tags: (string | { id: number; name: string; [key: string]: any })[];
   lastActivity: string;
   priority: 'high' | 'medium' | 'low';
