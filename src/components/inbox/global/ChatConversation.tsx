@@ -604,13 +604,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 p-4" ref={scrollAreaRef} scrollbarVariant="dark">
+      <ScrollArea className="flex-1 min-h-0 p-4 w-full overflow-x-hidden" ref={scrollAreaRef} scrollbarVariant="dark">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center h-full py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : localMessages.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 w-full min-w-0">
             {/* Load more indicator at top */}
             {isLoadingMoreMessages && (
               <div className="flex justify-center py-2">
@@ -687,7 +687,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             sentAt={message.sent_at}
                           />
                           {message.text && (
-                            <p className={cn("text-sm whitespace-pre-wrap break-words px-2 pt-1", isInternalNote(message) && "text-amber-900 dark:text-amber-100")}>
+                            <p className={cn("text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-2 pt-1", isInternalNote(message) && "text-amber-900 dark:text-amber-100")}>
                               {message.text}
                             </p>
                           )}
@@ -702,7 +702,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             sentAt={message.sent_at}
                           />
                           {message.text && (
-                            <p className="text-sm whitespace-pre-wrap break-words">
+                            <p className="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                               {message.text}
                             </p>
                           )}
@@ -806,7 +806,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       ) : (
                         <>
                           <p className={cn(
-                            "text-sm whitespace-pre-wrap break-words",
+                            "text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
                             isInternalNote(message) && "text-amber-900 dark:text-amber-100"
                           )}>
                             {message.text}
@@ -873,7 +873,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     </div>
                   )}
                   <p className={cn(
-                    "text-sm whitespace-pre-wrap break-words",
+                    "text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
                     pending.messageMode === 'internal' && "text-amber-900 dark:text-amber-100"
                   )}>
                     {pending.text}
