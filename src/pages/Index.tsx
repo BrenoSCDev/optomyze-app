@@ -28,7 +28,6 @@ const N8nAgents              = lazy(() => import('@/components/agents/N8nAgents'
 const OptomyzeAgents         = lazy(() => import('@/components/agents/OptomyzeAgents'));
 const ApiTokens              = lazy(() => import('@/components/api/ApiTokens'));
 const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
-const ApiPlayground          = lazy(() => import('@/components/api/playground/ApiPlayground'));
 const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
 const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
 const GlobalInbox            = lazy(() => import('@/components/inbox/global/GlobalInbox'));
@@ -112,7 +111,6 @@ const Index = () => {
       case 'leads': return <LeadsManagement funnelId={funnelId} />;
       case 'api-tokens': return <ApiTokens />;
       case 'api-setup': return <ApiSetup />;
-      case 'api-playground': return <ApiPlayground />;
       case 'manage-users': return <ManageUsers />;
       case 'manage-teams': return <ManageTeams />;
       case 'global-inbox': return <GlobalInbox />;
