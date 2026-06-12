@@ -94,28 +94,28 @@ const AssignUserModal: React.FC<AssignUserModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-white/10">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5 text-primary" />
             {t('lead-details.assign-user-title')}
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription>
             {t('lead-details.assign-user-description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger className="w-full bg-gray-800 border-white/10 text-white">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={t('lead-details.select-user-placeholder')} />
             </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-white/10 z-[80]">
+            <SelectContent className="z-[80]">
               {users.map((user) => (
                 <SelectItem
                   key={user.id}
                   value={user.id.toString()}
-                  className="text-white hover:bg-gray-700 focus:bg-gray-700 cursor-pointer"
+                  className="cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
@@ -125,7 +125,7 @@ const AssignUserModal: React.FC<AssignUserModalProps> = ({
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="font-medium">{user.name}</span>
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Mail className="w-3 h-3" />
                         {user.email}
                       </span>
@@ -138,7 +138,7 @@ const AssignUserModal: React.FC<AssignUserModalProps> = ({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} className="glass-card">
+          <Button variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
           <Button

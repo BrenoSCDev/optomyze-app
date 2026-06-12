@@ -8,7 +8,7 @@
 import { FaWhatsapp, FaFacebook, FaInstagram, FaTelegram } from 'react-icons/fa';
 import { FaMeta } from 'react-icons/fa6';
 import { SiGoogleads } from 'react-icons/si';
-import { Phone, MessageSquare, Code2, Globe, Mail, CircleHelp, LucideIcon } from 'lucide-react';
+import { Phone, MessageSquare, Code2, Globe, Mail, MoreHorizontal, LucideIcon } from 'lucide-react';
 import { IconType } from 'react-icons';
 import { SourcePlatform } from '@/types/leads';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,7 @@ const PLATFORM_META: Record<SourcePlatform, { icon: IconType | LucideIcon; color
   email: { icon: Mail, color: 'text-red-400', label: 'Email' },
   website: { icon: Globe, color: 'text-cyan-400', label: 'Website' },
   api: { icon: Code2, color: 'text-slate-400', label: 'API' },
-  other: { icon: CircleHelp, color: 'text-muted-foreground', label: 'Other' },
+  other: { icon: MoreHorizontal, color: 'text-muted-foreground', label: 'Other' },
 };
 
 export const normalizeSourcePlatform = (value?: string | null): SourcePlatform => {

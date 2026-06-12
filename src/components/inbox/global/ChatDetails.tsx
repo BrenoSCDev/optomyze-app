@@ -112,11 +112,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
               <motion.button
                 className={cn(
                   "w-full flex items-center justify-between p-3 rounded-lg",
-                  "bg-accent/50 hover:bg-accent transition-colors"
+                  "bg-secondary/60 hover:bg-secondary text-secondary-foreground transition-colors"
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-primary" />
+                  <User className="h-4 w-4" />
                   <span className="font-medium text-sm">
                     {t('chat.inbox.lead-information')}
                   </span>
@@ -163,7 +163,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
               <motion.button
                 className={cn(
                   "w-full flex items-center justify-between p-3 rounded-lg",
-                  "bg-accent/50 hover:bg-accent transition-colors"
+                  "bg-secondary/60 hover:bg-secondary text-secondary-foreground transition-colors"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -211,11 +211,11 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
               <motion.button
                 className={cn(
                   "w-full flex items-center justify-between p-3 rounded-lg",
-                  "bg-accent/50 hover:bg-accent transition-colors"
+                  "bg-secondary/60 hover:bg-secondary text-secondary-foreground transition-colors"
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-primary" />
+                  <Hash className="h-4 w-4" />
                   <span className="font-medium text-sm">
                     {t('chat.inbox.chat-metadata')}
                   </span>

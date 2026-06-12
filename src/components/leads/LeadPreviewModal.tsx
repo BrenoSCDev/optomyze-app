@@ -300,7 +300,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         )}
 
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <Badge className={`text-xs font-medium border ${lead.is_active ? 'bg-green-600/20 text-green-400 border-green-600/30' : 'bg-red-600/20 text-red-400 border-red-600/30'}`}>
+                          <Badge className={`text-xs font-medium border ${lead.is_active ? 'bg-green-600/15 text-green-600 dark:text-green-400 border-green-600/30' : 'bg-red-600/15 text-red-600 dark:text-red-400 border-red-600/30'}`}>
                             {lead.is_active ? t('lead-details.active') : t('lead-details.inactive')}
                           </Badge>
                           <div className="flex items-center gap-1.5">

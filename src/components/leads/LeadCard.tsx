@@ -214,7 +214,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       {/* Lead Estimated Value */}
       {showEstimatedValue && lead.value > 0 && (
         <div className="mt-2">
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs font-medium">
+          <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 text-xs font-medium">
             {t('funnel.page.estimated')}: {formatCurrency(lead.value, leadCurrency)}
           </Badge>
         </div>

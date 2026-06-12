@@ -670,7 +670,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
               onClick={() => handleViewModeChange('kanban')}
               title={t('funnel.page.view-kanban') || 'Kanban'}
             >
@@ -679,7 +679,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 border-l dark:border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`rounded-none h-9 px-2.5 border-l dark:border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
               onClick={() => handleViewModeChange('table')}
               title={t('funnel.page.view-table') || 'Table'}
             >

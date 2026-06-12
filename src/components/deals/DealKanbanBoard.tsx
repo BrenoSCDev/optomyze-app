@@ -318,14 +318,14 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
           <div className="flex items-center rounded-md border border-deal/30 overflow-hidden">
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-deal/20 text-deal' : 'text-muted-foreground hover:text-deal'}`}
+              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
               onClick={() => handleViewModeChange('kanban')}
             >
               <TbLayoutKanbanFilled className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 border-l border-deal/30 ${viewMode === 'table' ? 'bg-deal/20 text-deal' : 'text-muted-foreground hover:text-deal'}`}
+              className={`rounded-none h-9 px-2.5 border-l border-deal/30 ${viewMode === 'table' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
               onClick={() => handleViewModeChange('table')}
             >
               <List className="h-4 w-4" />

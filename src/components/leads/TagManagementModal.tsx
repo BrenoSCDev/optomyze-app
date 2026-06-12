@@ -1,15 +1,21 @@
 /**
  * TAG MANAGEMENT MODAL COMPONENT
- * 
+ *
  * Modal for managing tags on leads with multi-select functionality
  */
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Tag
-} from 'lucide-react';
+import { X, Tags } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import MultiSelect from '@/components/ui/multi-select';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
@@ -37,12 +43,12 @@ interface TagManagementModalProps {
   onTagsUpdated?: (leadId: string, updatedLead: any) => void;
 }
 
-const TagManagementModal = ({ 
-  isOpen, 
-  onClose, 
-  lead, 
+const TagManagementModal = ({
+  isOpen,
+  onClose,
+  lead,
   availableTags,
-  onTagsUpdated 
+  onTagsUpdated
 }: TagManagementModalProps) => {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,15 +57,15 @@ const TagManagementModal = ({
   useEffect(() => {
     if (lead && isOpen && availableTags.length > 0) {
       // Get current lead tag names (handle both string and object formats)
-      const leadTagNames = lead.tags?.map(tag => 
+      const leadTagNames = lead.tags?.map(tag =>
         typeof tag === 'string' ? tag : tag.name
       ) || [];
-      
+
       // Find matching tags from availableTags based on name comparison
-      const matchingTags = availableTags.filter(availableTag => 
+      const matchingTags = availableTags.filter(availableTag =>
         leadTagNames.includes(availableTag.name)
       );
-      
+
       setSelectedTags(matchingTags);
     } else if (!isOpen) {
       // Reset when modal closes
@@ -73,20 +79,20 @@ const TagManagementModal = ({
 
   const handleApplyTags = async () => {
     if (!lead) return;
-    
+
     setIsLoading(true);
     try {
       // Send tags to API and get updated lead data back
       const response = await leadService.updateLeadTags(lead.id, selectedTags);
-      
+
       // Use the returned lead data from the API response
       const updatedLead = response.lead || response;
-      
+
       // Update parent component with the complete updated lead data
       if (onTagsUpdated) {
         onTagsUpdated(lead.id, updatedLead);
       }
-      
+
       toast.success('Tags updated successfully');
       onClose();
     } catch (error) {
@@ -99,118 +105,77 @@ const TagManagementModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-popover backdrop-blur-md rounded-lg border border-border w-full max-w-md mx-4"
-        >
-          {/* Modal Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground">Manage Tags</h3>
-              <p className="text-muted-foreground text-sm mt-1">
-                {lead ? `${lead.name}` : 'Select tags for this lead'}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Tags className="h-5 w-5" />
+            Manage Tags
+          </DialogTitle>
+          <DialogDescription>
+            {lead ? `Select tags for ${lead.name}` : 'Select tags for this lead'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Select Tags</Label>
+            <MultiSelect
+              options={availableTags}
+              selected={selectedTags}
+              onChange={handleTagsChange}
+              placeholder="Choose tags for this lead..."
+              searchPlaceholder="Search available tags..."
+              disabled={isLoading}
+              className="w-full"
+            />
+          </div>
+
+          {/* Selected Tags Preview */}
+          {selectedTags.length > 0 && (
+            <div className="p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+              <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                Selected Tags ({selectedTags.length})
               </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-accent transition-colors"
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
-          </div>
-
-          {/* Modal Body */}
-          <div className="p-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-3">
-                  Select Tags
-                </label>
-
-                <MultiSelect
-                  options={availableTags}
-                  selected={selectedTags}
-                  onChange={handleTagsChange}
-                  placeholder="Choose tags for this lead..."
-                  searchPlaceholder="Search available tags..."
-                  disabled={isLoading}
-                  className="w-full"
-                />
+              <div className="flex flex-wrap gap-2">
+                {selectedTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-400 text-xs"
+                  >
+                    {tag.name}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
+                      }}
+                      className="hover:text-purple-900 dark:hover:text-purple-300"
+                      disabled={isLoading}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
               </div>
-
-              {/* Selected Tags Preview */}
-              {selectedTags.length > 0 && (
-                <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-                    Selected Tags ({selectedTags.length})
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-400 text-xs"
-                      >
-                        {tag.name}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
-                          }}
-                          className="hover:text-purple-900 dark:hover:text-purple-300"
-                          disabled={isLoading}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Loading State */}
-              {isLoading && (
-                <div className="mt-4 flex items-center gap-2 text-purple-600 dark:text-purple-400">
-                  <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full" />
-                  <span className="text-sm">Updating tags...</span>
-                </div>
-              )}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleApplyTags}
-              disabled={isLoading}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Updating...' : `Apply Tags (${selectedTags.length})`}
-            </button>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleApplyTags}
+            disabled={isLoading}
+            className="bg-gradient-primary hover:opacity-90 text-white"
+          >
+            {isLoading ? 'Updating...' : `Apply Tags (${selectedTags.length})`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1110,7 +1110,8 @@ const translations = {
     'analytics.flow.conversion': 'Conversion',
     
     // Funnels
-    'funnels.title': 'Sales Funnels',
+    'funnels.title': 'Funnels',
+    'funnels.subtitle': 'Manage your sales and deal funnels, stages, and lead flow.',
     'funnels.breadcrumb': 'Settings / Funnels',
     'funnels.new-funnel': 'New Funnel',
     'funnels.no-funnels': 'No funnels created yet',
@@ -1136,10 +1137,12 @@ const translations = {
     'funnels.cancel': 'Cancel',
     'funnels.create-new': 'Create New Funnel',
     'funnels.edit-funnel': 'Edit Funnel',
-    'funnels.active-status': 'Active Status',
-    'funnels.active-description': 'Toggle funnel active status. Inactive funnels will not accept new leads.',
     'funnels.inactive': 'Inactive',
     'funnels.created': 'Created',
+    'funnels.view-funnel': 'View Funnel',
+    'funnels.manage-stages': 'Manage Stages',
+    'funnels.activate': 'Activate funnel',
+    'funnels.deactivate': 'Deactivate funnel',
     'funnels.success-create': 'Funnel created successfully',
     'funnels.success-update': 'Funnel updated successfully',
     'funnels.error-update': 'Failed to update funnel. Please try again.',
@@ -1202,7 +1205,7 @@ const translations = {
     'users.roles.agent-description': 'Can only view their own leads and deals. Read-only access to the user list.',
 
     // Integrations
-    'integrations.title': 'App Integrations',
+    'integrations.title': 'App Store',
     'integrations.breadcrumb': 'Settings / Integrations / Apps',
     'integrations.description': 'Connect Optomyze with your favorite tools and services to automate your workflow.',
     'integrations.available': 'Available',
@@ -1226,7 +1229,12 @@ const translations = {
     'integrations.configuration-failed': 'Configuration Failed',
     'integrations.configuration-failed-description': 'Failed to save configuration. Please try again.',
     'integrations.configuration-saved': '{name} configuration has been saved successfully!',
-    
+    'integrations.search-placeholder': 'Search integrations...',
+    'integrations.filter-all': 'All',
+    'integrations.popular': 'Popular',
+    'integrations.no-results': 'No integrations found',
+    'integrations.no-results-description': "Try adjusting your search or filter to find what you're looking for.",
+
     // Integration Categories
     'integrations.categories.ads-analytics': 'Ads & Analytics',
     'integrations.categories.social-messaging': 'Social Messaging Platforms',
@@ -3943,7 +3951,8 @@ const translations = {
     'analytics.flow.conversion': 'Conversão',
     
     // Funnels
-    'funnels.title': 'Funis de Vendas',
+    'funnels.title': 'Funis',
+    'funnels.subtitle': 'Gerencie seus funis de vendas e negócios, etapas e fluxo de leads.',
     'funnels.breadcrumb': 'Configurações / Funis',
     'funnels.new-funnel': 'Novo Funil',
     'funnels.no-funnels': 'Nenhum funil criado ainda',
@@ -3969,10 +3978,12 @@ const translations = {
     'funnels.cancel': 'Cancelar',
     'funnels.create-new': 'Criar Novo Funil',
     'funnels.edit-funnel': 'Editar Funil',
-    'funnels.active-status': 'Status Ativo',
-    'funnels.active-description': 'Alternar status ativo do funil. Funis inativos não aceitarão novos leads.',
     'funnels.inactive': 'Inativo',
     'funnels.created': 'Criado',
+    'funnels.view-funnel': 'Ver Funil',
+    'funnels.manage-stages': 'Gerenciar Etapas',
+    'funnels.activate': 'Ativar funil',
+    'funnels.deactivate': 'Desativar funil',
     'funnels.success-create': 'Funil criado com sucesso',
     'funnels.success-update': 'Funil atualizado com sucesso',
     'funnels.error-update': 'Falha ao atualizar funil. Tente novamente.',
@@ -4035,7 +4046,7 @@ const translations = {
     'users.roles.agent-description': 'Pode visualizar apenas seus próprios leads e negócios. Acesso somente leitura à lista de usuários.',
 
     // Integrations
-    'integrations.title': 'Integrações de Apps',
+    'integrations.title': 'App Store',
     'integrations.breadcrumb': 'Configurações / Integrações / Apps',
     'integrations.description': 'Conecte o Optomyze com suas ferramentas e serviços favoritos para automatizar seu fluxo de trabalho.',
     'integrations.available': 'Disponível',
@@ -4059,6 +4070,11 @@ const translations = {
     'integrations.configuration-failed': 'Falha na Configuração',
     'integrations.configuration-failed-description': 'Falha ao salvar configuração. Tente novamente.',
     'integrations.configuration-saved': 'Configuração do {name} foi salva com sucesso!',
+    'integrations.search-placeholder': 'Buscar integrações...',
+    'integrations.filter-all': 'Todos',
+    'integrations.popular': 'Popular',
+    'integrations.no-results': 'Nenhuma integração encontrada',
+    'integrations.no-results-description': 'Tente ajustar sua busca ou filtro para encontrar o que procura.',
     
     // Integration Categories
     'integrations.categories.ads-analytics': 'Anúncios e Análises',
@@ -6732,7 +6748,8 @@ const translations = {
     'analytics.flow.conversion': 'Conversion',
     
     // Funnels
-    'funnels.title': 'Verkaufstrichter',
+    'funnels.title': 'Trichter',
+    'funnels.subtitle': 'Verwalten Sie Ihre Verkaufs- und Geschäftstrichter, Phasen und Lead-Fluss.',
     'funnels.breadcrumb': 'Einstellungen / Verkaufstrichter',
     'funnels.new-funnel': 'Neuer Trichter',
     'funnels.no-funnels': 'Noch keine Trichter erstellt',
@@ -6758,10 +6775,12 @@ const translations = {
     'funnels.cancel': 'Abbrechen',
     'funnels.create-new': 'Neuen Trichter Erstellen',
     'funnels.edit-funnel': 'Trichter Bearbeiten',
-    'funnels.active-status': 'Aktiv Status',
-    'funnels.active-description': 'Aktiven Status des Trichters umschalten. Inaktive Trichter akzeptieren keine neuen Leads.',
     'funnels.inactive': 'Inaktiv',
     'funnels.created': 'Erstellt',
+    'funnels.view-funnel': 'Trichter Anzeigen',
+    'funnels.manage-stages': 'Phasen Verwalten',
+    'funnels.activate': 'Trichter aktivieren',
+    'funnels.deactivate': 'Trichter deaktivieren',
     'funnels.success-create': 'Trichter erfolgreich erstellt',
     'funnels.success-update': 'Trichter erfolgreich aktualisiert',
     'funnels.error-update': 'Fehler beim Aktualisieren des Trichters. Bitte versuchen Sie es erneut.',
@@ -6778,7 +6797,7 @@ const translations = {
     'funnels.create-from-template': 'Aus Vorlage erstellen',
 
     // Integrations
-    'integrations.title': 'App-Integrationen',
+    'integrations.title': 'App Store',
     'integrations.breadcrumb': 'Einstellungen / Integrationen / Apps',
     'integrations.description': 'Verbinden Sie Optomyze mit Ihren Lieblings-Tools und -Diensten, um Ihren Workflow zu automatisieren.',
     'integrations.available': 'Verfügbar',
@@ -6802,6 +6821,11 @@ const translations = {
     'integrations.configuration-failed': 'Konfiguration Fehlgeschlagen',
     'integrations.configuration-failed-description': 'Konfiguration konnte nicht gespeichert werden. Bitte erneut versuchen.',
     'integrations.configuration-saved': '{name} Konfiguration wurde erfolgreich gespeichert!',
+    'integrations.search-placeholder': 'Integrationen suchen...',
+    'integrations.filter-all': 'Alle',
+    'integrations.popular': 'Beliebt',
+    'integrations.no-results': 'Keine Integrationen gefunden',
+    'integrations.no-results-description': 'Versuchen Sie, Ihre Suche oder Filter anzupassen.',
     
     // Integration Categories
     'integrations.categories.ads-analytics': 'Werbung & Analytics',
@@ -9394,7 +9418,8 @@ const translations = {
     'analytics.flow.conversion': 'Conversión',
     
     // Funnels
-    'funnels.title': 'Embudos de Ventas',
+    'funnels.title': 'Embudos',
+    'funnels.subtitle': 'Gestiona tus embudos de ventas y negocios, etapas y flujo de leads.',
     'funnels.breadcrumb': 'Configuración / Embudos',
     'funnels.new-funnel': 'Nuevo Embudo',
     'funnels.no-funnels': 'Aún no se han creado embudos',
@@ -9420,10 +9445,12 @@ const translations = {
     'funnels.cancel': 'Cancelar',
     'funnels.create-new': 'Crear Nuevo Embudo',
     'funnels.edit-funnel': 'Editar Embudo',
-    'funnels.active-status': 'Estado Activo',
-    'funnels.active-description': 'Alternar estado activo del embudo. Los embudos inactivos no aceptarán nuevos leads.',
     'funnels.inactive': 'Inactivo',
     'funnels.created': 'Creado',
+    'funnels.view-funnel': 'Ver Embudo',
+    'funnels.manage-stages': 'Gestionar Etapas',
+    'funnels.activate': 'Activar embudo',
+    'funnels.deactivate': 'Desactivar embudo',
     'funnels.success-create': 'Embudo creado exitosamente',
     'funnels.success-update': 'Embudo actualizado exitosamente',
     'funnels.error-update': 'Error al actualizar embudo. Inténtalo de nuevo.',
@@ -9440,7 +9467,7 @@ const translations = {
     'funnels.create-from-template': 'Crear desde Plantilla',
 
     // Integrations
-    'integrations.title': 'Integraciones de Apps',
+    'integrations.title': 'App Store',
     'integrations.breadcrumb': 'Configuración / Integraciones / Apps',
     'integrations.description': 'Conecta Optomyze con tus herramientas y servicios favoritos para automatizar tu flujo de trabajo.',
     'integrations.available': 'Disponible',
@@ -9464,6 +9491,11 @@ const translations = {
     'integrations.configuration-failed': 'Configuración Fallida',
     'integrations.configuration-failed-description': 'Error al guardar configuración. Inténtalo de nuevo.',
     'integrations.configuration-saved': '¡La configuración de {name} se ha guardado exitosamente!',
+    'integrations.search-placeholder': 'Buscar integraciones...',
+    'integrations.filter-all': 'Todos',
+    'integrations.popular': 'Popular',
+    'integrations.no-results': 'No se encontraron integraciones',
+    'integrations.no-results-description': 'Intenta ajustar tu búsqueda o filtro para encontrar lo que buscas.',
     
     // Integration Categories
     'integrations.categories.ads-analytics': 'Anuncios y Análisis',

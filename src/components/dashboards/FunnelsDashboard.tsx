@@ -1,36 +1,34 @@
 /**
- * FUNNELS MANAGEMENT DASHBOARD
+ * FUNNELS MANAGEMENT
  *
- * A comprehensive dashboard for managing sales funnels with:
- * - Horizontal card grid layout for displaying all company funnels
- * - Glassmorphism design with futuristic styling
- * - Full CRUD operations (View, Create, Delete)
- * - Responsive design for all screen sizes
- * - API integration with proper error handling
+ * Management workspace for sales and deal funnels:
+ * - Underline tabs to switch between Sale and Deal funnels
+ * - Dense grid of funnel cards summarizing health and usage at a glance
+ * - Inline active/inactive toggle plus View / Manage Stages / Edit / Delete actions
  */
 
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Filter, AlertCircle, Eye, Cog, ListTree, Users, FileStack, ChevronDown } from 'lucide-react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { Plus, Trash2, AlertCircle, Eye, ListTree, Pencil, Users, FileStack } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { funnelService } from '@/services/funnelApi';
 import api from '@/services/api';
 import { MdCurrencyExchange } from 'react-icons/md';
+import { IoFunnelOutline } from 'react-icons/io5';
 import FunnelStagesModal from '@/components/stages/FunnelStagesModal';
+import { cn } from '@/lib/utils';
 
 interface Funnel {
   id: number;
@@ -53,6 +51,212 @@ interface TemplateFunnel {
   stages: { id: number; name: string; order: number }[];
 }
 
+// Healthy / muted status pill — avoids neon green/red in favor of a subtle dot + tint
+const FunnelStatusBadge = ({ active, t }: { active: boolean; t: (key: string) => string }) => (
+  <span
+    className={cn(
+      "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap",
+      active
+        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        : "border-border bg-muted text-muted-foreground"
+    )}
+  >
+    <span className={cn("w-1.5 h-1.5 rounded-full", active ? "bg-emerald-500" : "bg-muted-foreground/50")} />
+    {active ? t('funnels.active') : t('funnels.inactive')}
+  </span>
+);
+
+// Icon button + tooltip used for the quick actions on each funnel card
+interface ActionButtonProps {
+  tooltip: string;
+  onClick: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+  children: ReactNode;
+}
+
+const ActionButton = ({ tooltip, onClick, disabled, destructive, children }: ActionButtonProps) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onClick}
+        disabled={disabled}
+        className={cn(
+          "h-8 w-8 text-muted-foreground transition-colors duration-200",
+          destructive
+            ? "hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
+            : "hover:bg-muted hover:text-foreground"
+        )}
+      >
+        {children}
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>{tooltip}</TooltipContent>
+  </Tooltip>
+);
+
+// Premium management card for a single funnel
+interface FunnelCardProps {
+  funnel: Funnel;
+  onView: (funnel: Funnel) => void;
+  onManageStages: (funnel: Funnel) => void;
+  onEdit: (funnel: Funnel) => void;
+  onDeleteRequest: (funnel: Funnel) => void;
+  onToggleActive: (funnel: Funnel) => void;
+  isToggling: boolean;
+  isDeleting: boolean;
+  t: (key: string) => string;
+}
+
+const FunnelCard = ({
+  funnel,
+  onView,
+  onManageStages,
+  onEdit,
+  onDeleteRequest,
+  onToggleActive,
+  isToggling,
+  isDeleting,
+  t,
+}: FunnelCardProps) => {
+  const TypeIcon = funnel.type === 'deal' ? MdCurrencyExchange : Users;
+
+  return (
+    <div
+      className={cn(
+        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-all duration-300",
+        "hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
+      )}
+    >
+      {/* Icon + name + status / active toggle */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-background shadow-sm text-primary shrink-0">
+            <TypeIcon className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-foreground truncate">{funnel.name}</h3>
+            <div className="mt-1">
+              <FunnelStatusBadge active={funnel.is_active} t={t} />
+            </div>
+          </div>
+        </div>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="shrink-0 pt-0.5">
+              <Switch
+                checked={funnel.is_active}
+                onCheckedChange={() => onToggleActive(funnel)}
+                disabled={isToggling}
+                aria-label={funnel.is_active ? t('funnels.deactivate') : t('funnels.activate')}
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{funnel.is_active ? t('funnels.deactivate') : t('funnels.activate')}</TooltipContent>
+        </Tooltip>
+      </div>
+
+      {/* Usage stats */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="rounded-xl bg-muted/40 px-3 py-2">
+          <div className="text-lg font-bold text-foreground leading-none">{funnel.nleads}</div>
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mt-1">
+            {funnel.type === 'deal' ? t('funnels.deals') : t('funnels.leads')}
+          </div>
+        </div>
+        <div className="rounded-xl bg-muted/40 px-3 py-2">
+          <div className="text-sm font-semibold text-foreground leading-none">
+            {funnel.created_at ? new Date(funnel.created_at).toLocaleDateString() : '—'}
+          </div>
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mt-1">
+            {t('funnels.created')}
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      {funnel.description && (
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+          {funnel.description}
+        </p>
+      )}
+
+      {/* Quick actions */}
+      <div className="flex items-center justify-between gap-1 pt-3 mt-auto border-t border-border/60">
+        <div className="flex items-center gap-1">
+          <ActionButton tooltip={t('funnels.view-funnel')} onClick={() => onView(funnel)}>
+            <Eye className="h-4 w-4" />
+          </ActionButton>
+          <ActionButton tooltip={t('funnels.manage-stages')} onClick={() => onManageStages(funnel)}>
+            <ListTree className="h-4 w-4" />
+          </ActionButton>
+          <ActionButton tooltip={t('funnels.edit-funnel')} onClick={() => onEdit(funnel)}>
+            <Pencil className="h-4 w-4" />
+          </ActionButton>
+        </div>
+        <ActionButton
+          tooltip={t('funnels.delete')}
+          onClick={() => onDeleteRequest(funnel)}
+          disabled={isDeleting}
+          destructive
+        >
+          {isDeleting ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : (
+            <Trash2 className="h-4 w-4" />
+          )}
+        </ActionButton>
+      </div>
+    </div>
+  );
+};
+
+// Loading placeholder mirroring the funnel card layout
+const SkeletonCard = () => (
+  <div className="flex flex-col bg-card border border-border/60 rounded-2xl p-4">
+    <div className="flex items-start justify-between gap-2 mb-3">
+      <div className="flex items-center gap-3 min-w-0">
+        <Skeleton className="w-11 h-11 rounded-2xl shrink-0" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-4 w-16 rounded-full" />
+        </div>
+      </div>
+      <Skeleton className="h-6 w-11 rounded-full shrink-0" />
+    </div>
+    <div className="grid grid-cols-2 gap-2 mb-3">
+      <Skeleton className="h-14 rounded-xl" />
+      <Skeleton className="h-14 rounded-xl" />
+    </div>
+    <div className="flex items-center justify-between gap-1 pt-3 mt-auto border-t border-border/60">
+      <div className="flex items-center gap-1">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-md" />
+    </div>
+  </div>
+);
+
+const EmptyState = ({ onCreateClick, t }: { onCreateClick: () => void; t: (key: string) => string }) => (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <div className="p-4 rounded-full bg-primary/10 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+      <IoFunnelOutline className="h-8 w-8 text-primary" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground mb-1">{t('funnels.no-funnels')}</h3>
+    <p className="text-muted-foreground text-sm max-w-sm mb-6">{t('funnels.no-funnels-subtitle')}</p>
+    <Button onClick={onCreateClick}>
+      <Plus className="h-4 w-4 mr-2" />
+      {t('funnels.create-funnel')}
+    </Button>
+  </div>
+);
+
 const FunnelsDashboard = () => {
   const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [templates, setTemplates] = useState<TemplateFunnel[]>([]);
@@ -61,12 +265,14 @@ const FunnelsDashboard = () => {
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
   const [showEditFunnelModal, setShowEditFunnelModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Funnel | null>(null);
   const [deletingFunnelId, setDeletingFunnelId] = useState<number | null>(null);
+  const [togglingFunnelId, setTogglingFunnelId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', type: 'sale' as 'sale' | 'deal' });
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
-  const [editFormData, setEditFormData] = useState({ name: '', description: '', is_active: true });
+  const [editFormData, setEditFormData] = useState({ name: '', description: '' });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
   const [editFormErrors, setEditFormErrors] = useState({ name: '', description: '' });
   const [stagesModalFunnelId, setStagesModalFunnelId] = useState<string | null>(null);
@@ -251,7 +457,6 @@ const FunnelsDashboard = () => {
     setEditFormData({
       name: funnel.name,
       description: funnel.description,
-      is_active: funnel.is_active
     });
     setEditFormErrors({ name: '', description: '' });
     setShowEditFunnelModal(true);
@@ -280,7 +485,6 @@ const FunnelsDashboard = () => {
       const updatedFunnel = await funnelService.updateFunnel(selectedFunnel.id, {
         name: editFormData.name.trim(),
         description: editFormData.description.trim(),
-        is_active: editFormData.is_active
       });
 
       setFunnels(prev => prev.map(funnel =>
@@ -318,493 +522,366 @@ const FunnelsDashboard = () => {
     }
   };
 
-  const selectedTemplate = templates.find(t => t.id === parseInt(selectedTemplateId, 10)) ?? null;
+  // Optimistically flips is_active so the toggle feels instant, rolling back on error
+  const toggleFunnelActive = async (funnel: Funnel) => {
+    const nextActive = !funnel.is_active;
 
-  const FunnelCard = ({ funnel }: { funnel: Funnel }) => (
-    <Card className="glass-card hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 neon-border group">
-      {/* Header with Status and Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b border-white/10 gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`p-2 rounded-lg shrink-0 transition-colors ${
-            funnel.is_active
-              ? 'bg-green-500/20 text-green-400 group-hover:bg-green-500/30'
-              : 'bg-red-500/20 text-red-400 group-hover:bg-red-500/30'
-          }`}>
-            <Filter className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
-              {funnel.name}
-            </h3>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={funnel.is_active ? "default" : "secondary"}
-                className={`text-xs ${
-                  funnel.is_active
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                    : 'bg-red-500/20 text-red-400 border-red-500/30'
-                }`}
-              >
-                {funnel.is_active ? t('funnels.active') : t('funnels.inactive')}
-              </Badge>
-            </div>
-          </div>
-        </div>
+    setFunnels(prev => prev.map(f => f.id === funnel.id ? { ...f, is_active: nextActive } : f));
+    setTogglingFunnelId(funnel.id);
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 neon-border"
-            onClick={() => navigate(`/leads/${funnel.id}`)}
-            title="View Funnel"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+    try {
+      const updatedFunnel = await funnelService.updateFunnel(funnel.id, { is_active: nextActive });
+      updateFunnelInContext({ ...funnel, ...updatedFunnel, is_active: updatedFunnel?.is_active ?? nextActive });
+    } catch (error) {
+      console.error('Error toggling funnel status:', error);
+      setFunnels(prev => prev.map(f => f.id === funnel.id ? { ...f, is_active: funnel.is_active } : f));
+      toast({
+        title: t('common.error'),
+        description: t('funnels.error-update'),
+        variant: "destructive",
+      });
+    } finally {
+      setTogglingFunnelId(null);
+    }
+  };
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-purple-400 hover:bg-purple-500/10 neon-border"
-            onClick={() => setStagesModalFunnelId(funnel.id.toString())}
-            title="Manage Stages"
-          >
-            <ListTree className="h-4 w-4" />
-          </Button>
+  const selectedTemplate = templates.find(tpl => tpl.id === parseInt(selectedTemplateId, 10)) ?? null;
+  const visibleFunnels = funnels.filter(f => f.type === activeTab);
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 neon-border"
-            onClick={() => openEditModal(funnel)}
-            title="Configure Funnel"
-          >
-            <Cog className="h-4 w-4" />
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
-                disabled={deletingFunnelId === funnel.id}
-                onClick={() => setSelectedFunnel(funnel)}
-                title="Delete Funnel"
-              >
-                {deletingFunnelId === funnel.id ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="glass-card">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-foreground">{t('funnels.delete')}</AlertDialogTitle>
-                <AlertDialogDescription className="text-muted-foreground">
-                  {t('funnels.delete-confirm')} '{funnel.name}'? {t('funnels.delete-warning')}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-muted/20 border-muted/30 hover:bg-muted/30">
-                  {t('funnels.cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteFunnel(funnel.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {t('common.delete')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-          {funnel.description}
-        </p>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
-            <div className="text-2xl font-bold text-primary mb-1">
-              {funnel.nleads}
-            </div>
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              {funnel.type === 'deal' ? t('funnels.deals') : t('funnels.leads')}
-            </div>
-          </div>
-
-          <div className="text-center p-3 rounded-lg bg-muted/20 border border-muted/30">
-            <div className="text-sm font-medium text-foreground mb-1">
-              {funnel.created_at ? new Date(funnel.created_at).toLocaleDateString() : 'N/A'}
-            </div>
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              {t('funnels.created')}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
-  );
-
-  const SkeletonCard = () => (
-    <Card className="glass-card p-6">
-      <div className="flex items-start justify-between h-full">
-        <div className="flex items-start gap-4 flex-1">
-          <Skeleton className="h-12 w-12 rounded-lg" />
-          <div className="flex-1 min-w-0">
-            <Skeleton className="h-6 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-full mb-1" />
-            <Skeleton className="h-4 w-2/3 mb-3" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-12" />
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 ml-4">
-          <Skeleton className="h-8 w-8 rounded" />
-          <Skeleton className="h-8 w-8 rounded" />
-        </div>
-      </div>
-    </Card>
-  );
-
-  const EmptyState = () => (
-    <div className="text-center py-12">
-      <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-        <Filter className="h-8 w-8 text-primary" />
-      </div>
-      <h3 className="text-lg font-semibold text-foreground mb-2">{t('funnels.no-funnels')}</h3>
-      <p className="text-muted-foreground mb-6">{t('funnels.no-funnels-subtitle')}</p>
-      <Button onClick={openNewFunnelModal} className="neon-border">
-        <Plus className="h-4 w-4 mr-2" />
-        {t('funnels.create-funnel')}
-      </Button>
-    </div>
-  );
+  const tabOptions: { id: 'sale' | 'deal'; label: string; icon: ReactNode }[] = [
+    { id: 'sale', label: t('funnels.sales-funnels'), icon: <Users className="w-4 h-4" /> },
+    { id: 'deal', label: t('funnels.deal-funnels'), icon: <MdCurrencyExchange className="w-4 h-4" /> },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2 futuristic-text">
-            {t('funnels.title')}
-          </h1>
-          <nav className="text-sm text-muted-foreground">
-            {t('funnels.breadcrumb')}
-          </nav>
+    <div className="min-h-screen bg-background">
+      <div className="px-4 sm:px-6 py-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+              <IoFunnelOutline className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{t('funnels.title')}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{t('funnels.subtitle')}</p>
+            </div>
+          </div>
+
+          <Button onClick={openNewFunnelModal} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
+          </Button>
         </div>
 
-        <Button className="neon-border w-full sm:w-auto" size="lg" onClick={openNewFunnelModal}>
-          <Plus className="h-4 w-4 mr-2" />
-          {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
-        </Button>
+        {/* Divider */}
+        <div className="border-b border-border mb-4" />
 
-        {/* New Funnel Modal */}
-        <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
-          <DialogContent className="glass-card max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-foreground futuristic-text">{t('funnels.create-new')}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-5 py-4">
+        {/* Tabs */}
+        <div className="flex gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] border-b border-border mb-6">
+          {tabOptions.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "relative flex items-center gap-2 whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-200",
+                activeTab === tab.id
+                  ? "text-foreground font-semibold"
+                  : "text-muted-foreground font-medium hover:text-foreground/80"
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+              <span
+                className={cn(
+                  "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                  activeTab === tab.id ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </button>
+          ))}
+        </div>
 
-              {/* Template selector */}
-              {templates.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-foreground">{t('funnels.from-template')}</Label>
-                  <Select
-                    value={selectedTemplateId}
-                    onValueChange={(val) => {
-                      setSelectedTemplateId(val === 'none' ? '' : val);
-                      setFormErrors({ name: '', description: '' });
-                    }}
-                  >
-                    <SelectTrigger className="glass-card border-muted/30">
-                      <SelectValue placeholder={t('funnels.no-template')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t('funnels.no-template')}</SelectItem>
-                      {templates.map(tpl => (
-                        <SelectItem key={tpl.id} value={String(tpl.id)}>
-                          <div className="flex items-center gap-2">
-                            <FileStack className="w-3.5 h-3.5 text-muted-foreground" />
-                            {tpl.name}
-                          </div>
-                        </SelectItem>
+        {/* Funnel Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </div>
+        ) : visibleFunnels.length === 0 ? (
+          <EmptyState onCreateClick={openNewFunnelModal} t={t} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {visibleFunnels.map((funnel) => (
+              <FunnelCard
+                key={funnel.id}
+                funnel={funnel}
+                onView={(f) => navigate(`/leads/${f.id}`)}
+                onManageStages={(f) => setStagesModalFunnelId(f.id.toString())}
+                onEdit={openEditModal}
+                onDeleteRequest={setDeleteTarget}
+                onToggleActive={toggleFunnelActive}
+                isToggling={togglingFunnelId === funnel.id}
+                isDeleting={deletingFunnelId === funnel.id}
+                t={t}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* New Funnel Modal */}
+      <Dialog open={showNewFunnelModal} onOpenChange={setShowNewFunnelModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('funnels.create-new')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-4">
+
+            {/* Template selector */}
+            {templates.length > 0 && (
+              <div className="space-y-2">
+                <Label>{t('funnels.from-template')}</Label>
+                <Select
+                  value={selectedTemplateId}
+                  onValueChange={(val) => {
+                    setSelectedTemplateId(val === 'none' ? '' : val);
+                    setFormErrors({ name: '', description: '' });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('funnels.no-template')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('funnels.no-template')}</SelectItem>
+                    {templates.map(tpl => (
+                      <SelectItem key={tpl.id} value={String(tpl.id)}>
+                        <div className="flex items-center gap-2">
+                          <FileStack className="w-3.5 h-3.5 text-muted-foreground" />
+                          {tpl.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedTemplate && selectedTemplate.stages.length > 0 && (
+                  <div className="rounded-md bg-muted/40 border border-border px-3 py-2">
+                    <p className="text-xs text-muted-foreground mb-1.5">{t('funnels.template-stages-preview')}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedTemplate.stages.map(s => (
+                        <span key={s.id} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                          {s.name}
+                        </span>
                       ))}
-                    </SelectContent>
-                  </Select>
-
-                  {selectedTemplate && selectedTemplate.stages.length > 0 && (
-                    <div className="rounded-md bg-muted/20 border border-muted/30 px-3 py-2">
-                      <p className="text-xs text-muted-foreground mb-1.5">{t('funnels.template-stages-preview')}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedTemplate.stages.map(s => (
-                          <span key={s.id} className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20">
-                            {s.name}
-                          </span>
-                        ))}
-                      </div>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="funnel-name" className="text-foreground">
-                  {t('funnels.name')} *
-                </Label>
-                <Input
-                  id="funnel-name"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, name: e.target.value }));
-                    if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
-                  }}
-                  placeholder={t('funnels.name-placeholder')}
-                  className={`glass-card border-muted/30 ${formErrors.name ? 'border-red-500' : ''}`}
-                  disabled={creating}
-                />
-                {formErrors.name && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    {formErrors.name}
                   </div>
                 )}
               </div>
+            )}
 
-              {/* Description — hidden when a template is selected */}
-              {!selectedTemplateId && (
-                <div className="space-y-2">
-                  <Label htmlFor="funnel-description" className="text-foreground">
-                    {t('funnels.description')} *
-                  </Label>
-                  <Textarea
-                    id="funnel-description"
-                    value={formData.description}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, description: e.target.value }));
-                      if (formErrors.description) setFormErrors(prev => ({ ...prev, description: '' }));
-                    }}
-                    placeholder={t('funnels.description-placeholder')}
-                    className={`glass-card border-muted/30 min-h-[100px] ${formErrors.description ? 'border-red-500' : ''}`}
-                    disabled={creating}
-                  />
-                  {formErrors.description && (
-                    <div className="flex items-center gap-2 text-red-400 text-sm">
-                      <AlertCircle className="h-4 w-4" />
-                      {formErrors.description}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowNewFunnelModal(false);
-                  setFormData({ name: '', description: '', type: activeTab });
-                  setSelectedTemplateId('');
-                  setFormErrors({ name: '', description: '' });
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="funnel-name">
+                {t('funnels.name')} *
+              </Label>
+              <Input
+                id="funnel-name"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData(prev => ({ ...prev, name: e.target.value }));
+                  if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
                 }}
-                className="bg-muted/20 border-muted/30 hover:bg-muted/30"
+                placeholder={t('funnels.name-placeholder')}
+                className={formErrors.name ? 'border-destructive' : ''}
                 disabled={creating}
-              >
-                {t('funnels.cancel')}
-              </Button>
-              <Button
-                onClick={createFunnel}
-                className="neon-border"
-                disabled={creating}
-              >
-                {creating ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                    {t('common.creating')}
-                  </>
-                ) : (
-                  <>
-                    {selectedTemplateId
-                      ? <FileStack className="h-4 w-4 mr-2" />
-                      : <Plus className="h-4 w-4 mr-2" />
-                    }
-                    {selectedTemplateId ? t('funnels.create-from-template') : t('common.create')}
-                  </>
-                )}
-              </Button>
+              />
+              {formErrors.name && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {formErrors.name}
+                </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
 
-        {/* Edit Funnel Modal */}
-        <Dialog open={showEditFunnelModal} onOpenChange={setShowEditFunnelModal}>
-          <DialogContent className="glass-card max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-foreground futuristic-text">
-                {t('funnels.edit-funnel')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6 py-6">
+            {/* Description — hidden when a template is selected */}
+            {!selectedTemplateId && (
               <div className="space-y-2">
-                <Label htmlFor="edit-funnel-name" className="text-foreground">
-                  {t('funnels.name')} *
-                </Label>
-                <Input
-                  id="edit-funnel-name"
-                  value={editFormData.name}
-                  onChange={(e) => {
-                    setEditFormData(prev => ({ ...prev, name: e.target.value }));
-                    if (editFormErrors.name) setEditFormErrors(prev => ({ ...prev, name: '' }));
-                  }}
-                  placeholder={t('funnels.name-placeholder')}
-                  className={`glass-card border-muted/30 ${editFormErrors.name ? 'border-red-500' : ''}`}
-                  disabled={updating}
-                />
-                {editFormErrors.name && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    {editFormErrors.name}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-funnel-description" className="text-foreground">
+                <Label htmlFor="funnel-description">
                   {t('funnels.description')} *
                 </Label>
                 <Textarea
-                  id="edit-funnel-description"
-                  value={editFormData.description}
+                  id="funnel-description"
+                  value={formData.description}
                   onChange={(e) => {
-                    setEditFormData(prev => ({ ...prev, description: e.target.value }));
-                    if (editFormErrors.description) setEditFormErrors(prev => ({ ...prev, description: '' }));
+                    setFormData(prev => ({ ...prev, description: e.target.value }));
+                    if (formErrors.description) setFormErrors(prev => ({ ...prev, description: '' }));
                   }}
                   placeholder={t('funnels.description-placeholder')}
-                  className={`glass-card border-muted/30 min-h-[100px] ${editFormErrors.description ? 'border-red-500' : ''}`}
-                  disabled={updating}
+                  className={cn('min-h-[100px]', formErrors.description && 'border-destructive')}
+                  disabled={creating}
                 />
-                {editFormErrors.description && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                {formErrors.description && (
+                  <div className="flex items-center gap-2 text-destructive text-sm">
                     <AlertCircle className="h-4 w-4" />
-                    {editFormErrors.description}
+                    {formErrors.description}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-funnel-active" className="text-foreground">
-                    {t('funnels.active-status')}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('funnels.active-description')}
-                  </p>
-                </div>
-                <Switch
-                  id="edit-funnel-active"
-                  checked={editFormData.is_active}
-                  onCheckedChange={(checked) =>
-                    setEditFormData(prev => ({ ...prev, is_active: checked }))
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNewFunnelModal(false);
+                setFormData({ name: '', description: '', type: activeTab });
+                setSelectedTemplateId('');
+                setFormErrors({ name: '', description: '' });
+              }}
+              disabled={creating}
+            >
+              {t('funnels.cancel')}
+            </Button>
+            <Button
+              onClick={createFunnel}
+              disabled={creating}
+            >
+              {creating ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  {t('common.creating')}
+                </>
+              ) : (
+                <>
+                  {selectedTemplateId
+                    ? <FileStack className="h-4 w-4 mr-2" />
+                    : <Plus className="h-4 w-4 mr-2" />
                   }
-                  disabled={updating}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowEditFunnelModal(false);
-                  setSelectedFunnel(null);
-                  setEditFormData({ name: '', description: '', is_active: true });
-                  setEditFormErrors({ name: '', description: '' });
+                  {selectedTemplateId ? t('funnels.create-from-template') : t('common.create')}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Funnel Modal */}
+      <Dialog open={showEditFunnelModal} onOpenChange={setShowEditFunnelModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {t('funnels.edit-funnel')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-6">
+            <div className="space-y-2">
+              <Label htmlFor="edit-funnel-name">
+                {t('funnels.name')} *
+              </Label>
+              <Input
+                id="edit-funnel-name"
+                value={editFormData.name}
+                onChange={(e) => {
+                  setEditFormData(prev => ({ ...prev, name: e.target.value }));
+                  if (editFormErrors.name) setEditFormErrors(prev => ({ ...prev, name: '' }));
                 }}
-                className="bg-muted/20 border-muted/30 hover:bg-muted/30"
+                placeholder={t('funnels.name-placeholder')}
+                className={editFormErrors.name ? 'border-destructive' : ''}
                 disabled={updating}
-              >
-                {t('funnels.cancel')}
-              </Button>
-              <Button
-                onClick={updateFunnel}
-                className="neon-border"
+              />
+              {editFormErrors.name && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {editFormErrors.name}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-funnel-description">
+                {t('funnels.description')} *
+              </Label>
+              <Textarea
+                id="edit-funnel-description"
+                value={editFormData.description}
+                onChange={(e) => {
+                  setEditFormData(prev => ({ ...prev, description: e.target.value }));
+                  if (editFormErrors.description) setEditFormErrors(prev => ({ ...prev, description: '' }));
+                }}
+                placeholder={t('funnels.description-placeholder')}
+                className={cn('min-h-[100px]', editFormErrors.description && 'border-destructive')}
                 disabled={updating}
-              >
-                {updating ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                    {t('common.updating')}
-                  </>
-                ) : (
-                  <>
-                    <Cog className="h-4 w-4 mr-2" />
-                    {t('common.update')}
-                  </>
-                )}
-              </Button>
+              />
+              {editFormErrors.description && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {editFormErrors.description}
+                </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditFunnelModal(false);
+                setSelectedFunnel(null);
+                setEditFormData({ name: '', description: '' });
+                setEditFormErrors({ name: '', description: '' });
+              }}
+              disabled={updating}
+            >
+              {t('funnels.cancel')}
+            </Button>
+            <Button
+              onClick={updateFunnel}
+              disabled={updating}
+            >
+              {updating ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  {t('common.updating')}
+                </>
+              ) : (
+                <>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {t('common.update')}
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      {/* Tabs for Sale and Deal Funnels */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'sale' | 'deal')} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="sale" className="gap-2">
-            <Users className="w-4 h-4" />
-            <span>{t('funnels.sales-funnels')}</span>
-          </TabsTrigger>
-          <TabsTrigger value="deal" className="gap-2">
-            <MdCurrencyExchange className="w-4 h-4" />
-            <span>{t('funnels.deal-funnels')}</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sale" className="mt-0">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <SkeletonCard key={index} />
-              ))}
-            </div>
-          ) : funnels.filter(f => f.type === 'sale').length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {funnels.filter(f => f.type === 'sale').map((funnel) => (
-                <FunnelCard key={funnel.id} funnel={funnel} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="deal" className="mt-0">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <SkeletonCard key={index} />
-              ))}
-            </div>
-          ) : funnels.filter(f => f.type === 'deal').length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {funnels.filter(f => f.type === 'deal').map((funnel) => (
-                <FunnelCard key={funnel.id} funnel={funnel} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('funnels.delete')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('funnels.delete-confirm')} '{deleteTarget?.name}'? {t('funnels.delete-warning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('funnels.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) {
+                  const target = deleteTarget;
+                  setDeleteTarget(null);
+                  deleteFunnel(target.id);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Funnel Stages Modal */}
       <FunnelStagesModal

@@ -1,33 +1,29 @@
 /**
  * INTEGRATIONS APPS PAGE
- * 
- * Displays available app integrations organized by category.
- * Categories:
- * - Ads & Analytics
- * - Social Messaging Platforms
- * - Artificial Intelligence (Coming Soon)
- * - Google Apps (Coming Soon)
+ *
+ * Marketplace-style catalog of available app integrations.
+ * Supports search and category filters across a single dense grid
+ * of branded integration cards.
  */
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Download, 
-  Package, 
-  AlertCircle, 
-  ChevronRight,
-  TrendingUp,
-  MessageCircle,
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Settings,
+  Download,
+  Package,
+  AlertCircle,
   Bot,
-  Calendar,
   Check,
-  Info,
+  Search,
+  FlaskConical,
+  Rocket,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
-import { 
-  SiGoogleanalytics, 
+import {
+  SiGoogleanalytics,
   SiGoogleads,
   SiWhatsapp,
   SiInstagram,
@@ -44,25 +40,24 @@ import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
-import { Badge } from '@/components/ui/badge';
-import { RiGeminiLine, RiClaudeFill } from "react-icons/ri";
+import { Input } from '@/components/ui/input';
+import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
+import { cn } from '@/lib/utils';
 
 interface Integration {
   key: string;
   name: string;
   description: string;
   available: boolean;
-  status?: string;
-  lastUpdated?: string;
   comingSoon?: boolean;
   beta?: boolean;
+  popular?: boolean;
   icon: React.ReactNode;
 }
 
 interface IntegrationCategory {
   id: string;
   title: string;
-  icon: React.ReactNode;
   comingSoon?: boolean;
   integrations: Integration[];
 }
@@ -75,23 +70,135 @@ interface IntegrationCardProps {
   justInstalled?: boolean;
 }
 
+// Brand styling per integration - gives each card a distinct identity via
+// a subtle tinted gradient, brand-colored icon, and matching hover glow.
+interface BrandStyle {
+  gradient: string;
+  iconColor: string;
+  hoverBorder: string;
+  hoverShadow: string;
+}
+
+const BRAND_STYLES: Record<string, BrandStyle> = {
+  wpp_evo: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(37,211,102,0.10),rgba(37,211,102,0.02))]',
+    iconColor: 'text-[#25D366]',
+    hoverBorder: 'hover:border-[#25D366]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(37,211,102,0.5)]',
+  },
+  instagram: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(225,48,108,0.10),rgba(255,204,0,0.04))]',
+    iconColor: 'text-[#E1306C]',
+    hoverBorder: 'hover:border-[#E1306C]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(225,48,108,0.5)]',
+  },
+  facebook: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(24,119,242,0.10),rgba(24,119,242,0.02))]',
+    iconColor: 'text-[#1877F2]',
+    hoverBorder: 'hover:border-[#1877F2]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(24,119,242,0.5)]',
+  },
+  telegram: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(38,165,228,0.10),rgba(38,165,228,0.02))]',
+    iconColor: 'text-[#26A5E4]',
+    hoverBorder: 'hover:border-[#26A5E4]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(38,165,228,0.5)]',
+  },
+  'meta-ads': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(0,129,251,0.10),rgba(0,196,255,0.03))]',
+    iconColor: 'text-[#0081FB]',
+    hoverBorder: 'hover:border-[#0081FB]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(0,129,251,0.5)]',
+  },
+  'google-ads': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.10),rgba(52,168,83,0.04))]',
+    iconColor: 'text-[#4285F4]',
+    hoverBorder: 'hover:border-[#4285F4]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(66,133,244,0.5)]',
+  },
+  'google-analytics': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(249,171,0,0.10),rgba(249,171,0,0.02))]',
+    iconColor: 'text-[#F9AB00]',
+    hoverBorder: 'hover:border-[#F9AB00]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(249,171,0,0.5)]',
+  },
+  openai: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(16,163,127,0.10),rgba(16,163,127,0.02))]',
+    iconColor: 'text-[#10A37F]',
+    hoverBorder: 'hover:border-[#10A37F]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(16,163,127,0.5)]',
+  },
+  gemini: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.08),rgba(168,85,247,0.05))]',
+    iconColor: 'text-[#8E75F2]',
+    hoverBorder: 'hover:border-[#8E75F2]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(142,117,242,0.5)]',
+  },
+  claude: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(217,119,87,0.10),rgba(217,119,87,0.02))]',
+    iconColor: 'text-[#D97757]',
+    hoverBorder: 'hover:border-[#D97757]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(217,119,87,0.5)]',
+  },
+  deepseek: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(83,108,232,0.10),rgba(83,108,232,0.02))]',
+    iconColor: 'text-[#536CE8]',
+    hoverBorder: 'hover:border-[#536CE8]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(83,108,232,0.5)]',
+  },
+  'google-calendar': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.10),rgba(66,133,244,0.02))]',
+    iconColor: 'text-[#4285F4]',
+    hoverBorder: 'hover:border-[#4285F4]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(66,133,244,0.5)]',
+  },
+  'google-sheets': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(52,168,83,0.10),rgba(52,168,83,0.02))]',
+    iconColor: 'text-[#34A853]',
+    hoverBorder: 'hover:border-[#34A853]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(52,168,83,0.5)]',
+  },
+  gmail: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(234,67,53,0.10),rgba(234,67,53,0.02))]',
+    iconColor: 'text-[#EA4335]',
+    hoverBorder: 'hover:border-[#EA4335]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(234,67,53,0.5)]',
+  },
+};
+
+const DEFAULT_BRAND: BrandStyle = {
+  gradient: '',
+  iconColor: 'text-primary',
+  hoverBorder: 'hover:border-primary/40',
+  hoverShadow: 'hover:shadow-lg',
+};
+
+// Small pill used for status/marketing badges (Available, Beta, Popular, etc.)
+const StatusBadge: React.FC<{ icon: React.ReactNode; label: string; className: string }> = ({ icon, label, className }) => (
+  <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap", className)}>
+    {icon}
+    {label}
+  </span>
+);
+
 // Integration Card Component
-const IntegrationCard: React.FC<IntegrationCardProps> = ({ 
-  integration, 
-  onAction, 
-  loading = false, 
+const IntegrationCard: React.FC<IntegrationCardProps> = ({
+  integration,
+  onAction,
+  loading = false,
   installing = false,
   justInstalled = false,
 }) => {
   const { t } = useLanguage();
-  const isDisabled = integration.comingSoon || loading || installing;
+  const isComingSoon = integration.comingSoon;
+  const brand = isComingSoon ? DEFAULT_BRAND : (BRAND_STYLES[integration.key] || DEFAULT_BRAND);
 
   const getActionButton = () => {
     if (loading) {
       return (
-        <button 
-          disabled 
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-muted/50 text-muted-foreground rounded-lg cursor-not-allowed text-sm"
+        <button
+          disabled
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-muted/50 text-muted-foreground rounded-lg cursor-not-allowed text-sm"
         >
           <div className="animate-spin w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full" />
           {t('integrations.checking')}
@@ -101,9 +208,9 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
     if (installing) {
       return (
-        <button 
-          disabled 
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary/50 text-primary-foreground rounded-lg cursor-not-allowed text-sm"
+        <button
+          disabled
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-primary/50 text-primary-foreground rounded-lg cursor-not-allowed text-sm"
         >
           <div className="animate-spin w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
           {t('integrations.installing')}...
@@ -113,9 +220,9 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
 
     if (justInstalled) {
       return (
-        <button 
-          disabled 
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-green-500 text-white rounded-lg animate-pulse text-sm"
+        <button
+          disabled
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-green-500 text-white rounded-lg animate-pulse text-sm"
         >
           <Check className="w-4 h-4" />
           {t('integrations.installed')}
@@ -127,7 +234,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       return (
         <button
           disabled
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-muted/30 text-muted-foreground rounded-lg cursor-not-allowed text-sm"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-muted/30 text-muted-foreground rounded-lg cursor-not-allowed text-sm"
         >
           <Package className="w-4 h-4" />
           {t('integrations.coming-soon')}
@@ -139,7 +246,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       return (
         <button
           onClick={() => onAction(integration.key, 'configure')}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-primary text-primary-foreground rounded-lg transition-all duration-300 text-sm group-hover:shadow-md"
         >
           <Settings className="w-4 h-4" />
           {t('integrations.configure')}
@@ -149,7 +256,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       return (
         <button
           onClick={() => onAction(integration.key, 'install')}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors text-sm"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-accent text-accent-foreground rounded-lg transition-all duration-300 text-sm group-hover:shadow-md"
         >
           <Download className="w-4 h-4" />
           {t('integrations.install')}
@@ -159,117 +266,59 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   };
 
   return (
-    <div 
-      className={`glass-card p-5 transition-all duration-300 relative ${
-        integration.comingSoon 
-          ? 'opacity-60 hover:border-muted/30' 
-          : 'hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20'
-      }`}
+    <div
+      className={cn(
+        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-all duration-300",
+        isComingSoon
+          ? "opacity-60"
+          : cn(brand.gradient, brand.hoverBorder, brand.hoverShadow, "hover:-translate-y-1")
+      )}
     >
-      {/* Status / Beta Badge */}
-      <div className="absolute top-3 right-3 flex items-center gap-1">
-        {integration.beta && (
-          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
-            Beta
-          </Badge>
-        )}
-        {integration.comingSoon ? (
-          <Badge 
-            variant="secondary" 
-            className="bg-muted/50 text-muted-foreground text-xs"
-          >
-            {t('integrations.coming-soon')}
-          </Badge>
-        ) : integration.available ? (
-          <Badge 
-            className="bg-green-500/20 text-green-400 border-green-500/30 text-xs"
-          >
-            <Check className="w-3 h-3 mr-1" />
-            {t('integrations.available')}
-          </Badge>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col h-full">
-        {/* Icon */}
-        <div className={`flex items-center justify-center w-12 h-12 rounded-lg mb-4 ${
-          integration.comingSoon 
-            ? 'bg-muted/30 text-muted-foreground' 
-            : 'bg-primary/10 text-primary'
-        }`}>
+      {/* Brand icon + status badges */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className={cn(
+          "flex items-center justify-center w-14 h-14 rounded-2xl bg-background shadow-sm shrink-0",
+          isComingSoon ? "text-muted-foreground" : brand.iconColor
+        )}>
           {integration.icon}
         </div>
 
-        {/* Content */}
-        <h3 className="text-base font-semibold text-foreground mb-2">
-          {integration.name}
-        </h3>
-        
-        <p className="text-muted-foreground text-sm mb-4 flex-1 line-clamp-2">
-          {integration.description}
-        </p>
-
-        {/* Action Button */}
-        {getActionButton()}
-      </div>
-    </div>
-  );
-};
-
-// Category Section Component
-interface CategorySectionProps {
-  category: IntegrationCategory;
-  onAction: (key: string, action: string) => Promise<void>;
-  loading: boolean;
-  installingIntegrations: Set<string>;
-  justInstalledIntegrations: Set<string>;
-}
-
-const CategorySection: React.FC<CategorySectionProps> = ({
-  category,
-  onAction,
-  loading,
-  installingIntegrations,
-  justInstalledIntegrations,
-}) => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="space-y-4">
-      {/* Category Header */}
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${
-          category.comingSoon 
-            ? 'bg-muted/30 text-muted-foreground' 
-            : 'bg-primary/10 text-primary'
-        }`}>
-          {category.icon}
+        <div className="flex flex-wrap items-center justify-end gap-1">
+          {integration.popular && (
+            <StatusBadge
+              icon={<Rocket className="w-3 h-3" />}
+              label={t('integrations.popular')}
+              className="border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400"
+            />
+          )}
+          {integration.beta && (
+            <StatusBadge
+              icon={<FlaskConical className="w-3 h-3" />}
+              label="Beta"
+              className="border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+            />
+          )}
+          {isComingSoon && (
+            <StatusBadge
+              icon={<Clock className="w-3 h-3" />}
+              label={t('integrations.coming-soon')}
+              className="border-border bg-muted text-muted-foreground"
+            />
+          )}
         </div>
-        <h2 className={`text-lg font-semibold ${
-          category.comingSoon ? 'text-muted-foreground' : 'text-foreground'
-        }`}>
-          {category.title}
-        </h2>
-        {category.comingSoon && (
-          <Badge variant="outline" className="text-xs border-accent/50 text-accent">
-            {t('integrations.coming-soon')}
-          </Badge>
-        )}
       </div>
 
-      {/* Integration Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {category.integrations.map((integration) => (
-          <IntegrationCard
-            key={integration.key}
-            integration={integration}
-            onAction={onAction}
-            loading={loading && integration.key === 'meta-ads'}
-            installing={installingIntegrations.has(integration.key)}
-            justInstalled={justInstalledIntegrations.has(integration.key)}
-          />
-        ))}
-      </div>
+      {/* Content */}
+      <h3 className="text-base font-semibold text-foreground">
+        {integration.name}
+      </h3>
+
+      <p className="text-sm text-muted-foreground mt-1 mb-4 line-clamp-2 flex-1">
+        {integration.description}
+      </p>
+
+      {/* Action Button */}
+      {getActionButton()}
     </div>
   );
 };
@@ -285,6 +334,8 @@ const IntegrationsApps: React.FC = () => {
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
   const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
   const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -294,21 +345,20 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'ads-analytics',
       title: t('integrations.categories.ads-analytics') || 'Ads & Analytics',
-      icon: <TrendingUp className="w-5 h-5" />,
       integrations: [
         {
           key: 'meta-ads',
           name: 'Meta Ads',
           description: t('integrations.meta-ads.description') || 'Connect your Meta Ads account to track and manage Facebook & Instagram advertising campaigns.',
           available: false,
-          icon: <FaMeta className="w-6 h-6" />
+          icon: <FaMeta className="w-7 h-7" />
         },
         {
           key: 'google-ads',
           name: 'Google Ads',
           description: t('integrations.google-ads.description') || 'Integrate Google Ads to monitor your search and display advertising performance.',
           available: false,
-          icon: <SiGoogleads className="w-6 h-6" />
+          icon: <SiGoogleads className="w-7 h-7" />
         },
         {
           key: 'google-analytics',
@@ -316,14 +366,13 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.google-analytics.description') || 'Track website traffic and user behavior with Google Analytics integration.',
           available: false,
           comingSoon: true,
-          icon: <SiGoogleanalytics className="w-6 h-6" />
+          icon: <SiGoogleanalytics className="w-7 h-7" />
         }
       ]
     },
     {
       id: 'social-messaging',
       title: t('integrations.categories.social-messaging') || 'Social Messaging Platforms',
-      icon: <MessageCircle className="w-5 h-5" />,
       integrations: [
         {
           key: 'wpp_evo',
@@ -331,7 +380,8 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.whatsapp-evo.description') || 'Connect WhatsApp via Evolution API to manage customer conversations directly from your CRM.',
           available: false,
           beta: true,
-          icon: <SiWhatsapp className="w-6 h-6" />
+          popular: true,
+          icon: <SiWhatsapp className="w-7 h-7" />
         },
         {
           key: 'instagram',
@@ -339,7 +389,8 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.instagram.description') || 'Integrate Instagram DMs to engage with your audience and manage inquiries.',
           available: false,
           beta: true,
-          icon: <SiInstagram className="w-6 h-6" />
+          popular: true,
+          icon: <SiInstagram className="w-7 h-7" />
         },
         {
           key: 'facebook',
@@ -347,7 +398,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.facebook.description') || 'Connect Facebook Messenger to handle customer messages from your Facebook page.',
           available: false,
           comingSoon: true,
-          icon: <SiFacebook className="w-6 h-6" />
+          icon: <SiFacebook className="w-7 h-7" />
         },
         {
           key: 'telegram',
@@ -355,14 +406,13 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.telegram.description') || 'Integrate Telegram to communicate with customers through bots or direct messages.',
           available: false,
           comingSoon: true,
-          icon: <SiTelegram className="w-6 h-6" />
+          icon: <SiTelegram className="w-7 h-7" />
         }
       ]
     },
     {
       id: 'artificial-intelligence',
       title: t('integrations.categories.ai') || 'Artificial Intelligence',
-      icon: <Bot className="w-5 h-5" />,
       comingSoon: true,
       integrations: [
         {
@@ -371,7 +421,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.openai.description') || 'Leverage OpenAI GPT models for intelligent automation and customer interactions.',
           available: false,
           comingSoon: true,
-          icon: <SiOpenai className="w-6 h-6" />
+          icon: <SiOpenai className="w-7 h-7" />
         },
         {
           key: 'gemini',
@@ -379,7 +429,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.gemini.description') || 'Integrate Google Gemini for advanced AI capabilities and multimodal processing.',
           available: false,
           comingSoon: true,
-          icon: <RiGeminiLine className="w-6 h-6" />
+          icon: <RiGeminiLine className="w-7 h-7" />
         },
         {
           key: 'claude',
@@ -387,7 +437,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.claude.description') || 'Use Anthropic Claude for safe and helpful AI assistance in your workflows.',
           available: false,
           comingSoon: true,
-          icon: <RiClaudeFill className="w-6 h-6" />
+          icon: <RiClaudeFill className="w-7 h-7" />
         },
         {
           key: 'deepseek',
@@ -395,14 +445,13 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.deepseek.description') || 'Integrate DeepSeek AI for powerful reasoning and code generation capabilities.',
           available: false,
           comingSoon: true,
-          icon: <Bot className="w-6 h-6" />
+          icon: <Bot className="w-7 h-7" />
         }
       ]
     },
     {
       id: 'google-apps',
       title: t('integrations.categories.google-apps') || 'Google Apps',
-      icon: <Calendar className="w-5 h-5" />,
       comingSoon: true,
       integrations: [
         {
@@ -411,7 +460,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.google-calendar.description') || 'Sync appointments and meetings with Google Calendar for seamless scheduling.',
           available: false,
           comingSoon: true,
-          icon: <SiGooglecalendar className="w-6 h-6" />
+          icon: <SiGooglecalendar className="w-7 h-7" />
         },
         {
           key: 'google-sheets',
@@ -419,7 +468,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.google-sheets.description') || 'Export and sync data with Google Sheets for reporting and analysis.',
           available: false,
           comingSoon: true,
-          icon: <SiGooglesheets className="w-6 h-6" />
+          icon: <SiGooglesheets className="w-7 h-7" />
         },
         {
           key: 'gmail',
@@ -427,7 +476,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.gmail.description') || 'Integrate Gmail to send and track emails directly from your CRM.',
           available: false,
           comingSoon: true,
-          icon: <SiGmail className="w-6 h-6" />
+          icon: <SiGmail className="w-7 h-7" />
         }
       ]
     },
@@ -503,15 +552,15 @@ const IntegrationsApps: React.FC = () => {
 
       setCategories(prev => prev.map(category => ({
         ...category,
-        integrations: category.integrations.map(integration => 
-          integration.key === integrationKey 
+        integrations: category.integrations.map(integration =>
+          integration.key === integrationKey
             ? { ...integration, available: true, comingSoon: false }
             : integration
         )
       })));
 
       setJustInstalledIntegrations(prev => new Set(prev).add(integrationKey));
-      
+
       toast({
         title: t('integrations.installation-successful'),
         description: `Integration installed successfully!`,
@@ -550,6 +599,33 @@ const IntegrationsApps: React.FC = () => {
     fetchIntegrationStatuses();
   }, []);
 
+  // Marketplace-style pill filters, derived from the category list
+  const filterOptions = useMemo(
+    () => [
+      { id: 'all', label: t('integrations.filter-all') || 'All' },
+      ...categories.map((category) => ({ id: category.id, label: category.title })),
+      { id: 'coming-soon', label: t('integrations.coming-soon') },
+    ],
+    [categories, t]
+  );
+
+  // Flatten categories into a single searchable/filterable list of cards
+  const filteredIntegrations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const integrations = activeFilter === 'coming-soon'
+      ? categories.flatMap((category) => category.integrations).filter((integration) => integration.comingSoon)
+      : categories
+          .filter((category) => activeFilter === 'all' || category.id === activeFilter)
+          .flatMap((category) => category.integrations);
+
+    return integrations.filter((integration) =>
+      !query ||
+      integration.name.toLowerCase().includes(query) ||
+      integration.description.toLowerCase().includes(query)
+    );
+  }, [categories, activeFilter, searchQuery]);
+
   // Error state
   if (error && categories.length === 0) {
     return (
@@ -572,37 +648,85 @@ const IntegrationsApps: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="px-4 sm:px-6 py-6">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-4">
-            <span>{t('nav.settings')}</span>
-            <ChevronRight className="w-4 h-4" />
-            <span>{t('nav.integrations')}</span>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-foreground">Apps</span>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+            <RiAppsFill className="w-5 h-5" />
           </div>
-          
-          <h1 className="text-3xl font-bold text-foreground mb-2">{t('integrations.title')}</h1>
-          <p className="text-muted-foreground">
-            {t('integrations.description')}
-          </p>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{t('integrations.title')}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {t('integrations.description')}
+            </p>
+          </div>
         </div>
 
-        {/* Category Sections */}
-        <div className="space-y-10">
-          {categories.map((category) => (
-            <CategorySection
-              key={category.id}
-              category={category}
-              onAction={handleIntegrationAction}
-              loading={loading}
-              installingIntegrations={installingIntegrations}
-              justInstalledIntegrations={justInstalledIntegrations}
-            />
-          ))}
+        {/* Divider */}
+        <div className="border-b border-border mb-4" />
+
+        {/* Tabs + Search Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 border-b border-border">
+          {/* Category Tabs */}
+          <div className="flex gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] min-w-0">
+            {filterOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setActiveFilter(option.id)}
+                className={cn(
+                  "relative whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-200",
+                  activeFilter === option.id
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground font-medium hover:text-foreground/80"
+                )}
+              >
+                {option.label}
+                <span
+                  className={cn(
+                    "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                    activeFilter === option.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* Search */}
+          <div className="w-full sm:w-64 shrink-0 pb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('integrations.search-placeholder') || 'Search integrations...'}
+                className="pl-9"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Integration Grid */}
+        {filteredIntegrations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Search className="w-10 h-10 text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-results')}</h3>
+            <p className="text-muted-foreground text-sm max-w-sm">{t('integrations.no-results-description')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredIntegrations.map((integration) => (
+              <IntegrationCard
+                key={integration.key}
+                integration={integration}
+                onAction={handleIntegrationAction}
+                loading={loading && integration.key === 'meta-ads'}
+                installing={installingIntegrations.has(integration.key)}
+                justInstalled={justInstalledIntegrations.has(integration.key)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Config Modals */}
         <MetaAdsConfigModal

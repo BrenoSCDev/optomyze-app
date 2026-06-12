@@ -10,10 +10,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Paperclip, Mic, Inbox, Bot } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,8 +23,8 @@ import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import ContactMessage from './ContactMessage';
-import ChannelIcon from './ChannelIcon';
 import InboxAvatar from './InboxAvatar';
+import MessageComposer from './MessageComposer';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -388,18 +387,18 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setMessageMode(pendingMessage.messageMode);
   };
 
-  const handleSendMedia = useCallback(async (file: File, type: 'image' | 'audio') => {
+  const handleSendMedia = useCallback(async (file: File, type: 'image' | 'audio', mode: 'external' | 'internal' = 'external') => {
     if (!chat?.channelable_id) return;
     if (chat.channel !== 'instagram' && !chat?.lead?.id) return;
 
     const tempId = `pending-media-${Date.now()}`;
     setIsSendingMedia(true);
-    setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: 'external' }]);
+    setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: mode }]);
 
     try {
       const response = chat.channel === 'instagram'
-        ? await sendInstagramMedia(chat.channelable_id, chat.id, type, file, 'external')
-        : await sendInboxMedia(chat.channelable_id, chat.lead!.id, type, file, 'external');
+        ? await sendInstagramMedia(chat.channelable_id, chat.id, type, file, mode)
+        : await sendInboxMedia(chat.channelable_id, chat.lead!.id, type, file, mode);
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
@@ -415,7 +414,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         status: response.message.status,
         sent_at: response.message.sent_at,
         user_id: response.message.user_id,
-        message_mode: 'external',
+        message_mode: response.message.message_mode || mode,
         user: response.message.user,
       };
 
@@ -444,7 +443,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleSendMedia(file, 'image');
+    if (file) handleSendMedia(file, 'image', messageMode);
     e.target.value = '';
   };
 
@@ -465,7 +464,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
           if (audioChunksRef.current.length > 0) {
             const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-            handleSendMedia(file, 'audio');
+            handleSendMedia(file, 'audio', messageMode);
           }
         };
         mediaRecorderRef.current = recorder;
@@ -935,35 +934,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
       {/* Message Input */}
       {canSend ? (
-        <div className="p-4 border-t border-border/50 bg-card space-y-2">
-          {/* Message mode toggle */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant={messageMode === 'external' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setMessageMode('external')}
-              className={cn(
-                "h-7 text-xs gap-1.5 rounded-full",
-                messageMode === 'external' && "bg-green-500 hover:bg-green-600 text-white"
-              )}
-            >
-              <ChannelIcon channel={chat.channel} className="h-3 w-3" />
-              {t('chat.inbox.mode-external')}
-            </Button>
-            <Button
-              variant={messageMode === 'internal' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setMessageMode('internal')}
-              className={cn(
-                "h-7 text-xs gap-1.5 rounded-full",
-                messageMode === 'internal' && "bg-amber-500 hover:bg-amber-600 text-white"
-              )}
-            >
-              <StickyNote className="h-3 w-3" />
-              {t('chat.inbox.mode-internal')}
-            </Button>
-          </div>
-
+        <div className="p-3 border-t border-border/50 bg-card">
           {/* Hidden image file input */}
           <input
             ref={imageInputRef}
@@ -973,76 +944,20 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             onChange={handleImageSelect}
           />
 
-          {/* Recording indicator */}
-          {isRecording && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 border border-destructive/30 rounded-lg">
-              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-              <span className="text-xs text-destructive font-medium flex-1">Recording audio...</span>
-              <button onClick={toggleRecording} className="text-destructive hover:text-destructive/80">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            {messageMode === 'external' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => imageInputRef.current?.click()}
-                disabled={isSendingMedia || !chat.lead?.id}
-                className="shrink-0 h-9 w-9 text-muted-foreground hover:text-foreground"
-                title="Send image"
-              >
-                {isSendingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-              </Button>
-            )}
-            <Input
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
-              disabled={isSending || !chat.lead?.id}
-              className={cn(
-                "flex-1",
-                messageMode === 'internal' && "border-amber-300 dark:border-amber-700"
-              )}
-            />
-            {messageMode === 'external' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleRecording}
-                disabled={isSendingMedia || !chat.lead?.id}
-                className={cn(
-                  "shrink-0 h-9 w-9",
-                  isRecording
-                    ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                title={isRecording ? 'Stop recording' : 'Record audio'}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              onClick={handleSendMessage}
-              disabled={!messageText.trim() || isSending || !chat.lead?.id}
-              size="icon"
-              className={cn(
-                "shrink-0",
-                messageMode === 'internal'
-                  ? "bg-amber-500 hover:bg-amber-600"
-                  : "bg-green-500 hover:bg-green-600"
-              )}
-            >
-              {isSending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          <MessageComposer
+            value={messageText}
+            onChange={setMessageText}
+            onSend={handleSendMessage}
+            placeholder={messageMode === 'internal' ? t('chat.inbox.type-internal-note') : t('chat.inbox.type-message')}
+            disabled={!chat.lead?.id}
+            isSending={isSending}
+            mode={messageMode}
+            onModeChange={setMessageMode}
+            onAttach={() => imageInputRef.current?.click()}
+            isAttaching={isSendingMedia}
+            isRecording={isRecording}
+            onToggleRecording={toggleRecording}
+          />
         </div>
       ) : (
         <div className="p-4 border-t border-border/50 bg-card text-center text-sm text-muted-foreground">

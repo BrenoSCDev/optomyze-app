@@ -18,7 +18,6 @@ import {
   StickyNote,
   FileSignature,
   MessageCircle,
-  Globe,
   MessageSquare,
   DollarSign,
   Hash,
@@ -45,11 +44,14 @@ import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadInboxChat, LeadInboxMessage } from './LeadChatSection';
 import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 import LeadAppointmentsTab from './LeadAppointmentsTab';
+import SourcePlatformIcon from './SourcePlatformIcon';
+import UserAvatar from '@/components/ui/user-avatar';
 
 interface AssignedUser {
   id: number;
   name: string;
   email: string;
+  profile_pic?: string | null;
 }
 
 interface LeadCompanyInfo {
@@ -301,11 +303,13 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 };
 
 // Info Item Component
-const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string | undefined; icon: React.ReactNode; notSet: string }) => (
+const InfoItem = ({ label, value, icon, notSet, customIcon }: { label: string; value: string | undefined; icon?: React.ReactNode; notSet: string; customIcon?: React.ReactNode }) => (
   <div className="flex items-center gap-3">
-    <div className="p-2 rounded-lg bg-primary/20 text-primary">
-      {icon}
-    </div>
+    {customIcon ?? (
+      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+        {icon}
+      </div>
+    )}
     <div>
       <p className="text-muted-foreground text-xs uppercase tracking-wide">{label}</p>
       <p className="text-foreground font-medium">{value || notSet}</p>
@@ -314,23 +318,23 @@ const InfoItem = ({ label, value, icon, notSet }: { label: string; value: string
 );
 
 // Metric Card Component
-const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: string }) => {
-  const colorClasses = {
-    purple: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    green: 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30',
-    blue: 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
-  };
-
-  return (
-    <div className={`rounded-lg border p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <div className="flex items-center gap-3 mb-2">
-        {icon}
-        <span className="text-sm font-medium">{label}</span>
-      </div>
-      <p className="text-lg font-bold text-foreground">{value}</p>
-    </div>
-  );
+const METRIC_COLOR_CLASSES: Record<'purple' | 'green' | 'blue', string> = {
+  purple: 'bg-purple-500',
+  green: 'bg-green-500',
+  blue: 'bg-blue-500',
 };
+
+const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: 'purple' | 'green' | 'blue' }) => (
+  <div className="rounded-lg border border-border bg-muted/50 p-4">
+    <div className="flex items-center gap-3 mb-2">
+      <div className={`w-8 h-8 flex items-center justify-center rounded-md text-white shrink-0 ${METRIC_COLOR_CLASSES[color]}`}>
+        {icon}
+      </div>
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+    </div>
+    <p className="text-lg font-bold text-foreground">{value}</p>
+  </div>
+);
 
 // Lead Info Content
 const LeadInfoContent = ({ lead }: { lead: Lead }) => {
@@ -366,17 +370,33 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
       <div>
         <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.general-information')}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InfoItem label={t('lead-details.source-platform')} value={lead.source_platform} icon={<Globe className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem
+            label={t('lead-details.source-platform')}
+            value={lead.source_platform}
+            notSet={t('lead-details.not-set')}
+            customIcon={
+              <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-secondary shrink-0">
+                <SourcePlatformIcon source={lead.source_platform} />
+              </div>
+            }
+          />
           <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.language')} value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           {/* <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} /> */}
-          <InfoItem 
-            label={t('lead-details.assigned-user')} 
-            value={lead.assigned_user ? lead.assigned_user.name : undefined} 
-            icon={<User className="w-4 h-4" />} 
-            notSet={t('lead-details.unassigned')} 
+          <InfoItem
+            label={t('lead-details.assigned-user')}
+            value={lead.assigned_user ? lead.assigned_user.name : undefined}
+            icon={<User className="w-4 h-4" />}
+            notSet={t('lead-details.unassigned')}
+            customIcon={lead.assigned_user ? (
+              <UserAvatar
+                name={lead.assigned_user.name}
+                profilePicPath={lead.assigned_user.profile_pic}
+                className="w-9 h-9 text-sm"
+              />
+            ) : undefined}
           />
         </div>
       </div>
@@ -386,8 +406,8 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
         <div className="pt-6 border-t border-border">
           <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.address')}</h4>
           <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-            <div className="p-2 rounded-lg bg-orange-500/20">
-              <MapPin className="w-5 h-5 text-orange-400" />
+            <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+              <MapPin className="w-5 h-5" />
             </div>
             <div className="flex-1">
               {lead.address_line_1 && (
@@ -427,19 +447,19 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
           <MetricCard
             label={t('lead-details.ai-score')}
             value={lead.ai_score ? `${lead.ai_score}%` : t('lead-details.not-scored')}
-            icon={<Brain className="w-5 h-5" />}
+            icon={<Brain className="w-4 h-4" />}
             color="purple"
           />
           <MetricCard
             label={t('lead-details.estimated-value')}
             value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(lead.value_estimated) : t('lead-details.not-set')}
-            icon={<TrendingUp className="w-5 h-5" />}
+            icon={<TrendingUp className="w-4 h-4" />}
             color="green"
           />
           <MetricCard
             label={t('lead-details.days-active')}
             value={getDaysActive().toString()}
-            icon={<Calendar className="w-5 h-5" />}
+            icon={<Calendar className="w-4 h-4" />}
             color="blue"
           />
         </div>
@@ -462,8 +482,8 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-500/20">
-            <Mail className="w-5 h-5 text-blue-400" />
+          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+            <Mail className="w-5 h-5" />
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.email')}</p>
@@ -483,8 +503,8 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
       
       <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-green-500/20">
-            <Phone className="w-5 h-5 text-green-400" />
+          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+            <Phone className="w-5 h-5" />
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
@@ -504,8 +524,8 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
       
       <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-500/20">
-            <User className="w-5 h-5 text-purple-400" />
+          <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+            <User className="w-5 h-5" />
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.full-name')}</p>

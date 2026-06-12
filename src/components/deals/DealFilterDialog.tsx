@@ -1,13 +1,23 @@
 /**
  * DEAL FILTER DIALOG
- * 
- * Simple filter dialog for deal funnels.
+ *
+ * Filter dialog for deal funnels, sharing the same modal/form pattern as
+ * LeadFilterDialog for a consistent experience across the CRM.
  */
 
 import React, { useState } from 'react';
-import { X, Filter, RotateCcw } from 'lucide-react';
+import { Filter, RotateCcw } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface DealFilterDialogProps {
   isOpen: boolean;
@@ -17,6 +27,24 @@ interface DealFilterDialogProps {
   onFilterClear: () => void;
 }
 
+interface DealFilter {
+  dealName: string;
+  leadName: string;
+  stageId: string;
+  minValue: string;
+  maxValue: string;
+}
+
+const selectClasses = "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors";
+
+const emptyFilters: DealFilter = {
+  dealName: '',
+  leadName: '',
+  stageId: '',
+  minValue: '',
+  maxValue: '',
+};
+
 export const DealFilterDialog: React.FC<DealFilterDialogProps> = ({
   isOpen,
   onClose,
@@ -24,126 +52,155 @@ export const DealFilterDialog: React.FC<DealFilterDialogProps> = ({
   onFilterApply,
   onFilterClear,
 }) => {
-  const [filters, setFilters] = useState({
-    dealName: '',
-    leadName: '',
-    stageId: '',
-    minValue: '',
-    maxValue: '',
-  });
+  const [filters, setFilters] = useState<DealFilter>(emptyFilters);
 
-  const handleApply = () => {
-    const clean: any = {};
-    if (filters.dealName) clean.dealName = filters.dealName;
-    if (filters.leadName) clean.leadName = filters.leadName;
-    if (filters.stageId) clean.stageId = filters.stageId;
-    if (filters.minValue) clean.minValue = parseFloat(filters.minValue);
-    if (filters.maxValue) clean.maxValue = parseFloat(filters.maxValue);
-    onFilterApply(clean);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    const cleanFilters: Record<string, string | number> = {};
+
+    if (filters.dealName) cleanFilters.dealName = filters.dealName;
+    if (filters.leadName) cleanFilters.leadName = filters.leadName;
+    if (filters.stageId) cleanFilters.stageId = filters.stageId;
+    if (filters.minValue) cleanFilters.minValue = parseFloat(filters.minValue);
+    if (filters.maxValue) cleanFilters.maxValue = parseFloat(filters.maxValue);
+
+    onFilterApply(cleanFilters);
     onClose();
   };
 
-  const handleClear = () => {
-    setFilters({ dealName: '', leadName: '', stageId: '', minValue: '', maxValue: '' });
+  const handleClearFilters = () => {
+    setFilters(emptyFilters);
     onFilterClear();
   };
 
-  const hasActive = Object.values(filters).some(v => v !== '');
-
-  if (!isOpen) return null;
+  const hasActiveFilters = Object.values(filters).some((value) => value !== '');
 
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-deal/20 shadow-2xl"
-        >
-          <div className="flex items-center justify-between p-6 border-b border-deal/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-deal">
-                <Filter className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-white">Filter Deals</h2>
-              {hasActive && <span className="px-2 py-1 text-xs bg-deal/20 text-deal rounded-md">Active</span>}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
+              <Filter className="h-5 w-5 text-white" />
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-              <X className="h-5 w-5 text-white/70" />
-            </button>
-          </div>
+            Filter Deals
+            {hasActiveFilters && (
+              <span className="px-2 py-1 text-xs font-normal bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md">
+                Filters Active
+              </span>
+            )}
+          </DialogTitle>
+        </DialogHeader>
 
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-2">Deal Name</label>
-              <input
-                type="text"
-                value={filters.dealName}
-                onChange={(e) => setFilters(prev => ({ ...prev, dealName: e.target.value }))}
-                placeholder="Filter by deal name..."
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-2">Lead Name</label>
-              <input
-                type="text"
-                value={filters.leadName}
-                onChange={(e) => setFilters(prev => ({ ...prev, leadName: e.target.value }))}
-                placeholder="Filter by lead name..."
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white placeholder:text-white/50 focus:outline-none focus:border-deal transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-2">Stage</label>
-              <select
-                value={filters.stageId}
-                onChange={(e) => setFilters(prev => ({ ...prev, stageId: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white focus:outline-none focus:border-deal transition-colors"
-              >
-                <option value="" className="bg-gray-800">All Stages</option>
-                {sortedStages.map(s => (
-                  <option key={s.id} value={s.id.toString()} className="bg-gray-800">{s.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">Min Value</label>
-                <CurrencyInput
-                  value={parseFloat(filters.minValue) || 0}
-                  onValueChange={(v) => setFilters(prev => ({ ...prev, minValue: v ? String(v) : '' }))}
-                  placeholder="$0.00"
-                  className="w-full bg-white/5 border-deal/20 text-white placeholder:text-white/50"
-                />
+        <div className="flex-1 overflow-y-auto p-1">
+          <div className="space-y-6">
+            {/* Deal Information */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Deal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="filter-deal-name">Deal Name</Label>
+                  <Input
+                    id="filter-deal-name"
+                    type="text"
+                    name="dealName"
+                    value={filters.dealName}
+                    onChange={handleInputChange}
+                    placeholder="Filter by deal name..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="filter-lead-name">Lead Name</Label>
+                  <Input
+                    id="filter-lead-name"
+                    type="text"
+                    name="leadName"
+                    value={filters.leadName}
+                    onChange={handleInputChange}
+                    placeholder="Filter by lead name..."
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">Max Value</label>
-                <CurrencyInput
-                  value={parseFloat(filters.maxValue) || 0}
-                  onValueChange={(v) => setFilters(prev => ({ ...prev, maxValue: v ? String(v) : '' }))}
-                  placeholder="$0.00"
-                  className="w-full bg-white/5 border-deal/20 text-white placeholder:text-white/50"
-                />
+
+              <div className="space-y-2">
+                <Label htmlFor="filter-stage">Stage</Label>
+                <select
+                  id="filter-stage"
+                  name="stageId"
+                  value={filters.stageId}
+                  onChange={handleInputChange}
+                  className={selectClasses}
+                >
+                  <option value="">All Stages</option>
+                  {sortedStages.map((stage) => (
+                    <option key={stage.id} value={stage.id.toString()}>
+                      {stage.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={handleClear} className="flex items-center gap-2 px-4 py-3 rounded-lg bg-white/5 border border-deal/20 text-white hover:bg-deal/10 transition-colors">
-                <RotateCcw className="h-4 w-4" />
-                Clear
-              </button>
-              <button onClick={handleApply} className="flex-1 px-4 py-3 rounded-lg bg-gradient-deal text-white font-medium hover:opacity-90 transition-opacity">
-                Apply Filters
-              </button>
+            {/* Value Range */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Value Range</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="filter-min-value">Min Value</Label>
+                  <CurrencyInput
+                    id="filter-min-value"
+                    value={parseFloat(filters.minValue) || 0}
+                    onValueChange={(v) => setFilters(prev => ({ ...prev, minValue: v ? String(v) : '' }))}
+                    placeholder="$0.00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="filter-max-value">Max Value</Label>
+                  <CurrencyInput
+                    id="filter-max-value"
+                    value={parseFloat(filters.maxValue) || 0}
+                    onValueChange={(v) => setFilters(prev => ({ ...prev, maxValue: v ? String(v) : '' }))}
+                    placeholder="$0.00"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+        </div>
+
+        <DialogFooter className="flex-shrink-0 pt-4 border-t border-border sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClearFilters}
+            className="gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Clear Filters
+          </Button>
+
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleApplyFilters}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:opacity-90"
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

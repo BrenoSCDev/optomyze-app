@@ -436,7 +436,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto scrollbar-thin mt-4">
+            <div className="flex-1 overflow-y-auto scrollbar-thin mt-4 p-1">
               <TabsContent value="data" className="m-0" forceMount hidden={activeTab !== 'data'}>
                 {renderFormContent()}
               </TabsContent>
@@ -473,7 +473,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-y-auto scrollbar-thin mt-4">
+            <div className="flex-1 overflow-y-auto scrollbar-thin mt-4 p-1">
               <TabsContent value="images" className="m-0 space-y-6">
                 <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
                   <p className="text-green-400 text-sm">
@@ -508,7 +508,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           </Tabs>
         ) : (
           /* Create form - no tabs */
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="flex-1 overflow-y-auto scrollbar-thin p-1">
             {renderFormContent(true)}
           </div>
         )}
