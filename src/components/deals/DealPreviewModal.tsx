@@ -13,8 +13,7 @@ import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
   DollarSign, Package, TrendingUp, TrendingDown,
   FileText, Upload, Download, Eye, Trash2, File,
-  CircleDot, GitBranch, Clock, AlertCircle,
-  PlusCircle, ArrowRightLeft, Activity, RefreshCw, XCircle, Trophy,
+  CircleDot, GitBranch, Clock, AlertCircle, Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +27,7 @@ import { downloadPrivateFile } from '@/hooks/usePrivateFile';
 import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
 import { DealCreationDialog, type EditDeal } from '@/components/deals/DealCreationDialog';
+import { ActivityTimeline, adaptDealTransaction } from '@/components/activity';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -103,13 +103,6 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
     });
   };
 
@@ -529,43 +522,11 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                               <Activity className="h-4 w-4" />
                               {t('deal-preview.activity-log')} ({sale.transactions.length})
                             </h3>
-                            <div className="space-y-0">
-                              {[...sale.transactions].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((tx: any, idx: number) => {
-                                const isLast = idx === sale.transactions.length - 1;
-                                const iconMap: Record<string, { icon: React.ReactNode; color: string }> = {
-                                  creation: { icon: <PlusCircle className="h-3.5 w-3.5" />, color: 'text-emerald-400' },
-                                  stage_change: { icon: <ArrowRightLeft className="h-3.5 w-3.5" />, color: 'text-sky-400' },
-                                  updated: { icon: <RefreshCw className="h-3.5 w-3.5" />, color: 'text-cyan-400' },
-                                  closed: { icon: <Trophy className="h-3.5 w-3.5" />, color: 'text-purple-400' },
-                                  lost: { icon: <XCircle className="h-3.5 w-3.5" />, color: 'text-red-400' },
-                                };
-                                // Override for won/lost actions
-                                let resolved = iconMap[tx.type] || { icon: <Activity className="h-3.5 w-3.5" />, color: 'text-deal' };
-                                if (tx.action === 'won') resolved = { icon: <Trophy className="h-3.5 w-3.5" />, color: 'text-emerald-400' };
-                                if (tx.action === 'lost') resolved = { icon: <XCircle className="h-3.5 w-3.5" />, color: 'text-red-400' };
-                                const { icon, color } = resolved;
-
-                                return (
-                                  <div key={tx.id} className="flex gap-3">
-                                    {/* Timeline line + dot */}
-                                    <div className="flex flex-col items-center">
-                                      <div className={`mt-1 p-1 rounded-full bg-background border border-deal/20 ${color}`}>
-                                        {icon}
-                                      </div>
-                                      {!isLast && <div className="w-px flex-1 bg-deal/10 my-1" />}
-                                    </div>
-                                    {/* Content */}
-                                    <div className={`pb-4 min-w-0 ${isLast ? '' : ''}`}>
-                                      <p className="text-sm text-foreground">{tx.description}</p>
-                                      <p className="text-xs text-muted-foreground mt-0.5">
-                                        {formatDateTime(tx.created_at)}
-                                        {tx.source && <span className="ml-1.5 capitalize">· {tx.source}</span>}
-                                      </p>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                            <ActivityTimeline
+                              events={sale.transactions.map(adaptDealTransaction)}
+                              variant="compact"
+                              emptyStateLabel={t('lead-details.no-activity')}
+                            />
                           </div>
                         )}
                       </div>

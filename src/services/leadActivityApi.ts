@@ -1,4 +1,5 @@
 import api from './api';
+import type { ActivityMeta, ActivityQueryParams } from '@/components/activity/types';
 
 export interface ActivityLead {
   id: number;
@@ -48,6 +49,7 @@ export interface ActivityTask {
 
 export interface TransactionsResponse {
   transactions: ActivityTransaction[];
+  meta?: ActivityMeta;
 }
 
 export interface TasksResponse {
@@ -55,9 +57,9 @@ export interface TasksResponse {
 }
 
 export const leadActivityApi = {
-  fetchTransactions: async (): Promise<TransactionsResponse> => {
+  fetchTransactions: async (params?: ActivityQueryParams): Promise<TransactionsResponse> => {
     try {
-      const response = await api.get('/api/leads-activity/transactions');
+      const response = await api.get('/api/leads-activity/transactions', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching lead transactions:', error);

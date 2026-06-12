@@ -13,10 +13,9 @@ import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
   AlertCircle, ArrowRightLeft, UserCheck, Trash2,
   MoreVertical, Building2, ShoppingBag, Activity,
-  ArrowRight, RefreshCw, FileText, ArrowLeft, ChevronRight, PlusCircle, PackageCheck, ListTodo, XCircle,
+  ArrowLeft, ChevronRight,
 } from 'lucide-react';
 import { VscSourceControl } from 'react-icons/vsc';
-import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -37,6 +36,7 @@ import { User as UserType } from '@/types/user';
 import api from '@/services/api';
 import { API_STORAGE_URL } from '@/lib/constants';
 import { leadService } from '@/services/leadApi';
+import { ActivityTimeline, adaptLeadTransaction } from '@/components/activity';
 
 import LeadDetailTabs from './LeadDetailTabs';
 import FunnelProgress from './FunnelProgress';
@@ -432,7 +432,11 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                             </TabsList>
 
                             <TabsContent value="activity" className="mt-0">
-                              <ActivityTimeline transactions={leadData.transactions} />
+                              <ActivityTimeline
+                                events={(leadData.transactions || []).map(adaptLeadTransaction)}
+                                variant="compact"
+                                emptyStateLabel={t('lead-details.no-activity')}
+                              />
                             </TabsContent>
 
                             <TabsContent value="purchases" className="mt-0">
@@ -524,68 +528,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
         </AlertDialogContent>
       </AlertDialog>
     </>
-  );
-};
-
-// Inline Activity Timeline (matches LeadDetail page)
-const ActivityTimeline = ({ transactions }: { transactions: any[] }) => {
-  const { t } = useLanguage();
-  const getIcon = (type: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      stage_change: <ArrowRight className="w-4 h-4" />,
-      status_change: <RefreshCw className="w-4 h-4" />,
-      note_added: <FileText className="w-4 h-4" />,
-      contact_attempt: <Phone className="w-4 h-4" />,
-      email_sent: <Mail className="w-4 h-4" />,
-      creation: <PlusCircle className="w-4 h-4" />,
-      product_update: <PackageCheck className="w-4 h-4" />,
-      task: <ListTodo className="w-4 h-4" />,
-      whatsapp_chat: <FaWhatsapp className="w-4 h-4" />,
-      lost: <XCircle className="w-4 h-4" />,
-    };
-    return icons[type] || <Activity className="w-4 h-4" />;
-  };
-  const getColor = (type: string) => {
-    const colors: Record<string, string> = {
-      stage_change: 'bg-blue-600', status_change: 'bg-yellow-600',
-      note_added: 'bg-green-600', contact_attempt: 'bg-purple-600', email_sent: 'bg-orange-600',
-      creation: 'bg-emerald-600', product_update: 'bg-cyan-600', task: 'bg-indigo-600',
-      whatsapp_chat: 'bg-green-600', lost: 'bg-red-600',
-    };
-    return colors[type] || 'bg-muted';
-  };
-
-  if (!transactions.length) {
-    return (
-      <div className="text-center py-8">
-        <Activity className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-        <p className="text-sm text-muted-foreground">{t('lead-details.no-activity')}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {transactions.map((tx, i) => (
-        <div key={tx.id} className="flex gap-4">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full ${getColor(tx.type)} flex items-center justify-center text-white`}>
-              {getIcon(tx.type)}
-            </div>
-            {i < transactions.length - 1 && <div className="w-px h-8 bg-border mt-2" />}
-          </div>
-          <div className="flex-1 pb-4">
-            <div className="bg-muted/50 rounded-lg p-3 hover:bg-muted transition-colors">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-foreground font-medium text-sm capitalize">{tx.type.replace('_', ' ')}</h4>
-                <span className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</span>
-              </div>
-              <p className="text-muted-foreground text-sm">{tx.description}</p>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
   );
 };
 
