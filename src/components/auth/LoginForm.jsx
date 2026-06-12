@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { toast } from '../ui/use-toast';
+import { toast } from '../../hooks/use-toast';
 import api from '../../services/api';
 import optomyzeLogo from '../../assets/optomyze.png';
 

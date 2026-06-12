@@ -40,5 +40,3 @@ export const syncProductCategories = async (productId: number, categoryIds: numb
   const response = await api.post(`/api/products/${productId}/categories/sync`, { category_ids: categoryIds });
   return response.data.categories;
 };
-
-export default { getProductCategories, createProductCategory, updateProductCategory, deleteProductCategory, syncProductCategories };

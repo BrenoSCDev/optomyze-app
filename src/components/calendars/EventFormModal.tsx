@@ -292,5 +292,3 @@ export const EventFormModal: React.FC<EventFormModalProps> = ({
     </Dialog>
   );
 };
-
-export default EventFormModal;

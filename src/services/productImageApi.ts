@@ -117,13 +117,3 @@ export const getPrimaryImageUrl = (images: ProductImage[], placeholder?: string)
   const sortedImages = [...images].sort((a, b) => a.display_order - b.display_order);
   return sortedImages[0]?.url || placeholder || '/placeholder.svg';
 };
-
-export default {
-  getProductImages,
-  uploadProductImage,
-  updateProductImage,
-  setImageAsPrimary,
-  reorderProductImages,
-  deleteProductImage,
-  getPrimaryImageUrl,
-};

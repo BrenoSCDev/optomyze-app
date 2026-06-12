@@ -42,5 +42,3 @@ export const updateFieldGroup = async (id: number, data: Partial<FieldGroupFormD
 export const deleteFieldGroup = async (id: number): Promise<void> => {
   await api.delete(`/api/custom-product-field-groups/${id}`);
 };
-
-export default { getFieldGroups, createFieldGroup, updateFieldGroup, deleteFieldGroup };

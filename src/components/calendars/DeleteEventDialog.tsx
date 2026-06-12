@@ -70,5 +70,3 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
     </AlertDialog>
   );
 };
-
-export default DeleteEventDialog;

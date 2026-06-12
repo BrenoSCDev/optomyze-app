@@ -58,10 +58,3 @@ export const updateCustomProductField = async (id: number, data: CustomProductFi
 export const deleteCustomProductField = async (id: number): Promise<void> => {
   await api.delete(`/api/custom-product-fields/${id}`);
 };
-
-export default {
-  getSettingsPanel,
-  createCustomProductField,
-  updateCustomProductField,
-  deleteCustomProductField,
-};

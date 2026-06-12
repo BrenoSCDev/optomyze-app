@@ -156,5 +156,3 @@ export const erpService = {
    */
   clearTokenCache: clearErpTokenCache,
 };
-
-export default erpApi;

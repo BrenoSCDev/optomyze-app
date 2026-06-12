@@ -178,15 +178,3 @@ export const unarchiveProduct = async (id: number): Promise<ApiResponse<Product>
   const response = await api.post(`/api/products/${id}/unarchive`);
   return response.data;
 };
-
-export default {
-  getProducts,
-  getProduct,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  toggleProductActive,
-  toggleProductFavorite,
-  archiveProduct,
-  unarchiveProduct,
-};

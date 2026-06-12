@@ -9,7 +9,7 @@ import { LeadCompany, LeadCompanyFormData } from '@/types/leadCompany';
 
 const ENDPOINT = '/api/lead-companies';
 
-export const leadCompanyApi = {
+const leadCompanyApi = {
   /**
    * Get all lead companies
    */
