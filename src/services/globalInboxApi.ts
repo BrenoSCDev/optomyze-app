@@ -102,6 +102,45 @@ export const sendInboxMedia = async (
 };
 
 /**
+ * Send a text message to a chat via an Instagram integration
+ */
+export const sendInstagramMessage = async (
+  integrationId: number,
+  chatId: number,
+  text: string,
+  messageMode: 'external' | 'internal' = 'external'
+): Promise<SendMessageResponse> => {
+  const response = await api.post(
+    `/api/inbox/instagram/${integrationId}/messages`,
+    { chat_id: chatId, text, message_mode: messageMode }
+  );
+  return response.data;
+};
+
+/**
+ * Send a media message (image or audio) to a chat via an Instagram integration
+ */
+export const sendInstagramMedia = async (
+  integrationId: number,
+  chatId: number,
+  type: 'image' | 'audio',
+  file: File,
+  messageMode: 'external' | 'internal' = 'external'
+): Promise<SendMessageResponse> => {
+  const formData = new FormData();
+  formData.append('chat_id', String(chatId));
+  formData.append('type', type);
+  formData.append('file', file);
+  formData.append('message_mode', messageMode);
+  const response = await api.post(
+    `/api/inbox/instagram/${integrationId}/media`,
+    formData,
+    { headers: { 'Content-Type': undefined } }
+  );
+  return response.data;
+};
+
+/**
  * Clear all messages from a chat
  */
 export const clearInboxChatMessages = async (chatId: number): Promise<{ message: string }> => {

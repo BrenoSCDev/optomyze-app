@@ -25,6 +25,13 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -41,6 +48,7 @@ import {
   AlertTriangle,
   Trash2,
   X,
+  GitBranch,
 } from 'lucide-react';
 import { SiInstagram } from 'react-icons/si';
 
@@ -56,6 +64,13 @@ interface InstagramIntegrationData {
   webhook_verify_token: string;
   webhook_status: 'pending' | 'verified';
   webhook_callback_url: string;
+  funnel_id: number | null;
+  funnel: { id: number; name: string } | null;
+}
+
+interface Funnel {
+  id: number;
+  name: string;
 }
 
 type WebhookTestStatus =
@@ -92,11 +107,16 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
   const [webhookTestStatus, setWebhookTestStatus] = useState<WebhookTestStatus | null>(null);
   const [webhookTestReason, setWebhookTestReason] = useState<string | null>(null);
 
+  const [funnels, setFunnels] = useState<Funnel[]>([]);
+  const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
+  const [savingFunnel, setSavingFunnel] = useState(false);
+
   const fetchIntegration = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/api/integrations/instagram');
       setIntegration(response.data);
+      setSelectedFunnelId(response.data?.funnel_id ? String(response.data.funnel_id) : '');
     } catch (error) {
       console.error('Error fetching Instagram integration:', error);
     } finally {
@@ -104,15 +124,25 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
     }
   }, []);
 
+  const fetchFunnels = useCallback(async () => {
+    try {
+      const response = await api.get('/api/funnels');
+      setFunnels(response.data || []);
+    } catch (error) {
+      console.error('Error fetching funnels:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       fetchIntegration();
+      fetchFunnels();
       setAccessToken('');
       setWebhookTesting(false);
       setWebhookTestStatus(null);
       setWebhookTestReason(null);
     }
-  }, [open, fetchIntegration]);
+  }, [open, fetchIntegration, fetchFunnels]);
 
   // Listen for live webhook verification events while "Test Webhook Connection" is active
   const integrationId = integration?.id;
@@ -251,6 +281,30 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
       });
     } finally {
       setDisconnecting(false);
+    }
+  };
+
+  const handleSaveFunnel = async () => {
+    setSavingFunnel(true);
+    try {
+      const response = await api.put('/api/integrations/instagram/funnel', {
+        funnel_id: selectedFunnelId ? parseInt(selectedFunnelId, 10) : null,
+      });
+      setIntegration(response.data.integration);
+
+      toast({
+        title: t('integrations.instagram.funnel-success-title'),
+        description: t('integrations.instagram.funnel-success-description'),
+      });
+    } catch (error) {
+      console.error('Error associating funnel with Instagram integration:', error);
+      toast({
+        title: t('integrations.instagram.funnel-error-title'),
+        description: t('integrations.instagram.funnel-error-description'),
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingFunnel(false);
     }
   };
 
@@ -434,6 +488,56 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                 </Alert>
               )}
             </div>
+
+            {/* Funnel Section - only after the account is connected */}
+            {isConnected && integration && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2">
+                    <GitBranch className="w-4 h-4" />
+                    {t('integrations.instagram.funnel-title')}
+                  </h3>
+
+                  <p className="text-sm text-muted-foreground">
+                    {t('integrations.instagram.funnel-description')}
+                  </p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram-funnel-select">{t('integrations.instagram.funnel-select-label')}</Label>
+                    <div className="flex gap-2">
+                      <Select value={selectedFunnelId} onValueChange={setSelectedFunnelId}>
+                        <SelectTrigger id="instagram-funnel-select" className="w-full bg-background">
+                          <SelectValue placeholder={t('integrations.instagram.funnel-select-placeholder')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {funnels.map((funnel) => (
+                            <SelectItem key={funnel.id} value={String(funnel.id)}>
+                              {funnel.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        onClick={handleSaveFunnel}
+                        disabled={savingFunnel || selectedFunnelId === String(integration.funnel_id ?? '')}
+                      >
+                        {savingFunnel && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                        {t('integrations.instagram.funnel-save')}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Alert className="border-blue-500/30 bg-blue-500/10">
+                    <Info className="h-4 w-4 text-blue-500" />
+                    <AlertDescription className="text-sm text-foreground">
+                      {t('integrations.instagram.funnel-info-message')}
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              </>
+            )}
 
             {/* Webhook Section - only after the account is connected */}
             {isConnected && integration && (

@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendInboxMessage, sendInboxMedia, clearInboxChatMessages, fetchInboxChatMessages } from '@/services/globalInboxApi';
+import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -310,7 +310,10 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   }, [pendingMessages, scrollToBottom]);
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !chat?.lead?.id || !chat?.channelable_id) {
+    if (!messageText.trim() || !chat?.channelable_id) {
+      return;
+    }
+    if (chat.channel !== 'instagram' && !chat?.lead?.id) {
       return;
     }
 
@@ -323,11 +326,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
-      const response = await sendInboxMessage(chat.channelable_id, {
-        lead_id: chat.lead.id,
-        text,
-        message_mode: currentMode
-      });
+      const response = chat.channel === 'instagram'
+        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
+        : await sendInboxMessage(chat.channelable_id, {
+            lead_id: chat.lead!.id,
+            text,
+            message_mode: currentMode
+          });
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
@@ -356,9 +361,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
       );
 
+      const isWindowExpired = error?.response?.data?.message === 'instagram_window_expired';
+
       toast({
         title: t('chat.inbox.message-error'),
-        description: error?.response?.data?.message || t('chat.inbox.message-error-description'),
+        description: isWindowExpired
+          ? t('chat.inbox.instagram-window-expired')
+          : error?.response?.data?.message || t('chat.inbox.message-error-description'),
         variant: 'destructive',
       });
     } finally {
@@ -380,14 +389,17 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   };
 
   const handleSendMedia = useCallback(async (file: File, type: 'image' | 'audio') => {
-    if (!chat?.lead?.id || !chat?.channelable_id) return;
+    if (!chat?.channelable_id) return;
+    if (chat.channel !== 'instagram' && !chat?.lead?.id) return;
 
     const tempId = `pending-media-${Date.now()}`;
     setIsSendingMedia(true);
     setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: 'external' }]);
 
     try {
-      const response = await sendInboxMedia(chat.channelable_id, chat.lead.id, type, file, 'external');
+      const response = chat.channel === 'instagram'
+        ? await sendInstagramMedia(chat.channelable_id, chat.id, type, file, 'external')
+        : await sendInboxMedia(chat.channelable_id, chat.lead!.id, type, file, 'external');
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
@@ -415,15 +427,20 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       onMessageSent?.(sentMessage);
     } catch (error: any) {
       setPendingMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m));
+
+      const isWindowExpired = error?.response?.data?.message === 'instagram_window_expired';
+
       toast({
         title: t('chat.inbox.message-error'),
-        description: error?.response?.data?.message || t('chat.inbox.message-error-description'),
+        description: isWindowExpired
+          ? t('chat.inbox.instagram-window-expired')
+          : error?.response?.data?.message || t('chat.inbox.message-error-description'),
         variant: 'destructive',
       });
     } finally {
       setIsSendingMedia(false);
     }
-  }, [chat?.lead?.id, chat?.channelable_id, onMessageSent, t]);
+  }, [chat?.lead, chat?.channelable_id, chat?.channel, chat?.id, onMessageSent, t]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

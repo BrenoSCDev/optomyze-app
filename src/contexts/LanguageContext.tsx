@@ -1289,6 +1289,16 @@ const translations = {
     'integrations.instagram.stop-listening': 'Stop listening',
     'integrations.instagram.webhook-listening-hint': 'Trigger the verification in Facebook Developers (Webhooks → Instagram → Verify and save).',
     'integrations.instagram.test-again': 'Test again',
+    'integrations.instagram.funnel-title': 'Associate Funnel',
+    'integrations.instagram.funnel-description': 'Link this Instagram account to a CRM funnel for automatic lead creation.',
+    'integrations.instagram.funnel-select-label': 'Select Funnel',
+    'integrations.instagram.funnel-select-placeholder': 'Choose a funnel...',
+    'integrations.instagram.funnel-save': 'Save Funnel',
+    'integrations.instagram.funnel-info-message': 'Anyone who sends a direct message to this Instagram account will be automatically created as a lead in the selected funnel, starting at the Entry stage — with their name and profile picture imported from Instagram.',
+    'integrations.instagram.funnel-success-title': 'Funnel Associated',
+    'integrations.instagram.funnel-success-description': 'The funnel has been successfully linked to this Instagram account.',
+    'integrations.instagram.funnel-error-title': 'Association Failed',
+    'integrations.instagram.funnel-error-description': 'Failed to associate the funnel. Please try again.',
     'integrations.facebook.description': 'Connect Facebook Messenger to handle customer messages from your Facebook page.',
     'integrations.telegram.description': 'Integrate Telegram to communicate with customers through bots or direct messages.',
     
@@ -2232,6 +2242,7 @@ const translations = {
     'chat.inbox.search-lead-placeholder': 'Search by name or phone...',
     'chat.inbox.select-instance': 'Select WhatsApp Instance',
     'chat.inbox.sending-not-available': 'Sending messages is not available for this channel yet',
+    'chat.inbox.instagram-window-expired': "Can't send — this customer's 24-hour messaging window has expired. They need to message you again before you can reply.",
 
     // Lead Details
     'lead-details.breadcrumb': 'Lead Details',
@@ -4111,6 +4122,16 @@ const translations = {
     'integrations.instagram.stop-listening': 'Parar de escutar',
     'integrations.instagram.webhook-listening-hint': 'Acione a verificação no Facebook Developers (Webhooks → Instagram → Verificar e salvar).',
     'integrations.instagram.test-again': 'Testar novamente',
+    'integrations.instagram.funnel-title': 'Associar Funil',
+    'integrations.instagram.funnel-description': 'Vincule esta conta do Instagram a um funil do CRM para criação automática de leads.',
+    'integrations.instagram.funnel-select-label': 'Selecionar Funil',
+    'integrations.instagram.funnel-select-placeholder': 'Escolha um funil...',
+    'integrations.instagram.funnel-save': 'Salvar Funil',
+    'integrations.instagram.funnel-info-message': 'Qualquer pessoa que enviar uma mensagem direta para esta conta do Instagram será automaticamente criada como lead no funil selecionado, começando na etapa de Entrada — com nome e foto de perfil importados do Instagram.',
+    'integrations.instagram.funnel-success-title': 'Funil Associado',
+    'integrations.instagram.funnel-success-description': 'O funil foi vinculado com sucesso a esta conta do Instagram.',
+    'integrations.instagram.funnel-error-title': 'Falha na Associação',
+    'integrations.instagram.funnel-error-description': 'Falha ao associar o funil. Por favor, tente novamente.',
     'integrations.facebook.description': 'Conecte o Facebook Messenger para lidar com mensagens de clientes da sua página do Facebook.',
     'integrations.telegram.description': 'Integre o Telegram para se comunicar com clientes através de bots ou mensagens diretas.',
     
@@ -5047,6 +5068,7 @@ const translations = {
     'chat.inbox.search-lead-placeholder': 'Buscar por nome ou telefone...',
     'chat.inbox.select-instance': 'Selecionar Instância WhatsApp',
     'chat.inbox.sending-not-available': 'O envio de mensagens ainda não está disponível para este canal',
+    'chat.inbox.instagram-window-expired': 'Não é possível enviar — a janela de 24 horas para mensagens deste cliente expirou. Ele precisa enviar uma nova mensagem antes que você possa responder.',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalhes do Lead',
@@ -6843,6 +6865,16 @@ const translations = {
     'integrations.instagram.stop-listening': 'Warten beenden',
     'integrations.instagram.webhook-listening-hint': 'Lösen Sie die Verifizierung in Facebook Developers aus (Webhooks → Instagram → Verifizieren und speichern).',
     'integrations.instagram.test-again': 'Erneut testen',
+    'integrations.instagram.funnel-title': 'Funnel Zuordnen',
+    'integrations.instagram.funnel-description': 'Verknüpfen Sie dieses Instagram-Konto mit einem CRM-Funnel für automatische Lead-Erstellung.',
+    'integrations.instagram.funnel-select-label': 'Funnel Auswählen',
+    'integrations.instagram.funnel-select-placeholder': 'Wählen Sie einen Funnel...',
+    'integrations.instagram.funnel-save': 'Funnel Speichern',
+    'integrations.instagram.funnel-info-message': 'Jeder, der eine Direktnachricht an dieses Instagram-Konto sendet, wird automatisch als Lead im ausgewählten Funnel erstellt, beginnend in der Eingangsphase — mit Name und Profilbild aus Instagram importiert.',
+    'integrations.instagram.funnel-success-title': 'Funnel Zugeordnet',
+    'integrations.instagram.funnel-success-description': 'Der Funnel wurde erfolgreich mit diesem Instagram-Konto verknüpft.',
+    'integrations.instagram.funnel-error-title': 'Zuordnung Fehlgeschlagen',
+    'integrations.instagram.funnel-error-description': 'Der Funnel konnte nicht zugeordnet werden. Bitte versuchen Sie es erneut.',
     'integrations.facebook.description': 'Verbinden Sie Facebook Messenger, um Kundennachrichten von Ihrer Facebook-Seite zu bearbeiten.',
     'integrations.telegram.description': 'Integrieren Sie Telegram, um mit Kunden über Bots oder Direktnachrichten zu kommunizieren.',
     
@@ -7688,6 +7720,7 @@ const translations = {
     'chat.inbox.search-lead-placeholder': 'Nach Name oder Telefon suchen...',
     'chat.inbox.select-instance': 'WhatsApp-Instanz auswählen',
     'chat.inbox.sending-not-available': 'Das Senden von Nachrichten ist für diesen Kanal noch nicht verfügbar',
+    'chat.inbox.instagram-window-expired': 'Senden nicht möglich — das 24-Stunden-Fenster für Nachrichten an diesen Kunden ist abgelaufen. Er muss Ihnen erneut schreiben, bevor Sie antworten können.',
 
     // Lead Details
     'lead-details.breadcrumb': 'Lead-Details',
@@ -9494,6 +9527,16 @@ const translations = {
     'integrations.instagram.stop-listening': 'Dejar de escuchar',
     'integrations.instagram.webhook-listening-hint': 'Activa la verificación en Facebook Developers (Webhooks → Instagram → Verificar y guardar).',
     'integrations.instagram.test-again': 'Probar de nuevo',
+    'integrations.instagram.funnel-title': 'Asociar Embudo',
+    'integrations.instagram.funnel-description': 'Vincule esta cuenta de Instagram a un embudo del CRM para la creación automática de leads.',
+    'integrations.instagram.funnel-select-label': 'Seleccionar Embudo',
+    'integrations.instagram.funnel-select-placeholder': 'Elija un embudo...',
+    'integrations.instagram.funnel-save': 'Guardar Embudo',
+    'integrations.instagram.funnel-info-message': 'Cualquier persona que envíe un mensaje directo a esta cuenta de Instagram se creará automáticamente como lead en el embudo seleccionado, comenzando en la etapa de Entrada — con su nombre y foto de perfil importados de Instagram.',
+    'integrations.instagram.funnel-success-title': 'Embudo Asociado',
+    'integrations.instagram.funnel-success-description': 'El embudo ha sido vinculado exitosamente a esta cuenta de Instagram.',
+    'integrations.instagram.funnel-error-title': 'Asociación Fallida',
+    'integrations.instagram.funnel-error-description': 'No se pudo asociar el embudo. Por favor, inténtelo de nuevo.',
     'integrations.facebook.description': 'Conecta Facebook Messenger para manejar mensajes de clientes desde tu página de Facebook.',
     'integrations.telegram.description': 'Integra Telegram para comunicarte con clientes a través de bots o mensajes directos.',
     
@@ -10339,6 +10382,7 @@ const translations = {
     'chat.inbox.search-lead-placeholder': 'Buscar por nombre o teléfono...',
     'chat.inbox.select-instance': 'Seleccionar Instancia WhatsApp',
     'chat.inbox.sending-not-available': 'El envío de mensajes aún no está disponible para este canal',
+    'chat.inbox.instagram-window-expired': 'No se puede enviar — la ventana de 24 horas para mensajes de este cliente ha expirado. Debe escribirte de nuevo antes de que puedas responder.',
 
     // Lead Details
     'lead-details.breadcrumb': 'Detalles del Lead',
