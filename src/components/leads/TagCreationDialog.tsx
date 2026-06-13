@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,18 +7,41 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { tagService } from "@/services/tagApi";
 import { Tags } from "lucide-react";
+import TagColorPicker from "@/components/tags/TagColorPicker";
+import EmojiPickerButton from "@/components/chat/EmojiPickerButton";
+import { DEFAULT_TAG_COLOR } from "@/lib/tagColors";
+import { Tag } from "@/types/tags";
 
 interface TagCreationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTagCreated?: (newTag: any) => void;
+  onTagCreated?: (newTag: Tag) => void;
 }
 
 export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreationDialogProps) => {
   const [tagName, setTagName] = useState('');
+  const [tagColor, setTagColor] = useState(DEFAULT_TAG_COLOR);
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const handleEmojiSelect = (emoji: string) => {
+    const input = inputRef.current;
+    if (!input) {
+      setTagName((prev) => prev + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? tagName.length;
+    const end = input.selectionEnd ?? tagName.length;
+    const newValue = tagName.slice(0, start) + emoji + tagName.slice(end);
+    setTagName(newValue);
+    requestAnimationFrame(() => {
+      input.focus();
+      const pos = start + emoji.length;
+      input.setSelectionRange(pos, pos);
+    });
+  };
 
   const handleCreateTag = async () => {
     if (!tagName.trim()) {
@@ -41,19 +64,20 @@ export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreat
 
     setIsLoading(true);
     try {
-      const newTag = await tagService.createTag(tagName.trim(), user.company_id);
-      
+      const newTag = await tagService.createTag(tagName.trim(), user.company_id, tagColor);
+
       toast({
         title: "Tag created",
         description: `Tag "${tagName}" has been created successfully.`,
       });
-      
+
       // Notify parent component about new tag
       if (onTagCreated && newTag) {
         onTagCreated(newTag);
       }
-      
+
       setTagName('');
+      setTagColor(DEFAULT_TAG_COLOR);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating tag:', error);
@@ -91,14 +115,23 @@ export const TagCreationDialog = ({ open, onOpenChange, onTagCreated }: TagCreat
             <Label htmlFor="tagName">
               Tag Name
             </Label>
-            <Input
-              id="tagName"
-              placeholder="e.g., hot-leads, follow-up, qualified"
-              value={tagName}
-              onChange={(e) => setTagName(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isLoading}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id="tagName"
+                ref={inputRef}
+                placeholder="e.g., hot-leads, follow-up, qualified"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                onKeyPress={handleKeyPress}
+                disabled={isLoading}
+              />
+              <EmojiPickerButton onEmojiSelect={handleEmojiSelect} disabled={isLoading} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Color</Label>
+            <TagColorPicker value={tagColor} onChange={setTagColor} disabled={isLoading} />
           </div>
         </div>
 

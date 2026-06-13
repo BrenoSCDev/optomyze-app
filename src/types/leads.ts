@@ -1,8 +1,10 @@
 /**
  * LEADS TYPE DEFINITIONS
- * 
+ *
  * Comprehensive type definitions for the leads management system
  */
+
+import { Tag } from './tags';
 
 export type SourcePlatform =
   | 'whatsapp'
@@ -28,7 +30,7 @@ export interface Lead {
   score: number;
   value: number;
   source: SourcePlatform;
-  tags: (string | { id: number; name: string; [key: string]: any })[];
+  tags: Tag[];
   lastActivity: string;
   priority: 'high' | 'medium' | 'low';
   stage: string;

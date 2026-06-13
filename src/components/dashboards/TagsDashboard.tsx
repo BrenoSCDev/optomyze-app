@@ -4,12 +4,13 @@
  * Settings page for managing company tags with card grid layout and tag creation
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
+import {
+  Plus,
   Tag,
   Trash2,
+  Pencil,
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,12 +40,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { tagService } from '@/services/tagApi';
 import { toast } from 'sonner';
-import api from '@/services/api';
+import TagColorPicker from '@/components/tags/TagColorPicker';
+import EmojiPickerButton from '@/components/chat/EmojiPickerButton';
+import { DEFAULT_TAG_COLOR } from '@/lib/tagColors';
 
 interface TagData {
   id: number;
   company_id: number;
   name: string;
+  color: string;
   created_at: string;
   updated_at: string;
 }
@@ -55,15 +59,29 @@ const TagsDashboard = () => {
   const [tags, setTags] = useState<TagData[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [deletingTagId, setDeletingTagId] = useState<number | null>(null);
   const [showNewTagModal, setShowNewTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState<TagData | null>(null);
   const [selectedTag, setSelectedTag] = useState<TagData | null>(null);
-  
+  const newTagNameRef = useRef<HTMLInputElement>(null);
+  const editTagNameRef = useRef<HTMLInputElement>(null);
+
   // Form state
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    color: DEFAULT_TAG_COLOR
   });
   const [formErrors, setFormErrors] = useState({
+    name: ''
+  });
+
+  // Edit form state
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    color: DEFAULT_TAG_COLOR
+  });
+  const [editFormErrors, setEditFormErrors] = useState({
     name: ''
   });
 
@@ -104,24 +122,24 @@ const TagsDashboard = () => {
 
     setCreating(true);
     try {
-      const response = await tagService.createTag(formData.name.trim(), user.company_id);
-      
+      const response = await tagService.createTag(formData.name.trim(), user.company_id, formData.color);
+
       // Extract the new tag from the API response
       const newTag = response.data || response;
-      
+
       // Optimistic update - add the new tag to the state
       setTags(prev => [...prev, newTag]);
-      
-      setFormData({ name: '' });
+
+      setFormData({ name: '', color: DEFAULT_TAG_COLOR });
       setFormErrors({ name: '' });
       setShowNewTagModal(false);
-      
+
       toast.success(t('tags.created'), {
         description: `${t('tags.tag')} "${formData.name}" ${t('tags.created-successfully')}`
       });
     } catch (error: any) {
       console.error('Error creating tag:', error);
-      
+
       // Handle validation errors
       if (error.response?.status === 422) {
         const serverErrors = error.response.data?.errors || {};
@@ -130,28 +148,71 @@ const TagsDashboard = () => {
         });
         return;
       }
-      
+
       // Network or server errors
       const isNetworkError = !error.response;
       toast.error(t('common.error'), {
-        description: isNetworkError 
-          ? t('tags.network-error') 
+        description: isNetworkError
+          ? t('tags.network-error')
           : t('tags.server-error')
       });
     } finally {
       setCreating(false);
     }
-  }, [formData.name, user?.company_id, t]); // Dependencies for createTag
+  }, [formData.name, formData.color, user?.company_id, t]); // Dependencies for createTag
+
+  // Update tag - memoized to prevent unnecessary re-renders
+  const updateTag = useCallback(async () => {
+    if (!editingTag) return;
+
+    if (!editFormData.name.trim()) {
+      setEditFormErrors({ name: t('tags.name-required') });
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const response = await tagService.updateTag(editingTag.id, {
+        name: editFormData.name.trim(),
+        color: editFormData.color,
+      });
+
+      const updatedTag = response.data || response;
+
+      setTags(prev => prev.map(tag => (tag.id === editingTag.id ? { ...tag, ...updatedTag } : tag)));
+
+      setEditingTag(null);
+      setEditFormErrors({ name: '' });
+
+      toast.success(t('tags.updated-successfully'));
+    } catch (error: any) {
+      console.error('Error updating tag:', error);
+
+      if (error.response?.status === 422) {
+        const serverErrors = error.response.data?.errors || {};
+        setEditFormErrors({
+          name: serverErrors.name?.[0] || ''
+        });
+        return;
+      }
+
+      toast.error(t('common.error'), {
+        description: t('tags.update-error')
+      });
+    } finally {
+      setUpdating(false);
+    }
+  }, [editingTag, editFormData, t]); // Dependencies for updateTag
 
   // Delete tag - memoized to prevent unnecessary re-renders
   const deleteTag = useCallback(async (tagId: number) => {
     try {
       setDeletingTagId(tagId);
-      await api.delete(`/api/tags/${tagId}`);
-      
+      await tagService.deleteTag(tagId);
+
       // Optimistic update
       setTags(prev => prev.filter(tag => tag.id !== tagId));
-      
+
       toast.success(t('common.success'), {
         description: t('tags.deleted-successfully')
       });
@@ -164,6 +225,36 @@ const TagsDashboard = () => {
       setDeletingTagId(null);
     }
   }, [t]); // Dependencies for deleteTag
+
+  // Open the edit modal for a tag, pre-filling the form
+  const openEditTag = useCallback((tag: TagData) => {
+    setEditingTag(tag);
+    setEditFormData({ name: tag.name, color: tag.color || DEFAULT_TAG_COLOR });
+    setEditFormErrors({ name: '' });
+  }, []);
+
+  // Insert an emoji at the cursor position of a text input
+  const insertEmojiAtCursor = (
+    inputRef: React.RefObject<HTMLInputElement>,
+    value: string,
+    setValue: (value: string) => void,
+    emoji: string
+  ) => {
+    const input = inputRef.current;
+    if (!input) {
+      setValue(value + emoji);
+      return;
+    }
+    const start = input.selectionStart ?? value.length;
+    const end = input.selectionEnd ?? value.length;
+    const newValue = value.slice(0, start) + emoji + value.slice(end);
+    setValue(newValue);
+    requestAnimationFrame(() => {
+      input.focus();
+      const pos = start + emoji.length;
+      input.setSelectionRange(pos, pos);
+    });
+  };
 
   // Skeleton Card Component
   const SkeletonCard = () => (
@@ -219,10 +310,16 @@ const TagsDashboard = () => {
       <div className="flex items-center justify-between">
         {/* Left Section - Tag Info */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="p-3 rounded-lg bg-purple-500/20 text-purple-400 group-hover:bg-purple-500/30 transition-colors">
+          <div
+            className="p-3 rounded-lg transition-colors"
+            style={{
+              backgroundColor: `${tag.color || DEFAULT_TAG_COLOR}26`,
+              color: tag.color || DEFAULT_TAG_COLOR,
+            }}
+          >
             <Tag className="h-6 w-6" />
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-foreground mb-1 truncate">
               {tag.name}
@@ -235,6 +332,14 @@ const TagsDashboard = () => {
 
         {/* Right Section - Actions */}
         <div className="flex items-center gap-2 ml-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            onClick={() => openEditTag(tag)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -305,17 +410,26 @@ const TagsDashboard = () => {
                 <Label htmlFor="tag-name" className="text-foreground">
                   {t('tags.name')} *
                 </Label>
-                <Input
-                  id="tag-name"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, name: e.target.value }));
-                    if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
-                  }}
-                  placeholder={t('tags.name-placeholder')}
-                  className={`glass-card border-muted/30 ${formErrors.name ? 'border-red-500' : ''}`}
-                  disabled={creating}
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="tag-name"
+                    ref={newTagNameRef}
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, name: e.target.value }));
+                      if (formErrors.name) setFormErrors(prev => ({ ...prev, name: '' }));
+                    }}
+                    placeholder={t('tags.name-placeholder')}
+                    className={`glass-card border-muted/30 ${formErrors.name ? 'border-red-500' : ''}`}
+                    disabled={creating}
+                  />
+                  <EmojiPickerButton
+                    onEmojiSelect={(emoji) =>
+                      insertEmojiAtCursor(newTagNameRef, formData.name, (v) => setFormData(prev => ({ ...prev, name: v })), emoji)
+                    }
+                    disabled={creating}
+                  />
+                </div>
                 {formErrors.name && (
                   <div className="flex items-center gap-2 text-red-400 text-sm">
                     <AlertCircle className="h-4 w-4" />
@@ -323,13 +437,22 @@ const TagsDashboard = () => {
                   </div>
                 )}
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">{t('tags.color')}</Label>
+                <TagColorPicker
+                  value={formData.color}
+                  onChange={(color) => setFormData(prev => ({ ...prev, color }))}
+                  disabled={creating}
+                />
+              </div>
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setShowNewTagModal(false);
-                  setFormData({ name: '' });
+                  setFormData({ name: '', color: DEFAULT_TAG_COLOR });
                   setFormErrors({ name: '' });
                 }}
                 disabled={creating}
@@ -377,6 +500,81 @@ const TagsDashboard = () => {
           </AnimatePresence>
         </div>
       )}
+
+      {/* Edit Tag Modal */}
+      <Dialog open={!!editingTag} onOpenChange={(open) => !open && setEditingTag(null)}>
+        <DialogContent className="glass-card max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground futuristic-text">{t('tags.edit-tag')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-6">
+            <div className="space-y-2">
+              <Label htmlFor="edit-tag-name" className="text-foreground">
+                {t('tags.name')} *
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="edit-tag-name"
+                  ref={editTagNameRef}
+                  value={editFormData.name}
+                  onChange={(e) => {
+                    setEditFormData(prev => ({ ...prev, name: e.target.value }));
+                    if (editFormErrors.name) setEditFormErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  placeholder={t('tags.name-placeholder')}
+                  className={`glass-card border-muted/30 ${editFormErrors.name ? 'border-red-500' : ''}`}
+                  disabled={updating}
+                />
+                <EmojiPickerButton
+                  onEmojiSelect={(emoji) =>
+                    insertEmojiAtCursor(editTagNameRef, editFormData.name, (v) => setEditFormData(prev => ({ ...prev, name: v })), emoji)
+                  }
+                  disabled={updating}
+                />
+              </div>
+              {editFormErrors.name && (
+                <div className="flex items-center gap-2 text-red-400 text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {editFormErrors.name}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-foreground">{t('tags.color')}</Label>
+              <TagColorPicker
+                value={editFormData.color}
+                onChange={(color) => setEditFormData(prev => ({ ...prev, color }))}
+                disabled={updating}
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setEditingTag(null)}
+              disabled={updating}
+              className="flex-1 glass-card border-muted/30 hover:bg-muted/20"
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={updateTag}
+              disabled={updating || !editFormData.name.trim()}
+              className="flex-1 neon-border"
+            >
+              {updating ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                t('common.save')
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

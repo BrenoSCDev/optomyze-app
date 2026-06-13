@@ -2,15 +2,38 @@ import api from './api';
 
 export const tagService = {
   // Create a new tag
-  async createTag(name, companyId) {
+  async createTag(name, companyId, color) {
     try {
       const response = await api.post('/api/tags', {
         name,
-        company_id: companyId
+        company_id: companyId,
+        ...(color ? { color } : {}),
       });
       return response.data;
     } catch (error) {
       console.error('Error creating tag:', error);
+      throw error;
+    }
+  },
+
+  // Update an existing tag's name and/or color
+  async updateTag(tagId, { name, color } = {}) {
+    try {
+      const response = await api.put(`/api/tags/${tagId}`, { name, color });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      throw error;
+    }
+  },
+
+  // Delete a tag
+  async deleteTag(tagId) {
+    try {
+      const response = await api.delete(`/api/tags/${tagId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting tag:', error);
       throw error;
     }
   },

@@ -1,26 +1,22 @@
 /**
  * DEAL TAG MANAGEMENT MODAL
- * 
+ *
  * Replicates the LeadTagManagementModal but calls the deal tags API endpoint.
  */
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Tag } from 'lucide-react';
+import { X } from 'lucide-react';
 import MultiSelect from '@/components/ui/multi-select';
+import TagBadge from '@/components/tags/TagBadge';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
-
-interface TagItem {
-  id: number;
-  name: string;
-  [key: string]: any;
-}
+import { Tag } from '@/types/tags';
 
 interface Deal {
   id: string;
   name?: string;
-  tags?: (string | TagItem)[];
+  tags?: Tag[];
   [key: string]: any;
 }
 
@@ -28,7 +24,7 @@ interface DealTagManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   deal: Deal | null;
-  availableTags: TagItem[];
+  availableTags: Tag[];
   onTagsUpdated?: (dealId: string, updatedDeal: any) => void;
 }
 
@@ -39,15 +35,13 @@ const DealTagManagementModal = ({
   availableTags,
   onTagsUpdated,
 }: DealTagManagementModalProps) => {
-  const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (deal && isOpen && availableTags.length > 0) {
-      const dealTagNames = deal.tags?.map(tag =>
-        typeof tag === 'string' ? tag : tag.name
-      ) || [];
-      const matching = availableTags.filter(t => dealTagNames.includes(t.name));
+      const dealTagIds = deal.tags?.map(tag => tag.id) || [];
+      const matching = availableTags.filter(t => dealTagIds.includes(t.id));
       setSelectedTags(matching);
     } else if (!isOpen) {
       setSelectedTags([]);
@@ -58,7 +52,7 @@ const DealTagManagementModal = ({
     if (!deal) return;
     setIsLoading(true);
     try {
-      const response = await dealFunnelService.updateDealTags(deal.id, selectedTags);
+      const response = await dealFunnelService.updateDealTags(deal.id, selectedTags.map(tag => tag.id));
       onTagsUpdated?.(deal.id, response.deal || response);
       toast.success('Tags updated successfully');
       onClose();
@@ -111,7 +105,7 @@ const DealTagManagementModal = ({
                 <MultiSelect
                   options={availableTags}
                   selected={selectedTags}
-                  onChange={(opts) => setSelectedTags(opts as TagItem[])}
+                  onChange={(opts) => setSelectedTags(opts as Tag[])}
                   placeholder="Choose tags for this deal..."
                   searchPlaceholder="Search available tags..."
                   disabled={isLoading}
@@ -126,22 +120,12 @@ const DealTagManagementModal = ({
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedTags.map((tag) => (
-                      <span
+                      <TagBadge
                         key={tag.id}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-deal/20 text-deal text-xs"
-                      >
-                        {tag.name}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
-                          }}
-                          className="hover:opacity-70"
-                          disabled={isLoading}
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
+                        tag={tag}
+                        removeDisabled={isLoading}
+                        onRemove={() => setSelectedTags(prev => prev.filter(t => t.id !== tag.id))}
+                      />
                     ))}
                   </div>
                 </div>

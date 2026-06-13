@@ -3,9 +3,9 @@
  *
  * Center panel displaying the message thread for the Global Inbox.
  *
- * NOTE: bubble colors / mode toggle currently use WhatsApp-green styling as
- * the default look for the only implemented channel. Per-channel theming is
- * future work once Instagram/Messenger/SMS sending is implemented.
+ * NOTE: outgoing bubble colors use a blue accent as the default look for the
+ * only implemented channel. Per-channel theming is future work once
+ * Instagram/Messenger/SMS sending is implemented.
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -71,11 +71,11 @@ const InboxPrivateImage: React.FC<{
         <div className="w-48 h-32 rounded-md bg-muted/40 animate-pulse" />
       )}
       <div className={cn('flex items-center gap-1 px-2 pb-1', direction === 'outgoing' ? 'justify-end' : 'justify-start')}>
-        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : direction === 'outgoing' ? 'text-green-100' : 'text-muted-foreground')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : direction === 'outgoing' ? 'text-blue-100' : 'text-muted-foreground')}>
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {direction === 'outgoing' && status && !isInternalNote && (
-          <span className="text-xs text-green-100">• {status}</span>
+          <span className="text-xs text-blue-100">• {status}</span>
         )}
       </div>
     </div>
@@ -100,11 +100,11 @@ const InboxPrivateAudio: React.FC<{
         <div className="w-48 h-10 rounded-md bg-muted/40 animate-pulse" />
       )}
       <div className={cn('flex items-center gap-1', isOutgoing ? 'justify-end' : 'justify-start')}>
-        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-green-100' : 'text-muted-foreground')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-blue-100' : 'text-muted-foreground')}>
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOutgoing && status && !isInternalNote && (
-          <span className="text-xs text-green-100">• {status}</span>
+          <span className="text-xs text-blue-100">• {status}</span>
         )}
       </div>
     </div>
@@ -138,11 +138,11 @@ const InboxPrivateDocument: React.FC<{
         <div className="w-48 h-12 rounded-md bg-muted/40 animate-pulse" />
       )}
       <div className={cn('flex items-center gap-1 px-1', isOutgoing ? 'justify-end' : 'justify-start')}>
-        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-green-100' : 'text-muted-foreground')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-blue-100' : 'text-muted-foreground')}>
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOutgoing && status && !isInternalNote && (
-          <span className="text-xs text-green-100">• {status}</span>
+          <span className="text-xs text-blue-100">• {status}</span>
         )}
       </div>
     </div>
@@ -176,10 +176,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSendingMedia, setIsSendingMedia] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [leadPreviewOpen, setLeadPreviewOpen] = useState(false);
@@ -447,35 +444,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     e.target.value = '';
   };
 
-  const toggleRecording = async () => {
-    if (isRecording) {
-      mediaRecorderRef.current?.stop();
-      setIsRecording(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const recorder = new MediaRecorder(stream);
-        audioChunksRef.current = [];
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) audioChunksRef.current.push(e.data);
-        };
-        recorder.onstop = () => {
-          stream.getTracks().forEach(t => t.stop());
-          if (audioChunksRef.current.length > 0) {
-            const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            const file = new File([blob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
-            handleSendMedia(file, 'audio', messageMode);
-          }
-        };
-        mediaRecorderRef.current = recorder;
-        recorder.start();
-        setIsRecording(true);
-      } catch {
-        toast({ title: 'Microphone access denied', variant: 'destructive' });
-      }
-    }
-  };
-
   const handleClearMessages = async () => {
     if (!chat) return;
     setIsClearing(true);
@@ -678,7 +646,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         isInternalNote(message)
                           ? "bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-br-none"
                           : message.direction === 'outgoing'
-                            ? "bg-green-500 text-white rounded-br-none"
+                            ? "bg-blue-500 text-white rounded-br-none"
                             : "bg-card border border-border/50 rounded-bl-none"
                       )}
                     >
@@ -741,7 +709,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             rel="noopener noreferrer"
                             className={cn(
                               "flex items-center gap-1.5 text-xs font-medium hover:underline",
-                              message.direction === 'outgoing' ? "text-green-100" : "text-primary"
+                              message.direction === 'outgoing' ? "text-blue-100" : "text-primary"
                             )}
                           >
                             <MapPin className="h-3 w-3" />
@@ -756,13 +724,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
                               message.direction === 'outgoing'
-                                ? "text-green-100"
+                                ? "text-blue-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
                             {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
+                              <span className="text-xs text-blue-100">
                                 • {message.status}
                               </span>
                             )}
@@ -807,13 +775,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
                               message.direction === 'outgoing'
-                                ? "text-green-100"
+                                ? "text-blue-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
                             {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
+                              <span className="text-xs text-blue-100">
                                 • {message.status}
                               </span>
                             )}
@@ -835,13 +803,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               "text-xs",
                               isInternalNote(message) ? "text-amber-600 dark:text-amber-400" :
                               message.direction === 'outgoing'
-                                ? "text-green-100"
+                                ? "text-blue-100"
                                 : "text-muted-foreground"
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
                             {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-green-100">
+                              <span className="text-xs text-blue-100">
                                 • {message.status}
                               </span>
                             )}
@@ -877,7 +845,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       ? "bg-destructive/80 text-destructive-foreground"
                       : pending.messageMode === 'internal'
                         ? "bg-amber-100/70 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700"
-                        : "bg-green-500/70 text-white"
+                        : "bg-blue-500/70 text-white"
                   )}
                 >
                   {pending.messageMode === 'internal' && (
@@ -898,7 +866,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     {pending.status === 'sending' ? (
                       <span className={cn(
                         "text-xs flex items-center gap-1",
-                        pending.messageMode === 'internal' ? "text-amber-600 dark:text-amber-400" : "text-green-100"
+                        pending.messageMode === 'internal' ? "text-amber-600 dark:text-amber-400" : "text-blue-100"
                       )}>
                         <Loader2 className="h-3 w-3 animate-spin" />
                         {t('chat.inbox.sending')}
@@ -955,8 +923,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             onModeChange={setMessageMode}
             onAttach={() => imageInputRef.current?.click()}
             isAttaching={isSendingMedia}
-            isRecording={isRecording}
-            onToggleRecording={toggleRecording}
+            onSendAudio={(file) => handleSendMedia(file, 'audio', messageMode)}
           />
         </div>
       ) : (

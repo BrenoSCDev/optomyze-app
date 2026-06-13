@@ -82,7 +82,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
       {/* Microphone icon */}
       <div className={cn(
         "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-        isOutgoing ? "bg-green-600" : "bg-muted"
+        isOutgoing ? "bg-blue-600" : "bg-muted"
       )}>
         <Mic className={cn(
           "h-4 w-4",
@@ -96,7 +96,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
         className={cn(
           "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors",
           isOutgoing
-            ? "bg-green-600 hover:bg-green-700 text-white"
+            ? "bg-blue-600 hover:bg-blue-700 text-white"
             : "bg-muted hover:bg-muted/80 text-foreground"
         )}
       >
@@ -110,7 +110,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
       {/* Time display */}
       <div className={cn(
         "text-xs font-medium whitespace-nowrap",
-        isOutgoing ? "text-green-100" : "text-muted-foreground"
+        isOutgoing ? "text-blue-100" : "text-muted-foreground"
       )}>
         {formatTime(currentTime)} / {formatTime(duration)}
       </div>
@@ -130,7 +130,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isOutgoing = false }) =>
       {/* Volume icon */}
       <Volume2 className={cn(
         "h-4 w-4 shrink-0",
-        isOutgoing ? "text-green-100" : "text-muted-foreground"
+        isOutgoing ? "text-blue-100" : "text-muted-foreground"
       )} />
     </div>
   );

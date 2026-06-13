@@ -536,9 +536,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
   // Handle tags updated with API response data
   const handleTagsUpdated = (leadId: string, updatedLead: any) => {
-    const updatedTags = Array.isArray(updatedLead.tags)
-      ? updatedLead.tags.map((tag: any) => tag.name || tag)
-      : [];
+    const updatedTags = Array.isArray(updatedLead.tags) ? updatedLead.tags : [];
 
     // Only merge the tags into the existing lead - the tags-update endpoint
     // doesn't return the full lead payload (e.g. assigned_user, value), so

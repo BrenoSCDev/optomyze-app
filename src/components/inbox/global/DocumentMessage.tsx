@@ -49,7 +49,7 @@ const DocumentMessage: React.FC<DocumentMessageProps> = ({
       rel="noopener noreferrer"
       className={cn(
         "flex items-center gap-3 rounded-md p-2 min-w-[200px] transition-opacity hover:opacity-80",
-        isOutgoing ? "bg-green-600/30" : "bg-muted/50"
+        isOutgoing ? "bg-blue-600/30" : "bg-muted/50"
       )}
     >
       <div className="shrink-0">
@@ -58,12 +58,12 @@ const DocumentMessage: React.FC<DocumentMessageProps> = ({
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{fileName || 'Document'}</p>
         {fileSize ? (
-          <p className={cn("text-xs", isOutgoing ? "text-green-100/70" : "text-muted-foreground")}>
+          <p className={cn("text-xs", isOutgoing ? "text-blue-100/70" : "text-muted-foreground")}>
             {formatFileSize(fileSize)}
           </p>
         ) : null}
       </div>
-      <Download className={cn("h-4 w-4 shrink-0", isOutgoing ? "text-green-100" : "text-muted-foreground")} />
+      <Download className={cn("h-4 w-4 shrink-0", isOutgoing ? "text-blue-100" : "text-muted-foreground")} />
     </a>
   );
 };

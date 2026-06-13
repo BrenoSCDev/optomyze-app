@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
 import SourcePlatformIcon from './SourcePlatformIcon';
+import TagBadge from '@/components/tags/TagBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -192,13 +193,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       {lead.tags && lead.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {lead.tags.slice(0, 2).map((tag, index) => (
-            <Badge
-              key={index}
-              variant="secondary"
-              className="text-xs px-2 py-0.5 bg-accent/20 text-accent border-accent/30"
-            >
-              {typeof tag === 'string' ? tag : tag.name}
-            </Badge>
+            <TagBadge key={index} tag={tag} />
           ))}
           {lead.tags.length > 2 && (
             <Badge

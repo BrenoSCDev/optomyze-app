@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Tags } from 'lucide-react';
+import { Tags } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,21 +17,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import MultiSelect from '@/components/ui/multi-select';
+import TagBadge from '@/components/tags/TagBadge';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
-
-interface Tag {
-  id: number;
-  company_id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Tag } from '@/types/tags';
 
 interface Lead {
   id: string;
   name: string;
-  tags?: (string | { id: number; name: string; [key: string]: any })[];
+  tags?: Tag[];
   [key: string]: any;
 }
 
@@ -56,14 +50,11 @@ const TagManagementModal = ({
   // Initialize selected tags when modal opens
   useEffect(() => {
     if (lead && isOpen && availableTags.length > 0) {
-      // Get current lead tag names (handle both string and object formats)
-      const leadTagNames = lead.tags?.map(tag =>
-        typeof tag === 'string' ? tag : tag.name
-      ) || [];
+      const leadTagIds = lead.tags?.map(tag => tag.id) || [];
 
-      // Find matching tags from availableTags based on name comparison
+      // Find matching tags from availableTags based on id comparison
       const matchingTags = availableTags.filter(availableTag =>
-        leadTagNames.includes(availableTag.name)
+        leadTagIds.includes(availableTag.id)
       );
 
       setSelectedTags(matchingTags);
@@ -82,8 +73,8 @@ const TagManagementModal = ({
 
     setIsLoading(true);
     try {
-      // Send tags to API and get updated lead data back
-      const response = await leadService.updateLeadTags(lead.id, selectedTags);
+      // Send tag IDs to API and get updated lead data back
+      const response = await leadService.updateLeadTags(lead.id, selectedTags.map(tag => tag.id));
 
       // Use the returned lead data from the API response
       const updatedLead = response.lead || response;
@@ -140,22 +131,12 @@ const TagManagementModal = ({
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedTags.map((tag) => (
-                  <span
+                  <TagBadge
                     key={tag.id}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-400 text-xs"
-                  >
-                    {tag.name}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedTags(prev => prev.filter(t => t.id !== tag.id));
-                      }}
-                      className="hover:text-purple-900 dark:hover:text-purple-300"
-                      disabled={isLoading}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
+                    tag={tag}
+                    removeDisabled={isLoading}
+                    onRemove={() => setSelectedTags(prev => prev.filter(t => t.id !== tag.id))}
+                  />
                 ))}
               </div>
             </div>

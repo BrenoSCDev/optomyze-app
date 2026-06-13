@@ -124,7 +124,15 @@ const MultiSelect = ({
                 {selected.slice(0, 2).map((option) => (
                   <span
                     key={option.id}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-500/15 text-purple-700 dark:text-purple-400 text-xs rounded-full"
+                    className={cn(
+                      "inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full",
+                      option.color ? "border" : "bg-purple-500/15 text-purple-700 dark:text-purple-400"
+                    )}
+                    style={option.color ? {
+                      backgroundColor: `${option.color}1A`,
+                      borderColor: `${option.color}4D`,
+                      color: option.color,
+                    } : undefined}
                   >
                     {option.name}
                     <button
@@ -132,7 +140,7 @@ const MultiSelect = ({
                         e.stopPropagation();
                         removeOption(option);
                       }}
-                      className="hover:text-purple-900 dark:hover:text-purple-300"
+                      className={option.color ? "hover:opacity-70" : "hover:text-purple-900 dark:hover:text-purple-300"}
                       disabled={disabled}
                     >
                       <X className="w-3 h-3" />
@@ -209,6 +217,14 @@ const MultiSelect = ({
                           <Check className="w-3 h-3 text-white" />
                         )}
                       </div>
+
+                      {/* Color swatch */}
+                      {option.color && (
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/10"
+                          style={{ backgroundColor: option.color }}
+                        />
+                      )}
 
                       {/* Option Name */}
                       <span className="flex-1">{option.name}</span>

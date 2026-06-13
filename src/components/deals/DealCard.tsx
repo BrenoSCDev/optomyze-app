@@ -25,6 +25,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
+import TagBadge from '@/components/tags/TagBadge';
 
 interface DealCardProps {
   deal: any;
@@ -240,9 +241,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             {deal.tags && deal.tags.length > 0 && (
               <div className="flex items-center gap-1">
                 {deal.tags.slice(0, 2).map((tag: any, i: number) => (
-                  <span key={i} className="text-[9px] px-1.5 py-0.5 rounded-full bg-deal/15 text-deal border border-deal/20">
-                    {typeof tag === 'string' ? tag : tag.name}
-                  </span>
+                  <TagBadge key={i} tag={tag} className="text-[9px] px-1.5 py-0.5" />
                 ))}
                 {deal.tags.length > 2 && (
                   <span className="text-[9px] text-muted-foreground">+{deal.tags.length - 2}</span>

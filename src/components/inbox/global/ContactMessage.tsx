@@ -63,7 +63,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
         <div className="flex items-center gap-3">
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-            isOutgoing ? "bg-green-400/30" : "bg-muted"
+            isOutgoing ? "bg-blue-400/30" : "bg-muted"
           )}>
             <User className={cn("h-5 w-5", isOutgoing ? "text-white" : "text-muted-foreground")} />
           </div>
@@ -72,15 +72,15 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
               {contact.contactName}
             </p>
             <div className="flex items-center gap-1">
-              <Phone className={cn("h-3 w-3", isOutgoing ? "text-green-100" : "text-muted-foreground")} />
-              <span className={cn("text-xs", isOutgoing ? "text-green-100" : "text-muted-foreground")}>
+              <Phone className={cn("h-3 w-3", isOutgoing ? "text-blue-100" : "text-muted-foreground")} />
+              <span className={cn("text-xs", isOutgoing ? "text-blue-100" : "text-muted-foreground")}>
                 {contact.contactPhone}
               </span>
             </div>
           </div>
         </div>
 
-        <div className={cn("border-t", isOutgoing ? "border-green-400/30" : "border-border/50")} />
+        <div className={cn("border-t", isOutgoing ? "border-blue-400/30" : "border-border/50")} />
 
         <Button
           variant="ghost"
@@ -88,7 +88,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
           onClick={() => setShowStartChat(true)}
           className={cn(
             "w-full gap-2 text-xs font-medium h-8",
-            isOutgoing ? "text-white hover:bg-green-400/20" : "text-primary hover:bg-accent"
+            isOutgoing ? "text-white hover:bg-blue-400/20" : "text-primary hover:bg-accent"
           )}
         >
           <MessageSquare className="h-3.5 w-3.5" />

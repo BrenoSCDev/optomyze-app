@@ -45,6 +45,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
+import TagBadge from '@/components/tags/TagBadge';
 
 const ACCORDION_STORAGE_KEY = 'funnel_table_open_stages';
 
@@ -339,13 +340,7 @@ const FunnelTableView = ({
                           <TableCell>
                             <div className="flex items-center gap-1">
                               {lead.tags?.slice(0, 2).map((tag: any, i: number) => (
-                                <Badge
-                                  key={i}
-                                  variant="secondary"
-                                  className="text-xs px-1.5 py-0 bg-accent/20 text-accent border-accent/30"
-                                >
-                                  {typeof tag === 'string' ? tag : tag.name}
-                                </Badge>
+                                <TagBadge key={i} tag={tag} className="px-1.5 py-0" />
                               ))}
                               {lead.tags?.length > 2 && (
                                 <span className="text-xs text-muted-foreground">+{lead.tags.length - 2}</span>

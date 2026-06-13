@@ -880,6 +880,10 @@ const translations = {
     'tags.server-error': 'Server error. Please try again later.',
     'tags.company-error': 'Company information not found.',
     'tags.delete-error': 'Failed to delete tag. Please try again.',
+    'tags.color': 'Color',
+    'tags.edit-tag': 'Edit Tag',
+    'tags.updated-successfully': 'Tag updated successfully',
+    'tags.update-error': 'Failed to update tag. Please try again.',
     
     // Language Names
     'language.english': 'English',
@@ -1846,6 +1850,11 @@ const translations = {
     'api.tokens.no-tokens-description': 'Generate your first API token to get started',
     'api.tokens.name': 'Name',
     'api.tokens.created': 'Created',
+    'api.tokens.expires': 'Expires',
+    'api.tokens.expires-at': 'Expiration Date (optional)',
+    'api.tokens.expires-at-hint': 'Leave blank for a token that never expires.',
+    'api.tokens.never-expires': 'Never',
+    'api.tokens.expired': 'Expired',
     'api.tokens.actions': 'Actions',
     'api.tokens.delete-token': 'Delete API Token',
     'api.tokens.delete-confirmation': 'Are you sure you want to delete the token',
@@ -3752,6 +3761,10 @@ const translations = {
     'tags.server-error': 'Erro do servidor. Tente novamente mais tarde.',
     'tags.company-error': 'Informações da empresa não encontradas.',
     'tags.delete-error': 'Falha ao excluir tag. Tente novamente.',
+    'tags.color': 'Cor',
+    'tags.edit-tag': 'Editar Tag',
+    'tags.updated-successfully': 'Tag atualizada com sucesso',
+    'tags.update-error': 'Falha ao atualizar tag. Tente novamente.',
     
     // Language Names
     'language.english': 'Inglês',
@@ -4706,6 +4719,11 @@ const translations = {
     'api.tokens.no-tokens-description': 'Gere seu primeiro token da API para começar',
     'api.tokens.name': 'Nome',
     'api.tokens.created': 'Criado',
+    'api.tokens.expires': 'Expira',
+    'api.tokens.expires-at': 'Data de Expiração (opcional)',
+    'api.tokens.expires-at-hint': 'Deixe em branco para um token que nunca expira.',
+    'api.tokens.never-expires': 'Nunca',
+    'api.tokens.expired': 'Expirado',
     'api.tokens.actions': 'Ações',
     'api.tokens.delete-token': 'Excluir Token da API',
     'api.tokens.delete-confirmation': 'Tem certeza de que deseja excluir o token',
@@ -6617,6 +6635,10 @@ const translations = {
     'tags.server-error': 'Serverfehler. Bitte versuchen Sie es später erneut.',
     'tags.company-error': 'Firmeninformationen nicht gefunden.',
     'tags.delete-error': 'Fehler beim Löschen des Tags. Bitte versuchen Sie es erneut.',
+    'tags.color': 'Farbe',
+    'tags.edit-tag': 'Tag bearbeiten',
+    'tags.updated-successfully': 'Tag erfolgreich aktualisiert',
+    'tags.update-error': 'Fehler beim Aktualisieren des Tags. Bitte versuchen Sie es erneut.',
     
     // Language Names
     'language.english': 'Englisch',
@@ -9263,6 +9285,10 @@ const translations = {
     'tags.server-error': 'Error del servidor. Por favor intenta más tarde.',
     'tags.company-error': 'Información de la empresa no encontrada.',
     'tags.delete-error': 'Error al eliminar etiqueta. Por favor intenta de nuevo.',
+    'tags.color': 'Color',
+    'tags.edit-tag': 'Editar Etiqueta',
+    'tags.updated-successfully': 'Etiqueta actualizada con éxito',
+    'tags.update-error': 'Error al actualizar etiqueta. Por favor intenta de nuevo.',
     
     // Language Names
     'language.english': 'Inglés',

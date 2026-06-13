@@ -381,6 +381,7 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
                 <div className="flex flex-wrap gap-2">
                   {availableTags.map((tag) => {
                     const tagName = typeof tag === 'string' ? tag : tag.name;
+                    const tagColor = typeof tag === 'string' ? undefined : tag.color;
                     const isSelected = filters.tags?.includes(tagName);
                     return (
                       <Button
@@ -388,9 +389,15 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
                         type="button"
                         variant={isSelected ? "default" : "outline"}
                         size="sm"
-                        className="rounded-full"
+                        className="rounded-full gap-1.5"
                         onClick={() => handleTagToggle(tagName)}
                       >
+                        {tagColor && (
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: tagColor }}
+                          />
+                        )}
                         {tagName}
                       </Button>
                     );

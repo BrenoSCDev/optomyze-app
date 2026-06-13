@@ -84,11 +84,11 @@ export const leadService = {
     }
   },
 
-  // Update lead tags
-  async updateLeadTags(leadId, tags) {
+  // Update lead tags. `tagIds` is the full set of tag IDs the lead should have.
+  async updateLeadTags(leadId, tagIds) {
     try {
       const response = await api.put(`/api/leads/${leadId}/tags`, {
-        tags: tags
+        tags: tagIds
       });
       return response.data;
     } catch (error) {

@@ -57,11 +57,11 @@ export const dealFunnelService = {
   },
 
   /**
-   * Update tags on a deal
+   * Update tags on a deal. `tagIds` is the full set of tag IDs the deal should have.
    */
-  async updateDealTags(dealId: string | number, tags: { id: number; name: string }[]) {
+  async updateDealTags(dealId: string | number, tagIds: number[]) {
     try {
-      const response = await api.put(`/api/sales/${dealId}/tags`, { tags });
+      const response = await api.put(`/api/sales/${dealId}/tags`, { tags: tagIds });
       return response.data;
     } catch (error) {
       console.error('Error updating deal tags:', error);

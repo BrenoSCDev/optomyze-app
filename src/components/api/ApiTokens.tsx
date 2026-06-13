@@ -12,6 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info, Lock, Eye, RotateCcw, Ban, FileText, Building2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -27,6 +28,7 @@ interface ApiToken {
   id: string;
   name: string;
   created_at: string;
+  expires_at?: string | null;
   token?: string;
 }
 
@@ -37,6 +39,7 @@ const ApiTokens = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTokenName, setNewTokenName] = useState('');
+  const [newTokenExpiresAt, setNewTokenExpiresAt] = useState('');
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -73,13 +76,17 @@ const ApiTokens = () => {
     }
 
     try {
-      const response = await api.post('/api/tokens', { name: newTokenName });
+      const response = await api.post('/api/tokens', {
+        name: newTokenName,
+        expires_at: newTokenExpiresAt ? new Date(newTokenExpiresAt).toISOString() : null,
+      });
       const newToken = response.data;
-      
+
       setTokens(prev => [...prev, newToken]);
       setGeneratedToken(newToken.token);
       setNewTokenName('');
-      
+      setNewTokenExpiresAt('');
+
       toast({
         title: t('common.success'),
         description: t('api.tokens.generated-success'),
@@ -126,9 +133,18 @@ const ApiTokens = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const isExpired = (expiresAt: string) => {
+    return new Date(expiresAt) < new Date();
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setNewTokenName('');
+    setNewTokenExpiresAt('');
     setGeneratedToken(null);
   };
 
@@ -314,6 +330,19 @@ const ApiTokens = () => {
                         placeholder={t('api.tokens.token-name-placeholder')}
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="tokenExpiresAt">{t('api.tokens.expires-at')}</Label>
+                      <Input
+                        id="tokenExpiresAt"
+                        type="datetime-local"
+                        value={newTokenExpiresAt}
+                        onChange={(e) => setNewTokenExpiresAt(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t('api.tokens.expires-at-hint')}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -378,6 +407,7 @@ const ApiTokens = () => {
                   <TableRow>
                     <TableHead>{t('api.tokens.name')}</TableHead>
                     <TableHead>{t('api.tokens.created')}</TableHead>
+                    <TableHead>{t('api.tokens.expires')}</TableHead>
                     <TableHead className="text-right">{t('api.tokens.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -390,6 +420,23 @@ const ApiTokens = () => {
                           <Calendar className="h-4 w-4" />
                           {formatDate(token.created_at)}
                         </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {token.expires_at ? (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span className={isExpired(token.expires_at) ? 'text-destructive font-medium' : ''}>
+                              {formatDateTime(token.expires_at)}
+                            </span>
+                            {isExpired(token.expires_at) && (
+                              <Badge variant="destructive" className="text-xs">
+                                {t('api.tokens.expired')}
+                              </Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground/60">{t('api.tokens.never-expires')}</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <AlertDialog>
