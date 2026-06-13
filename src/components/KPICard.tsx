@@ -15,6 +15,8 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { KPI_ACCENTS, type KpiAccent } from '@/components/kpiAccents';
 
 interface KPICardProps {
   title: string;
@@ -27,6 +29,12 @@ interface KPICardProps {
   delay?: number;
   /** Optional currency prefix for animated counter (e.g. "$", "R$", "€"). Detected automatically from value string if omitted. */
   currencyPrefix?: string;
+  /** When true, adds a subtle ring to call out a significant change. */
+  highlight?: boolean;
+  /** Branded accent for the icon badge, highlight ring, and hover glow. Falls back to the default theme styling when omitted. */
+  accent?: KpiAccent;
+  /** Denser layout with a smaller value - for secondary/supporting metrics. */
+  compact?: boolean;
 }
 
 /**
@@ -83,10 +91,16 @@ const AnimatedCounter = ({ value, delay = 0, currencyPrefix }: { value: string |
   return <span>{displayValue.toLocaleString()}</span>;
 };
 
-const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix }: KPICardProps) => {
+const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix, highlight, accent, compact }: KPICardProps) => {
+  const accentStyle = accent ? KPI_ACCENTS[accent] : null;
+
   return (
     <motion.div
-      className="kpi-card floating" // Glass card with floating animation
+      className={cn(
+        'kpi-card floating', // Glass card with floating animation
+        accentStyle?.glow,
+        highlight && (accentStyle ? `ring-1 ${accentStyle.ring}` : 'ring-1 ring-amber-400/50')
+      )}
       initial={{ opacity: 0, y: 20 }} // Start slightly below and transparent
       animate={{ opacity: 1, y: 0 }} // Animate to final position
       transition={{ duration: 0.6, delay: delay * 0.1 }} // Staggered entrance
@@ -96,12 +110,16 @@ const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix }: KPICa
       <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight">{title}</h3>
-          <div className="kpi-value text-xl sm:text-2xl lg:text-3xl">
+          <div className={cn('kpi-value', compact ? 'text-lg sm:text-xl lg:text-2xl' : 'text-xl sm:text-2xl lg:text-3xl')}>
             <AnimatedCounter value={value} delay={delay * 100} currencyPrefix={currencyPrefix} />
           </div>
         </div>
         {icon && (
-          <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20 shrink-0 ml-2">
+          <div className={cn(
+            'rounded-lg border shrink-0 ml-2',
+            compact ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3',
+            accentStyle ? cn(accentStyle.iconBg, accentStyle.iconColor, accentStyle.border) : 'bg-primary/10 border-primary/20 text-primary'
+          )}>
             {icon}
           </div>
         )}

@@ -7,15 +7,21 @@
  * customer-facing messages from team-only notes.
  *
  * Actions (attach, audio recording) are optional so the same composer can be
- * used in contexts that don't yet support media.
+ * used in contexts that don't yet support media. Voice recording uses the
+ * shared `useAudioRecorder` hook and `VoiceRecorderBar`, so the experience
+ * matches the Teams Chat message input.
  */
 
 import React, { useRef, useEffect } from 'react';
-import { Send, Paperclip, Mic, StickyNote, Sparkles, X, Loader2 } from 'lucide-react';
+import { Send, Paperclip, Mic, StickyNote, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import VoiceRecorderBar from '@/components/chat/VoiceRecorderBar';
+import EmojiPickerButton from '@/components/chat/EmojiPickerButton';
 
 export type MessageComposerMode = 'external' | 'internal';
 
@@ -67,8 +73,8 @@ export interface MessageComposerProps {
   onAttach?: () => void;
   isAttaching?: boolean;
 
-  isRecording?: boolean;
-  onToggleRecording?: () => void;
+  /** When provided, enables the voice recorder. Called with the recorded clip on send. */
+  onSendAudio?: (file: File) => void;
 }
 
 const MessageComposer: React.FC<MessageComposerProps> = ({
@@ -83,11 +89,13 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   internalNoteLabel = 'Internal note — only visible to your team',
   onAttach,
   isAttaching,
-  isRecording,
-  onToggleRecording,
+  onSendAudio,
 }) => {
+  const { t } = useLanguage();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isInternal = mode === 'internal';
+  const recorder = useAudioRecorder();
+  const isRecording = recorder.status !== 'idle';
 
   useEffect(() => {
     const ta = textareaRef.current;
@@ -110,6 +118,38 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
     });
   };
 
+  const handleStartRecording = async () => {
+    const started = await recorder.start();
+    if (!started) {
+      toast({ title: t('chat.recorder.mic-denied'), variant: 'destructive' });
+    }
+  };
+
+  const handleSendRecording = () => {
+    const file = recorder.getFile();
+    if (file) {
+      onSendAudio?.(file);
+    }
+    recorder.reset();
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      onChange(value + emoji);
+      return;
+    }
+    const start = ta.selectionStart ?? value.length;
+    const end = ta.selectionEnd ?? value.length;
+    const newValue = value.slice(0, start) + emoji + value.slice(end);
+    onChange(newValue);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = start + emoji.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -120,92 +160,96 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
       )}
     >
       {/* Internal note indicator */}
-      {isInternal && (
+      {isInternal && !isRecording && (
         <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-medium text-amber-700 dark:text-amber-400">
           <StickyNote className="h-3.5 w-3.5" />
           {internalNoteLabel}
         </div>
       )}
 
-      {/* Recording indicator */}
-      {isRecording && (
-        <div className="flex items-center gap-2 px-3 pt-2 text-xs font-medium text-destructive">
-          <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-          Recording audio...
-          <button
-            type="button"
-            onClick={onToggleRecording}
-            className="ml-auto text-destructive hover:text-destructive/80"
-            aria-label="Cancel recording"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        rows={1}
-        className="w-full resize-none bg-transparent px-3 pt-3 pb-1 text-sm text-foreground placeholder:text-muted-foreground outline-none max-h-40"
-      />
-
-      {/* Action toolbar */}
-      <div className="flex items-center justify-between px-2 pb-2 pt-1">
-        <div className="flex items-center gap-0.5">
-          {onAttach && (
-            <ToolbarButton
-              icon={isAttaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-              label="Attach file"
-              onClick={onAttach}
-              disabled={disabled || isAttaching}
-            />
-          )}
-          {onToggleRecording && (
-            <ToolbarButton
-              icon={<Mic className="h-4 w-4" />}
-              label={isRecording ? 'Stop recording' : 'Record audio'}
-              onClick={onToggleRecording}
-              disabled={disabled || isAttaching}
-              active={isRecording}
-              activeClassName="text-destructive bg-destructive/10 hover:text-destructive"
-            />
-          )}
-          <ToolbarButton
-            icon={<Sparkles className="h-4 w-4" />}
-            label="AI Assist (coming soon)"
-            onClick={handleAIAssist}
-            className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
-          />
-          <div className="mx-1 h-5 w-px bg-border" />
-          <ToolbarButton
-            icon={<StickyNote className="h-4 w-4" />}
-            label={isInternal ? 'Switch to reply' : 'Write internal note'}
-            onClick={() => onModeChange(isInternal ? 'external' : 'internal')}
-            active={isInternal}
-            activeClassName="text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40"
+      {isRecording ? (
+        <VoiceRecorderBar
+          status={recorder.status === 'preview' ? 'preview' : 'recording'}
+          recordingTime={recorder.recordingTime}
+          levels={recorder.levels}
+          previewUrl={recorder.previewUrl}
+          previewDuration={recorder.previewDuration}
+          waveformPeaks={recorder.waveformPeaks}
+          onCancel={recorder.cancel}
+          onStop={recorder.stop}
+          onSend={handleSendRecording}
+          isSending={isAttaching}
+        />
+      ) : (
+        <>
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
             disabled={disabled}
+            rows={1}
+            className="w-full resize-none bg-transparent px-3 pt-3 pb-1 text-sm text-foreground placeholder:text-muted-foreground outline-none max-h-40"
           />
-        </div>
 
-        <Button
-          type="button"
-          onClick={onSend}
-          disabled={!value.trim() || isSending || disabled}
-          size="icon"
-          aria-label="Send"
-          className={cn(
-            "h-8 w-8 rounded-lg shrink-0",
-            isInternal ? "bg-amber-500 hover:bg-amber-600 text-white" : "bg-primary hover:bg-primary/90"
-          )}
-        >
-          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        </Button>
-      </div>
+          {/* Action toolbar */}
+          <div className="flex items-center justify-between px-2 pb-2 pt-1">
+            <div className="flex items-center gap-0.5">
+              {onAttach && (
+                <ToolbarButton
+                  icon={isAttaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                  label="Attach file"
+                  onClick={onAttach}
+                  disabled={disabled || isAttaching}
+                />
+              )}
+              {onSendAudio && (
+                <ToolbarButton
+                  icon={<Mic className="h-4 w-4" />}
+                  label={t('chat.recorder.record')}
+                  onClick={handleStartRecording}
+                  disabled={disabled || isAttaching}
+                />
+              )}
+              <EmojiPickerButton
+                onEmojiSelect={handleEmojiSelect}
+                disabled={disabled}
+                className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
+              />
+              <ToolbarButton
+                icon={<Sparkles className="h-4 w-4" />}
+                label="AI Assist (coming soon)"
+                onClick={handleAIAssist}
+                className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
+              />
+              <div className="mx-1 h-5 w-px bg-border" />
+              <ToolbarButton
+                icon={<StickyNote className="h-4 w-4" />}
+                label={isInternal ? 'Switch to reply' : 'Write internal note'}
+                onClick={() => onModeChange(isInternal ? 'external' : 'internal')}
+                active={isInternal}
+                activeClassName="text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40"
+                disabled={disabled}
+              />
+            </div>
+
+            <Button
+              type="button"
+              onClick={onSend}
+              disabled={!value.trim() || isSending || disabled}
+              size="icon"
+              aria-label="Send"
+              className={cn(
+                "h-8 w-8 rounded-lg shrink-0",
+                isInternal ? "bg-amber-500 hover:bg-amber-600 text-white" : "bg-primary hover:bg-primary/90"
+              )}
+            >
+              {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
