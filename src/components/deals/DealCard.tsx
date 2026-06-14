@@ -25,6 +25,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
+import ClickableUser from '@/components/users/ClickableUser';
 import TagBadge from '@/components/tags/TagBadge';
 
 interface DealCardProps {
@@ -264,14 +265,14 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             )}
 
             {deal.user && (
-              <div className="flex items-center gap-1">
+              <ClickableUser userId={deal.user.id} className="gap-1">
                 <UserAvatar
                   name={deal.user.name}
                   profilePicPath={deal.user.profile_pic}
                   className="w-4 h-4 text-[8px]"
                 />
                 <span className="text-[10px] text-muted-foreground">{deal.user.name}</span>
-              </div>
+              </ClickableUser>
             )}
           </div>
         </div>

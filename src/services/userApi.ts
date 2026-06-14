@@ -1,6 +1,26 @@
 import api from './api';
 import { User } from '@/types/user';
 
+export interface UserPerformanceStats {
+  leads_assigned: number;
+  deals_assigned: number;
+  leads_converted: number;
+  deals_closed: number;
+  tasks_completed: number;
+}
+
+// Get a single user (with teams/managed teams)
+export const getUserProfile = async (id: number): Promise<User> => {
+  const response = await api.get(`/api/users/${id}`);
+  return response.data.data;
+};
+
+// Get performance stats for a user
+export const getUserPerformance = async (id: number): Promise<UserPerformanceStats> => {
+  const response = await api.get(`/api/users/${id}/performance`);
+  return response.data.data;
+};
+
 export const userApi = {
   // Get all users
   getUsers: async (): Promise<User[]> => {

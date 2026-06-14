@@ -46,6 +46,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import TagBadge from '@/components/tags/TagBadge';
+import ClickableUser from '@/components/users/ClickableUser';
 
 const ACCORDION_STORAGE_KEY = 'funnel_table_open_stages';
 
@@ -363,10 +364,10 @@ const FunnelTableView = ({
                           {showAssignedUser && (
                             <TableCell>
                               {lead.assigned_user ? (
-                                <div className="flex items-center gap-1.5">
+                                <ClickableUser userId={lead.assigned_user.id} className="gap-1.5">
                                   <User className="h-3 w-3 text-muted-foreground" />
                                   <span className="text-xs text-muted-foreground">{lead.assigned_user.name}</span>
-                                </div>
+                                </ClickableUser>
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}

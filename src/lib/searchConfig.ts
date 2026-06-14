@@ -6,7 +6,7 @@
  */
 
 import api from '@/services/api';
-import { Users, Package, ListTodo, UserCircle } from 'lucide-react';
+import { Users, UserCircle } from 'lucide-react';
 import { MdCurrencyExchange } from 'react-icons/md';
 import type { ComponentType } from 'react';
 
@@ -20,7 +20,7 @@ export interface UnifiedSearchResult {
   meta?: Record<string, any>;
 }
 
-export type SearchTargetId = 'leads' | 'deals' | 'products' | 'tasks' | 'users';
+export type SearchTargetId = 'leads' | 'deals' | 'users';
 
 export interface SearchTargetConfig {
   id: SearchTargetId;
@@ -64,37 +64,6 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
           : undefined,
       })),
   },
-  products: {
-    id: 'products',
-    labelKey: 'Products',
-    icon: Package as any,
-    endpoint: '/api/products/search',
-    mapper: (data) =>
-      data.map((p) => ({
-        id: p.id,
-        title: p.name,
-        subtitle: p.base_price != null ? `$${Number(p.base_price).toLocaleString()}` : undefined,
-      })),
-  },
-  tasks: {
-    id: 'tasks',
-    labelKey: 'Tasks',
-    icon: ListTodo as any,
-    endpoint: '/api/tasks/search',
-    mapper: (data) =>
-      data.map((t) => ({
-        id: t.id,
-        title: t.title,
-        subtitle: t.due_date ? new Date(t.due_date).toLocaleDateString() : undefined,
-        badge: t.status
-          ? {
-              label: t.status,
-              variant: t.priority === 'high' ? 'destructive' as const : 'secondary' as const,
-            }
-          : undefined,
-        meta: { lead_id: t.lead_id },
-      })),
-  },
   users: {
     id: 'users',
     labelKey: 'Users',
@@ -106,6 +75,7 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
         title: u.name,
         subtitle: u.email,
         badge: u.role ? { label: u.role, variant: 'secondary' as const } : undefined,
+        meta: { profile_pic: u.profile_pic },
       })),
   },
 };

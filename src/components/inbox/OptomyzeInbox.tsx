@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCw, ChevronRight, MessageSquare, Home } from 'lucide-react';
+import { RefreshCw, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOnlinePresence } from '@/contexts/PresenceContext';
 import { useToast } from '@/hooks/use-toast';
 import { getEcho } from '@/services/echo';
 import {
@@ -17,6 +18,10 @@ import optoIconLight from '@/assets/opto-icon-light.png';
 import { useTheme } from '@/contexts/ThemeContext';
 
 type MobileView = 'list' | 'thread';
+
+function getInitials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
 
 const OptomyzeInbox: React.FC = () => {
   const { user } = useAuth();
@@ -270,39 +275,74 @@ const OptomyzeInbox: React.FC = () => {
 
   const { t } = useLanguage();
   const { mode } = useTheme();
+  const { onlineUserIds, isUserOnline } = useOnlinePresence();
   const totalConversations = conversations.length;
   const currentIcon = mode === 'dark' ? optoIcon : optoIconLight;
+  const companyName = user?.company?.name;
+  const memberCount = contacts.length + 1;
+  const onlineCount = onlineUserIds.size;
+  const onlineContacts = contacts.filter(c => isUserOnline(c.id));
 
   return (
     <div className="h-full flex flex-col overflow-hidden min-h-0 rounded-none sm:rounded-xl border-0 sm:border border-border/50 bg-background/40 backdrop-blur-sm shadow-xl">
-      {/* Enhanced header */}
-      <div className="flex items-center gap-4 px-5 py-3.5 border-b border-border/40 bg-card/80 shrink-0">
-        {/* Icon */}
-        <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
-          <img src={currentIcon} alt="Optomyze" className="w-5 h-5" />
-        </div>
-
-        {/* Title + breadcrumbs */}
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <h1 className="text-sm font-semibold text-foreground leading-tight">{t('nav.optomyze-teams')}</h1>
-          <nav className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Home className="w-3 h-3 shrink-0" />
-            <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
-            <span>Inboxes</span>
-            <ChevronRight className="w-2.5 h-2.5 shrink-0 opacity-50" />
-            <span className="text-foreground/80 font-medium truncate">{t('nav.optomyze-teams')}</span>
-          </nav>
-        </div>
-
-        {/* Right actions */}
-        <div className="ml-auto flex items-center gap-2.5">
-          {/* Conversation count */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 border border-border/30">
-            <MessageSquare className="w-3 h-3 text-muted-foreground" />
-            <span className="text-[11px] font-medium text-muted-foreground tabular-nums">{totalConversations}</span>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-border/40 bg-card/80 shrink-0">
+        {/* Workspace avatar */}
+        <div className="relative shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+            <img src={currentIcon} alt="" className="w-5 h-5" />
           </div>
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-card" title="Connected" />
+        </div>
 
-          {/* Refresh */}
+        {/* Workspace identity */}
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[15px] font-bold text-foreground leading-tight tracking-tight truncate">
+            {companyName ? `${companyName} Teams` : t('nav.optomyze-teams')}
+          </h1>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+            <Users className="w-3 h-3 shrink-0" />
+            <span className="shrink-0">{memberCount} members</span>
+            <span className="text-border shrink-0">•</span>
+            <span className="inline-flex items-center gap-1 shrink-0 font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              {onlineCount} online
+            </span>
+            <span className="hidden sm:inline text-border shrink-0">•</span>
+            <span className="hidden sm:inline truncate">{totalConversations} conversations</span>
+          </div>
+        </div>
+
+        {/* Online members facepile */}
+        {onlineContacts.length > 0 && (
+          <div className="hidden lg:flex items-center -space-x-2 shrink-0">
+            {onlineContacts.slice(0, 4).map(c => (
+              <div
+                key={c.id}
+                title={c.name}
+                className="w-7 h-7 rounded-full ring-2 ring-card bg-primary/15 text-primary text-[10px] font-semibold flex items-center justify-center"
+              >
+                {getInitials(c.name)}
+              </div>
+            ))}
+            {onlineContacts.length > 4 && (
+              <div className="w-7 h-7 rounded-full ring-2 ring-card bg-muted text-muted-foreground text-[10px] font-semibold flex items-center justify-center">
+                +{onlineContacts.length - 4}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setShowCreateGroup(true)}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Group
+          </button>
+
           <button
             onClick={() => loadInboxData(false)}
             disabled={isRefreshing}
@@ -311,12 +351,6 @@ const OptomyzeInbox: React.FC = () => {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
-
-          {/* Live indicator */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_1px] shadow-emerald-500/40" />
-            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Live</span>
-          </div>
         </div>
       </div>
 

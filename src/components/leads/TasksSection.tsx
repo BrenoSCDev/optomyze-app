@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ClickableUser from '@/components/users/ClickableUser';
 
 interface TasksSectionProps {
   tasks: Task[];
@@ -307,21 +308,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
         {task.creator && (
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{t('tasks.card.created-by')}</span>
-            <div className="flex items-center gap-1.5">
+            <ClickableUser userId={task.creator.id} className="gap-1.5">
               <User className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-foreground">{task.creator.name}</span>
               <span className="text-muted-foreground">({task.creator.email})</span>
-            </div>
+            </ClickableUser>
           </div>
         )}
         {task.assignee && (
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{t('tasks.assigned-to')}</span>
-            <div className="flex items-center gap-1.5">
+            <ClickableUser userId={task.assignee.id} className="gap-1.5">
               <User className="h-3.5 w-3.5 text-primary" />
               <span className="text-foreground">{task.assignee.name}</span>
               <span className="text-muted-foreground">({task.assignee.email})</span>
-            </div>
+            </ClickableUser>
           </div>
         )}
       </div>

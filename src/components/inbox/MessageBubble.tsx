@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import AudioMessagePlayer from './AudioMessage';
 import { extractTime } from '@/lib/utils';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
+import ClickableUser from '@/components/users/ClickableUser';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -68,22 +69,26 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {/* Avatar */}
         {!isOwn && (
-          <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mb-1 overflow-hidden">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={message.sender.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-[10px] font-semibold text-primary">
-                {getInitials(message.sender.name)}
-              </span>
-            )}
-          </div>
+          <ClickableUser userId={message.sender.id} className="shrink-0 mb-1">
+            <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={message.sender.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-semibold text-primary">
+                  {getInitials(message.sender.name)}
+                </span>
+              )}
+            </div>
+          </ClickableUser>
         )}
 
         <div className={`flex flex-col max-w-[65%] ${isOwn ? 'items-end' : 'items-start'}`}>
           {showSender && !isOwn && (
-            <span className="text-[11px] text-muted-foreground mb-1 ml-1 font-medium">
-              {message.sender.name}
-            </span>
+            <ClickableUser userId={message.sender.id} className="mb-1 ml-1">
+              <span className="text-[11px] text-muted-foreground font-medium">
+                {message.sender.name}
+              </span>
+            </ClickableUser>
           )}
 
           {/* Bubble */}

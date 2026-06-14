@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ClickableUser from '@/components/users/ClickableUser';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -269,10 +270,10 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                             </Badge>
                           )}
                           {sale.user && (
-                            <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground min-w-0">
+                            <ClickableUser userId={sale.user.id} className="gap-1 text-xs sm:text-sm text-muted-foreground min-w-0">
                               <User className="h-3.5 w-3.5 shrink-0" />
                               <span className="truncate">{sale.user.name}</span>
-                            </span>
+                            </ClickableUser>
                           )}
                         </div>
                       </div>
@@ -627,7 +628,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                               <User className="h-4 w-4" />
                               {t('deal-preview.assigned-to')}
                             </h3>
-                            <div className="flex items-center gap-3">
+                            <ClickableUser userId={sale.user.id} className="gap-3 w-full">
                               <Avatar className="h-10 w-10 rounded-full">
                                 <AvatarFallback className="bg-deal/20 text-deal text-sm font-semibold rounded-full">
                                   {getInitials(sale.user.name)}
@@ -637,7 +638,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 <p className="text-sm font-medium text-foreground">{sale.user.name}</p>
                                 <p className="text-xs text-muted-foreground">{sale.user.email}</p>
                               </div>
-                            </div>
+                            </ClickableUser>
                           </div>
                         )}
                       </div>

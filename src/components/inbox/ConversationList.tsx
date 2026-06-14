@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import {
   Search, Plus, Users, MessageSquare, UserCheck, Hash,
 } from 'lucide-react';
@@ -99,6 +99,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
 }) => {
   const { user } = useAuth();
   const currentUserId = user?.id;
+  const instanceId = useId();
   const [tab, setTab] = useState<Tab>('all');
   const [search, setSearch] = useState('');
 
@@ -164,7 +165,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             {t.label}
             {tab === t.id && (
               <motion.div
-                layoutId="tab-underline"
+                layoutId={`tab-underline-${instanceId}`}
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t"
               />
             )}

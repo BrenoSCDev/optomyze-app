@@ -46,6 +46,7 @@ import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 import LeadAppointmentsTab from './LeadAppointmentsTab';
 import SourcePlatformIcon from './SourcePlatformIcon';
 import UserAvatar from '@/components/ui/user-avatar';
+import ClickableUser from '@/components/users/ClickableUser';
 
 interface AssignedUser {
   id: number;
@@ -385,19 +386,21 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
           <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           {/* <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} /> */}
-          <InfoItem
-            label={t('lead-details.assigned-user')}
-            value={lead.assigned_user ? lead.assigned_user.name : undefined}
-            icon={<User className="w-4 h-4" />}
-            notSet={t('lead-details.unassigned')}
-            customIcon={lead.assigned_user ? (
-              <UserAvatar
-                name={lead.assigned_user.name}
-                profilePicPath={lead.assigned_user.profile_pic}
-                className="w-9 h-9 text-sm"
-              />
-            ) : undefined}
-          />
+          <ClickableUser userId={lead.assigned_user?.id} className="w-full">
+            <InfoItem
+              label={t('lead-details.assigned-user')}
+              value={lead.assigned_user ? lead.assigned_user.name : undefined}
+              icon={<User className="w-4 h-4" />}
+              notSet={t('lead-details.unassigned')}
+              customIcon={lead.assigned_user ? (
+                <UserAvatar
+                  name={lead.assigned_user.name}
+                  profilePicPath={lead.assigned_user.profile_pic}
+                  className="w-9 h-9 text-sm"
+                />
+              ) : undefined}
+            />
+          </ClickableUser>
         </div>
       </div>
 

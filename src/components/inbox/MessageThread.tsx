@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X, Users } from 'lucide-react';
+import { MoreVertical, Hash, ChevronLeft, BellOff, Archive, Trash2, Loader2, CheckSquare, X, Users, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +10,7 @@ import {
 } from '@/services/inboxChatApi';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import ClickableUser from '@/components/users/ClickableUser';
 import GroupManagementPanel from './GroupManagementPanel';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -301,13 +302,29 @@ const MessageThread: React.FC<MessageThreadProps> = ({
 
   if (!conversation) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-3">
-        <div className="w-16 h-16 rounded-full bg-muted/40 flex items-center justify-center">
-          <Hash className="w-7 h-7 opacity-40" />
+      <div className="h-full flex flex-col items-center justify-center gap-5 px-6">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-primary/10 blur-2xl scale-150" />
+          <div className="relative w-16 h-16 rounded-2xl bg-card border border-border/50 shadow-sm flex items-center justify-center">
+            <MessageSquare className="w-7 h-7 text-primary/70" />
+          </div>
         </div>
-        <div className="text-center">
-          <p className="font-medium text-foreground/60 text-sm">Select a conversation</p>
-          <p className="text-xs mt-1">Choose from the list to start messaging</p>
+        <div className="text-center max-w-xs">
+          <p className="font-semibold text-foreground text-sm">Your conversations live here</p>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            Select a conversation from the list, or start a direct message or group to get the discussion going.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 text-[11px] text-muted-foreground/70">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-3 h-3" />
+            <span>Direct &amp; group chats</span>
+          </div>
+          <span className="w-1 h-1 rounded-full bg-border" />
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>Real-time presence</span>
+          </div>
         </div>
       </div>
     );
@@ -339,26 +356,28 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           </button>
         )}
 
-        <div className="relative">
-          <ConversationHeaderAvatar
-            isGroup={isGroup}
-            coverPath={conversation.cover_image_url}
-            otherPicPath={otherParticipant?.profile_pic_url}
-            name={conversation.name}
-            initials={initials}
-          />
-        </div>
+        <ClickableUser userId={!isGroup ? otherParticipant?.id : undefined} className="flex-1 min-w-0 gap-3">
+          <div className="relative">
+            <ConversationHeaderAvatar
+              isGroup={isGroup}
+              coverPath={conversation.cover_image_url}
+              otherPicPath={otherParticipant?.profile_pic_url}
+              name={conversation.name}
+              initials={initials}
+            />
+          </div>
 
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-foreground truncate">{conversation.name}</p>
-          {isGroup ? (
-            <p className="text-xs text-muted-foreground">{conversation.participants.length} members</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              {conversation.participants.find(p => p.id !== currentUserId)?.role ?? ''}
-            </p>
-          )}
-        </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-foreground truncate">{conversation.name}</p>
+            {isGroup ? (
+              <p className="text-xs text-muted-foreground">{conversation.participants.length} members</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {conversation.participants.find(p => p.id !== currentUserId)?.role ?? ''}
+              </p>
+            )}
+          </div>
+        </ClickableUser>
 
         {/* Group members button */}
         {isGroup && (

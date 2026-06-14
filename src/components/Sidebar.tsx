@@ -131,7 +131,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   const integrationsItems = [
     { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
-    { id: 'integration-panel', label: t('integrations.panel.menu-title'), icon: () => <VscSettings size={16} /> },
   ];
 
   const aiAgentsItems = [

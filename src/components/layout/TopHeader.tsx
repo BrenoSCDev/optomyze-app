@@ -16,8 +16,6 @@ import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu,
 } from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import DealPreviewModal from '@/components/deals/DealPreviewModal';
-import ProductFormModal from '@/components/products/ProductFormModal';
-import { getProduct, type Product } from '@/services/productApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -33,8 +31,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { getStorageUrl } from '@/lib/constants';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
+import UserAvatar from '@/components/ui/user-avatar';
 import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId, getDefaultSearchTarget } from '@/lib/searchConfig';
 import optomyzeLogo from '@/assets/optomyze.png';
 import optomyzeLogoLight from '@/assets/optomyze-light.png';
@@ -71,8 +71,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isDealModalOpen, setIsDealModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [searchTarget, setSearchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +81,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
+  const { openUserProfile } = useUserProfileModal();
   // Logo swaps with header background:
   // - Header nav mode → midnight-blue bg → white logo
   // - Sidebar mode (light theme) → card bg → dark logo
@@ -110,6 +109,26 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   }, []);
 
   const currentSearchConfig = SEARCH_TARGETS[searchTarget];
+
+  // Renders the leading visual for a search result: a user avatar when
+  // searching users, otherwise the target's generic icon.
+  const renderResultLeading = (result: UnifiedSearchResult, sizeClass: string, iconSizeClass: string) => {
+    if (searchTarget === 'users') {
+      return (
+        <UserAvatar
+          name={result.title}
+          profilePicPath={result.meta?.profile_pic ?? null}
+          className={`${sizeClass} text-xs font-medium`}
+        />
+      );
+    }
+    const TargetIcon = currentSearchConfig.icon;
+    return (
+      <div className={`${sizeClass} rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0`}>
+        <TargetIcon className={`${iconSizeClass} text-primary`} />
+      </div>
+    );
+  };
 
   const performSearch = useCallback(async (query: string) => {
     if (query.length < 3) {
@@ -155,20 +174,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         setSelectedDealId(String(result.id));
         setIsDealModalOpen(true);
         break;
-      case 'products':
-        // Fetch full product and open edit modal
-        getProduct(result.id).then((product) => {
-          setSelectedProduct(product);
-          setIsProductModalOpen(true);
-        }).catch(() => {
-          navigate(`/?section=manage-products`);
-        });
-        break;
-      case 'tasks':
-        console.log('Task selected:', result);
-        break;
       case 'users':
-        console.log('User selected:', result);
+        openUserProfile(result.id);
         break;
     }
   };
@@ -305,7 +312,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.integrations',
       children: [
         { id: 'integrations', label: 'Apps' },
-        { id: 'integration-panel', label: t('integrations.panel.menu-title') },
       ],
     },
     api: {
@@ -500,31 +506,26 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
                 >
-                  {searchResults.map((result) => {
-                    const TargetIcon = currentSearchConfig.icon;
-                    return (
-                      <button
-                        key={result.id}
-                        onClick={() => handleResultSelect(result)}
-                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <TargetIcon className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
-                          {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
-                        </div>
-                        {result.badge && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                            result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
-                            result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
-                            'bg-muted text-muted-foreground'
-                          }`}>{result.badge.label}</span>
-                        )}
-                      </button>
-                    );
-                  })}
+                  {searchResults.map((result) => (
+                    <button
+                      key={result.id}
+                      onClick={() => handleResultSelect(result)}
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                    >
+                      {renderResultLeading(result, 'w-8 h-8', 'h-4 w-4')}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
+                        {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
+                      </div>
+                      {result.badge && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
+                          result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
+                          'bg-muted text-muted-foreground'
+                        }`}>{result.badge.label}</span>
+                      )}
+                    </button>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -572,31 +573,26 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full right-0 mt-2 w-72 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
                 >
-                  {searchResults.map((result) => {
-                    const TargetIcon = currentSearchConfig.icon;
-                    return (
-                      <button
-                        key={result.id}
-                        onClick={() => handleResultSelect(result)}
-                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
-                      >
-                        <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <TargetIcon className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
-                          {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
-                        </div>
-                        {result.badge && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                            result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
-                            result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
-                            'bg-muted text-muted-foreground'
-                          }`}>{result.badge.label}</span>
-                        )}
-                      </button>
-                    );
-                  })}
+                  {searchResults.map((result) => (
+                    <button
+                      key={result.id}
+                      onClick={() => handleResultSelect(result)}
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                    >
+                      {renderResultLeading(result, 'w-7 h-7', 'h-3.5 w-3.5')}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
+                        {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
+                      </div>
+                      {result.badge && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
+                          result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
+                          'bg-muted text-muted-foreground'
+                        }`}>{result.badge.label}</span>
+                      )}
+                    </button>
+                  ))}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -639,31 +635,26 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
 
                 {showResults && searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-0 bg-background border-b border-white/20 shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
-                    {searchResults.map((result) => {
-                      const TargetIcon = currentSearchConfig.icon;
-                      return (
-                        <button
-                          key={result.id}
-                          onClick={() => handleResultSelect(result)}
-                          className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <TargetIcon className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
-                            {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
-                          </div>
-                          {result.badge && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                              result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
-                              result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
-                              'bg-muted text-muted-foreground'
-                            }`}>{result.badge.label}</span>
-                          )}
-                        </button>
-                      );
-                    })}
+                    {searchResults.map((result) => (
+                      <button
+                        key={result.id}
+                        onClick={() => handleResultSelect(result)}
+                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                      >
+                        {renderResultLeading(result, 'w-8 h-8', 'h-4 w-4')}
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
+                          {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
+                        </div>
+                        {result.badge && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
+                            result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
+                            'bg-muted text-muted-foreground'
+                          }`}>{result.badge.label}</span>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 )}
               </motion.div>
@@ -816,13 +807,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       isOpen={isDealModalOpen}
       onClose={() => { setIsDealModalOpen(false); setSelectedDealId(null); }}
       dealId={selectedDealId}
-    />
-
-    <ProductFormModal
-      isOpen={isProductModalOpen}
-      onClose={() => { setIsProductModalOpen(false); setSelectedProduct(null); }}
-      product={selectedProduct}
-      onSuccess={() => {}}
     />
     </>
   );

@@ -14,8 +14,8 @@ import { Switch } from "@/components/ui/switch";
 import { Trash2, Pencil } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { formatDistanceToNow } from 'date-fns';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
+import { useOnlinePresence } from '@/contexts/PresenceContext';
 
 interface UserTableViewProps {
   users: User[];
@@ -35,6 +35,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
   isAgent = false,
 }) => {
   const { t } = useLanguage();
+  const { isUserOnline } = useOnlinePresence();
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
@@ -46,16 +47,6 @@ const UserTableView: React.FC<UserTableViewProps> = ({
         return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getLastLoginText = (lastLogin: string | null) => {
-    if (!lastLogin) return t('users.table.never');
-    
-    try {
-      return formatDistanceToNow(new Date(lastLogin), { addSuffix: true });
-    } catch {
-      return t('users.table.recently');
     }
   };
 
@@ -71,7 +62,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
             <TableHead>{t('users.table.role')}</TableHead>
             <TableHead>{t('users.table.teams') || 'Teams'}</TableHead>
             <TableHead>{t('users.table.status')}</TableHead>
-            <TableHead>{t('users.table.last-login')}</TableHead>
+            <TableHead>{t('users.table.online-status')}</TableHead>
             {!isAgent && <TableHead className="w-24">{t('users.table.actions')}</TableHead>}
           </TableRow>
         </TableHeader>
@@ -132,8 +123,13 @@ const UserTableView: React.FC<UserTableViewProps> = ({
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm">
-                {getLastLoginText(user.last_login_at)}
+              <TableCell>
+                <div className="flex items-center gap-1.5">
+                  <span className={`h-2 w-2 rounded-full ${isUserOnline(user.id) ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className={`text-sm font-medium ${isUserOnline(user.id) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {isUserOnline(user.id) ? t('users.status.online') : t('users.status.offline')}
+                  </span>
+                </div>
               </TableCell>
               {!isAgent && (
                 <TableCell>

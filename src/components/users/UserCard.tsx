@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { UserX, UserCheck, Trash2, Pencil } from 'lucide-react';
 import { User } from '@/types/user';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { formatDistanceToNow } from 'date-fns';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
+import { useOnlinePresence } from '@/contexts/PresenceContext';
 import optomyzeLogo from '@/assets/user-banner.jpeg';
 
 interface UserCardProps {
@@ -29,6 +29,8 @@ const UserCard: React.FC<UserCardProps> = ({
 }) => {
   const { t } = useLanguage();
   const backgroundUrl = usePrivateFile(user.bg_pic);
+  const { isUserOnline } = useOnlinePresence();
+  const online = isUserOnline(user.id);
 
   const getStatusColor = (isActive: boolean) => {
     return isActive
@@ -44,15 +46,6 @@ const UserCard: React.FC<UserCardProps> = ({
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getLastSeenText = (lastLogin: string | null) => {
-    if (!lastLogin) return t('users.card.never-logged-in');
-    try {
-      return t('users.card.last-seen') + ' ' + formatDistanceToNow(new Date(lastLogin), { addSuffix: true });
-    } catch {
-      return t('users.card.recently');
     }
   };
 
@@ -146,9 +139,12 @@ const UserCard: React.FC<UserCardProps> = ({
           ))}
         </div>
 
-        <p className="text-xs text-muted-foreground mt-1">
-          {getLastSeenText(user.last_login_at)}
-        </p>
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className={`h-2 w-2 rounded-full ${online ? 'bg-green-500' : 'bg-gray-400'}`} />
+          <span className={`text-xs font-medium ${online ? 'text-green-600' : 'text-muted-foreground'}`}>
+            {online ? t('users.status.online') : t('users.status.offline')}
+          </span>
+        </div>
       </div>
     </div>
   );

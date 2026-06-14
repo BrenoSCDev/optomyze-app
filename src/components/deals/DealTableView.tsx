@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ClickableUser from '@/components/users/ClickableUser';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -231,10 +232,10 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                             )}
                             <TableCell>
                               {deal.user ? (
-                                <div className="flex items-center gap-1.5">
+                                <ClickableUser userId={deal.user.id} className="gap-1.5">
                                   <User className="h-3 w-3 text-deal/50" />
                                   <span className="text-xs text-muted-foreground">{deal.user.name}</span>
-                                </div>
+                                </ClickableUser>
                               ) : (
                                 <span className="text-xs text-muted-foreground">—</span>
                               )}

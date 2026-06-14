@@ -24,6 +24,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
+import ClickableUser from '@/components/users/ClickableUser';
 import SourcePlatformIcon from './SourcePlatformIcon';
 import TagBadge from '@/components/tags/TagBadge';
 import {
@@ -230,7 +231,10 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
 
       {/* Assigned User */}
       {showAssignedUser && (lead as any).assigned_user && (
-        <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10">
+        <ClickableUser
+          userId={(lead as any).assigned_user.id}
+          className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10 w-full"
+        >
           <UserAvatar
             name={(lead as any).assigned_user.name}
             profilePicPath={(lead as any).assigned_user.profile_pic}
@@ -239,7 +243,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
           <span className="text-xs text-muted-foreground">
             {(lead as any).assigned_user.name}
           </span>
-        </div>
+        </ClickableUser>
       )}
       </motion.div>
       

@@ -8,6 +8,8 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { MenuOrderProvider } from "./contexts/MenuOrderContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { PresenceProvider } from "./contexts/PresenceContext";
+import { UserProfileModalProvider } from "./contexts/UserProfileModalContext";
 import { InboxProvider } from "./contexts/InboxContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
@@ -29,6 +31,8 @@ const App = () => (
         <MenuOrderProvider>
         <BrowserRouter>
           <NotificationProvider>
+            <PresenceProvider>
+            <UserProfileModalProvider>
             <InboxProvider>
               <TooltipProvider>
               <Toaster />
@@ -98,6 +102,8 @@ const App = () => (
               </Routes>
               </TooltipProvider>
             </InboxProvider>
+            </UserProfileModalProvider>
+            </PresenceProvider>
           </NotificationProvider>
         </BrowserRouter>
         </MenuOrderProvider>

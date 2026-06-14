@@ -29,6 +29,7 @@ import UserCard from './UserCard';
 import UserTableView from './UserTableView';
 import UserFiltersComponent from './UserFilters';
 import UserCreationDialog from './UserCreationDialog';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 // Mock user data for fallback
 const mockUsers: User[] = [
@@ -100,6 +101,7 @@ const ManageUsers = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
+  const { openUserProfile } = useUserProfileModal();
   const isAgent = currentUser?.role === 'agent';
 
   // State
@@ -182,12 +184,7 @@ const ManageUsers = () => {
   };
 
   const handleView = (user: User) => {
-    console.log('View user profile:', user);
-    toast({
-      title: t('users.actions.view-title'),
-      description: `${t('users.actions.view-description')} ${user.name}`,
-    });
-    // TODO: Implement view profile functionality
+    openUserProfile(user.id);
   };
 
   const handleToggleStatus = async (user: User) => {
