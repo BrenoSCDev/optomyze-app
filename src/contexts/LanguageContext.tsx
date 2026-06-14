@@ -1056,7 +1056,14 @@ const translations = {
     'metrics.status-sent': 'Sent',
     'metrics.status-closed': 'Closed (Won)',
     'metrics.status-lost': 'Lost',
-    
+    'metrics.qualified-leads': 'Qualified Leads',
+    'metrics.converted-deals': 'Converted Deals',
+    'metrics.deal-conversion-rate': 'Deal Conversion Rate',
+    'metrics.units-sold': 'Units Sold',
+    'metrics.leads-x-deals-per-month': 'Leads x Deals per Month',
+    'metrics.leads-label': 'Leads',
+    'metrics.deals-label': 'Deals',
+
     // Lead Creation
     'lead.create-new': 'Create New Lead',
     'lead.personal-information': 'Personal Information',
@@ -3988,7 +3995,14 @@ const translations = {
     'metrics.status-sent': 'Enviado',
     'metrics.status-closed': 'Fechado (Ganho)',
     'metrics.status-lost': 'Perdido',
-    
+    'metrics.qualified-leads': 'Leads Qualificados',
+    'metrics.converted-deals': 'Negócios Convertidos',
+    'metrics.deal-conversion-rate': 'Taxa de Conversão de Negócios',
+    'metrics.units-sold': 'Unidades Vendidas',
+    'metrics.leads-x-deals-per-month': 'Leads x Negócios por Mês',
+    'metrics.leads-label': 'Leads',
+    'metrics.deals-label': 'Negócios',
+
     // Lead Creation
     'lead.create-new': 'Criar Novo Lead',
     'lead.personal-information': 'Informações Pessoais',
@@ -6908,7 +6922,14 @@ const translations = {
     'metrics.status-sent': 'Gesendet',
     'metrics.status-closed': 'Abgeschlossen (Gewonnen)',
     'metrics.status-lost': 'Verloren',
-    
+    'metrics.qualified-leads': 'Qualifizierte Leads',
+    'metrics.converted-deals': 'Konvertierte Deals',
+    'metrics.deal-conversion-rate': 'Geschäfts-Konversionsrate',
+    'metrics.units-sold': 'Verkaufte Einheiten',
+    'metrics.leads-x-deals-per-month': 'Leads x Deals pro Monat',
+    'metrics.leads-label': 'Leads',
+    'metrics.deals-label': 'Deals',
+
     // Meta Ads
     'meta.total-spend': 'Gesamtausgaben',
     'meta.impressions': 'Impressionen',
@@ -9664,7 +9685,14 @@ const translations = {
     'metrics.status-sent': 'Enviado',
     'metrics.status-closed': 'Cerrado (Ganado)',
     'metrics.status-lost': 'Perdido',
-    
+    'metrics.qualified-leads': 'Leads Calificados',
+    'metrics.converted-deals': 'Negocios Convertidos',
+    'metrics.deal-conversion-rate': 'Tasa de Conversión de Negocios',
+    'metrics.units-sold': 'Unidades Vendidas',
+    'metrics.leads-x-deals-per-month': 'Leads x Negocios por Mes',
+    'metrics.leads-label': 'Leads',
+    'metrics.deals-label': 'Negocios',
+
     // Meta Ads
     'meta.total-spend': 'Gasto Total',
     'meta.impressions': 'Impresiones',

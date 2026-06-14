@@ -227,7 +227,7 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
   return (
     <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
       <h3 className="text-xl font-semibold mb-6 text-center">
-        {hasDeals ? 'Leads x Deals per Month' : t('metrics.monthly-lead-flow')}
+        {hasDeals ? t('metrics.leads-x-deals-per-month') : t('metrics.monthly-lead-flow')}
       </h3>
       <ResponsiveContainer width="100%" height={350}>
         <AreaChart data={monthlyData}>
@@ -249,7 +249,7 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
           <Area
             type="monotone"
             dataKey="leads"
-            name="Leads"
+            name={t('metrics.leads-label')}
             stroke="#8B5CF6"
             strokeWidth={3}
             fill="url(#leadsGradient)"
@@ -260,7 +260,7 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
             <Area
               type="monotone"
               dataKey="deals"
-              name="Deals"
+              name={t('metrics.deals-label')}
               stroke="#10B981"
               strokeWidth={3}
               fill="url(#dealsGradient)"
@@ -786,16 +786,16 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
               return (
                 <div style={chartTooltipStyle} className="p-3 shadow-lg">
                   <p className="font-semibold mb-1">{label}</p>
-                  <p className="text-sm">Units Sold: <span className="font-medium">{item.quantity_sold}</span></p>
-                  <p className="text-sm">Revenue: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  <p className="text-sm">{t('metrics.units-sold')}: <span className="font-medium">{item.quantity_sold}</span></p>
+                  <p className="text-sm">{t('metrics.revenue')}: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
                   <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
                 </div>
               );
             }}
           />
           <Legend />
-          <Bar yAxisId="left" dataKey="quantity_sold" name="Units Sold" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
+          <Bar yAxisId="left" dataKey="quantity_sold" name={t('metrics.units-sold')} fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
         </ComposedChart>
       </ResponsiveContainer>
     </motion.div>
@@ -838,14 +838,14 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
           <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
           <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
           <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
-            formatter={(value: number, name: string) => [
-              name === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
-              name === 'revenue' ? 'Revenue' : 'Closed Deals',
+            formatter={(value: number, _name: string, entry: any) => [
+              entry?.dataKey === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
+              entry?.dataKey === 'revenue' ? t('metrics.revenue') : t('metrics.closed-deals'),
             ]}
           />
           <Legend />
-          <Bar yAxisId="left" dataKey="sales_count" name="Closed Deals" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
+          <Bar yAxisId="left" dataKey="sales_count" name={t('metrics.closed-deals')} fill="#F59E0B" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
         </ComposedChart>
       </ResponsiveContainer>
     </motion.div>
@@ -1067,7 +1067,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
         icon: <Users className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Qualified Leads',
+        title: t('metrics.qualified-leads'),
         value: lead_statistics?.qualified_leads ?? '—',
         trend: { value: '+0%', isPositive: true },
         icon: <UserCheck className="h-5 w-5 text-primary" />,
@@ -1079,7 +1079,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
         icon: <UserX className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Converted Deals',
+        title: t('metrics.converted-deals'),
         value: lead_statistics?.converted_leads ?? 0,
         trend: getTrendData(performance_comparison?.converted_leads),
         icon: <Trophy className="h-5 w-5 text-primary" />,
@@ -1096,31 +1096,31 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
     const dealStats = d?.deal_statistics;
     const row2 = [
       {
-        title: 'Total Deals',
+        title: t('metrics.total-deals'),
         value: dealStats?.total_deals ?? '—',
         trend: { value: '+0%', isPositive: true },
         icon: <BarChart3 className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Closed Deals',
+        title: t('metrics.closed-deals'),
         value: dealStats?.closed_deals ?? '—',
         trend: { value: '+0%', isPositive: true },
         icon: <TrendingUp className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Lost Deals',
+        title: t('metrics.lost-deals'),
         value: dealStats?.lost_deals ?? '—',
         trend: { value: '+0%', isPositive: false },
         icon: <TrendingDown className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Deal Conversion Rate',
+        title: t('metrics.deal-conversion-rate'),
         value: dealStats?.deal_conversion_rate != null ? `${Number(dealStats.deal_conversion_rate).toFixed(1)}%` : '0%',
         trend: { value: '+0%', isPositive: true },
         icon: <Target className="h-5 w-5 text-primary" />,
       },
       {
-        title: 'Revenue',
+        title: t('metrics.revenue'),
         value: dealStats?.revenue != null
           ? formatCurrency(Number(dealStats.revenue))
           : '—',
