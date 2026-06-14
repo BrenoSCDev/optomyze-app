@@ -28,11 +28,24 @@ export interface InboxMessageUser {
   profile_pic?: string | null;
 }
 
+/** Preview of a quoted/replied-to message, snapshotted at receive time. */
+export interface InboxReplySnapshot {
+  type: 'text' | 'image' | 'video' | 'audio' | 'sticker' | 'document' | 'location' | 'contact' | null;
+  text?: string | null;
+  participant?: string | null;
+}
+
+/** Emoji reaction applied to a message, keyed by who reacted. */
+export interface InboxReaction {
+  emoji: string;
+  timestamp?: string | number | null;
+}
+
 export interface InboxMessage {
   id: number;
   inbox_chat_id: number;
   direction: 'incoming' | 'outgoing';
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'sticker';
   text: string | null;
   metadata?: InboxMessageMetadata | null;
   media_url?: string | null;
@@ -40,6 +53,10 @@ export interface InboxMessage {
   media_size?: number | null;
   latitude?: number | null;
   longitude?: number | null;
+  reply_to_message_id?: number | null;
+  reply_to_snapshot?: InboxReplySnapshot | null;
+  reactions?: Record<string, InboxReaction> | null;
+  is_edited?: boolean;
   status: string;
   sent_at: string;
   user_id?: number | null;

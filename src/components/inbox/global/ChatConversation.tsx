@@ -10,14 +10,14 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages } from '@/services/globalInboxApi';
+import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -33,6 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,28 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInbox } from '@/contexts/InboxContext';
+
+/** Renders WhatsApp-style delivery ticks for an outgoing message's status. */
+const MessageStatusTicks: React.FC<{ status?: string; variant?: 'onBlue' | 'subtle' }> = ({ status, variant = 'onBlue' }) => {
+  const baseColor = variant === 'onBlue' ? 'text-blue-100' : 'text-muted-foreground';
+  const readColor = variant === 'onBlue' ? 'text-sky-300' : 'text-blue-500';
+  const failedColor = variant === 'onBlue' ? 'text-red-200' : 'text-red-500';
+
+  switch (status) {
+    case 'pending':
+      return <Clock className={cn('h-3 w-3', baseColor)} />;
+    case 'sent':
+      return <Check className={cn('h-3 w-3', baseColor)} />;
+    case 'delivered':
+      return <CheckCheck className={cn('h-3 w-3', baseColor)} />;
+    case 'read':
+      return <CheckCheck className={cn('h-3 w-3', readColor)} />;
+    case 'failed':
+      return <AlertCircle className={cn('h-3 w-3', failedColor)} />;
+    default:
+      return null;
+  }
+};
 
 /** Renders an image message fetched through the authenticated backend. */
 const InboxPrivateImage: React.FC<{
@@ -75,7 +98,7 @@ const InboxPrivateImage: React.FC<{
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {direction === 'outgoing' && status && !isInternalNote && (
-          <span className="text-xs text-blue-100">• {status}</span>
+          <MessageStatusTicks status={status} variant="onBlue" />
         )}
       </div>
     </div>
@@ -104,7 +127,7 @@ const InboxPrivateAudio: React.FC<{
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOutgoing && status && !isInternalNote && (
-          <span className="text-xs text-blue-100">• {status}</span>
+          <MessageStatusTicks status={status} variant="onBlue" />
         )}
       </div>
     </div>
@@ -142,7 +165,37 @@ const InboxPrivateDocument: React.FC<{
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOutgoing && status && !isInternalNote && (
-          <span className="text-xs text-blue-100">• {status}</span>
+          <MessageStatusTicks status={status} variant="onBlue" />
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** Renders a sticker (animated/static webp) fetched through the authenticated backend.
+ *  Stickers have no chat-bubble chrome - just the image and a timestamp. */
+const InboxPrivateSticker: React.FC<{
+  path: string;
+  direction: string;
+  isInternalNote: boolean;
+  status?: string;
+  sentAt: string;
+}> = ({ path, direction, isInternalNote, status, sentAt }) => {
+  const url = usePrivateFile(path);
+
+  return (
+    <div className="space-y-1">
+      {url ? (
+        <img src={url} alt="Sticker" className="w-32 h-32 object-contain" loading="lazy" />
+      ) : (
+        <div className="w-32 h-32 rounded-md bg-muted/40 animate-pulse" />
+      )}
+      <div className={cn('flex items-center gap-1 px-1', direction === 'outgoing' ? 'justify-end' : 'justify-start')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground')}>
+          {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        {direction === 'outgoing' && status && !isInternalNote && (
+          <MessageStatusTicks status={status} variant="subtle" />
         )}
       </div>
     </div>
@@ -243,6 +296,26 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       setLocalMessages(prev => [...prev, ...newMsgs]);
       setTimeout(scrollToBottom, 50);
     }
+  }, [contextChats, chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync in-place updates (reactions, edited flag, delivery status) for messages already shown
+  useEffect(() => {
+    if (!chat) return;
+    const contextChat = contextChats.find(c => c.id === chat.id);
+    if (!contextChat?.messages?.length) return;
+
+    setLocalMessages(prev => {
+      let changed = false;
+      const updated = prev.map(m => {
+        const match = contextChat.messages.find(cm => cm.id === m.id);
+        if (match && (match.reactions !== m.reactions || match.is_edited !== m.is_edited || match.status !== m.status || match.text !== m.text)) {
+          changed = true;
+          return { ...m, text: match.text, reactions: match.reactions, is_edited: match.is_edited, status: match.status };
+        }
+        return m;
+      });
+      return changed ? updated : prev;
+    });
   }, [contextChats, chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Also sync from the chat prop (sent message updates from GlobalInbox)
@@ -513,6 +586,40 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
   const isInternalNote = (message: InboxMessage) => message.message_mode === 'internal';
 
+  const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+  const handleReact = async (message: InboxMessage, emoji: string) => {
+    const currentEmoji = message.reactions?.agent?.emoji;
+    const newEmoji = currentEmoji === emoji ? '' : emoji;
+
+    try {
+      const response = await sendInboxReaction(message.id, newEmoji);
+      const updatedReactions = response.message.reactions;
+
+      setLocalMessages(prev => prev.map(m => m.id === message.id ? { ...m, reactions: updatedReactions } : m));
+    } catch (error: any) {
+      toast({
+        title: t('chat.inbox.reaction-error'),
+        description: error?.response?.data?.message || '',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getReplyPreviewLabel = (snapshot: NonNullable<InboxMessage['reply_to_snapshot']>): string => {
+    if (snapshot.text) return snapshot.text;
+    switch (snapshot.type) {
+      case 'image': return t('chat.inbox.reply-photo');
+      case 'video': return t('chat.inbox.reply-video');
+      case 'audio': return t('chat.inbox.reply-audio');
+      case 'sticker': return t('chat.inbox.reply-sticker');
+      case 'document': return t('chat.inbox.reply-document');
+      case 'location': return t('chat.inbox.reply-location');
+      case 'contact': return t('chat.inbox.reply-contact');
+      default: return t('chat.inbox.reply-message');
+    }
+  };
+
   if (!chat) {
     return (
       <div className="flex flex-col h-full items-center justify-center bg-muted/20">
@@ -624,7 +731,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: messageIndex * 0.03 }}
                     className={cn(
-                      "flex items-end gap-2",
+                      "group flex items-end gap-2",
+                      message.reactions && Object.keys(message.reactions).length > 0 && "mb-2",
                       message.direction === 'outgoing' ? "justify-end" : "justify-start"
                     )}
                   >
@@ -635,21 +743,77 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         size="sm"
                       />
                     )}
+                    <div className="relative max-w-[75%]">
+                    {chat.channel === 'whatsapp' && !isInternalNote(message) && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className={cn(
+                              "absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-card border border-border/60 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted",
+                              message.direction === 'outgoing' ? "-left-8" : "-right-8"
+                            )}
+                          >
+                            <Smile className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-1"
+                          side="top"
+                          align={message.direction === 'outgoing' ? 'end' : 'start'}
+                        >
+                          <div className="flex gap-1">
+                            {QUICK_REACTIONS.map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => handleReact(message, emoji)}
+                                className={cn(
+                                  "text-lg p-1 rounded hover:bg-muted hover:scale-125 transition-transform",
+                                  message.reactions?.agent?.emoji === emoji && "bg-muted"
+                                )}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
                     <div
                       className={cn(
-                        "max-w-[75%] rounded-lg shadow-sm overflow-hidden",
+                        "rounded-lg shadow-sm overflow-hidden",
                         message.type === 'image' ? "p-1" :
                         message.type === 'audio' ? "px-2 py-1.5" :
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
+                        message.type === 'sticker' ? "p-0" :
                         message.type === 'contact' ? "p-3" : "p-3",
-                        isInternalNote(message)
-                          ? "bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-br-none"
-                          : message.direction === 'outgoing'
-                            ? "bg-blue-500 text-white rounded-br-none"
-                            : "bg-card border border-border/50 rounded-bl-none"
+                        message.type === 'sticker'
+                          ? "bg-transparent border-0 shadow-none"
+                          : isInternalNote(message)
+                            ? "bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 rounded-br-none"
+                            : message.direction === 'outgoing'
+                              ? "bg-blue-400 text-white rounded-br-none"
+                              : "bg-card border border-border/50 rounded-bl-none"
                       )}
                     >
+                      {/* Reply / quoted-message preview */}
+                      {message.reply_to_snapshot && (
+                        <div className={cn(
+                          "mb-1.5 px-2 py-1 rounded border-l-2 text-xs overflow-hidden",
+                          message.type === 'sticker'
+                            ? "bg-muted/70 border-primary/40 text-foreground/80"
+                            : isInternalNote(message)
+                              ? "bg-amber-200/40 dark:bg-amber-950/30 border-amber-400/60 text-amber-900/80 dark:text-amber-100/80"
+                              : message.direction === 'outgoing'
+                                ? "bg-white/10 border-blue-100/60 text-blue-50"
+                                : "bg-muted/60 border-primary/40 text-foreground/70"
+                        )}>
+                          <p className="truncate">{getReplyPreviewLabel(message.reply_to_snapshot)}</p>
+                        </div>
+                      )}
+
                       {/* Internal note label */}
                       {isInternalNote(message) && (
                         <div className="flex items-center gap-1 mb-1">
@@ -730,9 +894,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               {formatMessageTime(message.sent_at)}
                             </span>
                             {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-blue-100">
-                                • {message.status}
-                              </span>
+                              <MessageStatusTicks status={message.status} variant="onBlue" />
                             )}
                           </div>
                         </div>
@@ -749,6 +911,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             sentAt={message.sent_at}
                           />
                         </div>
+                      ) : message.type === 'sticker' && message.media_url ? (
+                        <InboxPrivateSticker
+                          path={message.media_url}
+                          direction={message.direction}
+                          isInternalNote={isInternalNote(message)}
+                          status={message.status}
+                          sentAt={message.sent_at}
+                        />
                       ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">
                           <ContactMessage
@@ -781,9 +951,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               {formatMessageTime(message.sent_at)}
                             </span>
                             {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-blue-100">
-                                • {message.status}
-                              </span>
+                              <MessageStatusTicks status={message.status} variant="onBlue" />
                             )}
                           </div>
                         </div>
@@ -808,14 +976,35 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             )}>
                               {formatMessageTime(message.sent_at)}
                             </span>
-                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
-                              <span className="text-xs text-blue-100">
-                                • {message.status}
+                            {message.is_edited && (
+                              <span className={cn(
+                                "text-xs italic",
+                                isInternalNote(message) ? "text-amber-600/70 dark:text-amber-400/70" :
+                                message.direction === 'outgoing'
+                                  ? "text-blue-100/80"
+                                  : "text-muted-foreground/70"
+                              )}>
+                                {t('chat.inbox.edited')}
                               </span>
+                            )}
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <MessageStatusTicks status={message.status} variant="onBlue" />
                             )}
                           </div>
                         </>
                       )}
+                    </div>
+                    {/* Reaction badges */}
+                    {message.reactions && Object.keys(message.reactions).length > 0 && (
+                      <div className={cn(
+                        "absolute -bottom-2.5 flex items-center gap-0.5 bg-card border border-border/60 rounded-full px-1.5 py-0.5 shadow-sm z-10",
+                        message.direction === 'outgoing' ? "right-1" : "left-1"
+                      )}>
+                        {Object.values(message.reactions).map((reaction, i) => (
+                          <span key={i} className="text-xs leading-none">{reaction.emoji}</span>
+                        ))}
+                      </div>
+                    )}
                     </div>
                     {message.direction === 'outgoing' && (
                       <InboxAvatar
@@ -845,7 +1034,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       ? "bg-destructive/80 text-destructive-foreground"
                       : pending.messageMode === 'internal'
                         ? "bg-amber-100/70 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700"
-                        : "bg-blue-500/70 text-white"
+                        : "bg-blue-400/70 text-white"
                   )}
                 >
                   {pending.messageMode === 'internal' && (

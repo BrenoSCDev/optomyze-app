@@ -26,10 +26,17 @@ interface ChatMessagesClearedEvent {
   timestamp: string;
 }
 
+// Broadcast event payload for in-place updates to an existing message
+// (e.g. a reaction was added/removed, or the message was edited)
+interface MessageUpdatedEvent {
+  message: Pick<InboxMessage, 'id' | 'inbox_chat_id' | 'text' | 'reactions' | 'is_edited' | 'status'>;
+}
+
 interface InboxContextType {
   chats: InboxChat[];
   setChats: React.Dispatch<React.SetStateAction<InboxChat[]>>;
   handleNewMessage: (event: MessageReceivedEvent) => void;
+  handleMessageUpdated: (event: MessageUpdatedEvent) => void;
   handleChatCleared: (chatId: number) => void;
   selectedChat: InboxChat | null;
   setSelectedChat: React.Dispatch<React.SetStateAction<InboxChat | null>>;
@@ -143,6 +150,30 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
     }
   }, []); // Empty deps = stable callback, uses refs for dynamic values
 
+  // Merge an in-place message update (reaction added/removed, edit flag) by id
+  const handleMessageUpdated = useCallback((event: MessageUpdatedEvent) => {
+    const { message } = event;
+
+    const applyUpdate = (m: InboxMessage): InboxMessage =>
+      m.id === message.id
+        ? { ...m, text: message.text, reactions: message.reactions, is_edited: message.is_edited, status: message.status }
+        : m;
+
+    setChats(prevChats =>
+      prevChats.map(c =>
+        c.id === message.inbox_chat_id
+          ? { ...c, messages: (c.messages || []).map(applyUpdate) }
+          : c
+      )
+    );
+
+    setSelectedChat(prevSelected =>
+      prevSelected && prevSelected.id === message.inbox_chat_id
+        ? { ...prevSelected, messages: (prevSelected.messages || []).map(applyUpdate) }
+        : prevSelected
+    );
+  }, []);
+
   // Handle chat messages cleared event
   const handleChatCleared = useCallback((chatId: number) => {
     console.log('💬 Clearing messages for chat:', chatId);
@@ -190,6 +221,12 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       handleChatCleared(event.chat_id);
     });
 
+    // Listen for inbox.message.updated events (reaction added/removed, edits)
+    channel.listen('.inbox.message.updated', (event: MessageUpdatedEvent) => {
+      console.log('💬 Received inbox.message.updated event:', event);
+      handleMessageUpdated(event);
+    });
+
     console.log('💬 Subscribed to Inbox message channel successfully');
 
     // Cleanup - only on logout or company change, NOT on route navigation
@@ -197,14 +234,16 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       console.log(`💬 Unsubscribing Inbox listener from company.${companyId}`);
       channel.stopListening('.inbox.message.received');
       channel.stopListening('.inbox.messages.cleared');
+      channel.stopListening('.inbox.message.updated');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
-  }, [user?.company_id, handleNewMessage, handleChatCleared]);
+  }, [user?.company_id, handleNewMessage, handleChatCleared, handleMessageUpdated]);
 
   const value: InboxContextType = {
     chats,
     setChats,
     handleNewMessage,
+    handleMessageUpdated,
     handleChatCleared,
     selectedChat,
     setSelectedChat,

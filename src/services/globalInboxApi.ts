@@ -148,6 +148,19 @@ export const clearInboxChatMessages = async (chatId: number): Promise<{ message:
   return response.data;
 };
 
+export interface SendReactionResponse {
+  status: string;
+  message: InboxMessage;
+}
+
+/**
+ * Send (or, with an empty string, remove) an emoji reaction to a WhatsApp message
+ */
+export const sendInboxReaction = async (messageId: number, emoji: string): Promise<SendReactionResponse> => {
+  const response = await api.post(`/api/inbox/messages/${messageId}/reaction`, { emoji });
+  return response.data;
+};
+
 export interface WhatsAppInstanceOption {
   id: number;
   instance_name: string;
