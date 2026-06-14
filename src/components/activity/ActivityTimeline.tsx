@@ -138,7 +138,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
   );
 
   if (variant === 'compact') {
-    return <div className={`overflow-y-auto scrollbar-dark ${maxHeight} ${className}`}>{content}</div>;
+    return <div className={`overflow-y-auto overflow-x-hidden scrollbar-dark px-2 ${maxHeight} ${className}`}>{content}</div>;
   }
 
   return <div className={className}>{content}</div>;

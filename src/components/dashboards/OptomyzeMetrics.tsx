@@ -321,7 +321,7 @@ interface FunnelData {
   funnel_id: number;
   funnel_name: string;
   total_leads: number;
-  stages: Array<{ stage_id: number; stage_name: string; stage_type: string; leads: number; percentage: number }>;
+  stages: Array<{ stage_id: number; stage_name: string; stage_type: string; stage_color?: string | null; leads: number; percentage: number }>;
 }
 
 const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData[] | null; isLoading: boolean }) => {
@@ -352,7 +352,7 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
     stage: stage.stage_name,
     count: stage.leads,
     percentage: stage.percentage,
-    color: PRODUCT_COLORS[index % PRODUCT_COLORS.length],
+    color: stage.stage_color || PRODUCT_COLORS[index % PRODUCT_COLORS.length],
   }));
   const totalLeads = selectedFunnel.total_leads;
 
@@ -483,6 +483,7 @@ interface DealFunnelStage {
   stage_id: number;
   stage_name: string;
   stage_type: string;
+  stage_color?: string | null;
   sales: number;
   percentage: number;
 }
@@ -552,7 +553,7 @@ const DealsStagesDistributionChart = ({
     stage: stage.stage_name,
     count: stage.sales,
     percentage: stage.percentage,
-    color: STAGE_TYPE_COLORS[stage.stage_type] || PRODUCT_COLORS[0],
+    color: stage.stage_color || STAGE_TYPE_COLORS[stage.stage_type] || PRODUCT_COLORS[0],
     stage_type: stage.stage_type,
   }));
 
