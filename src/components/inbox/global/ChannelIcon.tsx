@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { FaWhatsapp, FaInstagram, FaFacebookMessenger, FaSms } from 'react-icons/fa';
+import { FaWhatsapp, FaInstagram, FaFacebookMessenger, FaSms, FaTelegram } from 'react-icons/fa';
 import { MessageCircle } from 'lucide-react';
 import { InboxChannel } from '@/types/inbox';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,8 @@ const ChannelIcon: React.FC<ChannelIconProps> = ({ channel, className }) => {
       return <FaFacebookMessenger className={cn('text-blue-500', className)} />;
     case 'sms':
       return <FaSms className={cn('text-blue-400', className)} />;
+    case 'telegram':
+      return <FaTelegram className={cn('text-sky-500', className)} />;
     default:
       return <MessageCircle className={cn('text-muted-foreground', className)} />;
   }

@@ -8,7 +8,7 @@
  * (OptomyzeInbox / Conversation / InternalMessage).
  */
 
-export type InboxChannel = 'whatsapp' | 'instagram' | 'messenger' | 'sms' | 'internal';
+export type InboxChannel = 'whatsapp' | 'instagram' | 'messenger' | 'sms' | 'telegram' | 'internal';
 
 export interface InboxContactEntry {
   contact_name?: string;

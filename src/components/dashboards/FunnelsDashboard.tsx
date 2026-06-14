@@ -51,21 +51,6 @@ interface TemplateFunnel {
   stages: { id: number; name: string; order: number }[];
 }
 
-// Healthy / muted status pill — avoids neon green/red in favor of a subtle dot + tint
-const FunnelStatusBadge = ({ active, t }: { active: boolean; t: (key: string) => string }) => (
-  <span
-    className={cn(
-      "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap",
-      active
-        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-        : "border-border bg-muted text-muted-foreground"
-    )}
-  >
-    <span className={cn("w-1.5 h-1.5 rounded-full", active ? "bg-emerald-500" : "bg-muted-foreground/50")} />
-    {active ? t('funnels.active') : t('funnels.inactive')}
-  </span>
-);
-
 // Icon button + tooltip used for the quick actions on each funnel card
 interface ActionButtonProps {
   tooltip: string;
@@ -139,9 +124,6 @@ const FunnelCard = ({
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-foreground truncate">{funnel.name}</h3>
-            <div className="mt-1">
-              <FunnelStatusBadge active={funnel.is_active} t={t} />
-            </div>
           </div>
         </div>
 
