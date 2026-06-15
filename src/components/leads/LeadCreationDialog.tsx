@@ -24,7 +24,7 @@ import { leadService } from '@/services/leadApi';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SourcePlatformIcon from './SourcePlatformIcon';
-import { ddiOptions, phoneMasks, combinePhoneNumber } from '@/lib/phone';
+import { ddiOptions, phoneMasks, combinePhoneNumber, DEFAULT_DDI } from '@/lib/phone';
 
 interface LeadCreationDialogProps {
   isOpen: boolean;
@@ -71,7 +71,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
     last_name: '',
     email: '',
     phone: '',
-    ddi: '+55',
+    ddi: DEFAULT_DDI,
     source_platform: 'other',
     company_id: user?.company_id || '1',
     funnel_id: funnelId,
@@ -210,7 +210,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
         last_name: '',
         email: '',
         phone: '',
-        ddi: '+55',
+        ddi: DEFAULT_DDI,
         source_platform: 'other',
         company_id: user?.company_id || '1',
         funnel_id: funnelId,
@@ -331,7 +331,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
                   >
                     {ddiOptions.map((option, index) => (
                       <option key={index} value={option.value}>
-                        {option.flag} {option.value} ({option.country})
+                        {option.flag} {option.label} ({option.country})
                       </option>
                     ))}
                   </select>

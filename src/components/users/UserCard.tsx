@@ -9,6 +9,7 @@ import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import { useOnlinePresence } from '@/contexts/PresenceContext';
 import optomyzeLogo from '@/assets/user-banner.jpeg';
+import { formatPhoneNumber } from '@/lib/phone';
 
 interface UserCardProps {
   user: User;
@@ -115,7 +116,7 @@ const UserCard: React.FC<UserCardProps> = ({
       <div className="px-4 pt-2 pb-4 flex flex-col gap-1">
         <h3 className="text-base font-bold text-foreground truncate">{user.name}</h3>
         <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-        {user.phone && <p className="text-xs text-muted-foreground truncate">{user.phone}</p>}
+        {user.phone && <p className="text-xs text-muted-foreground truncate">{formatPhoneNumber(user.phone)}</p>}
 
         {/* Role + Teams */}
         <div className="flex flex-wrap gap-1 mt-1">

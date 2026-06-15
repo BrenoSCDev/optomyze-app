@@ -28,6 +28,7 @@ import {
 import { InboxChat } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/phone';
 import ChannelIcon from './ChannelIcon';
 
 interface ChatDetailsProps {
@@ -141,7 +142,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
                 <DetailItem
                   icon={<Phone className="h-4 w-4" />}
                   label={t('chat.inbox.phone')}
-                  value={chat.lead?.phone || chat.external_contact_id}
+                  value={chat.lead?.phone ? formatPhoneNumber(chat.lead.phone) : chat.external_contact_id}
                 />
                 <DetailItem
                   icon={<Layers className="h-4 w-4" />}

@@ -599,13 +599,13 @@ const OptomyzeCalendar: React.FC = () => {
         </motion.div>
 
         {/* Selected Day Events */}
-        <motion.div 
-          className="glass-card p-6"
+        <motion.div
+          className="glass-card p-6 lg:self-start flex flex-col max-h-[calc(100vh-220px)]"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-lg font-semibold text-foreground mb-4">
+          <h3 className="text-lg font-semibold text-foreground mb-4 shrink-0">
             {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : t('calendar.select-date')}
           </h3>
 
@@ -620,7 +620,7 @@ const OptomyzeCalendar: React.FC = () => {
               <p className="text-muted-foreground/70 text-xs mt-1">{t('calendar.no-events-description')}</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto pr-1 -mr-1">
               {selectedDateItems.map(item => (
                 <div
                   key={item.id}

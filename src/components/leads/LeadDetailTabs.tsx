@@ -5,7 +5,7 @@
  * Groups Lead Info, Contact, Tasks, Documents, and Products sections
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -18,7 +18,6 @@ import {
   StickyNote,
   FileSignature,
   MessageCircle,
-  MessageSquare,
   DollarSign,
   Hash,
   RefreshCw,
@@ -44,6 +43,8 @@ import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadInboxChat, LeadInboxMessage } from './LeadChatSection';
 import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 import LeadAppointmentsTab from './LeadAppointmentsTab';
+import { formatPhoneNumber } from '@/lib/phone';
+import { formatEnumLabel } from '@/lib/format';
 import SourcePlatformIcon from './SourcePlatformIcon';
 import UserAvatar from '@/components/ui/user-avatar';
 import ClickableUser from '@/components/users/ClickableUser';
@@ -52,6 +53,7 @@ interface AssignedUser {
   id: number;
   name: string;
   email: string;
+  role?: string | null;
   profile_pic?: string | null;
 }
 
@@ -98,6 +100,7 @@ interface Lead {
   products?: LeadProduct[];
   observations?: Observation[];
   whatsapp_inbox_chat?: LeadInboxChat | null;
+  inbox_chats?: LeadInboxChat[] | null;
   timezone?: string | null;
 }
 
@@ -132,20 +135,23 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('info');
-  
-  // Local state for chat messages to avoid page refresh
-  const [chatMessages, setChatMessages] = useState<LeadInboxMessage[]>(
-    lead.whatsapp_inbox_chat?.messages || []
-  );
 
-  // Build chat object with local messages state
-  const chatWithLocalMessages: LeadInboxChat | null = lead.whatsapp_inbox_chat
-    ? { ...lead.whatsapp_inbox_chat, messages: chatMessages }
-    : null;
+  // Most recently active inbox chat for this lead, across all channels
+  // (WhatsApp, Instagram, Messenger, ...)
+  const primaryChat = useMemo<LeadInboxChat | null>(() => {
+    const chatsList = lead.inbox_chats || [];
+    if (chatsList.length === 0) return null;
+    return [...chatsList].sort((a, b) =>
+      new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+    )[0];
+  }, [lead.inbox_chats]);
 
-  const handleChatMessageSent = (message: LeadInboxMessage) => {
-    setChatMessages(prev => [...prev, message]);
+  // Track messages sent during this session to keep the chat tab badge live
+  const [sentCount, setSentCount] = useState(0);
+  const handleChatMessageSent = (_message: LeadInboxMessage) => {
+    setSentCount(prev => prev + 1);
   };
+  const chatMessageCount = (primaryChat?.messages?.length || 0) + sentCount;
 
   return (
     <motion.div 
@@ -227,9 +233,9 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           >
             <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.chat')}</span>
-            {chatMessages.length > 0 && (
+            {chatMessageCount > 0 && (
               <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">
-                {chatMessages.length}
+                {chatMessageCount}
               </Badge>
             )}
           </TabsTrigger>
@@ -291,7 +297,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         {/* Chat Tab */}
         <TabsContent value="chat" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
           <LeadChatSection
-            chat={chatWithLocalMessages}
+            chat={primaryChat}
             leadId={lead.id}
             leadPhone={lead.phone}
             onMessageSent={handleChatMessageSent}
@@ -306,7 +312,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 const InfoItem = ({ label, value, icon, notSet, customIcon }: { label: string; value: string | undefined; icon?: React.ReactNode; notSet: string; customIcon?: React.ReactNode }) => (
   <div className="flex items-center gap-3">
     {customIcon ?? (
-      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted text-foreground dark:bg-white/10 dark:text-white shrink-0">
         {icon}
       </div>
     )}
@@ -317,17 +323,49 @@ const InfoItem = ({ label, value, icon, notSet, customIcon }: { label: string; v
   </div>
 );
 
-// Metric Card Component
-const METRIC_COLOR_CLASSES: Record<'purple' | 'green' | 'blue', string> = {
-  purple: 'bg-purple-500',
-  green: 'bg-green-500',
-  blue: 'bg-blue-500',
+// Assigned User Card Component
+const AssignedUserCard = ({ user }: { user?: AssignedUser | null }) => {
+  const { t } = useLanguage();
+
+  if (!user) {
+    return (
+      <div className="flex items-center gap-4 p-4 rounded-lg border border-dashed border-border bg-muted/30">
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+          <User className="w-5 h-5 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-muted-foreground">{t('lead-details.no-assigned-user')}</p>
+      </div>
+    );
+  }
+
+  const roleKey = user.role ? `users.roles.${user.role}` : '';
+  const roleLabel = user.role ? (t(roleKey) !== roleKey ? t(roleKey) : formatEnumLabel(user.role)) : null;
+
+  return (
+    <ClickableUser userId={user.id} className="w-full">
+      <div className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors w-full">
+        <UserAvatar name={user.name} profilePicPath={user.profile_pic} className="w-12 h-12 text-base shrink-0" />
+        <div className="min-w-0 flex-1 text-left">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-foreground font-semibold truncate">{user.name}</p>
+            {roleLabel && (
+              <span className="text-xs font-medium text-muted-foreground px-2 py-0.5 rounded-full bg-background border border-border shrink-0">
+                {roleLabel}
+              </span>
+            )}
+          </div>
+          {user.email && <p className="text-sm text-muted-foreground truncate mt-0.5">{user.email}</p>}
+        </div>
+      </div>
+    </ClickableUser>
+  );
 };
 
-const MetricCard = ({ label, value, icon, color }: { label: string; value: string; icon: React.ReactNode; color: 'purple' | 'green' | 'blue' }) => (
+// Metric Card Component
+const MetricCard = ({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) => (
   <div className="rounded-lg border border-border bg-muted/50 p-4">
     <div className="flex items-center gap-3 mb-2">
-      <div className={`w-8 h-8 flex items-center justify-center rounded-md text-white shrink-0 ${METRIC_COLOR_CLASSES[color]}`}>
+      <div className="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
         {icon}
       </div>
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
@@ -372,35 +410,25 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InfoItem
             label={t('lead-details.source-platform')}
-            value={lead.source_platform}
+            value={formatEnumLabel(lead.source_platform)}
             notSet={t('lead-details.not-set')}
             customIcon={
-              <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-secondary shrink-0">
+              <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted dark:bg-white/10 shrink-0">
                 <SourcePlatformIcon source={lead.source_platform} />
               </div>
             }
           />
-          <InfoItem label={t('lead-details.source-type')} value={lead.source_type} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
-          <InfoItem label={t('lead-details.language')} value={lead.language?.toUpperCase()} icon={<MessageSquare className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
+          <InfoItem label={t('lead-details.source-type')} value={formatEnumLabel(lead.source_type)} icon={<VscSourceControl className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.currency')} value={lead.currency} icon={<DollarSign className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           <InfoItem label={t('lead-details.external-id')} value={lead.external_id || t('lead-details.not-set')} icon={<Hash className="w-4 h-4" />} notSet={t('lead-details.not-set')} />
           {/* <InfoItem label={t('lead-details.sync-enabled')} value={lead.sync_enabled ? t('lead-details.yes') : t('lead-details.no')} icon={<RefreshCw className="w-4 h-4" />} notSet={t('lead-details.not-set')} /> */}
-          <ClickableUser userId={lead.assigned_user?.id} className="w-full">
-            <InfoItem
-              label={t('lead-details.assigned-user')}
-              value={lead.assigned_user ? lead.assigned_user.name : undefined}
-              icon={<User className="w-4 h-4" />}
-              notSet={t('lead-details.unassigned')}
-              customIcon={lead.assigned_user ? (
-                <UserAvatar
-                  name={lead.assigned_user.name}
-                  profilePicPath={lead.assigned_user.profile_pic}
-                  className="w-9 h-9 text-sm"
-                />
-              ) : undefined}
-            />
-          </ClickableUser>
         </div>
+      </div>
+
+      {/* Assigned User */}
+      <div className="pt-6 border-t border-border">
+        <h4 className="text-lg font-semibold text-foreground mb-4">{t('lead-details.assigned-user')}</h4>
+        <AssignedUserCard user={lead.assigned_user} />
       </div>
 
       {/* Address Section */}
@@ -450,19 +478,16 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
             label={t('lead-details.ai-score')}
             value={lead.ai_score ? `${lead.ai_score}%` : t('lead-details.not-scored')}
             icon={<Brain className="w-4 h-4" />}
-            color="purple"
           />
           <MetricCard
             label={t('lead-details.estimated-value')}
             value={lead.value_estimated ? new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(lead.value_estimated) : t('lead-details.not-set')}
             icon={<TrendingUp className="w-4 h-4" />}
-            color="green"
           />
           <MetricCard
             label={t('lead-details.days-active')}
             value={getDaysActive().toString()}
             icon={<Calendar className="w-4 h-4" />}
-            color="blue"
           />
         </div>
       </div>
@@ -510,7 +535,7 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
-            <p className="text-foreground font-medium">{lead.phone || t('lead-details.no-phone-informed')}</p>
+            <p className="text-foreground font-medium">{lead.phone ? formatPhoneNumber(lead.phone) : t('lead-details.no-phone-informed')}</p>
           </div>
         </div>
         {lead.phone && (

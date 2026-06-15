@@ -13,13 +13,13 @@ import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
   AlertCircle, ArrowRightLeft, UserCheck, Trash2,
   MoreVertical, Building2, ShoppingBag, Activity,
-  ArrowLeft, ChevronRight,
+  ArrowLeft, ChevronRight, Tags, GitBranch, Hash,
 } from 'lucide-react';
 import { VscSourceControl } from 'react-icons/vsc';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import UserAvatar from '@/components/ui/user-avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -36,7 +36,11 @@ import { User as UserType } from '@/types/user';
 import api from '@/services/api';
 import { API_STORAGE_URL } from '@/lib/constants';
 import { leadService } from '@/services/leadApi';
+import { tagService } from '@/services/tagApi';
 import { ActivityTimeline, adaptRecord } from '@/components/activity';
+import TagBadge from '@/components/tags/TagBadge';
+import { Tag as TagType } from '@/types/tags';
+import { formatPhoneNumber } from '@/lib/phone';
 
 import LeadDetailTabs from './LeadDetailTabs';
 import FunnelProgress from './FunnelProgress';
@@ -47,6 +51,9 @@ import TaskCreationModal from './TaskCreationModal';
 import TaskDeleteDialog from './TaskDeleteDialog';
 import DocumentUploadModal from './DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from './AssignUserModal';
+import TagManagementModal from './TagManagementModal';
+import MoveFunnelModal from './MoveFunnelModal';
+import LostReasonModal from './LostReasonModal';
 
 import StartPurchaseModal from './StartPurchaseModal';
 import LeadEditModal from './LeadEditModal';
@@ -63,7 +70,7 @@ interface LeadPreviewModalProps {
 
 const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, leadId, onLeadDeleted }) => {
   const { t } = useLanguage();
-  const { user } = useAuth() as { user: UserType | null; token: string };
+  const { user, funnels: allFunnels } = useAuth() as { user: UserType | null; token: string; funnels: any[] };
 
   const [leadData, setLeadData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +83,15 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
-  
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [moveFunnelModalOpen, setMoveFunnelModalOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<TagType[]>([]);
+
+  // Stage progress bar state
+  const [movingStageId, setMovingStageId] = useState<number | null>(null);
+  const [lostReasonLeadId, setLostReasonLeadId] = useState<string | null>(null);
+  const [entryErrors, setEntryErrors] = useState<{ stageName: string; errors: Array<{ field: string; message: string }> } | null>(null);
+
   const [startPurchaseModalOpen, setStartPurchaseModalOpen] = useState(false);
   const [selectedProductsForPurchase, setSelectedProductsForPurchase] = useState<LeadProduct[]>([]);
   const [isDeletingLead, setIsDeletingLead] = useState(false);
@@ -91,6 +106,14 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
       setError(null);
     }
   }, [isOpen, leadId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      tagService.getAllTags()
+        .then((res: any) => setAvailableTags(res?.data || []))
+        .catch(() => setAvailableTags([]));
+    }
+  }, [isOpen]);
 
   const fetchLeadData = async (id: string) => {
     setLoading(true);
@@ -116,9 +139,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
       setLoading(false);
     }
   };
-
-  const getInitials = (firstName: string, lastName: string) =>
-    `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 
   const getPriorityColor = (priority: string) => {
     const colors: Record<string, string> = {
@@ -178,6 +198,35 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
     setSelectedProductsForPurchase(selectedProducts);
     setStartPurchaseModalOpen(true);
   };
+  const handleTagsUpdated = (_updatedLeadId: string, updatedLead: any) => {
+    setLeadData((prev: any) => prev ? {
+      ...prev, lead: { ...prev.lead, tags: updatedLead.tags ?? prev.lead.tags },
+    } : prev);
+  };
+  const handleFunnelMoved = () => {
+    if (leadId) fetchLeadData(leadId);
+  };
+  const handleStageClick = async (targetStage: { id: number; name: string }) => {
+    if (!lead || !leadId || movingStageId || targetStage.id === lead.stage?.id) return;
+    setMovingStageId(targetStage.id);
+    try {
+      const response = await leadService.moveLeadToStage(leadId, targetStage.id);
+      toast.success(t('lead-details.stage-move-success'));
+      if (response?.prompt_lost_reason) {
+        setLostReasonLeadId(leadId);
+      }
+      await fetchLeadData(leadId);
+    } catch (err: any) {
+      const responseData = err?.response?.data;
+      if (err?.response?.status === 422 && responseData?.entry_requirement_errors?.length > 0) {
+        setEntryErrors({ stageName: targetStage.name, errors: responseData.entry_requirement_errors });
+      } else {
+        toast.error(t('lead-details.stage-move-error'));
+      }
+    } finally {
+      setMovingStageId(null);
+    }
+  };
   const handleDeleteLead = async () => {
     if (!leadId) return;
     try {
@@ -205,6 +254,18 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
   }, [leadData?.lead?.erp_budgets_ids]);
 
   const lead = leadData?.lead;
+
+  // Funnels of the same type the lead can be moved to
+  const moveFunnelOptions = useMemo(() => {
+    return (allFunnels || [])
+      .filter((f: any) => f.is_active && f.type === 'lead' && Number(f.id) !== Number(lead?.funnel_id))
+      .map((f: any) => ({ id: f.id, name: f.name }));
+  }, [allFunnels, lead?.funnel_id]);
+
+  const leadTagsModalLead = useMemo(() => {
+    if (!lead) return null;
+    return { ...lead, id: String(lead.id), name: `${lead.first_name} ${lead.last_name || ''}`.trim() };
+  }, [lead]);
 
   const modalTree = (
     <AnimatePresence>
@@ -271,11 +332,15 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-primary/10">
                     <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                      <Avatar className="h-12 w-12 sm:h-14 sm:w-14 shrink-0">
-                        <AvatarFallback className="bg-primary/20 text-primary text-base sm:text-lg font-bold">
-                          {getInitials(lead.first_name, lead.last_name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <UserAvatar
+                        name={`${lead.first_name} ${lead.last_name || ''}`}
+                        profilePicPath={
+                          lead.whatsapp_inbox_chat?.profile_pic_url
+                          || lead.inbox_chats?.find((c: any) => c.channel === 'instagram')?.profile_pic_url
+                          || null
+                        }
+                        className="h-12 w-12 sm:h-14 sm:w-14 text-base sm:text-lg font-bold shrink-0"
+                      />
                       <div className="min-w-0 flex-1">
                         <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">
                           {lead.first_name} {lead.last_name}
@@ -299,33 +364,45 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                           </div>
                         )}
 
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <Badge className={`text-xs font-medium border ${lead.is_active ? 'bg-green-600/15 text-green-600 dark:text-green-400 border-green-600/30' : 'bg-red-600/15 text-red-600 dark:text-red-400 border-red-600/30'}`}>
-                            {lead.is_active ? t('lead-details.active') : t('lead-details.inactive')}
-                          </Badge>
-                          <div className="flex items-center gap-1.5">
-                            <div className={`w-2.5 h-2.5 rounded-full ${getPriorityColor(lead.priority)}`} />
-                            <span className="text-xs text-muted-foreground capitalize">{lead.priority}</span>
+                        {/* Contact Information */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+                          <div className="flex items-center gap-1.5 text-xs min-w-0">
+                            <Mail className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-muted-foreground shrink-0">{t('lead-details.email')}:</span>
+                            <span className="text-foreground truncate">{lead.email || t('lead-details.not-informed')}</span>
                           </div>
-                          {lead.email && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1 min-w-0 max-w-full">
-                              <Mail className="h-3 w-3 shrink-0" /> <span className="truncate">{lead.email}</span>
-                            </span>
-                          )}
-                          {lead.phone && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3 shrink-0" /> {lead.phone}
-                            </span>
-                          )}
-                          <span className="text-xs text-muted-foreground">#{lead.id}</span>
+                          <div className="flex items-center gap-1.5 text-xs min-w-0">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-muted-foreground shrink-0">{t('lead-details.phone')}:</span>
+                            <span className="text-foreground truncate">{lead.phone ? formatPhoneNumber(lead.phone) : t('lead-details.not-informed')}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs min-w-0">
+                            <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${getPriorityColor(lead.priority)}`} />
+                            <span className="text-muted-foreground capitalize shrink-0">{t('lead-details.priority')}:</span>
+                            <span className="text-foreground truncate">{lead.priority ? t(`lead-details.priority-${lead.priority}`) : t('lead-details.not-informed')}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs min-w-0">
+                            <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-muted-foreground shrink-0">{t('lead-details.lead-id')}:</span>
+                            <span className="text-foreground truncate">LEAD-{String(lead.id).padStart(6, '0')}</span>
+                          </div>
                         </div>
+
+                        {/* Tags */}
+                        {lead.tags && lead.tags.length > 0 && (
+                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                            {lead.tags.map((tag: TagType) => (
+                              <TagBadge key={tag.id} tag={tag} />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start flex-wrap justify-end">
                       <Button
                         variant="outline" size="sm"
-                        className="border-primary/20 text-primary hover:bg-primary/10 hidden sm:inline-flex"
+                        className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hidden sm:inline-flex"
                         onClick={() => setEditModalOpen(true)}
                       >
                         <Edit className="h-4 w-4 mr-1" />
@@ -333,7 +410,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                       </Button>
                       <Button
                         variant="outline" size="icon"
-                        className="border-primary/20 text-primary hover:bg-primary/10 sm:hidden h-8 w-8"
+                        className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary sm:hidden h-8 w-8"
                         onClick={() => setEditModalOpen(true)}
                       >
                         <Edit className="h-4 w-4" />
@@ -341,11 +418,20 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                             <MoreVertical className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
+                          <DropdownMenuItem onClick={() => setTagModalOpen(true)} className="cursor-pointer">
+                            <Tags className="w-4 h-4 mr-2" />
+                            {t('lead-card.manage-tags')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setMoveFunnelModalOpen(true)} className="cursor-pointer">
+                            <GitBranch className="w-4 h-4 mr-2" />
+                            {t('lead-card.move-funnel')}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setAssignUserModalOpen(true)} className="cursor-pointer">
                             <UserCheck className="w-4 h-4 mr-2" />
                             {t('lead-details.assign-user')}
@@ -358,7 +444,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         </DropdownMenuContent>
                       </DropdownMenu>
 
-                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
+                      <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                         <X className="h-5 w-5" />
                       </Button>
                     </div>
@@ -367,7 +453,13 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                   {/* Body */}
                   <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 scrollbar-dark">
                     {/* Funnel Progress */}
-                    {lead.stage && <FunnelProgress stage={lead.stage} />}
+                    {lead.stage && (
+                      <FunnelProgress
+                        stage={lead.stage}
+                        onStageClick={handleStageClick}
+                        movingStageId={movingStageId}
+                      />
+                    )}
 
                     {/* Main Content Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -505,8 +597,49 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
             dealFunnels={leadData?.dealFunnels || []}
             onSaleCreated={() => leadId && fetchLeadData(leadId)}
           />
+          <TagManagementModal
+            isOpen={tagModalOpen}
+            onClose={() => setTagModalOpen(false)}
+            lead={leadTagsModalLead}
+            availableTags={availableTags}
+            onTagsUpdated={handleTagsUpdated}
+          />
+          <MoveFunnelModal
+            isOpen={moveFunnelModalOpen}
+            onClose={() => setMoveFunnelModalOpen(false)}
+            leadId={String(lead.id)}
+            funnels={moveFunnelOptions}
+            onMoved={handleFunnelMoved}
+          />
+          <LostReasonModal
+            isOpen={!!lostReasonLeadId}
+            onClose={() => setLostReasonLeadId(null)}
+            leadId={lostReasonLeadId || ''}
+          />
         </>
       )}
+
+      {/* Stage Entry Requirement Errors */}
+      <AlertDialog open={!!entryErrors} onOpenChange={(open) => !open && setEntryErrors(null)}>
+        <AlertDialogContent className="bg-background border-border z-[80]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {entryErrors ? t('leads.entry-requirements.title').replace('{stage}', entryErrors.stageName) : ''}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            {entryErrors?.errors.map((err, i) => (
+              <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground">{err.message}</p>
+              </div>
+            ))}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setEntryErrors(null)}>{t('common.ok')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

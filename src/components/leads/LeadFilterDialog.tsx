@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import InputMask from 'react-input-mask';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ddiOptions as baseDdiOptions, phoneMasks } from '@/lib/phone';
 
 interface LeadFilterDialogProps {
   isOpen: boolean;
@@ -39,37 +40,8 @@ interface LeadFilter {
 
 const ddiOptions = [
   { value: "", label: "All Countries", country: "Any", flag: "🌍" },
-  { value: "+1", label: "+1", country: "United States", flag: "🇺🇸" },
-  { value: "+1", label: "+1", country: "Canada", flag: "🇨🇦" },
-  { value: "+44", label: "+44", country: "United Kingdom", flag: "🇬🇧" },
-  { value: "+353", label: "+353", country: "Ireland", flag: "🇮🇪" },
-  { value: "+33", label: "+33", country: "France", flag: "🇫🇷" },
-  { value: "+34", label: "+34", country: "Spain", flag: "🇪🇸" },
-  { value: "+49", label: "+49", country: "Germany", flag: "🇩🇪" },
-  { value: "+41", label: "+41", country: "Switzerland", flag: "🇨🇭" },
-  { value: "+351", label: "+351", country: "Portugal", flag: "🇵🇹" },
-  { value: "+47", label: "+47", country: "Norway", flag: "🇳🇴" },
-  { value: "+39", label: "+39", country: "Italy", flag: "🇮🇹" },
-  { value: "+7", label: "+7", country: "Russia", flag: "🇷🇺" },
-  { value: "+55", label: "+55", country: "Brazil", flag: "🇧🇷" },
-  { value: "+54", label: "+54", country: "Argentina", flag: "🇦🇷" }
+  ...baseDdiOptions
 ];
-
-const phoneMasks = {
-  "+1": "(999) 999-9999",
-  "+44": "9999 999 9999",
-  "+353": "99 999 9999",
-  "+33": "99 99 99 99 99",
-  "+34": "999 999 999",
-  "+49": "999 999 9999",
-  "+41": "99 999 99 99",
-  "+351": "999 999 999",
-  "+47": "999 99 999",
-  "+39": "999 999 9999",
-  "+7": "999 999-99-99",
-  "+55": "(99) 99999-9999",
-  "+54": "99 9999-9999"
-};
 
 const platformOptions = [
   { value: "", label: "All Platforms", icon: "🌐" },
@@ -264,7 +236,7 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
                   >
                     {ddiOptions.map((option, index) => (
                       <option key={index} value={option.value}>
-                        {option.flag} {option.value} ({option.country})
+                        {option.flag} {option.label} ({option.country})
                       </option>
                     ))}
                   </select>

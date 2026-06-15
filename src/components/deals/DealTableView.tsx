@@ -19,6 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatPhoneNumber } from '@/lib/phone';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
@@ -191,7 +192,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                                 {deal.lead?.phone && (
                                   <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                                     <Phone className="h-2.5 w-2.5 text-deal/50" />
-                                    <span>{deal.lead.phone}</span>
+                                    <span>{formatPhoneNumber(deal.lead.phone)}</span>
                                   </div>
                                 )}
                               </div>

@@ -11,12 +11,11 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { List, AlertTriangle } from 'lucide-react';
+import { List, AlertTriangle, Users, DollarSign } from 'lucide-react';
 import { TbLayoutKanbanFilled } from "react-icons/tb";
 import FunnelTableView from './FunnelTableView';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import KanbanColumn from './KanbanColumn';
 import { 
   Plus, 
@@ -622,43 +621,31 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Left Side */}
         <div className="space-y-2">
-          {/* Breadcrumb */}
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-muted-foreground hover:text-foreground">
-                  Dashboard
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-foreground font-medium">
-                  {funnel.name}
-                </BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
           
-          {/* Title and Stats */}
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
-            <Badge
-              variant="secondary"
-              className="bg-primary/20 text-primary px-3 py-1"
-            >
-              {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0} {t('funnel.page.total-leads')}
-            </Badge>
-          </div>
-          
-          {/* Funnel Estimated Value */}
-          {displaySettings.showEstimatedValues && funnel.value_estimated > 0 && (
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">{t('funnel.page.estimated-funnel-value')}</span>
-              <Badge className="px-3 text-sm font-semibold">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(funnel.value_estimated)}
-              </Badge>
+          {/* Title */}
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
+
+          {/* Funnel Stats */}
+          <div className="flex items-center gap-4 flex-wrap text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span className="font-semibold text-foreground">
+                {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0}
+              </span>
+              <span>{t('funnel.page.total-leads')}</span>
             </div>
-          )}
+            {displaySettings.showEstimatedValues && funnel.value_estimated > 0 && (
+              <>
+                <div className="h-4 w-px bg-border hidden sm:block" />
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <span className="font-semibold text-foreground">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(funnel.value_estimated)}
+                  </span>
+                  <span>{t('funnel.page.estimated-funnel-value')}</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Right Side Actions */}

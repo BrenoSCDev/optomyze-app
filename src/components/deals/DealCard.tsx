@@ -8,6 +8,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
+import { formatPhoneNumber } from '@/lib/phone';
 import { 
   GripVertical,
   Clock,
@@ -136,7 +137,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             {deal.lead.phone && (
               <span className="flex items-center gap-1 shrink-0">
                 <Phone className="h-2.5 w-2.5 text-deal/60" />
-                {deal.lead.phone}
+                {formatPhoneNumber(deal.lead.phone)}
               </span>
             )}
           </div>
@@ -163,6 +164,18 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
                 <CircleDot className="w-2.5 h-2.5" />
                 {deal.lead.stage.name}
               </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Deal Tags - below funnel & stage badges */}
+        {deal.tags && deal.tags.length > 0 && (
+          <div className="flex items-center gap-1 mb-2 pl-[42px] flex-wrap">
+            {deal.tags.slice(0, 3).map((tag: any, i: number) => (
+              <TagBadge key={i} tag={tag} className="text-[9px] px-1.5 py-0.5" />
+            ))}
+            {deal.tags.length > 3 && (
+              <span className="text-[9px] text-muted-foreground">+{deal.tags.length - 3}</span>
             )}
           </div>
         )}
@@ -238,18 +251,6 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Tags display */}
-            {deal.tags && deal.tags.length > 0 && (
-              <div className="flex items-center gap-1">
-                {deal.tags.slice(0, 2).map((tag: any, i: number) => (
-                  <TagBadge key={i} tag={tag} className="text-[9px] px-1.5 py-0.5" />
-                ))}
-                {deal.tags.length > 2 && (
-                  <span className="text-[9px] text-muted-foreground">+{deal.tags.length - 2}</span>
-                )}
-              </div>
-            )}
-
             {/* Tag button */}
             {onTagClick && (
               <button

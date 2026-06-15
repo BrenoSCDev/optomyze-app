@@ -1,12 +1,18 @@
 /**
  * PRODUCT CARD COMPONENT
- * 
+ *
  * Displays a single product in a card format with actions and primary image
  */
 
 import { useState, useEffect } from 'react';
-import { Package, Briefcase, Edit, Trash2, Settings2, Star, Archive, ArchiveRestore } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Package, Briefcase, Pencil, Trash2, Star, Archive, ArchiveRestore, MoreVertical } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
 import { getProductImages, getPrimaryImageUrl } from '@/services/productImageApi';
@@ -28,21 +34,23 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
   const [loadingImage, setLoadingImage] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchPrimaryImage = async () => {
       try {
         setLoadingImage(true);
         const images = await getProductImages(product.id);
         const url = getPrimaryImageUrl(images);
-        setPrimaryImageUrl(url !== '/placeholder.svg' ? url : null);
-      } catch (error) {
-        // Silently fail - will show icon instead
-        setPrimaryImageUrl(null);
+        if (!cancelled) setPrimaryImageUrl(url !== '/placeholder.svg' ? url : null);
+      } catch {
+        if (!cancelled) setPrimaryImageUrl(null);
       } finally {
-        setLoadingImage(false);
+        if (!cancelled) setLoadingImage(false);
       }
     };
 
     fetchPrimaryImage();
+    return () => { cancelled = true; };
   }, [product.id]);
 
   const formatPrice = (price: number) => {
@@ -52,162 +60,136 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
     });
   };
 
-  return (
-    <div className="glass-card p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative">
-      {/* Favorite star */}
-      {onToggleFavorite && (
-        <button
-          onClick={() => onToggleFavorite(product)}
-          className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-muted/50 transition-colors"
-          title={product.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <Star
-            className={`h-4 w-4 transition-colors ${
-              product.is_favorite ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'
-            }`}
-          />
-        </button>
-      )}
+  const TypeIcon = product.type === 'service' ? Briefcase : Package;
 
-      {/* Product Image or Icon */}
-      <div className="flex items-center justify-center w-full aspect-square max-h-32 mx-auto mb-4 rounded-lg bg-muted/30 overflow-hidden">
-      {loadingImage ? (
-          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+  return (
+    <div className="group rounded-xl border border-border bg-card text-card-foreground transition-colors hover:border-foreground/20">
+      {/* Image */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-muted/40">
+        {loadingImage ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          </div>
         ) : primaryImageUrl ? (
           <PrivateImage
             path={primaryImageUrl}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
             loading="lazy"
           />
-        ) : product.type === 'service' ? (
-          <Briefcase className="w-12 h-12 text-primary" />
         ) : (
-          <Package className="w-12 h-12 text-primary" />
+          <div className="flex h-full items-center justify-center">
+            <TypeIcon className="h-10 w-10 text-muted-foreground/40" />
+          </div>
         )}
+
+        {product.is_archived && (
+          <span className="absolute left-2 top-2 rounded-md border border-border bg-background/90 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {t('products.archived')}
+          </span>
+        )}
+
+        {/* Quick actions */}
+        <div className="absolute right-2 top-2 flex items-center gap-1">
+          {onToggleFavorite && (
+            <button
+              onClick={() => onToggleFavorite(product)}
+              className="rounded-md border border-border bg-background/90 p-1.5 transition-colors hover:bg-background"
+              title={product.is_favorite ? t('products.remove-favorite') : t('products.add-favorite')}
+            >
+              <Star className={`h-3.5 w-3.5 ${product.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+            </button>
+          )}
+          {!product.is_archived && (
+            <button
+              onClick={() => onEdit(product)}
+              className="rounded-md border border-border bg-background/90 p-1.5 transition-colors hover:bg-background"
+              title={t('products.edit')}
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-md border border-border bg-background/90 p-1.5 transition-colors hover:bg-background"
+                title={t('products.more-options')}
+              >
+                <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {!product.is_archived && onArchive && (
+                <DropdownMenuItem onClick={() => onArchive(product)}>
+                  <Archive className="mr-2 h-4 w-4" />
+                  {t('products.archive')}
+                </DropdownMenuItem>
+              )}
+              {product.is_archived && onUnarchive && (
+                <DropdownMenuItem onClick={() => onUnarchive(product)}>
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  {t('products.unarchive')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => onDelete(product)} className="text-destructive focus:text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t('products.delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Product Name & SKU */}
-      <h3 className="text-lg font-semibold text-foreground text-center mb-1 truncate">
-        {product.name}
-      </h3>
-      <p className="text-muted-foreground text-sm text-center mb-3">
-        SKU: {product.sku}
-      </p>
-
-      {/* Product Description */}
-      <p className="text-muted-foreground text-sm text-center mb-4 line-clamp-2 min-h-[40px]">
-        {product.description || t('products.no-description')}
-      </p>
-
-      {/* Price & Type */}
-      <div className="flex items-center justify-between mb-4 pb-4 border-b border-border/50">
-        <div>
-          <p className="text-xs text-muted-foreground">{t('products.price')}</p>
-          <p className="text-lg font-bold text-green-400">
-            ${formatPrice(product.base_price)}
+      {/* Content */}
+      <div className="space-y-3 p-4">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-foreground truncate">
+            {product.name}
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {product.sku}
+            <span className="mx-1.5">·</span>
+            {product.type === 'service' ? t('products.type-service') : t('products.type-product')}
           </p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          product.type === 'service' 
-            ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30' 
-            : 'bg-primary/20 text-primary border border-primary/30'
-        }`}>
-          {product.type === 'service' ? t('products.type-service') : t('products.type-product')}
-        </span>
-      </div>
 
-      {/* Status */}
-      <div className="flex items-center justify-end mb-3">
-        <span className={`px-2 py-1 rounded text-xs font-medium ${
-          product.is_active
-            ? 'bg-green-600/20 text-green-400'
-            : 'bg-red-600/20 text-red-400'
-        }`}>
-          {product.is_active ? t('products.active') : t('products.inactive')}
-        </span>
-      </div>
+        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5em]">
+          {product.description || t('products.no-description')}
+        </p>
 
-      {/* Categories */}
-      {product.categories && product.categories.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {product.categories.map((cat) => (
-            <span
-              key={cat.id}
-              className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
-              style={{ backgroundColor: cat.color ?? '#6366f1' }}
-            >
-              {cat.name}
-            </span>
-          ))}
+        {product.categories && product.categories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {product.categories.slice(0, 2).map((cat) => (
+              <span
+                key={cat.id}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground"
+              >
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cat.color ?? '#6366f1' }} />
+                {cat.name}
+              </span>
+            ))}
+            {product.categories.length > 2 && (
+              <span className="text-xs text-muted-foreground">+{product.categories.length - 2}</span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+          <p className="text-base font-semibold text-foreground">
+            ${formatPrice(product.base_price)}
+          </p>
+          {!product.is_archived && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {product.is_active ? t('products.active') : t('products.inactive')}
+              </span>
+              <Switch
+                checked={product.is_active}
+                onCheckedChange={() => onToggleActive(product)}
+              />
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Custom Fields Count */}
-      <div className="flex items-center gap-2 mb-4 py-2 px-3 bg-muted/20 rounded-lg">
-        <Settings2 className="w-4 h-4 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">
-          {t('products.custom-fields.count')}: {product.fields?.length || 0}
-        </span>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center gap-2">
-        {!product.is_archived && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onToggleActive(product)}
-            className={`flex-1 text-xs ${
-              product.is_active
-                ? 'border-red-600/30 text-red-400 hover:bg-red-600/20'
-                : 'border-green-600/30 text-green-400 hover:bg-green-600/20'
-            }`}
-          >
-            {product.is_active ? t('products.deactivate') : t('products.activate')}
-          </Button>
-        )}
-        {product.is_archived && onUnarchive && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onUnarchive(product)}
-            className="flex-1 text-xs border-green-600/30 text-green-400 hover:bg-green-600/20"
-          >
-            Unarchive
-          </Button>
-        )}
-        {!product.is_archived && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onEdit(product)}
-            className="border-primary/30 text-primary hover:bg-primary/20"
-            title={t('products.edit')}
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-        )}
-        {!product.is_archived && onArchive && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onArchive(product)}
-            className="border-orange-600/30 text-orange-400 hover:bg-orange-600/20"
-            title="Archive product"
-          >
-            <Archive className="w-4 h-4" />
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onDelete(product)}
-          className="border-red-600/30 text-red-400 hover:bg-red-600/20"
-          title={t('products.delete')}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
       </div>
     </div>
   );

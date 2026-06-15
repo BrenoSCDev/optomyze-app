@@ -19,6 +19,7 @@ import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMenuOrder } from '@/contexts/MenuOrderContext';
+import { formatPhoneNumber } from '@/lib/phone';
 import { profileService } from '@/services/profileApi';
 import optomyzeLogo from '@/assets/user-banner.jpeg';
 
@@ -551,7 +552,7 @@ const Profile = () => {
                         <Label htmlFor="phone">{t('profile.phone')}</Label>
                         <Input
                           id="phone"
-                          value={editData.phone}
+                          value={isEditing ? editData.phone : formatPhoneNumber(editData.phone)}
                           onChange={(e) => setEditData({...editData, phone: e.target.value})}
                           disabled={!isEditing}
                           className={!isEditing ? "bg-muted" : ""}

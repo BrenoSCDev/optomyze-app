@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/phone';
 import { InboxChannel } from '@/types/inbox';
 import ChannelIcon from './ChannelIcon';
 
@@ -74,7 +75,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
             <div className="flex items-center gap-1">
               <Phone className={cn("h-3 w-3", isOutgoing ? "text-blue-100" : "text-muted-foreground")} />
               <span className={cn("text-xs", isOutgoing ? "text-blue-100" : "text-muted-foreground")}>
-                {contact.contactPhone}
+                {formatPhoneNumber(contact.contactPhone)}
               </span>
             </div>
           </div>
@@ -116,7 +117,7 @@ const SingleContactCard: React.FC<SingleContactCardProps> = ({ contact, isOutgoi
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">{t('chat.inbox.contact-phone')}</Label>
-                <Input value={contact.contactPhone} readOnly className="bg-muted/50" />
+                <Input value={formatPhoneNumber(contact.contactPhone)} readOnly className="bg-muted/50" />
               </div>
             </div>
 

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Trash2, Pencil } from 'lucide-react';
 import { User } from '@/types/user';
+import { formatPhoneNumber } from '@/lib/phone';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import { useOnlinePresence } from '@/contexts/PresenceContext';
@@ -79,7 +80,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
               </TableCell>
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell className="text-muted-foreground">{user.email}</TableCell>
-              <TableCell className="text-muted-foreground">{user.phone}</TableCell>
+              <TableCell className="text-muted-foreground">{user.phone ? formatPhoneNumber(user.phone) : ''}</TableCell>
               <TableCell>
                 <Badge
                   variant="outline"

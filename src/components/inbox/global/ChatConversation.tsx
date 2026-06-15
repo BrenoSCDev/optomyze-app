@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/phone';
 import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
@@ -229,6 +230,8 @@ interface ChatConversationProps {
   onBack?: () => void;
   showBackButton?: boolean;
   onMessageSent?: (message: InboxMessage) => void;
+  /** Hide the "open lead preview" link/modal - useful when already embedded in that lead's own page. */
+  hideLeadPreview?: boolean;
 }
 
 interface PendingMessage {
@@ -242,7 +245,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   chat,
   onBack,
   showBackButton = false,
-  onMessageSent
+  onMessageSent,
+  hideLeadPreview = false
 }) => {
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
@@ -673,7 +677,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
           )}
           <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName()} channel={chat.channel} />
           <div className="flex-1 min-w-0">
-            {chat.lead?.id ? (
+            {chat.lead?.id && !hideLeadPreview ? (
               <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left max-w-full">
                 {getLeadName()}
               </button>
@@ -682,7 +686,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             )}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
               <Phone className="h-3 w-3 shrink-0" />
-              <span className="truncate">{chat.external_contact_id}</span>
+              <span className="truncate">{chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id}</span>
               {/* Badges inline on mobile to save vertical space */}
               {chat.lead?.funnel && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 hidden sm:inline-flex">
@@ -1179,11 +1183,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       </AnimatePresence>
 
       {/* Lead Preview Modal */}
-      <LeadPreviewModal
-        isOpen={leadPreviewOpen}
-        onClose={() => setLeadPreviewOpen(false)}
-        leadId={chat?.lead?.id ? String(chat.lead.id) : null}
-      />
+      {!hideLeadPreview && (
+        <LeadPreviewModal
+          isOpen={leadPreviewOpen}
+          onClose={() => setLeadPreviewOpen(false)}
+          leadId={chat?.lead?.id ? String(chat.lead.id) : null}
+        />
+      )}
 
       {/* Clear Messages Confirmation */}
       <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>

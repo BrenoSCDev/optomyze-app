@@ -28,7 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ddiOptions, phoneMasks, splitPhoneNumber, combinePhoneNumber } from '@/lib/phone';
+import { ddiOptions, phoneMasks, splitPhoneNumber, combinePhoneNumber, DEFAULT_DDI } from '@/lib/phone';
 
 interface LeadTag {
   id: number;
@@ -101,7 +101,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
     last_name: '',
     email: '',
     phone: '',
-    ddi: '+55',
+    ddi: DEFAULT_DDI,
     source_platform: 'Direct',
     value_estimated: '',
     currency: 'USD',
@@ -285,7 +285,7 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                           <SelectContent>
                             {ddiOptions.map((option, index) => (
                               <SelectItem key={index} value={option.value}>
-                                {option.flag} {option.value} ({option.country})
+                                {option.flag} {option.label} ({option.country})
                               </SelectItem>
                             ))}
                           </SelectContent>

@@ -22,6 +22,7 @@ import { UserPlus, RefreshCw, ShieldCheck, Users, UserCog } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { User, UserFilters, ViewMode } from '@/types/user';
 import { userApi } from '@/services/userApi';
+import { formatPhoneNumber } from '@/lib/phone';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -270,7 +271,7 @@ const ManageUsers = () => {
       ...filteredUsers.map(user => [
         user.name,
         user.email,
-        user.phone,
+        user.phone ? formatPhoneNumber(user.phone) : '',
         user.role,
         user.is_active ? 'Active' : 'Inactive',
         user.last_login_at || 'Never',

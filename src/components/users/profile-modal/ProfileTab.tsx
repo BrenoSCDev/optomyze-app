@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Calendar, Users as UsersIcon, Circle } from 'lucide-react';
 import { User } from '@/types/user';
 import { format } from 'date-fns';
+import { formatPhoneNumber } from '@/lib/phone';
 
 interface ProfileTabProps {
   user: User;
@@ -30,7 +31,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
         {user.phone && (
           <div className="flex items-center gap-2.5 text-sm">
             <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-foreground">{user.phone}</span>
+            <span className="text-foreground">{formatPhoneNumber(user.phone)}</span>
           </div>
         )}
 

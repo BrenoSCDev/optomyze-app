@@ -1,10 +1,10 @@
 /**
  * TAGS DASHBOARD COMPONENT
- * 
+ *
  * Settings page for managing company tags with card grid layout and tag creation
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -14,7 +14,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -53,6 +52,151 @@ interface TagData {
   updated_at: string;
 }
 
+// Skeleton placeholder shown while tags are loading. Defined at module scope so it
+// keeps a stable component identity across TagsDashboard re-renders (a component
+// re-declared inside another component's body is a *new type* on every render,
+// which forces React to unmount/remount every instance instead of reusing it).
+const SkeletonCard = () => (
+  <div className="glass-card p-6 rounded-lg">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3 flex-1">
+        <Skeleton className="h-12 w-12 rounded-lg" />
+        <div className="space-y-2 flex-1">
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      </div>
+      <Skeleton className="h-8 w-8 rounded" />
+    </div>
+  </div>
+);
+
+// Empty state shown when the company has no tags yet. Defined at module scope for
+// the same stable-identity reason as SkeletonCard above.
+const EmptyState = ({ onCreateNew }: { onCreateNew: () => void }) => {
+  const { t } = useLanguage();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center py-12"
+    >
+      <div className="p-3 rounded-lg bg-muted/20 w-fit mx-auto mb-4">
+        <Tag className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold text-foreground mb-2">
+        {t('tags.no-tags')}
+      </h3>
+      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+        {t('tags.no-tags-description')}
+      </p>
+      <Button
+        className="neon-border"
+        onClick={onCreateNew}
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        {t('tags.create-first')}
+      </Button>
+    </motion.div>
+  );
+};
+
+interface TagCardProps {
+  tag: TagData;
+  isDeleting: boolean;
+  onEdit: (tag: TagData) => void;
+  onDelete: (tagId: number) => void;
+}
+
+// A single tag card. Defined at module scope (not inside TagsDashboard) and wrapped
+// in React.memo so it only re-renders when its own tag data or delete state actually
+// changes - typing in a dialog or toggling unrelated state in the parent no longer
+// causes every card in the grid to unmount/remount and replay its enter animation.
+const TagCard = memo(({ tag, isDeleting, onEdit, onDelete }: TagCardProps) => {
+  const { t } = useLanguage();
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="glass-card p-6 rounded-lg group hover:scale-[1.02] transition-all duration-300 neon-border"
+    >
+      <div className="flex items-center justify-between">
+        {/* Left Section - Tag Info */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div
+            className="p-3 rounded-lg transition-colors"
+            style={{
+              backgroundColor: `${tag.color || DEFAULT_TAG_COLOR}26`,
+              color: tag.color || DEFAULT_TAG_COLOR,
+            }}
+          >
+            <Tag className="h-6 w-6" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-foreground mb-1 truncate">
+              {tag.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t('tags.created')} {new Date(tag.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Section - Actions */}
+        <div className="flex items-center gap-2 ml-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            onClick={() => onEdit(tag)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="glass-card">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-foreground">{t('tags.delete')}</AlertDialogTitle>
+                <AlertDialogDescription className="text-muted-foreground">
+                  {t('tags.delete-confirm')} '{tag.name}'? {t('tags.delete-warning')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-muted/20 border-muted/30 hover:bg-muted/30">
+                  {t('common.cancel')}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(tag.id)}
+                  className="bg-red-500 text-white hover:bg-red-600 border-red-500"
+                >
+                  {t('common.delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+TagCard.displayName = 'TagCard';
+
 const TagsDashboard = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -63,7 +207,6 @@ const TagsDashboard = () => {
   const [deletingTagId, setDeletingTagId] = useState<number | null>(null);
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<TagData | null>(null);
-  const [selectedTag, setSelectedTag] = useState<TagData | null>(null);
   const newTagNameRef = useRef<HTMLInputElement>(null);
   const editTagNameRef = useRef<HTMLInputElement>(null);
 
@@ -256,131 +399,6 @@ const TagsDashboard = () => {
     });
   };
 
-  // Skeleton Card Component
-  const SkeletonCard = () => (
-    <div className="glass-card p-6 rounded-lg">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1">
-          <Skeleton className="h-12 w-12 rounded-lg" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        </div>
-        <Skeleton className="h-8 w-8 rounded" />
-      </div>
-    </div>
-  );
-
-  // Empty State Component
-  const EmptyState = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="text-center py-12"
-    >
-      <div className="p-3 rounded-lg bg-muted/20 w-fit mx-auto mb-4">
-        <Tag className="h-8 w-8 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold text-foreground mb-2">
-        {t('tags.no-tags')}
-      </h3>
-      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-        {t('tags.no-tags-description')}
-      </p>
-      <Button 
-        className="neon-border"
-        onClick={() => setShowNewTagModal(true)}
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        {t('tags.create-first')}
-      </Button>
-    </motion.div>
-  );
-
-  // Tag Card Component
-  const TagCard = ({ tag }: { tag: TagData }) => (
-    <motion.div
-      layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="glass-card p-6 rounded-lg group hover:scale-[1.02] transition-all duration-300 neon-border"
-    >
-      <div className="flex items-center justify-between">
-        {/* Left Section - Tag Info */}
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div
-            className="p-3 rounded-lg transition-colors"
-            style={{
-              backgroundColor: `${tag.color || DEFAULT_TAG_COLOR}26`,
-              color: tag.color || DEFAULT_TAG_COLOR,
-            }}
-          >
-            <Tag className="h-6 w-6" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-1 truncate">
-              {tag.name}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {t('tags.created')} {new Date(tag.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-
-        {/* Right Section - Actions */}
-        <div className="flex items-center gap-2 ml-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent/50"
-            onClick={() => openEditTag(tag)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
-                disabled={deletingTagId === tag.id}
-                onClick={() => setSelectedTag(tag)}
-              >
-                {deletingTagId === tag.id ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="glass-card">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-foreground">{t('tags.delete')}</AlertDialogTitle>
-                <AlertDialogDescription className="text-muted-foreground">
-                  {t('tags.delete-confirm')} '{tag.name}'? {t('tags.delete-warning')}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-muted/20 border-muted/30 hover:bg-muted/30">
-                  {t('common.cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteTag(tag.id)}
-                  className="bg-red-500 text-white hover:bg-red-600 border-red-500"
-                >
-                  {t('common.delete')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
-    </motion.div>
-  );
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -393,7 +411,7 @@ const TagsDashboard = () => {
             {t('tags.breadcrumb')}
           </nav>
         </div>
-        
+
         <Dialog open={showNewTagModal} onOpenChange={setShowNewTagModal}>
           <DialogTrigger asChild>
             <Button className="neon-border w-full sm:w-auto shrink-0" size="lg">
@@ -490,12 +508,18 @@ const TagsDashboard = () => {
           ))}
         </div>
       ) : tags.length === 0 ? (
-        <EmptyState />
+        <EmptyState onCreateNew={() => setShowNewTagModal(true)} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {tags.map((tag) => (
-              <TagCard key={tag.id} tag={tag} />
+              <TagCard
+                key={tag.id}
+                tag={tag}
+                isDeleting={deletingTagId === tag.id}
+                onEdit={openEditTag}
+                onDelete={deleteTag}
+              />
             ))}
           </AnimatePresence>
         </div>

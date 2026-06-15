@@ -159,6 +159,38 @@
     background-attachment: fixed;
   }
 
+  /* ============================================================
+     GLOBAL SCROLLBAR SYSTEM
+     Theme-aware (light/dark) thin scrollbar applied automatically to
+     every scrollable element - modals, sidebars, dropdowns, tables,
+     chat panels, settings pages, etc. No utility class required.
+     Component-specific .scrollbar-* classes below remain available
+     for accent-colored variants and take precedence via specificity.
+     ============================================================ */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+
   /* Custom Scrollbar Styling */
   .scrollbar-thin {
     scrollbar-width: thin;

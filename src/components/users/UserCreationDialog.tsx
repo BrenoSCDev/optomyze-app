@@ -178,7 +178,7 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
                 <SelectContent>
                   {ddiOptions.map((option, index) => (
                     <SelectItem key={index} value={option.value}>
-                      {option.flag} {option.value}
+                      {option.flag} {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

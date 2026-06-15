@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatPhoneNumber } from '@/lib/phone';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -297,7 +298,7 @@ const FunnelTableView = ({
                               </div>
                               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                 <Phone className="h-3 w-3 flex-shrink-0" />
-                                <span>{lead.phone || '—'}</span>
+                                <span>{lead.phone ? formatPhoneNumber(lead.phone) : '—'}</span>
                               </div>
                             </div>
                           </TableCell>

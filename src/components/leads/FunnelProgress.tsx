@@ -1,14 +1,14 @@
 /**
  * FUNNEL PROGRESS COMPONENT
- * 
+ *
  * Displays the lead's current position in the sales funnel
- * with a visual progress indicator
+ * with a visual, interactive progress indicator. Clicking a stage
+ * triggers a real stage transition (subject to entry requirements).
  */
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
 interface FunnelStage {
   id: number;
@@ -33,9 +33,11 @@ interface Stage {
 
 interface FunnelProgressProps {
   stage: Stage | null | undefined;
+  onStageClick?: (stage: FunnelStage) => void;
+  movingStageId?: number | null;
 }
 
-const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
+const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage, onStageClick, movingStageId }) => {
   const { t } = useLanguage();
 
   if (!stage?.funnel?.stages || stage.funnel.stages.length === 0) {
@@ -52,6 +54,8 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
   // For N stages, each stage represents (100 / N)% of the bar
   // Current progress = (currentStageIndex + 1) / totalStages * 100
   const progressPercentage = ((currentStageIndex + 1) / totalStages) * 100;
+
+  const isMoving = !!movingStageId;
 
   return (
     <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-4 mb-4">
@@ -83,23 +87,32 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
         {stages.map((s, index) => {
           const isCompleted = index < currentStageIndex;
           const isCurrent = index === currentStageIndex;
-          
+          const isClickable = !!onStageClick && !isCurrent && !isMoving;
+
           return (
-            <div 
-              key={s.id} 
-              className="flex flex-col items-center flex-1"
-              title={s.name}
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => isClickable && onStageClick?.(s)}
+              disabled={!onStageClick || isCurrent || isMoving}
+              title={isCurrent ? s.name : `${t('lead-details.move-to-stage')} ${s.name}`}
+              className={`flex flex-col items-center flex-1 bg-transparent border-0 p-0 ${
+                isClickable ? 'cursor-pointer' : isMoving ? 'cursor-wait' : 'cursor-default'
+              } ${isMoving && movingStageId !== s.id ? 'opacity-50' : ''}`}
             >
               <div className={`
                 w-5 h-5 rounded-full flex items-center justify-center transition-all
-                ${isCompleted 
-                  ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
-                  : isCurrent 
-                    ? 'bg-primary/20 text-primary ring-2 ring-primary/30' 
+                ${isCompleted
+                  ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                  : isCurrent
+                    ? 'bg-primary/20 text-primary ring-2 ring-primary/30'
                     : 'bg-muted text-muted-foreground'
                 }
+                ${isClickable ? 'hover:ring-2 hover:ring-primary/40 hover:scale-110' : ''}
               `}>
-                {isCompleted ? (
+                {movingStageId === s.id ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : isCompleted ? (
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 ) : (
                   <Circle className={`w-2.5 h-2.5 ${isCurrent ? 'fill-primary' : ''}`} />
@@ -108,10 +121,11 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage }) => {
               <span className={`
                 text-[10px] mt-1 truncate max-w-[70px] text-center
                 ${isCurrent ? 'text-primary font-medium' : isCompleted ? 'text-muted-foreground' : 'text-muted-foreground/70'}
+                ${isClickable ? 'group-hover:text-primary' : ''}
               `}>
                 {s.name}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

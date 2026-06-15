@@ -9,18 +9,26 @@
  * - Lead cards use useDraggable (not useSortable) to avoid mixed droppable conflicts
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCurrency } from '@/hooks/useCurrency';
 import { KanbanColumn as ColumnType } from '@/types/leads';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import LeadCard from './LeadCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
+import {
+  Plus,
   MoreVertical,
   Users,
+  ArrowDownNarrowWide,
+  ArrowUpNarrowWide,
+  Check,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   useDroppable,
 } from '@dnd-kit/core';
@@ -45,11 +53,21 @@ interface KanbanColumnProps {
 
 const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'default' | 'oldest' | 'newest'>('default');
   const { currencyCode: companyCurrency } = useCurrency();
-  
+
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
   });
+
+  const sortedLeads = useMemo(() => {
+    if (sortOrder === 'default') return column.leads;
+    return [...column.leads].sort((a: any, b: any) => {
+      const aTime = new Date(a.createdAt || 0).getTime();
+      const bTime = new Date(b.createdAt || 0).getTime();
+      return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime;
+    });
+  }, [column.leads, sortOrder]);
 
   const getColumnColor = () => {
     if (column.color === 'green') return 'border-green-500/30 bg-green-500/5';
@@ -85,39 +103,50 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground">{column.title}</h3>
-            <Badge
-              variant="secondary"
-              className="bg-muted/50 text-muted-foreground"
-            >
-              {column.leads.length}
-            </Badge>
+            <span className="text-sm font-medium text-muted-foreground">{column.leads.length}</span>
           </div>
-            
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-primary/10"
-                onClick={() => onAddLead(column.id)}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-primary/10"
-              >
-              <MoreVertical className="h-4 w-4" />
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-primary/10"
+              onClick={() => onAddLead(column.id)}
+            >
+              <Plus className="h-4 w-4" />
             </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-primary/10"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background border-border">
+                <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
+                  <ArrowDownNarrowWide className="h-4 w-4 mr-2" />
+                  Newest first
+                  {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
+                  <ArrowUpNarrowWide className="h-4 w-4 mr-2" />
+                  Oldest first
+                  {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-        
+
         {/* Stage Estimated Value */}
         {showEstimatedValues && stageValueEstimated !== undefined && stageValueEstimated > 0 && (
-          <Badge className="text-xs font-medium w-fit">
+          <p className="text-xs font-semibold text-foreground/80 w-fit">
             {new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(stageValueEstimated)}
-          </Badge>
+          </p>
         )}
       </div>
 
@@ -139,7 +168,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
         )}
         
         <AnimatePresence>
-          {column.leads.map((lead) => (
+          {sortedLeads.map((lead) => (
             <motion.div
               key={lead.id}
               initial={{ opacity: 0, scale: 0.8 }}

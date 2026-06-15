@@ -4,12 +4,17 @@
  * Teal-accented drop target column for the Deal Kanban board.
  */
 
-import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import DealCard from './DealCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MoreVertical, Package } from 'lucide-react';
+import { Plus, MoreVertical, Package, ArrowDownNarrowWide, ArrowUpNarrowWide, Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useDroppable } from '@dnd-kit/core';
 import { useCurrency } from '@/hooks/useCurrency';
 
@@ -27,6 +32,7 @@ interface DealKanbanColumnProps {
 
 const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'default' | 'oldest' | 'newest'>('default');
   const { currencyCode: companyCurrency } = useCurrency();
 
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
@@ -37,6 +43,15 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  const sortedDeals = useMemo(() => {
+    if (sortOrder === 'default') return column.deals;
+    return [...column.deals].sort((a: any, b: any) => {
+      const aTime = new Date(a.created_at || 0).getTime();
+      const bTime = new Date(b.created_at || 0).getTime();
+      return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime;
+    });
+  }, [column.deals, sortOrder]);
 
   return (
     <motion.div
@@ -63,25 +78,39 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
-            <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 text-xs">
-              {column.deals.length}
-            </Badge>
+            <span className="text-xs font-medium text-muted-foreground">{column.deals.length}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal" onClick={() => onAddDeal(column.id)}>
               <Plus className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal">
-              <MoreVertical className="h-3.5 w-3.5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background border-border">
+                <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
+                  <ArrowDownNarrowWide className="h-4 w-4 mr-2" />
+                  Newest first
+                  {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
+                  <ArrowUpNarrowWide className="h-4 w-4 mr-2" />
+                  Oldest first
+                  {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         {/* Stage Total Value */}
         {column.totalValue > 0 && (
-          <Badge className="text-xs font-medium w-fit bg-deal/15 text-deal border-deal/30">
+          <p className="text-xs font-semibold text-deal w-fit">
             {formatCurrency(column.totalValue, companyCurrency)}
-          </Badge>
+          </p>
         )}
       </div>
 
@@ -101,7 +130,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
         )}
 
         <AnimatePresence>
-          {column.deals.map((deal: any) => (
+          {sortedDeals.map((deal: any) => (
             <motion.div
               key={deal.id}
               initial={{ opacity: 0, scale: 0.8 }}

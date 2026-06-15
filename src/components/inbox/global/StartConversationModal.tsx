@@ -26,6 +26,7 @@ import {
 } from '@/services/globalInboxApi';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/phone';
 import ChannelIcon from './ChannelIcon';
 
 interface StartConversationModalProps {
@@ -169,7 +170,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
                       {lead.phone && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Phone className="h-3 w-3" />
-                          {lead.phone}
+                          {formatPhoneNumber(lead.phone)}
                         </p>
                       )}
                     </div>
@@ -184,7 +185,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
                 <div className="w-2 h-2 rounded-full bg-green-500" />
                 <span>{selectedLead.first_name} {selectedLead.last_name}</span>
                 {selectedLead.phone && (
-                  <span className="text-muted-foreground">· {selectedLead.phone}</span>
+                  <span className="text-muted-foreground">· {formatPhoneNumber(selectedLead.phone)}</span>
                 )}
               </div>
             )}

@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/phone';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import InboxAvatar from './InboxAvatar';
 
@@ -68,7 +69,8 @@ const ChatList: React.FC<ChatListProps> = ({
     if (chat.lead?.first_name || chat.lead?.last_name) {
       return `${chat.lead.first_name || ''} ${chat.lead.last_name || ''}`.trim();
     }
-    return chat.contact_name || chat.external_contact_id;
+    if (chat.contact_name) return chat.contact_name;
+    return chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id;
   };
 
   const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {

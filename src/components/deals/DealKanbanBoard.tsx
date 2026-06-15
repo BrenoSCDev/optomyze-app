@@ -15,7 +15,6 @@ import { useDealDisplaySettings } from '@/hooks/useDealDisplaySettings';
 import { exportDealFunnelToExcel, prepareDealFunnelExportData } from '@/utils/dealFunnelExport';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import DealKanbanColumn from './DealKanbanColumn';
 import DealTableView from './DealTableView';
 import DealCard from './DealCard';
@@ -39,6 +38,7 @@ import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import { MdCurrencyExchange } from 'react-icons/md';
 
 interface DealKanbanBoardProps {
   funnel: any;
@@ -281,35 +281,21 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-2">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-muted-foreground hover:text-foreground">Dashboard</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-foreground font-medium">{funnel.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
 
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
-            <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 px-3 py-1">
-              {totalDeals} {totalDeals === 1 ? 'Deal' : 'Deals'}
-            </Badge>
-          </div>
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground">{funnel.name}</h1>
 
-          {/* Description & Total Sales Value KPI */}
-          {funnel.description && (
-            <p className="text-sm text-muted-foreground">{funnel.description}</p>
-          )}
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-muted-foreground">Total Sales Value:</span>
-            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 px-3 text-sm font-semibold flex items-center gap-1">
-              <DollarSign className="h-3.5 w-3.5" />
-              {formatCurrency(totalSalesValue)}
-            </Badge>
+          {/* Funnel Stats */}
+          <div className="flex items-center gap-4 flex-wrap text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MdCurrencyExchange className="h-4 w-4" />
+              <span className="font-semibold text-foreground">{totalDeals}</span>
+              <span>{t('funnel.page.total-deals')}</span>
+            </div>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="font-semibold text-foreground">{formatCurrency(totalSalesValue)}</span>
+              <span>{t('funnel.page.total-sales-value')}</span>
+            </div>
           </div>
         </div>
 
@@ -378,7 +364,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
             onClick={() => setTagDialogOpen(true)}
           >
             <Tags className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Create Tag</span>
+            <span className="hidden sm:inline">{t('funnel.page.create-tag')}</span>
           </Button>
 
           <Button
@@ -407,7 +393,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
             className="bg-gradient-deal hover:opacity-90 text-white font-medium"
           >
             <Plus className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Create Deal</span>
+            <span className="hidden sm:inline">{t('sale.create-deal')}</span>
           </Button>
         </div>
       </div>

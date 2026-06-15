@@ -599,7 +599,7 @@ const FunnelsDashboard = () => {
               <FunnelCard
                 key={funnel.id}
                 funnel={funnel}
-                onView={(f) => navigate(`/leads/${f.id}`)}
+                onView={(f) => navigate(f.type === 'deal' ? `/deals/${f.id}` : `/leads/${f.id}`)}
                 onManageStages={(f) => setStagesModalFunnelId(f.id.toString())}
                 onEdit={openEditModal}
                 onDeleteRequest={setDeleteTarget}
