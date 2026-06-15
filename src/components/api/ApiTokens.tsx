@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info, Lock, Eye, RotateCcw, Ban, FileText, Building2 } from 'lucide-react';
+import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info, Lock, Eye, RotateCcw, Ban, FileText, Building2, Globe, Pencil } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,10 +19,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
+import { allowedOriginsApi, type AllowedOrigin } from '@/services/allowedOriginsApi';
 
 interface ApiToken {
   id: string;
@@ -30,6 +32,8 @@ interface ApiToken {
   created_at: string;
   expires_at?: string | null;
   token?: string;
+  allowed_origins?: AllowedOrigin[];
+  rate_limit_per_minute?: number | null;
 }
 
 const ApiTokens = () => {
@@ -40,13 +44,21 @@ const ApiTokens = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTokenName, setNewTokenName] = useState('');
   const [newTokenExpiresAt, setNewTokenExpiresAt] = useState('');
+  const [newTokenOriginIds, setNewTokenOriginIds] = useState<number[]>([]);
+  const [newTokenRateLimit, setNewTokenRateLimit] = useState('');
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [allowedOrigins, setAllowedOrigins] = useState<AllowedOrigin[]>([]);
+  const [editingToken, setEditingToken] = useState<ApiToken | null>(null);
+  const [editTokenOriginIds, setEditTokenOriginIds] = useState<number[]>([]);
+  const [editTokenRateLimit, setEditTokenRateLimit] = useState('');
+  const [savingOrigins, setSavingOrigins] = useState(false);
 
-  // Fetch tokens on component mount
+  // Fetch tokens and allowed origins on component mount
   useEffect(() => {
     fetchTokens();
+    fetchAllowedOrigins();
   }, []);
 
   const fetchTokens = async () => {
@@ -65,6 +77,21 @@ const ApiTokens = () => {
     }
   };
 
+  const fetchAllowedOrigins = async () => {
+    try {
+      const data = await allowedOriginsApi.getAll();
+      setAllowedOrigins(data);
+    } catch (error) {
+      // Allowed origins are optional context for this page; fail silently.
+    }
+  };
+
+  const toggleNewTokenOrigin = (originId: number) => {
+    setNewTokenOriginIds(prev =>
+      prev.includes(originId) ? prev.filter(id => id !== originId) : [...prev, originId]
+    );
+  };
+
   const generateToken = async () => {
     if (!newTokenName.trim()) {
       toast({
@@ -79,6 +106,8 @@ const ApiTokens = () => {
       const response = await api.post('/api/tokens', {
         name: newTokenName,
         expires_at: newTokenExpiresAt ? new Date(newTokenExpiresAt).toISOString() : null,
+        allowed_origin_ids: newTokenOriginIds,
+        rate_limit_per_minute: newTokenRateLimit.trim() ? Number(newTokenRateLimit) : null,
       });
       const newToken = response.data;
 
@@ -86,6 +115,8 @@ const ApiTokens = () => {
       setGeneratedToken(newToken.token);
       setNewTokenName('');
       setNewTokenExpiresAt('');
+      setNewTokenOriginIds([]);
+      setNewTokenRateLimit('');
 
       toast({
         title: t('common.success'),
@@ -97,6 +128,47 @@ const ApiTokens = () => {
         description: t('api.tokens.generate-error'),
         variant: "destructive",
       });
+    }
+  };
+
+  const openEditOrigins = (token: ApiToken) => {
+    setEditingToken(token);
+    setEditTokenOriginIds((token.allowed_origins || []).map(o => o.id));
+    setEditTokenRateLimit(token.rate_limit_per_minute != null ? String(token.rate_limit_per_minute) : '');
+  };
+
+  const toggleEditTokenOrigin = (originId: number) => {
+    setEditTokenOriginIds(prev =>
+      prev.includes(originId) ? prev.filter(id => id !== originId) : [...prev, originId]
+    );
+  };
+
+  const saveTokenOrigins = async () => {
+    if (!editingToken) return;
+
+    setSavingOrigins(true);
+    try {
+      const response = await api.put(`/api/tokens/${editingToken.id}`, {
+        allowed_origin_ids: editTokenOriginIds,
+        rate_limit_per_minute: editTokenRateLimit.trim() ? Number(editTokenRateLimit) : null,
+      });
+      const updated = response.data;
+
+      setTokens(prev => prev.map(token => (token.id === editingToken.id ? { ...token, ...updated } : token)));
+      setEditingToken(null);
+
+      toast({
+        title: t('common.success'),
+        description: t('api.tokens.update-settings-success'),
+      });
+    } catch (error) {
+      toast({
+        title: t('common.error'),
+        description: t('api.tokens.update-settings-error'),
+        variant: "destructive",
+      });
+    } finally {
+      setSavingOrigins(false);
     }
   };
 
@@ -145,6 +217,8 @@ const ApiTokens = () => {
     setIsModalOpen(false);
     setNewTokenName('');
     setNewTokenExpiresAt('');
+    setNewTokenOriginIds([]);
+    setNewTokenRateLimit('');
     setGeneratedToken(null);
   };
 
@@ -343,6 +417,46 @@ const ApiTokens = () => {
                         {t('api.tokens.expires-at-hint')}
                       </p>
                     </div>
+                    <div>
+                      <Label>{t('api.tokens.allowed-origins-label')}</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {t('api.tokens.allowed-origins-hint')}
+                      </p>
+                      {allowedOrigins.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          {t('api.tokens.no-origins-available')}
+                        </p>
+                      ) : (
+                        <div className="space-y-2 max-h-40 overflow-y-auto rounded-md border p-3">
+                          {allowedOrigins.map((origin) => (
+                            <div key={origin.id} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`new-token-origin-${origin.id}`}
+                                checked={newTokenOriginIds.includes(origin.id)}
+                                onCheckedChange={() => toggleNewTokenOrigin(origin.id)}
+                              />
+                              <Label htmlFor={`new-token-origin-${origin.id}`} className="font-mono text-sm font-normal cursor-pointer">
+                                {origin.url}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="tokenRateLimit">{t('api.tokens.rate-limit-label')}</Label>
+                      <Input
+                        id="tokenRateLimit"
+                        type="number"
+                        min={1}
+                        value={newTokenRateLimit}
+                        onChange={(e) => setNewTokenRateLimit(e.target.value)}
+                        placeholder={t('api.tokens.rate-limit-placeholder')}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t('api.tokens.rate-limit-hint')}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -408,6 +522,8 @@ const ApiTokens = () => {
                     <TableHead>{t('api.tokens.name')}</TableHead>
                     <TableHead>{t('api.tokens.created')}</TableHead>
                     <TableHead>{t('api.tokens.expires')}</TableHead>
+                    <TableHead>{t('api.tokens.column-origins')}</TableHead>
+                    <TableHead>{t('api.tokens.column-rate-limit')}</TableHead>
                     <TableHead className="text-right">{t('api.tokens.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -438,7 +554,37 @@ const ApiTokens = () => {
                           <span className="text-muted-foreground/60">{t('api.tokens.never-expires')}</span>
                         )}
                       </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {token.allowed_origins && token.allowed_origins.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {token.allowed_origins.map((origin) => (
+                              <Badge key={origin.id} variant="outline" className="font-mono text-xs">
+                                {origin.url}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground/60">{t('api.tokens.allowed-origins-none')}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {token.rate_limit_per_minute != null ? (
+                          <Badge variant="outline" className="text-xs">
+                            {t('api.tokens.rate-limit-value').replace('{count}', String(token.rate_limit_per_minute))}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground/60">{t('api.tokens.rate-limit-unlimited')}</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditOrigins(token)}
+                          title={t('api.tokens.edit-settings')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -482,6 +628,68 @@ const ApiTokens = () => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Edit Token Settings Modal (Allowed Origins + Rate Limit) */}
+      <Dialog open={!!editingToken} onOpenChange={(open) => !open && setEditingToken(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('api.tokens.edit-settings')}</DialogTitle>
+            <DialogDescription>
+              {t('api.tokens.edit-settings-description')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>{t('api.tokens.allowed-origins-label')}</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                {t('api.tokens.allowed-origins-hint')}
+              </p>
+              {allowedOrigins.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('api.tokens.no-origins-available')}
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto rounded-md border p-3">
+                  {allowedOrigins.map((origin) => (
+                    <div key={origin.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`edit-token-origin-${origin.id}`}
+                        checked={editTokenOriginIds.includes(origin.id)}
+                        onCheckedChange={() => toggleEditTokenOrigin(origin.id)}
+                      />
+                      <Label htmlFor={`edit-token-origin-${origin.id}`} className="font-mono text-sm font-normal cursor-pointer">
+                        {origin.url}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="editTokenRateLimit">{t('api.tokens.rate-limit-label')}</Label>
+              <Input
+                id="editTokenRateLimit"
+                type="number"
+                min={1}
+                value={editTokenRateLimit}
+                onChange={(e) => setEditTokenRateLimit(e.target.value)}
+                placeholder={t('api.tokens.rate-limit-placeholder')}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('api.tokens.rate-limit-hint')}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingToken(null)} disabled={savingOrigins}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={saveTokenOrigins} disabled={savingOrigins}>
+              {savingOrigins ? t('common.saving') : t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

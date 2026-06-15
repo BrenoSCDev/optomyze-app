@@ -28,7 +28,7 @@ import { downloadPrivateFile } from '@/hooks/usePrivateFile';
 import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
 import { DealCreationDialog, type EditDeal } from '@/components/deals/DealCreationDialog';
-import { ActivityTimeline, adaptDealTransaction } from '@/components/activity';
+import { ActivityTimeline, adaptRecord } from '@/components/activity';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -516,15 +516,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                           )}
                         </div>
 
-                        {/* Activity Log */}
-                        {sale.transactions && sale.transactions.length > 0 && (
+                        {/* Record Log */}
+                        {sale.records && sale.records.length > 0 && (
                           <div className="deal-glass-card p-5 hover:scale-100">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                               <Activity className="h-4 w-4" />
-                              {t('deal-preview.activity-log')} ({sale.transactions.length})
+                              {t('deal-preview.activity-log')} ({sale.records.length})
                             </h3>
                             <ActivityTimeline
-                              events={sale.transactions.map(adaptDealTransaction)}
+                              events={sale.records.map((r: any) => adaptRecord(r, 'deal'))}
                               variant="compact"
                               emptyStateLabel={t('lead-details.no-activity')}
                             />

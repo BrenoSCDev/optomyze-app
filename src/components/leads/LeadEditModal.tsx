@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import InputMask from 'react-input-mask';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, User, MapPin, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/services/api';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { ddiOptions, phoneMasks, splitPhoneNumber, combinePhoneNumber } from '@/lib/phone';
 
 interface LeadTag {
   id: number;
@@ -51,7 +54,6 @@ interface Lead {
   last_name: string;
   email: string;
   phone: string;
-  ddi: string;
   source_platform: string;
   value_estimated: number;
   currency: string;
@@ -122,12 +124,13 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
   useEffect(() => {
     if (lead && isOpen) {
+      const { ddi, localNumber } = splitPhoneNumber(lead.phone);
       setFormData({
         first_name: lead.first_name || '',
         last_name: lead.last_name || '',
         email: lead.email || '',
-        phone: lead.phone || '',
-        ddi: lead.ddi || '+55',
+        phone: localNumber,
+        ddi,
         source_platform: lead.source_platform || 'Direct',
         value_estimated: lead.value_estimated?.toString() || '',
         currency: lead.currency || 'USD',
@@ -154,7 +157,11 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
     setLoading(true);
     
     try {
-      await api.put(`/api/leads/${lead.id}`, formData);
+      const { ddi, phone, ...rest } = formData;
+      await api.put(`/api/leads/${lead.id}`, {
+        ...rest,
+        phone: combinePhoneNumber(ddi, phone),
+      });
       toast.success(t('lead-details.update-success'));
       onUpdate();
       onClose();
@@ -268,22 +275,34 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
                         <Label htmlFor="ddi" className="text-foreground">
                           {t('lead-details.country-code')}
                         </Label>
-                        <Input
-                          id="ddi"
+                        <Select
                           value={formData.ddi}
-                          onChange={(e) => updateField('ddi', e.target.value)}
-                          className="bg-background border-border text-foreground"
-                        />
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, ddi: value, phone: '' }))}
+                        >
+                          <SelectTrigger id="ddi" className="bg-background border-border text-foreground">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ddiOptions.map((option, index) => (
+                              <SelectItem key={index} value={option.value}>
+                                {option.flag} {option.value} ({option.country})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <Label htmlFor="phone" className="text-foreground">
                           {t('lead-details.phone')}
                         </Label>
-                        <Input
-                          id="phone"
+                        <InputMask
+                          mask={phoneMasks[formData.ddi] || "999999999999"}
                           value={formData.phone}
                           onChange={(e) => updateField('phone', e.target.value)}
-                          className="bg-background border-border text-foreground"
+                          id="phone"
+                          className={cn(
+                            "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+                          )}
                         />
                       </div>
                     </div>

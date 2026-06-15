@@ -1,13 +1,13 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Filter, Calendar as CalendarIcon } from 'lucide-react';
+import { Filter, Calendar as CalendarIcon, Layers } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ACTIVITY_FILTER_GROUPS, ACTIVITY_DATE_RANGE_OPTIONS } from './registry';
-import type { ActivityDateRangeValue, ActivityFilterValue } from './types';
+import type { ActivityDateRangeValue, ActivityFeedDomain, ActivityFilterValue } from './types';
 
 interface ActivityFilterBarProps {
   group: ActivityFilterValue;
@@ -17,6 +17,9 @@ interface ActivityFilterBarProps {
   customDateFrom: Date | null;
   customDateTo: Date | null;
   onCustomDateChange: (from: Date | null, to: Date | null) => void;
+  /** When provided, renders a "Lead / Deal / All" record-type selector (used by the Record Logs page). */
+  recordType?: ActivityFeedDomain;
+  onRecordTypeChange?: (value: ActivityFeedDomain) => void;
 }
 
 const ActivityFilterBar: React.FC<ActivityFilterBarProps> = ({
@@ -27,11 +30,29 @@ const ActivityFilterBar: React.FC<ActivityFilterBarProps> = ({
   customDateFrom,
   customDateTo,
   onCustomDateChange,
+  recordType,
+  onRecordTypeChange,
 }) => {
   const { t } = useLanguage();
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {recordType && onRecordTypeChange && (
+        <div className="flex items-center gap-2">
+          <Layers className="w-4 h-4 text-muted-foreground" />
+          <Select value={recordType} onValueChange={(v) => onRecordTypeChange(v as ActivityFeedDomain)}>
+            <SelectTrigger className="w-[160px] h-9 glass-card text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="all">{t('record-logs.filter.all-records')}</SelectItem>
+              <SelectItem value="lead">{t('record-logs.filter.leads-only')}</SelectItem>
+              <SelectItem value="deal">{t('record-logs.filter.deals-only')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <Filter className="w-4 h-4 text-muted-foreground" />
         <Select value={group} onValueChange={(v) => onGroupChange(v as ActivityFilterValue)}>

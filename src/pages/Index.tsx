@@ -15,8 +15,7 @@ const GoogleAds              = lazy(() => import('@/components/dashboards/Google
 const GoogleAnalytics        = lazy(() => import('@/components/dashboards/GoogleAnalytics'));
 const TagsDashboard          = lazy(() => import('@/components/dashboards/TagsDashboard'));
 const FunnelsDashboard       = lazy(() => import('@/components/dashboards/FunnelsDashboard'));
-const LeadActivityDashboard  = lazy(() => import('@/components/reports/LeadActivityDashboard'));
-const DealActivityDashboard  = lazy(() => import('@/components/reports/DealActivityDashboard'));
+const RecordLogsDashboard    = lazy(() => import('@/components/reports/RecordLogsDashboard'));
 const TasksDashboard         = lazy(() => import('@/components/reports/TasksDashboard'));
 const PreferencesPanel       = lazy(() => import('@/components/settings/PreferencesPanel'));
 const CrmPanel               = lazy(() => import('@/components/settings/CrmPanel'));
@@ -26,6 +25,7 @@ const IntegrationsApps       = lazy(() => import('@/components/integrations/Inte
 const N8nAgents              = lazy(() => import('@/components/agents/N8nAgents'));
 const OptomyzeAgents         = lazy(() => import('@/components/agents/OptomyzeAgents'));
 const ApiTokens              = lazy(() => import('@/components/api/ApiTokens'));
+const AllowedOrigins         = lazy(() => import('@/components/api/AllowedOrigins'));
 const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
 const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
 const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
@@ -88,8 +88,7 @@ const Index = () => {
       case 'funnels': return <FunnelsDashboard />;
       case 'tags': return <TagsDashboard />;
       case 'companies': return <ManageLeadCompanies />;
-      case 'lead-activity': return <LeadActivityDashboard />;
-      case 'deal-activity': return <DealActivityDashboard />;
+      case 'record-logs': return <RecordLogsDashboard />;
       case 'report-tasks': return <TasksDashboard />;
       case 'general':
       case 'users':
@@ -108,6 +107,7 @@ const Index = () => {
       case 'optomyze-agents': return <OptomyzeAgents />;
       case 'leads': return <LeadsManagement funnelId={funnelId} />;
       case 'api-tokens': return <ApiTokens />;
+      case 'allowed-origins': return <AllowedOrigins />;
       case 'api-setup': return <ApiSetup />;
       case 'manage-users': return <ManageUsers />;
       case 'manage-teams': return <ManageTeams />;

@@ -1,8 +1,10 @@
-import type { ActivityTransaction } from '@/services/leadActivityApi';
-import type { DealActivityTransaction } from '@/services/dealActivityApi';
+import type { RecordItem, RecordLead, RecordSale } from '@/services/recordsApi';
 import type { LeadTransactionNotification, DealTransactionNotification } from '@/contexts/NotificationContext';
 
 export type ActivityDomain = 'lead' | 'deal';
+
+/** Domain filter accepted by `useActivityFeed` — 'all' merges both into a single feed. */
+export type ActivityFeedDomain = ActivityDomain | 'all';
 
 /** Sentinel actor names used when no user performed the action. */
 export const SYSTEM_ACTOR = '__SYSTEM__';
@@ -68,50 +70,39 @@ const resolveActor = (
     : { id: null, name: source === 'automation' ? AUTOMATION_ACTOR : SYSTEM_ACTOR, isSystem: true };
 
 /**
- * `leadData.transactions` (LeadPreviewModal) lacks the nested `lead` object —
- * relax it to optional so the same adapter works for both the activity page
- * and the modal's compact timeline.
+ * Maps a polymorphic `Record` (Lead or Sale "recordable") into the
+ * domain-agnostic `ActivityEvent` shape used by the registry/timeline.
+ *
+ * `record.recordable` may be absent (e.g. when records are eager-loaded
+ * directly off the Lead/Sale they belong to, so the parent is implicit).
  */
-type LeadTransactionLike = Omit<ActivityTransaction, 'lead'> & {
-  lead?: ActivityTransaction['lead'];
+export const adaptRecord = (record: RecordItem, domain: ActivityDomain): ActivityEvent => {
+  const subject: ActivitySubject =
+    domain === 'lead'
+      ? {
+          leadName: record.recordable
+            ? `${(record.recordable as RecordLead).first_name} ${(record.recordable as RecordLead).last_name}`.trim()
+            : null,
+        }
+      : {
+          dealName: (record.recordable as RecordSale)?.name ?? null,
+          leadName: (record.recordable as RecordSale)?.lead
+            ? `${(record.recordable as RecordSale).lead!.first_name} ${(record.recordable as RecordSale).lead!.last_name}`.trim()
+            : null,
+        };
+
+  return {
+    id: `${domain}-${record.id}`,
+    domain,
+    type: record.type,
+    action: record.action,
+    source: record.source,
+    description: record.description,
+    createdAt: record.created_at,
+    actor: resolveActor(record.user, record.source),
+    subject,
+  };
 };
-
-export const adaptLeadTransaction = (tx: LeadTransactionLike): ActivityEvent => ({
-  id: `lead-${tx.id}`,
-  domain: 'lead',
-  type: tx.type,
-  action: tx.action,
-  source: tx.source,
-  description: tx.description,
-  createdAt: tx.created_at,
-  actor: resolveActor(tx.user, tx.source),
-  subject: {
-    leadName: tx.lead ? `${tx.lead.first_name} ${tx.lead.last_name}`.trim() : null,
-  },
-});
-
-/**
- * `sale.transactions` (DealPreviewModal) lacks the nested `sale` object —
- * relax it to optional, same reasoning as `LeadTransactionLike` above.
- */
-type DealTransactionLike = Omit<DealActivityTransaction, 'sale'> & {
-  sale?: DealActivityTransaction['sale'];
-};
-
-export const adaptDealTransaction = (tx: DealTransactionLike): ActivityEvent => ({
-  id: `deal-${tx.id}`,
-  domain: 'deal',
-  type: tx.type,
-  action: tx.action,
-  source: tx.source,
-  description: tx.description,
-  createdAt: tx.created_at,
-  actor: resolveActor(tx.user, tx.source),
-  subject: {
-    dealName: tx.sale?.name ?? null,
-    leadName: tx.sale?.lead ? `${tx.sale.lead.first_name} ${tx.sale.lead.last_name}`.trim() : null,
-  },
-});
 
 export const adaptLeadTransactionPayload = (
   payload: LeadTransactionNotification['transaction']

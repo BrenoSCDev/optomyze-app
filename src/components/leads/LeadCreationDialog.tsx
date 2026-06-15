@@ -24,6 +24,7 @@ import { leadService } from '@/services/leadApi';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SourcePlatformIcon from './SourcePlatformIcon';
+import { ddiOptions, phoneMasks, combinePhoneNumber } from '@/lib/phone';
 
 interface LeadCreationDialogProps {
   isOpen: boolean;
@@ -33,39 +34,6 @@ interface LeadCreationDialogProps {
   selectedStageId?: string; // Pre-selected stage ID from column
   onLeadCreated: () => void;
 }
-
-const ddiOptions = [
-  { value: "+1", label: "+1", country: "United States", flag: "🇺🇸" },
-  { value: "+1", label: "+1", country: "Canada", flag: "🇨🇦" },
-  { value: "+44", label: "+44", country: "United Kingdom", flag: "🇬🇧" },
-  { value: "+353", label: "+353", country: "Ireland", flag: "🇮🇪" },
-  { value: "+33", label: "+33", country: "France", flag: "🇫🇷" },
-  { value: "+34", label: "+34", country: "Spain", flag: "🇪🇸" },
-  { value: "+49", label: "+49", country: "Germany", flag: "🇩🇪" },
-  { value: "+41", label: "+41", country: "Switzerland", flag: "🇨🇭" },
-  { value: "+351", label: "+351", country: "Portugal", flag: "🇵🇹" },
-  { value: "+47", label: "+47", country: "Norway", flag: "🇳🇴" },
-  { value: "+39", label: "+39", country: "Italy", flag: "🇮🇹" },
-  { value: "+7", label: "+7", country: "Russia", flag: "🇷🇺" },
-  { value: "+55", label: "+55", country: "Brazil", flag: "🇧🇷" },
-  { value: "+54", label: "+54", country: "Argentina", flag: "🇦🇷" }
-];
-
-const phoneMasks = {
-  "+1": "(999) 999-9999",
-  "+44": "9999 999 9999",
-  "+353": "99 999 9999",
-  "+33": "99 99 99 99 99",
-  "+34": "999 999 999",
-  "+49": "999 999 9999",
-  "+41": "99 999 99 99",
-  "+351": "999 999 999",
-  "+47": "999 99 999",
-  "+39": "999 999 9999",
-  "+7": "999 999-99-99",
-  "+55": "(99) 99999-9999",
-  "+54": "99 9999-9999"
-};
 
 const platformOptions = [
   { value: "whatsapp", label: "WhatsApp" },
@@ -225,7 +193,11 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
     setIsSubmitting(true);
 
     try {
-      await leadService.createLead(formData);
+      const { ddi, phone, ...rest } = formData;
+      await leadService.createLead({
+        ...rest,
+        phone: combinePhoneNumber(ddi, phone),
+      });
 
       toast({
         title: t('lead.success'),

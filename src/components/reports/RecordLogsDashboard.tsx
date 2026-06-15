@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ActivityFilterBar, ActivityTimeline, useActivityFeed } from '@/components/activity';
+import type { ActivityFeedDomain } from '@/components/activity';
 
-const DealActivityDashboard: React.FC = () => {
+const RecordLogsDashboard: React.FC = () => {
   const { t } = useLanguage();
-  const feed = useActivityFeed('deal');
+  const [recordType, setRecordType] = useState<ActivityFeedDomain>('all');
+  const feed = useActivityFeed(recordType);
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('deal-activity.title')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('deal-activity.subtitle')}</p>
+        <h1 className="text-2xl font-bold text-foreground">{t('record-logs.title')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t('record-logs.subtitle')}</p>
       </div>
 
       <ActivityFilterBar
@@ -21,6 +23,8 @@ const DealActivityDashboard: React.FC = () => {
         customDateFrom={feed.customDateFrom}
         customDateTo={feed.customDateTo}
         onCustomDateChange={feed.setCustomDates}
+        recordType={recordType}
+        onRecordTypeChange={setRecordType}
       />
 
       {feed.meta?.truncated && (
@@ -33,10 +37,10 @@ const DealActivityDashboard: React.FC = () => {
         events={feed.events}
         loading={feed.loading}
         variant="full"
-        emptyStateLabel={t('deal-activity.no-transactions')}
+        emptyStateLabel={t('record-logs.no-records')}
       />
     </div>
   );
 };
 
-export default DealActivityDashboard;
+export default RecordLogsDashboard;

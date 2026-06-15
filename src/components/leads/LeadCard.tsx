@@ -186,7 +186,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Phone className="h-3 w-3" />
-          <span>{lead.phone}</span>
+          <span>{lead.phone || t('lead-details.no-phone-informed')}</span>
         </div>
       </div>
 

@@ -302,8 +302,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       icon: <PieChart className="h-3.5 w-3.5" />,
       labelKey: 'nav.reports',
       children: [
-        { id: 'lead-activity', label: t('reports.lead-activity') },
-        { id: 'deal-activity', label: t('reports.deal-activity') },
+        { id: 'record-logs', label: t('reports.record-logs') },
         { id: 'report-tasks', label: t('reports.tasks') },
       ],
     },
@@ -319,6 +318,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.api',
       children: [
         { id: 'api-tokens', label: 'API Tokens' },
+        { id: 'allowed-origins', label: 'Allowed Origins' },
         { id: 'api-setup', label: 'API Setup' },
       ],
     },

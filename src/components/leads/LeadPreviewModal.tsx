@@ -36,7 +36,7 @@ import { User as UserType } from '@/types/user';
 import api from '@/services/api';
 import { API_STORAGE_URL } from '@/lib/constants';
 import { leadService } from '@/services/leadApi';
-import { ActivityTimeline, adaptLeadTransaction } from '@/components/activity';
+import { ActivityTimeline, adaptRecord } from '@/components/activity';
 
 import LeadDetailTabs from './LeadDetailTabs';
 import FunnelProgress from './FunnelProgress';
@@ -101,7 +101,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
       const lead = data.lead || data;
       setLeadData({
         lead,
-        transactions: data.transactions || lead.transactions || [],
+        records: data.records || lead.records || [],
         tasks: data.tasks || lead.tasks || [],
         docs: lead.docs || [],
         users: data.users || [],
@@ -132,7 +132,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
     setLeadData((prev: any) => prev ? {
       ...prev,
       tasks: [newTask, ...prev.tasks],
-      transactions: transaction ? [transaction, ...prev.transactions] : prev.transactions,
+      records: transaction ? [transaction, ...prev.records] : prev.records,
     } : prev);
   };
   const handleTaskUpdated = (updatedTask: Task) => {
@@ -314,7 +314,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                           )}
                           {lead.phone && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3 shrink-0" /> {lead.ddi} {lead.phone}
+                              <Phone className="h-3 w-3 shrink-0" /> {lead.phone}
                             </span>
                           )}
                           <span className="text-xs text-muted-foreground">#{lead.id}</span>
@@ -433,7 +433,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
                             <TabsContent value="activity" className="mt-0">
                               <ActivityTimeline
-                                events={(leadData.transactions || []).map(adaptLeadTransaction)}
+                                events={(leadData.records || []).map((r: any) => adaptRecord(r, 'lead'))}
                                 variant="compact"
                                 emptyStateLabel={t('lead-details.no-activity')}
                               />

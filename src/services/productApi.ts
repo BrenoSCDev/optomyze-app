@@ -50,7 +50,6 @@ export interface Product {
   sku: string;
   base_price: number;
   type: 'product' | 'service' | 'digital';
-  category: string | null;
   is_active: boolean;
   is_favorite: boolean;
   is_archived: boolean;
@@ -70,7 +69,6 @@ export interface ProductFilters {
   is_favorite?: boolean | null;
   archived?: boolean | null;
   type?: 'product' | 'service' | null;
-  category?: string | null;
   category_id?: number | null;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
@@ -84,7 +82,6 @@ export interface ProductFormData {
   sku: string;
   base_price: number | string;
   type: 'product' | 'service' | 'digital';
-  category?: string;
   is_active: boolean;
   is_favorite?: boolean;
   metadata?: ProductMetadata;
@@ -119,7 +116,6 @@ export const getProducts = async (filters: ProductFilters = {}): Promise<Paginat
     params.append('archived', String(filters.archived));
   }
   if (filters.type) params.append('type', filters.type);
-  if (filters.category) params.append('category', filters.category);
   if (filters.category_id) params.append('category_id', String(filters.category_id));
   if (filters.sort_by) params.append('sort_by', filters.sort_by);
   if (filters.sort_order) params.append('sort_order', filters.sort_order);

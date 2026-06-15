@@ -10,14 +10,14 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
-import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction } from '@/services/globalInboxApi';
+import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -108,12 +108,33 @@ const InboxPrivateImage: React.FC<{
 /** Renders an audio message fetched through the authenticated backend. */
 const InboxPrivateAudio: React.FC<{
   path: string;
+  messageId: number;
+  transcription?: string | null;
   isOutgoing: boolean;
   isInternalNote: boolean;
   status?: string;
   sentAt: string;
-}> = ({ path, isOutgoing, isInternalNote, status, sentAt }) => {
+}> = ({ path, messageId, transcription, isOutgoing, isInternalNote, status, sentAt }) => {
   const url = usePrivateFile(path);
+  const { t } = useLanguage();
+  const [localTranscription, setLocalTranscription] = useState(transcription ?? null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  useEffect(() => {
+    setLocalTranscription(transcription ?? null);
+  }, [transcription]);
+
+  const handleTranscribe = async () => {
+    setIsTranscribing(true);
+    try {
+      const result = await transcribeInboxMessage(messageId);
+      setLocalTranscription(result.transcription);
+    } catch {
+      toast({ title: t('chat.inbox.transcription-error'), variant: 'destructive' });
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -122,6 +143,7 @@ const InboxPrivateAudio: React.FC<{
       ) : (
         <div className="w-48 h-10 rounded-md bg-muted/40 animate-pulse" />
       )}
+      {/* Transcribe option hidden until OpenAI is configured - logic kept for later */}
       <div className={cn('flex items-center gap-1', isOutgoing ? 'justify-end' : 'justify-start')}>
         <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : isOutgoing ? 'text-blue-100' : 'text-muted-foreground')}>
           {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -308,9 +330,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       let changed = false;
       const updated = prev.map(m => {
         const match = contextChat.messages.find(cm => cm.id === m.id);
-        if (match && (match.reactions !== m.reactions || match.is_edited !== m.is_edited || match.status !== m.status || match.text !== m.text)) {
+        if (match && (match.reactions !== m.reactions || match.is_edited !== m.is_edited || match.status !== m.status || match.text !== m.text || match.transcription !== m.transcription)) {
           changed = true;
-          return { ...m, text: match.text, reactions: match.reactions, is_edited: match.is_edited, status: match.status };
+          return { ...m, text: match.text, reactions: match.reactions, is_edited: match.is_edited, status: match.status, transcription: match.transcription };
         }
         return m;
       });
@@ -844,6 +866,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         <div className="space-y-2">
                           <InboxPrivateAudio
                             path={message.media_url}
+                            messageId={message.id}
+                            transcription={message.transcription}
                             isOutgoing={message.direction === 'outgoing'}
                             isInternalNote={isInternalNote(message)}
                             status={message.status}

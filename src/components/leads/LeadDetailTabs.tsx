@@ -68,7 +68,6 @@ interface Lead {
   last_name: string;
   email: string;
   phone: string;
-  ddi: string;
   source_platform: string;
   source_type: string;
   is_active: boolean;
@@ -511,12 +510,12 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
           </div>
           <div>
             <p className="text-muted-foreground text-xs uppercase tracking-wide">{t('lead-details.phone')}</p>
-            <p className="text-foreground font-medium">{lead.ddi} {lead.phone}</p>
+            <p className="text-foreground font-medium">{lead.phone || t('lead-details.no-phone-informed')}</p>
           </div>
         </div>
         {lead.phone && (
           <button
-            onClick={() => copyToClipboard(`${lead.ddi} ${lead.phone}`, t('lead-details.phone'))}
+            onClick={() => copyToClipboard(lead.phone, t('lead-details.phone'))}
             className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
             title={`${t('common.copy')} ${t('lead-details.phone').toLowerCase()}`}
           >

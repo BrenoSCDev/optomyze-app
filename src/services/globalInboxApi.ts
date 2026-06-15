@@ -161,6 +161,21 @@ export const sendInboxReaction = async (messageId: number, emoji: string): Promi
   return response.data;
 };
 
+export interface TranscribeMessageResponse {
+  status: string;
+  transcription: string;
+  message: InboxMessage;
+}
+
+/**
+ * Transcribe an audio message to text. The result is cached server-side,
+ * so repeat calls for the same message return instantly.
+ */
+export const transcribeInboxMessage = async (messageId: number): Promise<TranscribeMessageResponse> => {
+  const response = await api.post(`/api/inbox/messages/${messageId}/transcribe`);
+  return response.data;
+};
+
 export interface WhatsAppInstanceOption {
   id: number;
   instance_name: string;

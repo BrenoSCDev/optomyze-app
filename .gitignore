@@ -27,3 +27,6 @@ dist-ssr
 nginx
 Dockerfile
 .dockerignore
+
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo

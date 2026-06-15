@@ -57,6 +57,7 @@ export interface InboxMessage {
   reply_to_snapshot?: InboxReplySnapshot | null;
   reactions?: Record<string, InboxReaction> | null;
   is_edited?: boolean;
+  transcription?: string | null;
   status: string;
   sent_at: string;
   user_id?: number | null;

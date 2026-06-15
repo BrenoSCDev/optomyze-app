@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { leadActivityApi, type ActivityTransaction } from '@/services/leadActivityApi';
-import { dealActivityApi, type DealActivityTransaction } from '@/services/dealActivityApi';
+import { recordsApi, type RecordItem } from '@/services/recordsApi';
 import { onLeadTransaction, onDealTransaction } from '@/contexts/NotificationContext';
 import { resolveActivityRegistryEntry } from './registry';
 import {
-  adaptLeadTransaction,
-  adaptDealTransaction,
+  adaptRecord,
   adaptLeadTransactionPayload,
   adaptDealTransactionPayload,
 } from './types';
@@ -15,12 +13,13 @@ import type {
   ActivityDateRangeValue,
   ActivityDomain,
   ActivityEvent,
+  ActivityFeedDomain,
   ActivityFilterValue,
   ActivityMeta,
   ActivityQueryParams,
 } from './types';
 
-export function useActivityFeed(domain: ActivityDomain) {
+export function useActivityFeed(domain: ActivityFeedDomain) {
   const [group, setGroup] = useState<ActivityFilterValue>('all');
   const [dateRange, setDateRange] = useState<ActivityDateRangeValue>('today');
   const [customDateFrom, setCustomDateFrom] = useState<Date | null>(null);
@@ -34,17 +33,19 @@ export function useActivityFeed(domain: ActivityDomain) {
         if (customDateFrom) params.date_from = format(customDateFrom, 'yyyy-MM-dd');
         if (customDateTo) params.date_to = format(customDateTo, 'yyyy-MM-dd');
       }
-      return domain === 'lead'
-        ? leadActivityApi.fetchTransactions(params)
-        : dealActivityApi.fetchTransactions(params);
+      if (domain === 'lead') return recordsApi.fetchLeadActivity(params);
+      if (domain === 'deal') return recordsApi.fetchDealActivity(params);
+      return recordsApi.fetchAllActivity(params);
     },
   });
 
   const adapted = useMemo<ActivityEvent[]>(() => {
     if (!data) return [];
-    return domain === 'lead'
-      ? (data.transactions as ActivityTransaction[]).map(adaptLeadTransaction)
-      : (data.transactions as DealActivityTransaction[]).map(adaptDealTransaction);
+    return (data.transactions as RecordItem[]).map((record) => {
+      const recordDomain: ActivityDomain =
+        domain === 'all' ? (record.recordable_type === 'Lead' ? 'lead' : 'deal') : domain;
+      return adaptRecord(record, recordDomain);
+    });
   }, [data, domain]);
 
   // Real-time prepend — only while viewing "Today", and only until the next refetch.
@@ -57,17 +58,23 @@ export function useActivityFeed(domain: ActivityDomain) {
   useEffect(() => {
     if (dateRange !== 'today') return;
 
-    if (domain === 'lead') {
-      return onLeadTransaction((payload) => {
+    const unsubscribers: Array<() => void> = [];
+
+    if (domain === 'lead' || domain === 'all') {
+      unsubscribers.push(onLeadTransaction((payload) => {
         const event = adaptLeadTransactionPayload(payload);
         setLiveEvents((prev) => (prev.some((e) => e.id === event.id) ? prev : [event, ...prev]));
-      });
+      }));
     }
 
-    return onDealTransaction((payload) => {
-      const event = adaptDealTransactionPayload(payload);
-      setLiveEvents((prev) => (prev.some((e) => e.id === event.id) ? prev : [event, ...prev]));
-    });
+    if (domain === 'deal' || domain === 'all') {
+      unsubscribers.push(onDealTransaction((payload) => {
+        const event = adaptDealTransactionPayload(payload);
+        setLiveEvents((prev) => (prev.some((e) => e.id === event.id) ? prev : [event, ...prev]));
+      }));
+    }
+
+    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
   }, [domain, dateRange]);
 
   const merged = useMemo(() => {

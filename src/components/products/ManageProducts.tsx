@@ -50,7 +50,6 @@ const ManageProducts = () => {
     is_favorite: null,
     archived: null,
     type: null,
-    category: null,
     category_id: null,
     sort_by: 'created_at',
     sort_order: 'desc',
@@ -68,9 +67,6 @@ const ManageProducts = () => {
 
   // Search debounce
   const [searchInput, setSearchInput] = useState('');
-
-  // Get unique legacy categories from products (string-based)
-  const legacyCategories = [...new Set(products.map(p => p.category).filter(Boolean))] as string[];
 
   // Fetch products
   const fetchProducts = useCallback(async () => {
@@ -274,23 +270,6 @@ const ManageProducts = () => {
           </SelectContent>
         </Select>
 
-        {/* Category Filter (legacy string) */}
-        {legacyCategories.length > 0 && (
-          <Select
-            value={filters.category || 'all'}
-            onValueChange={(value) => handleFilterChange('category', value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t('products.filter-category')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('products.all-categories')}</SelectItem>
-              {legacyCategories.map((cat) => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
 
         {/* Favorites toggle */}
         <Button

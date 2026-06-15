@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Package, Briefcase, Edit, Trash2, Tag, Settings2, Star, Archive, ArchiveRestore } from 'lucide-react';
+import { Package, Briefcase, Edit, Trash2, Settings2, Star, Archive, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { Product } from '@/services/productApi';
@@ -117,17 +117,11 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
         </span>
       </div>
 
-      {/* Category & Status */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Tag className="w-4 h-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            {product.category || t('products.uncategorized')}
-          </span>
-        </div>
+      {/* Status */}
+      <div className="flex items-center justify-end mb-3">
         <span className={`px-2 py-1 rounded text-xs font-medium ${
-          product.is_active 
-            ? 'bg-green-600/20 text-green-400' 
+          product.is_active
+            ? 'bg-green-600/20 text-green-400'
             : 'bg-red-600/20 text-red-400'
         }`}>
           {product.is_active ? t('products.active') : t('products.inactive')}

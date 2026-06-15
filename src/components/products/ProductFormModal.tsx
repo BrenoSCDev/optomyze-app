@@ -62,7 +62,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
     sku: '',
     base_price: '',
     type: 'product',
-    category: '',
     is_active: true,
   });
 
@@ -82,7 +81,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         sku: product.sku,
         base_price: product.base_price,
         type: product.type,
-        category: product.category || '',
         is_active: product.is_active,
       });
       setCustomFields(product.fields || []);
@@ -103,7 +101,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         sku: autoSku,
         base_price: '',
         type: defaultType,
-        category: '',
         is_active: ps.default_status === 'active',
       });
       setCustomFields([]);
@@ -287,19 +284,6 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
             />
           </div>
         </div>
-      </div>
-
-      {/* Category */}
-      <div>
-        <Label htmlFor="product-category">{t('products.category-label')}</Label>
-        <Input
-          id="product-category"
-          value={formData.category}
-          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-          disabled={loading}
-          placeholder={t('products.category-placeholder')}
-          className="mt-2"
-        />
       </div>
 
       {/* Product Categories (many-to-many) */}

@@ -627,12 +627,13 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                             className={`absolute inline-flex h-full w-full animate-ping rounded-full transition-colors duration-500 ${
                               webhookTestStatus === 'verified' ? 'bg-green-500/20' : 'bg-primary/20'
                             }`}
+                            style={{ animationDuration: '2.5s', animationTimingFunction: 'ease-in-out' }}
                           />
                           <span
                             className={`absolute inline-flex h-3/4 w-3/4 animate-ping rounded-full transition-colors duration-500 ${
                               webhookTestStatus === 'verified' ? 'bg-green-500/30' : 'bg-primary/30'
                             }`}
-                            style={{ animationDelay: '300ms' }}
+                            style={{ animationDuration: '2.5s', animationTimingFunction: 'ease-in-out', animationDelay: '750ms' }}
                           />
                           <span
                             className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-500 ${

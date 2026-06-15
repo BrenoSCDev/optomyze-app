@@ -27,7 +27,7 @@ import {
   SiGoogleads,
   SiWhatsapp,
   SiInstagram,
-  SiFacebook,
+  SiMessenger,
   SiTelegram,
   SiOpenai,
   SiGooglecalendar,
@@ -40,6 +40,7 @@ import MetaAdsConfigModal from './MetaAdsConfigModal';
 import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
+import FacebookMessengerConfigModal from './FacebookMessengerConfigModal';
 import { Input } from '@/components/ui/input';
 import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
 import { cn } from '@/lib/utils';
@@ -334,6 +335,7 @@ const IntegrationsApps: React.FC = () => {
   const [showGoogleAdsConfigModal, setShowGoogleAdsConfigModal] = useState(false);
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
   const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
+  const [showFacebookConfigModal, setShowFacebookConfigModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const { token, user } = useAuth();
@@ -394,11 +396,11 @@ const IntegrationsApps: React.FC = () => {
         },
         {
           key: 'facebook',
-          name: 'Facebook',
+          name: 'Facebook Messenger',
           description: t('integrations.facebook.description') || 'Connect Facebook Messenger to handle customer messages from your Facebook page.',
           available: false,
-          comingSoon: true,
-          icon: <SiFacebook className="w-7 h-7" />
+          beta: true,
+          icon: <SiMessenger className="w-7 h-7" />
         },
         {
           key: 'telegram',
@@ -525,6 +527,8 @@ const IntegrationsApps: React.FC = () => {
         setShowWhatsAppConfigModal(true);
       } else if (integrationKey === 'instagram') {
         setShowInstagramConfigModal(true);
+      } else if (integrationKey === 'facebook') {
+        setShowFacebookConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -747,6 +751,11 @@ const IntegrationsApps: React.FC = () => {
         <InstagramConfigModal
           open={showInstagramConfigModal}
           onOpenChange={setShowInstagramConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <FacebookMessengerConfigModal
+          open={showFacebookConfigModal}
+          onOpenChange={setShowFacebookConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>

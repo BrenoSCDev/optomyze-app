@@ -24,7 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { leadActivityApi, type ActivityTask } from '@/services/leadActivityApi';
+import { recordsApi, type ActivityTask } from '@/services/recordsApi';
 import { taskApi, type Task } from '@/services/taskApi';
 import { toast } from 'sonner';
 import TaskCreationModal from '@/components/leads/TaskCreationModal';
@@ -282,7 +282,7 @@ const TasksDashboard: React.FC = () => {
   const validColumnsRef = useRef<Set<string>>(new Set(STATUSES));
 
   const loadTasks = useCallback(() => {
-    leadActivityApi.fetchTasks()
+    recordsApi.fetchTasks()
       .then((data) => setTasks(data.tasks))
       .catch(() => {})
       .finally(() => setLoading(false));

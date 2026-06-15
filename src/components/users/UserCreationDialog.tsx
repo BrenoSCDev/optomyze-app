@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import InputMask from 'react-input-mask';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +23,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { User } from '@/types/user';
 import { userApi } from '@/services/userApi';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { ddiOptions, phoneMasks, splitPhoneNumber, combinePhoneNumber, DEFAULT_DDI } from '@/lib/phone';
 
 interface UserCreationDialogProps {
   open: boolean;
@@ -35,6 +38,7 @@ const EMPTY_FORM = {
   name: '',
   email: '',
   phone: '',
+  ddi: DEFAULT_DDI,
   role: 'agent',
   is_active: true,
 };
@@ -57,10 +61,12 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
   useEffect(() => {
     if (open) {
       if (editUser) {
+        const { ddi, localNumber } = splitPhoneNumber(editUser.phone);
         setFormData({
           name: editUser.name,
           email: editUser.email,
-          phone: editUser.phone ?? '',
+          phone: localNumber,
+          ddi,
           role: editUser.role,
           is_active: editUser.is_active,
         });
@@ -85,15 +91,21 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
     try {
       setLoading(true);
 
+      const { ddi, phone, ...rest } = formData;
+      const payload = {
+        ...rest,
+        phone: combinePhoneNumber(ddi, phone),
+      };
+
       if (isEditMode && editUser) {
-        const updated = await userApi.updateUser(editUser.id, formData);
+        const updated = await userApi.updateUser(editUser.id, payload);
         onUserUpdated?.(updated);
         toast({
           title: t('users.edit.success') || 'User updated',
           description: `${updated.name} ${t('users.edit.success-description') || 'was updated successfully.'}`,
         });
       } else {
-        const newUser = await userApi.createUser(formData);
+        const newUser = await userApi.createUser(payload);
         onUserCreated(newUser);
         toast({
           title: t('users.create.success'),
@@ -158,13 +170,30 @@ const UserCreationDialog: React.FC<UserCreationDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="phone">{t('users.create.phone')}</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              placeholder={t('users.create.phone-placeholder')}
-            />
+            <div className="flex gap-2">
+              <Select value={formData.ddi} onValueChange={(v) => handleChange('ddi', v)}>
+                <SelectTrigger className="w-28 shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ddiOptions.map((option, index) => (
+                    <SelectItem key={index} value={option.value}>
+                      {option.flag} {option.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <InputMask
+                mask={phoneMasks[formData.ddi] || "999999999999"}
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                id="phone"
+                placeholder={t('users.create.phone-placeholder')}
+                className={cn(
+                  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm transition-colors"
+                )}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

@@ -9,7 +9,6 @@ export interface ERPProduct {
   name: string;
   sku: string;
   type: string;
-  category: string;
   base_price: number;
   description: string | null;
   is_active: boolean;

@@ -33,13 +33,12 @@ import {
   FileText,
   Headphones,
   FileStack,
-  ClipboardList,
   ListTodo,
   TicketPlus,
   MessageSquareText,
   Building,
   PieChart,
-  Handshake
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -140,6 +139,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
 
   const apiItems = [
     { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
+    { id: 'allowed-origins', label: t('api.allowed-origins.title'), icon: () => <Globe size={18}/> },
     { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
   ];
 
@@ -271,8 +271,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     deals: () => renderExpandableSection('deals', <MdCurrencyExchange className="h-4 w-4" />, t('nav.deals'), dealsItems.length > 0 ? dealsItems : [], { useNavLink: true }),
     settings: () => renderExpandableSection('settings', <Settings className="h-5 w-5" />, t('nav.settings'), settingsItems),
     reports: () => renderExpandableSection('reports', <PieChart className="h-5 w-5" />, t('nav.reports'), [
-      { id: 'lead-activity', label: t('reports.lead-activity'), icon: () => <ClipboardList size={14} /> },
-      { id: 'deal-activity', label: t('reports.deal-activity'), icon: () => <Handshake size={14} /> },
+      { id: 'record-logs', label: t('reports.record-logs'), icon: () => <FileStack size={14} /> },
       { id: 'report-tasks', label: t('reports.tasks'), icon: () => <ListTodo size={14} /> },
     ]),
     integrations: () => renderExpandableSection('integrations', <Plug className="h-5 w-5" />, t('nav.integrations'), integrationsItems),
