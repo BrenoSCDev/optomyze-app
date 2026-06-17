@@ -71,7 +71,7 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
       className={`relative group/widget transition-shadow duration-150 ${
         isDragging ? 'opacity-40' : ''
       } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl cursor-grab active:cursor-grabbing' : ''} ${
-        !id.startsWith('kpi-') ? 'min-h-[420px]' : ''
+        !id.startsWith('kpi-') ? 'min-h-[420px] h-full flex flex-col' : ''
       }`}
       {...attributes}
       {...(editMode ? listeners : {})}
@@ -124,7 +124,7 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
         </TooltipProvider>
       )}
 
-      <div ref={contentRef}>
+      <div ref={contentRef} className={!id.startsWith('kpi-') ? 'flex-1 flex flex-col min-h-0' : ''}>
         {children}
       </div>
     </div>

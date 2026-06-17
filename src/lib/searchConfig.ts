@@ -36,7 +36,7 @@ export interface SearchTargetConfig {
 const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
   leads: {
     id: 'leads',
-    labelKey: 'Leads',
+    labelKey: 'nav.leads',
     icon: Users as any,
     endpoint: '/api/leads/search/products',
     mapper: (data) =>
@@ -48,7 +48,7 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
   },
   deals: {
     id: 'deals',
-    labelKey: 'Deals',
+    labelKey: 'nav.deals',
     icon: MdCurrencyExchange as any,
     endpoint: '/api/sales/search',
     mapper: (data) =>
@@ -66,7 +66,7 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
   },
   users: {
     id: 'users',
-    labelKey: 'Users',
+    labelKey: 'nav.users',
     icon: UserCircle as any,
     endpoint: '/api/users/search',
     mapper: (data) =>
@@ -98,6 +98,9 @@ export async function globalSearch(
 
 const STORAGE_KEY = 'crm_preferences';
 
+/** Fired immediately (same tab) whenever the default search target changes. */
+export const SEARCH_TARGET_CHANGE_EVENT = 'crm:search-target-changed';
+
 export function getDefaultSearchTarget(): SearchTargetId {
   try {
     const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -113,4 +116,5 @@ export function setDefaultSearchTarget(target: SearchTargetId): void {
     prefs.search = { ...prefs.search, defaultTarget: target };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   } catch { /* ignore */ }
+  window.dispatchEvent(new CustomEvent(SEARCH_TARGET_CHANGE_EVENT, { detail: target }));
 }

@@ -458,6 +458,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         stage={lead.stage}
                         onStageClick={handleStageClick}
                         movingStageId={movingStageId}
+                        lead={lead}
                       />
                     )}
 

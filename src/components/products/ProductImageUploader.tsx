@@ -25,7 +25,6 @@ interface ProductImageUploaderProps {
   onUpload: (data: {
     image: File;
     alt_text?: string;
-    image_type?: string;
     is_primary?: boolean;
   }) => Promise<void>;
   isFirstImage?: boolean;
@@ -43,7 +42,6 @@ const ProductImageUploader = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [altText, setAltText] = useState('');
-  const [imageType, setImageType] = useState('');
   const [isPrimary, setIsPrimary] = useState(isFirstImage);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -93,7 +91,6 @@ const ProductImageUploader = ({
       await onUpload({
         image: selectedFile,
         alt_text: altText || undefined,
-        image_type: imageType || undefined,
         is_primary: isPrimary,
       });
       handleClose();
@@ -106,7 +103,6 @@ const ProductImageUploader = ({
     setSelectedFile(null);
     setPreview(null);
     setAltText('');
-    setImageType('');
     setIsPrimary(isFirstImage);
     onClose();
   };
@@ -193,18 +189,6 @@ const ProductImageUploader = ({
             <p className="text-xs text-muted-foreground mt-1">
               {t('products.images.alt-text-hint')}
             </p>
-          </div>
-
-          {/* Image Type */}
-          <div>
-            <Label htmlFor="image_type">{t('products.images.image-type')}</Label>
-            <Input
-              id="image_type"
-              value={imageType}
-              onChange={(e) => setImageType(e.target.value)}
-              placeholder={t('products.images.image-type-placeholder')}
-              className="mt-2"
-            />
           </div>
 
           {/* Set as Primary */}

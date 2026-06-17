@@ -46,8 +46,10 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, act
         disabled={disabled}
         aria-label={label}
         className={cn(
-          "h-8 w-8 text-muted-foreground hover:text-foreground",
-          active && (activeClassName || "text-primary bg-primary/10"),
+          "h-8 w-8 transition-colors",
+          active
+            ? (activeClassName || "text-primary bg-primary/10 hover:bg-primary/15")
+            : "text-muted-foreground hover:text-foreground hover:bg-accent",
           className
         )}
       >
@@ -86,7 +88,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   isSending,
   mode,
   onModeChange,
-  internalNoteLabel = 'Internal note — only visible to your team',
+  internalNoteLabel,
   onAttach,
   isAttaching,
   onSendAudio,
@@ -113,8 +115,8 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
 
   const handleAIAssist = () => {
     toast({
-      title: 'AI Assist',
-      description: 'AI-generated replies are coming soon.',
+      title: t('chat.composer.ai-assist-toast-title'),
+      description: t('chat.composer.ai-assist-toast-description'),
     });
   };
 
@@ -163,7 +165,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
       {isInternal && !isRecording && (
         <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-medium text-amber-700 dark:text-amber-400">
           <StickyNote className="h-3.5 w-3.5" />
-          {internalNoteLabel}
+          {internalNoteLabel ?? t('chat.composer.internal-note-indicator')}
         </div>
       )}
 
@@ -199,7 +201,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
               {onAttach && (
                 <ToolbarButton
                   icon={isAttaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                  label="Attach file"
+                  label={t('chat.composer.attach-file')}
                   onClick={onAttach}
                   disabled={disabled || isAttaching}
                 />
@@ -215,21 +217,20 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
               <EmojiPickerButton
                 onEmojiSelect={handleEmojiSelect}
                 disabled={disabled}
-                className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
               />
               <ToolbarButton
                 icon={<Sparkles className="h-4 w-4" />}
-                label="AI Assist (coming soon)"
+                label={t('chat.composer.ai-assist')}
                 onClick={handleAIAssist}
-                className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10"
+                className="text-violet-500 hover:text-violet-700 hover:bg-violet-500/10 dark:text-violet-400 dark:hover:text-violet-300 dark:hover:bg-violet-400/15"
               />
               <div className="mx-1 h-5 w-px bg-border" />
               <ToolbarButton
                 icon={<StickyNote className="h-4 w-4" />}
-                label={isInternal ? 'Switch to reply' : 'Write internal note'}
+                label={isInternal ? t('chat.composer.switch-to-reply') : t('chat.composer.write-internal-note')}
                 onClick={() => onModeChange(isInternal ? 'external' : 'internal')}
                 active={isInternal}
-                activeClassName="text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40"
+                activeClassName="text-amber-700 dark:text-amber-300 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60"
                 disabled={disabled}
               />
             </div>
@@ -239,7 +240,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
               onClick={onSend}
               disabled={!value.trim() || isSending || disabled}
               size="icon"
-              aria-label="Send"
+              aria-label={t('chat.composer.send')}
               className={cn(
                 "h-8 w-8 rounded-lg shrink-0",
                 isInternal ? "bg-amber-500 hover:bg-amber-600 text-white" : "bg-primary hover:bg-primary/90"

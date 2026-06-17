@@ -52,7 +52,7 @@ const SortableImageCard = ({
 }: {
   image: ProductImage;
   onSetPrimary: (image: ProductImage) => void;
-  onUpdate: (image: ProductImage, data: { alt_text?: string; image_type?: string }) => void;
+  onUpdate: (image: ProductImage, data: { alt_text?: string }) => void;
   onDelete: (image: ProductImage) => void;
 }) => {
   const {
@@ -129,7 +129,6 @@ const ProductImageGallery = ({ productId, onImageChange }: ProductImageGalleryPr
   const handleUpload = async (data: {
     image: File;
     alt_text?: string;
-    image_type?: string;
     is_primary?: boolean;
   }) => {
     try {
@@ -172,7 +171,7 @@ const ProductImageGallery = ({ productId, onImageChange }: ProductImageGalleryPr
 
   const handleUpdate = async (
     image: ProductImage,
-    data: { alt_text?: string; image_type?: string }
+    data: { alt_text?: string }
   ) => {
     try {
       await updateProductImage(image.id, data);

@@ -30,7 +30,7 @@ export interface InboxMessageUser {
 
 /** Preview of a quoted/replied-to message, snapshotted at receive time. */
 export interface InboxReplySnapshot {
-  type: 'text' | 'image' | 'video' | 'audio' | 'sticker' | 'document' | 'location' | 'contact' | null;
+  type: 'text' | 'image' | 'video' | 'audio' | 'sticker' | 'document' | 'location' | 'contact' | 'story_reply' | null;
   text?: string | null;
   participant?: string | null;
 }
@@ -45,7 +45,7 @@ export interface InboxMessage {
   id: number;
   inbox_chat_id: number;
   direction: 'incoming' | 'outgoing';
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'sticker';
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'sticker' | 'shared_post' | 'story_reply';
   text: string | null;
   metadata?: InboxMessageMetadata | null;
   media_url?: string | null;
@@ -81,6 +81,7 @@ export interface InboxLead {
   first_name: string;
   last_name: string;
   phone: string;
+  username?: string | null;
   funnel_id: number;
   stage_id: number;
   funnel: InboxFunnel;

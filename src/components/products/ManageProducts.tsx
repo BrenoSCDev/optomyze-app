@@ -160,11 +160,11 @@ const ManageProducts = () => {
       await toggleProductFavorite(product.id);
       toast({
         title: t('common.success'),
-        description: product.is_favorite ? 'Removed from favorites.' : 'Added to favorites.',
+        description: product.is_favorite ? t('products.favorite-removed') : t('products.favorite-added'),
       });
       fetchProducts();
     } catch {
-      toast({ title: t('common.error'), description: 'Failed to update favorite status.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('products.favorite-toggle-error'), variant: 'destructive' });
     }
   };
 
@@ -172,9 +172,9 @@ const ManageProducts = () => {
     try {
       await archiveProduct(product.id);
       setProducts(prev => prev.filter(p => p.id !== product.id));
-      toast({ title: t('common.success'), description: `"${product.name}" archived.` });
+      toast({ title: t('common.success'), description: t('products.archive-success').replace('{name}', product.name) });
     } catch {
-      toast({ title: t('common.error'), description: 'Failed to archive product.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('products.archive-error'), variant: 'destructive' });
     }
   };
 
@@ -182,9 +182,9 @@ const ManageProducts = () => {
     try {
       await unarchiveProduct(product.id);
       setProducts(prev => prev.filter(p => p.id !== product.id));
-      toast({ title: t('common.success'), description: `"${product.name}" unarchived.` });
+      toast({ title: t('common.success'), description: t('products.unarchive-success').replace('{name}', product.name) });
     } catch {
-      toast({ title: t('common.error'), description: 'Failed to unarchive product.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('products.unarchive-error'), variant: 'destructive' });
     }
   };
 
@@ -279,7 +279,7 @@ const ManageProducts = () => {
           onClick={() => handleFilterChange('is_favorite', filters.is_favorite ? null : true)}
         >
           <Star className={`h-4 w-4 ${filters.is_favorite ? 'fill-current' : ''}`} />
-          Favorites
+          {t('products.filter-favorites')}
         </Button>
 
         {/* Archived toggle */}
@@ -290,7 +290,7 @@ const ManageProducts = () => {
           onClick={() => handleFilterChange('archived', filters.archived ? null : true)}
         >
           <Archive className="h-4 w-4" />
-          Archived
+          {t('products.filter-archived')}
         </Button>
       </div>
 

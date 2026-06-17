@@ -5,7 +5,7 @@
  */
 
 import api from './api';
-import { InboxChannel, InboxChatResponse, InboxMessage, PaginationMeta } from '@/types/inbox';
+import { InboxChannel, InboxChatResponse, InboxMessage, InboxReplySnapshot, PaginationMeta } from '@/types/inbox';
 
 /**
  * Fetch paginated inbox chats (20 per page), optionally filtered by channel
@@ -57,6 +57,8 @@ export interface SentMessageData {
   user_id?: number | null;
   message_mode?: 'external' | 'internal';
   user?: { id: number; name: string } | null;
+  reply_to_message_id?: number | null;
+  reply_to_snapshot?: InboxReplySnapshot | null;
 }
 
 export interface SendMessageResponse {
@@ -102,17 +104,19 @@ export const sendInboxMedia = async (
 };
 
 /**
- * Send a text message to a chat via an Instagram integration
+ * Send a text message to a chat via an Instagram integration, optionally
+ * replying to an existing message in the same chat.
  */
 export const sendInstagramMessage = async (
   integrationId: number,
   chatId: number,
   text: string,
-  messageMode: 'external' | 'internal' = 'external'
+  messageMode: 'external' | 'internal' = 'external',
+  replyToMessageId?: number
 ): Promise<SendMessageResponse> => {
   const response = await api.post(
     `/api/inbox/instagram/${integrationId}/messages`,
-    { chat_id: chatId, text, message_mode: messageMode }
+    { chat_id: chatId, text, message_mode: messageMode, reply_to_message_id: replyToMessageId }
   );
   return response.data;
 };

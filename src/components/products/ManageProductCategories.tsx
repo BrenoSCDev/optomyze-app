@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getProductCategories,
   createProductCategory,
@@ -51,6 +52,7 @@ const defaultForm: FormData = { name: '', description: '', color: '#6366f1' };
 
 const ManageProductCategories = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,11 +70,11 @@ const ManageProductCategories = () => {
       setLoading(true);
       setCategories(await getProductCategories());
     } catch {
-      toast({ title: 'Error', description: 'Failed to load categories.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('product-categories.fetch-error'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
@@ -96,15 +98,15 @@ const ManageProductCategories = () => {
       if (editingCategory) {
         const updated = await updateProductCategory(editingCategory.id, formData);
         setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-        toast({ title: 'Success', description: 'Category updated.' });
+        toast({ title: t('common.success'), description: t('product-categories.updated-successfully') });
       } else {
         const created = await createProductCategory(formData);
         setCategories((prev) => [...prev, created]);
-        toast({ title: 'Success', description: 'Category created.' });
+        toast({ title: t('common.success'), description: t('product-categories.created-successfully') });
       }
       setFormOpen(false);
     } catch {
-      toast({ title: 'Error', description: 'Failed to save category.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('product-categories.save-error'), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -121,10 +123,10 @@ const ManageProductCategories = () => {
     try {
       await deleteProductCategory(deletingCategory.id);
       setCategories((prev) => prev.filter((c) => c.id !== deletingCategory.id));
-      toast({ title: 'Success', description: 'Category deleted.' });
+      toast({ title: t('common.success'), description: t('product-categories.deleted-successfully') });
       setDeleteOpen(false);
     } catch {
-      toast({ title: 'Error', description: 'Failed to delete category.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('product-categories.delete-error'), variant: 'destructive' });
     } finally {
       setDeleting(false);
       setDeletingCategory(null);
@@ -136,10 +138,10 @@ const ManageProductCategories = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-xs text-muted-foreground mb-1">Products / Product Categories</p>
-          <h1 className="text-2xl font-bold text-foreground">Product Categories</h1>
+          <p className="text-xs text-muted-foreground mb-1">{t('product-categories.breadcrumb')}</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('product-categories.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Organize products into categories. A product can belong to multiple categories.
+            {t('product-categories.description')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -148,7 +150,7 @@ const ManageProductCategories = () => {
           </Button>
           <Button className="gap-2" onClick={openCreate}>
             <Plus className="h-4 w-4" />
-            New Category
+            {t('product-categories.new-category')}
           </Button>
         </div>
       </div>
@@ -180,7 +182,7 @@ const ManageProductCategories = () => {
                   <h3 className="font-semibold text-foreground truncate">{cat.name}</h3>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Package className="h-3 w-3" />
-                    {cat.products_count ?? 0} products
+                    {cat.products_count ?? 0} {t('product-categories.products-count')}
                   </p>
                 </div>
               </div>
@@ -208,13 +210,13 @@ const ManageProductCategories = () => {
           <div className="p-4 rounded-full bg-primary/20 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
             <Tags className="h-8 w-8 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">No categories yet</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('product-categories.no-categories')}</h3>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Create categories to organize your products. A product can have multiple categories.
+            {t('product-categories.no-categories-description')}
           </p>
           <Button className="gap-2" onClick={openCreate}>
             <Plus className="h-4 w-4" />
-            Create First Category
+            {t('product-categories.create-first')}
           </Button>
         </div>
       )}
@@ -223,34 +225,34 @@ const ManageProductCategories = () => {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingCategory ? 'Edit Category' : 'New Category'}</DialogTitle>
+            <DialogTitle>{editingCategory ? t('product-categories.edit-category') : t('product-categories.new-category')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="cat-name">Name *</Label>
+              <Label htmlFor="cat-name">{t('product-categories.name-label')}</Label>
               <Input
                 id="cat-name"
                 value={formData.name}
                 onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                placeholder="e.g. Electronics, Software, Consulting"
+                placeholder={t('product-categories.name-placeholder')}
                 className="mt-2"
                 disabled={saving}
               />
             </div>
             <div>
-              <Label htmlFor="cat-desc">Description</Label>
+              <Label htmlFor="cat-desc">{t('product-categories.description-label')}</Label>
               <Textarea
                 id="cat-desc"
                 value={formData.description}
                 onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                placeholder="Optional description"
+                placeholder={t('product-categories.description-placeholder')}
                 className="mt-2 resize-none"
                 rows={3}
                 disabled={saving}
               />
             </div>
             <div>
-              <Label>Color</Label>
+              <Label>{t('product-categories.color-label')}</Label>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {PRESET_COLORS.map((c) => (
                   <button
@@ -266,17 +268,17 @@ const ManageProductCategories = () => {
                   value={formData.color}
                   onChange={(e) => setFormData((p) => ({ ...p, color: e.target.value }))}
                   className="w-7 h-7 rounded-full border-none cursor-pointer bg-transparent"
-                  title="Custom color"
+                  title={t('product-categories.custom-color')}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setFormOpen(false)} disabled={saving}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={saving || !formData.name.trim()}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {editingCategory ? 'Update' : 'Create'}
+                {editingCategory ? t('common.update') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -287,16 +289,16 @@ const ManageProductCategories = () => {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogTitle>{t('product-categories.delete-title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Delete <strong>{deletingCategory?.name}</strong>? This will remove the category from all products but will not delete the products themselves.
+              {t('product-categories.delete-confirm').replace('{name}', deletingCategory?.name ?? '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive hover:bg-destructive/90">
               {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Delete
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

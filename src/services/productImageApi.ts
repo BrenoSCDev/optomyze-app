@@ -18,7 +18,6 @@ export interface ProductImage {
   product_id: number;
   url: string;
   alt_text: string | null;
-  image_type: string | null;
   is_primary: boolean;
   display_order: number;
   created_at: string;
@@ -28,13 +27,11 @@ export interface ProductImage {
 export interface ProductImageUploadData {
   image: File;
   alt_text?: string;
-  image_type?: string;
   is_primary?: boolean;
 }
 
 export interface ProductImageUpdateData {
   alt_text?: string;
-  image_type?: string;
   display_order?: number;
 }
 
@@ -62,7 +59,6 @@ export const uploadProductImage = async (
   const formData = new FormData();
   formData.append('image', data.image);
   if (data.alt_text) formData.append('alt_text', data.alt_text);
-  if (data.image_type) formData.append('image_type', data.image_type);
   if (data.is_primary !== undefined) formData.append('is_primary', String(data.is_primary));
 
   const response = await api.post(`/api/products/${productId}/images`, formData, {

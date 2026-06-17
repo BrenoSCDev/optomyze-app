@@ -238,9 +238,9 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
         .map(p => ({ id: p.id, quantity: parseInt(String(p.pivot.quantity)) || 1 }));
       await addProductsToLead(selectedLead.id, remainingProducts);
       setSelectedLead(prev => prev ? { ...prev, products: prev.products.filter(p => p.id !== productId) } : prev);
-      toast({ title: 'Product removed', description: 'Product removed from lead.' });
+      toast({ title: t('deal-form.product-removed-title'), description: t('deal-form.product-removed-description') });
     } catch {
-      toast({ title: 'Error', description: 'Failed to remove product.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('deal-form.remove-product-error'), variant: 'destructive' });
     } finally {
       setIsAddingProduct(false);
     }
@@ -269,9 +269,9 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
       setSelectedLead(prev => prev ? { ...prev, products: [...prev.products, newProduct] } : prev);
       setProductQuery('');
       setShowProductDropdown(false);
-      toast({ title: 'Product added', description: `${product.name} added to lead.` });
+      toast({ title: t('deal-form.product-added-title'), description: t('deal-form.product-added-description').replace('{name}', product.name) });
     } catch (error: any) {
-      toast({ title: 'Error', description: 'Failed to add product.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('deal-form.add-product-error'), variant: 'destructive' });
     } finally {
       setIsAddingProduct(false);
     }
@@ -335,11 +335,11 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
   const handleClose = () => { if (!isEditMode) resetForm(); onClose(); };
 
   const handleSubmit = async () => {
-    if (!selectedLead) { toast({ title: 'Validation', description: 'Please select a lead.', variant: 'destructive' }); return; }
-    if (!dealName.trim()) { toast({ title: 'Validation', description: 'Deal name is required.', variant: 'destructive' }); return; }
-    if (!stageId) { toast({ title: 'Validation', description: 'Please select a stage.', variant: 'destructive' }); return; }
+    if (!selectedLead) { toast({ title: t('deal-form.validation-title'), description: t('deal-form.validation-lead-required'), variant: 'destructive' }); return; }
+    if (!dealName.trim()) { toast({ title: t('deal-form.validation-title'), description: t('sale.validation.name-required'), variant: 'destructive' }); return; }
+    if (!stageId) { toast({ title: t('deal-form.validation-title'), description: t('sale.validation.stage-required'), variant: 'destructive' }); return; }
     if ((pricingModel === 'commission' || pricingModel === 'hybrid') && commissionValue <= 0) {
-      toast({ title: 'Validation', description: 'Commission value is required.', variant: 'destructive' }); return;
+      toast({ title: t('deal-form.validation-title'), description: t('sale.validation.commission-required'), variant: 'destructive' }); return;
     }
 
     const ss = salesSettingsRef.current;
@@ -368,7 +368,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
           updatePayload.reference_value = productsSubtotal;
         }
         await saleService.updateSale(editDeal.id, updatePayload);
-        toast({ title: 'Success', description: 'Deal updated successfully.' });
+        toast({ title: t('common.success'), description: t('deal-form.updated-success') });
         onDealUpdated?.();
         onClose();
       } else {
@@ -395,13 +395,13 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
         }
         if (notes.trim()) payload.notes = notes.trim();
         await saleService.createSale(selectedLead.id, payload);
-        toast({ title: 'Success', description: 'Deal created successfully.' });
+        toast({ title: t('common.success'), description: t('deal-form.created-success') });
         resetForm();
         onDealCreated();
         onClose();
       }
     } catch (error: any) {
-      toast({ title: 'Error', description: error.response?.data?.message || (isEditMode ? 'Failed to update deal.' : 'Failed to create deal.'), variant: 'destructive' });
+      toast({ title: t('common.error'), description: error.response?.data?.message || (isEditMode ? t('deal-form.update-error') : t('deal-form.create-error')), variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -420,7 +420,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             <div className="p-2 rounded-lg bg-gradient-deal">
               <Briefcase className="h-5 w-5 text-deal-foreground" />
             </div>
-            {isEditMode ? 'Edit Deal' : 'Create New Deal'}
+            {isEditMode ? t('deal-form.edit-title') : t('sale.deal-modal-title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -428,13 +428,13 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
           <div className="space-y-6">
             <div className="space-y-3">
               <Label className="flex items-center gap-2 font-medium text-foreground">
-                <User className="h-4 w-4" /> Lead {!isEditMode && '*'}
+                <User className="h-4 w-4" /> {t('deal-form.lead-label')} {!isEditMode && '*'}
               </Label>
               {isEditMode ? (
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
                   <User className="h-4 w-4 text-deal" />
-                  <span className="text-sm text-foreground">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : 'Unknown Lead'}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">locked</span>
+                  <span className="text-sm text-foreground">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : t('deal-form.unknown-lead')}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{t('deal-form.locked')}</span>
                 </div>
               ) : (
                 <>
@@ -445,7 +445,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                         value={leadQuery}
                         onChange={(e) => handleLeadSearch(e.target.value)}
                         onFocus={() => leadResults.length > 0 && setShowLeadDropdown(true)}
-                        placeholder="Search lead by name..."
+                        placeholder={t('deal-form.search-lead-placeholder')}
                         className="pl-9"
                         disabled={isSubmitting}
                       />
@@ -460,7 +460,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                             className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-muted"
                           >
                             <span className="text-sm text-popover-foreground">{lead.first_name} {lead.last_name}</span>
-                            <span className="text-xs text-muted-foreground">{lead.products.length} product(s)</span>
+                            <span className="text-xs text-muted-foreground">{t('deal-form.product-count').replace('{count}', String(lead.products.length))}</span>
                           </button>
                         ))}
                       </div>
@@ -481,24 +481,24 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
             <div className="space-y-3">
               <Label className="flex items-center gap-2 font-medium text-foreground">
-                <Briefcase className="h-4 w-4" /> Deal Information
+                <Briefcase className="h-4 w-4" /> {t('sale.deal-information')}
               </Label>
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Deal Name *</Label>
+                  <Label className="text-sm text-muted-foreground">{t('sale.deal-name')} *</Label>
                   <Input
                     value={dealName}
                     onChange={(e) => setDealName(e.target.value)}
-                    placeholder="Enter deal name..."
+                    placeholder={t('deal-form.deal-name-placeholder')}
                     disabled={isSubmitting}
                     maxLength={100}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Stage *</Label>
+                  <Label className="text-sm text-muted-foreground">{t('sale.deal-stage')} *</Label>
                   <Select value={stageId} onValueChange={setStageId} disabled={isSubmitting}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select stage" />
+                      <SelectValue placeholder={t('sale.select-stage')} />
                     </SelectTrigger>
                     <SelectContent>
                       {sortedStages.map((s) => (
@@ -513,7 +513,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             {selectedLead && (
               <div className="space-y-3">
                 <Label className="flex items-center gap-2 font-medium text-foreground">
-                  <FileText className="h-4 w-4" /> Products
+                  <FileText className="h-4 w-4" /> {t('deal-form.products-label')}
                 </Label>
 
                 {leadProducts.length > 0 ? (
@@ -521,10 +521,10 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     <table className="w-full text-sm">
                       <thead className="bg-muted/40">
                         <tr>
-                          <th className="p-3 text-left font-medium text-muted-foreground">Product</th>
-                          <th className="p-3 text-center font-medium text-muted-foreground">Qty</th>
-                          <th className="p-3 text-right font-medium text-muted-foreground">Unit Price</th>
-                          <th className="p-3 text-right font-medium text-muted-foreground">Total</th>
+                          <th className="p-3 text-left font-medium text-muted-foreground">{t('sale.product-name')}</th>
+                          <th className="p-3 text-center font-medium text-muted-foreground">{t('sale.qty')}</th>
+                          <th className="p-3 text-right font-medium text-muted-foreground">{t('sale.unit-price')}</th>
+                          <th className="p-3 text-right font-medium text-muted-foreground">{t('sale.total')}</th>
                           <th className="w-10 p-3"></th>
                         </tr>
                       </thead>
@@ -541,7 +541,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                                   onClick={() => handleRemoveProduct(p.id)}
                                   disabled={isSubmitting || isAddingProduct}
                                   className="text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
-                                  title="Remove product"
+                                  title={t('deal-form.remove-product')}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
@@ -552,7 +552,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                       </tbody>
                       <tfoot className="bg-muted/40">
                         <tr>
-                          <td colSpan={4} className="p-3 text-right font-medium text-muted-foreground">Subtotal</td>
+                          <td colSpan={4} className="p-3 text-right font-medium text-muted-foreground">{t('sale.subtotal')}</td>
                           <td className="p-3 text-right font-semibold text-foreground">{formatPrice(productsSubtotal)}</td>
                         </tr>
                       </tfoot>
@@ -560,10 +560,10 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-sm italic text-muted-foreground">No products of interest. You can add one below or enter the deal value manually.</p>
+                    <p className="text-sm italic text-muted-foreground">{t('deal-form.no-products-of-interest')}</p>
                     {pricingModel === 'product' && (
                       <div className="space-y-1">
-                        <Label className="text-sm text-muted-foreground">Deal Value</Label>
+                        <Label className="text-sm text-muted-foreground">{t('sale.deal-value')}</Label>
                         <CurrencyInput
                           value={manualValue}
                           onValueChange={setManualValue}
@@ -583,7 +583,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                         value={productQuery}
                         onChange={(e) => handleProductSearch(e.target.value)}
                         onFocus={() => productResults.length > 0 && setShowProductDropdown(true)}
-                        placeholder="Search product to add..."
+                        placeholder={t('deal-form.search-product-placeholder')}
                         className="pl-9"
                         disabled={isSubmitting || isAddingProduct}
                       />
@@ -612,20 +612,20 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             {selectedLead && (
               <div className="space-y-3">
                 <Label className="flex items-center gap-2 font-medium text-foreground">
-                  <Calculator className="h-4 w-4" /> Pricing Model
+                  <Calculator className="h-4 w-4" /> {t('sale.pricing-model')}
                 </Label>
                 <RadioGroup value={pricingModel} onValueChange={(v) => setPricingModel(v as PricingModel)} className="flex flex-wrap gap-4">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="product" id="dm-product" className="border-border" />
-                    <Label htmlFor="dm-product" className="cursor-pointer text-muted-foreground">Product</Label>
+                    <Label htmlFor="dm-product" className="cursor-pointer text-muted-foreground">{t('sale.pricing-product')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="commission" id="dm-commission" className="border-border" />
-                    <Label htmlFor="dm-commission" className="cursor-pointer text-muted-foreground">Commission</Label>
+                    <Label htmlFor="dm-commission" className="cursor-pointer text-muted-foreground">{t('sale.pricing-commission')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="hybrid" id="dm-hybrid" className="border-border" />
-                    <Label htmlFor="dm-hybrid" className="cursor-pointer text-muted-foreground">Hybrid</Label>
+                    <Label htmlFor="dm-hybrid" className="cursor-pointer text-muted-foreground">{t('sale.pricing-hybrid')}</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -634,21 +634,21 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             {selectedLead && showCommissionSection && (
               <div className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
                 <Label className="flex items-center gap-2 font-medium text-foreground">
-                  <Percent className="h-4 w-4" /> Commission
+                  <Percent className="h-4 w-4" /> {t('sale.commission-section')}
                 </Label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Type</Label>
+                    <Label className="text-sm text-muted-foreground">{t('sale.commission-type')}</Label>
                     <Select value={commissionType} onValueChange={(v) => setCommissionType(v as ChargeType)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="percentage">%</SelectItem>
-                        <SelectItem value="fixed">Fixed</SelectItem>
+                        <SelectItem value="fixed">{t('sale.type-fixed')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Value</Label>
+                    <Label className="text-sm text-muted-foreground">{t('sale.commission-value')}</Label>
                     {commissionType === 'fixed' ? (
                       <CurrencyInput value={commissionValue} onValueChange={setCommissionValue} placeholder="$0.00" />
                     ) : (
@@ -657,7 +657,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                   </div>
                   {commissionType === 'percentage' && (
                     <div className="space-y-2">
-                      <Label className="text-sm text-muted-foreground">Reference</Label>
+                      <Label className="text-sm text-muted-foreground">{t('sale.reference-value')}</Label>
                       <div className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground">
                         {formatPrice(productsSubtotal)}
                       </div>
@@ -666,7 +666,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                 </div>
                 {commissionSubtotal > 0 && (
                   <div className="flex justify-end text-sm">
-                    <span className="text-muted-foreground">Commission subtotal:</span>
+                    <span className="text-muted-foreground">{t('sale.commission-subtotal')}:</span>
                     <span className="ml-2 font-medium text-deal">{formatPrice(commissionSubtotal)}</span>
                   </div>
                 )}
@@ -677,22 +677,22 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2 font-medium text-foreground">
-                    <DollarSign className="h-4 w-4" /> Additional Charges
+                    <DollarSign className="h-4 w-4" /> {t('sale.additional-charges')}
                   </Label>
                   <Button type="button" variant="outline" size="sm" onClick={addCharge} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
-                    <Plus className="mr-1 h-3 w-3" /> Add Charge
+                    <Plus className="mr-1 h-3 w-3" /> {t('sale.add-charge')}
                   </Button>
                 </div>
                 {charges.length > 0 ? (
                   <div className="space-y-2">
                     {charges.map((charge) => (
                       <div key={charge.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
-                        <Input placeholder="Name" value={charge.name} onChange={(e) => updateCharge(charge.id, 'name', e.target.value)} className="flex-1 text-sm" />
+                        <Input placeholder={t('deal-form.name-placeholder')} value={charge.name} onChange={(e) => updateCharge(charge.id, 'name', e.target.value)} className="flex-1 text-sm" />
                         <Select value={charge.type} onValueChange={(v) => updateCharge(charge.id, 'type', v)}>
                           <SelectTrigger className="w-28 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="percentage">%</SelectItem>
-                            <SelectItem value="fixed">Fixed</SelectItem>
+                            <SelectItem value="fixed">{t('sale.type-fixed')}</SelectItem>
                           </SelectContent>
                         </Select>
                         {charge.type === 'fixed' ? (
@@ -707,7 +707,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm italic text-muted-foreground">No additional charges.</p>
+                  <p className="text-sm italic text-muted-foreground">{t('sale.no-charges')}</p>
                 )}
               </div>
             )}
@@ -716,22 +716,22 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2 font-medium text-foreground">
-                    <Tag className="h-4 w-4" /> Discounts
+                    <Tag className="h-4 w-4" /> {t('sale.discounts')}
                   </Label>
                   <Button type="button" variant="outline" size="sm" onClick={addDiscount} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
-                    <Plus className="mr-1 h-3 w-3" /> Add Discount
+                    <Plus className="mr-1 h-3 w-3" /> {t('sale.add-discount')}
                   </Button>
                 </div>
                 {discounts.length > 0 ? (
                   <div className="space-y-2">
                     {discounts.map((discount) => (
                       <div key={discount.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
-                        <Input placeholder="Name" value={discount.name} onChange={(e) => updateDiscount(discount.id, 'name', e.target.value)} className="flex-1 text-sm" />
+                        <Input placeholder={t('deal-form.name-placeholder')} value={discount.name} onChange={(e) => updateDiscount(discount.id, 'name', e.target.value)} className="flex-1 text-sm" />
                         <Select value={discount.type} onValueChange={(v) => updateDiscount(discount.id, 'type', v)}>
                           <SelectTrigger className="w-28 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="percentage">%</SelectItem>
-                            <SelectItem value="fixed">Fixed</SelectItem>
+                            <SelectItem value="fixed">{t('sale.type-fixed')}</SelectItem>
                           </SelectContent>
                         </Select>
                         {discount.type === 'fixed' ? (
@@ -749,41 +749,41 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm italic text-muted-foreground">No discounts.</p>
+                  <p className="text-sm italic text-muted-foreground">{t('sale.no-discounts')}</p>
                 )}
               </div>
             )}
 
             {selectedLead && (
               <div className="space-y-2">
-                <Label className="font-medium text-foreground">Notes</Label>
-                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes..." className="resize-none" rows={3} disabled={isSubmitting} />
+                <Label className="font-medium text-foreground">{t('sale.notes')}</Label>
+                <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('deal-form.notes-placeholder')} className="resize-none" rows={3} disabled={isSubmitting} />
               </div>
             )}
 
             {selectedLead && (
               <div className="space-y-2 rounded-lg border border-deal/20 bg-deal/10 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t('sale.subtotal')}</span>
                   <span className="text-foreground">{formatPrice(baseSubtotal)}</span>
                 </div>
                 {chargesTotal > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Charges</span>
+                    <span className="text-muted-foreground">{t('sale.charges-total')}</span>
                     <span className="text-emerald-500">+{formatPrice(chargesTotal)}</span>
                   </div>
                 )}
                 {discountsTotal > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Discounts</span>
+                    <span className="text-muted-foreground">{t('sale.discounts')}</span>
                     <span className="text-destructive">-{formatPrice(discountsTotal)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-deal/20 pt-2 text-lg font-semibold">
-                  <span className="text-foreground">Final Total</span>
+                  <span className="text-foreground">{t('deal-form.final-total')}</span>
                   <span className="text-deal">{formatPrice(finalTotal)}</span>
                 </div>
-                <p className="mt-2 text-xs italic text-muted-foreground">Preview — final values calculated by the server.</p>
+                <p className="mt-2 text-xs italic text-muted-foreground">{t('deal-form.preview-note')}</p>
               </div>
             )}
           </div>
@@ -791,7 +791,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
         <DialogFooter className="flex-shrink-0 pt-4 border-t border-border">
           <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -800,8 +800,8 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
             className="bg-gradient-deal text-deal-foreground hover:opacity-90"
           >
             {isSubmitting
-              ? <><Loader2 className="h-4 w-4 animate-spin" /> {isEditMode ? 'Saving...' : 'Creating...'}</>
-              : <><Briefcase className="h-4 w-4" /> {isEditMode ? 'Save Changes' : 'Create Deal'}</>
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> {isEditMode ? t('deal-form.saving') : t('sale.creating')}</>
+              : <><Briefcase className="h-4 w-4" /> {isEditMode ? t('deal-form.save-changes') : t('sale.create-deal')}</>
             }
           </Button>
         </DialogFooter>

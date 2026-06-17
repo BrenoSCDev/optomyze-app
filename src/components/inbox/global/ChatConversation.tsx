@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, Reply } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -262,6 +262,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<InboxMessage | null>(null);
 
   // Message pagination state
   const [localMessages, setLocalMessages] = useState<InboxMessage[]>([]);
@@ -286,6 +287,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
   // Load messages when chat changes
   useEffect(() => {
+    setReplyingTo(null);
+
     if (!chat) {
       setLocalMessages([]);
       localMessageIdsRef.current = new Set();
@@ -415,14 +418,16 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
     const currentMode = messageMode;
+    const replyToId = chat.channel === 'instagram' ? replyingTo?.id : undefined;
 
     setMessageText('');
     setIsSending(true);
+    setReplyingTo(null);
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
       const response = chat.channel === 'instagram'
-        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
+        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode, replyToId)
         : await sendInboxMessage(chat.channelable_id, {
             lead_id: chat.lead!.id,
             text,
@@ -442,6 +447,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         user_id: response.message.user_id,
         message_mode: response.message.message_mode || currentMode,
         user: response.message.user,
+        reply_to_message_id: response.message.reply_to_message_id,
+        reply_to_snapshot: response.message.reply_to_snapshot,
       };
 
       // Add to local messages (avoids duplicate from context sync)
@@ -489,6 +496,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
     const tempId = `pending-media-${Date.now()}`;
     setIsSendingMedia(true);
+    setReplyingTo(null);
     setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: mode }]);
 
     try {
@@ -613,6 +621,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const isInternalNote = (message: InboxMessage) => message.message_mode === 'internal';
 
   const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+  // Instagram's Send API only accepts a fixed set of reaction types (love/like/smile/wow/sad/angry)
+  const INSTAGRAM_QUICK_REACTIONS = ['👍', '❤️', '😆', '😮', '😢', '😠'];
 
   const handleReact = async (message: InboxMessage, emoji: string) => {
     const currentEmoji = message.reactions?.agent?.emoji;
@@ -632,7 +642,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     }
   };
 
-  const getReplyPreviewLabel = (snapshot: NonNullable<InboxMessage['reply_to_snapshot']>): string => {
+  const getReplyPreviewLabel = (snapshot: { type?: string | null; text?: string | null }): string => {
     if (snapshot.text) return snapshot.text;
     switch (snapshot.type) {
       case 'image': return t('chat.inbox.reply-photo');
@@ -642,6 +652,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       case 'document': return t('chat.inbox.reply-document');
       case 'location': return t('chat.inbox.reply-location');
       case 'contact': return t('chat.inbox.reply-contact');
+      case 'story_reply': return t('chat.inbox.reply-story');
       default: return t('chat.inbox.reply-message');
     }
   };
@@ -685,8 +696,17 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               <h3 className="font-semibold truncate">{getLeadName()}</h3>
             )}
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
-              <Phone className="h-3 w-3 shrink-0" />
-              <span className="truncate">{chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id}</span>
+              {chat.channel === 'instagram' && chat.lead?.username ? (
+                <>
+                  <AtSign className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{chat.lead.username}</span>
+                </>
+              ) : (
+                <>
+                  <Phone className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id}</span>
+                </>
+              )}
               {/* Badges inline on mobile to save vertical space */}
               {chat.lead?.funnel && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 hidden sm:inline-flex">
@@ -770,15 +790,27 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       />
                     )}
                     <div className="relative max-w-[75%]">
-                    {chat.channel === 'whatsapp' && !isInternalNote(message) && (
+                    {(chat.channel === 'whatsapp' || chat.channel === 'instagram') && !isInternalNote(message) && (
+                      <div className={cn(
+                        "absolute top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
+                        message.direction === 'outgoing'
+                          ? (chat.channel === 'instagram' ? "-left-16" : "-left-8")
+                          : (chat.channel === 'instagram' ? "-right-16" : "-right-8")
+                      )}>
+                      {chat.channel === 'instagram' && (
+                        <button
+                          type="button"
+                          onClick={() => setReplyingTo(message)}
+                          className="p-1 rounded-full bg-card border border-border/60 shadow-sm hover:bg-muted"
+                        >
+                          <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      )}
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
                             type="button"
-                            className={cn(
-                              "absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-card border border-border/60 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted",
-                              message.direction === 'outgoing' ? "-left-8" : "-right-8"
-                            )}
+                            className="p-1 rounded-full bg-card border border-border/60 shadow-sm hover:bg-muted"
                           >
                             <Smile className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
@@ -789,7 +821,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           align={message.direction === 'outgoing' ? 'end' : 'start'}
                         >
                           <div className="flex gap-1">
-                            {QUICK_REACTIONS.map((emoji) => (
+                            {(chat.channel === 'instagram' ? INSTAGRAM_QUICK_REACTIONS : QUICK_REACTIONS).map((emoji) => (
                               <button
                                 key={emoji}
                                 type="button"
@@ -805,6 +837,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           </div>
                         </PopoverContent>
                       </Popover>
+                      </div>
                     )}
                     <div
                       className={cn(
@@ -1128,6 +1161,22 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             className="hidden"
             onChange={handleImageSelect}
           />
+
+          {replyingTo && (
+            <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-muted/60 border-l-2 border-primary/60">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-primary">{t('chat.inbox.replying-to')}</p>
+                <p className="text-xs text-muted-foreground truncate">{getReplyPreviewLabel(replyingTo)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReplyingTo(null)}
+                className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </div>
+          )}
 
           <MessageComposer
             value={messageText}

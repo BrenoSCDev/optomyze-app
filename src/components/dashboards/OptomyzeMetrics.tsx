@@ -82,7 +82,7 @@ const SkeletonKPICard = () => (
 const SkeletonChart = () => (
   <div className="chart-container animate-pulse">
     <div className="w-40 h-6 bg-muted rounded mb-6 mx-auto" />
-    <div className="w-full h-80 bg-muted rounded" />
+    <div className="w-full flex-1 min-h-[220px] bg-muted rounded" />
   </div>
 );
 
@@ -162,33 +162,35 @@ const MonthlyRevenueChart = ({ monthlyData, isLoading, currencySymbol = '$' }: M
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart data={chartData}>
-          <defs>
-            <linearGradient id="closedGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
-            </linearGradient>
-            <linearGradient id="lostGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
-          <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
-          <Tooltip
-            contentStyle={chartTooltipStyle}
-            formatter={(value: number, name: string) => [
-              `${currencySymbol}${value.toLocaleString()}`,
-              name === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals'),
-            ]}
-          />
-          <Legend formatter={(v) => v === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals')} />
-          <Bar dataKey="closedRevenue" name="closedRevenue" fill="url(#closedGradient)" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="lostRevenue"   name="lostRevenue"   fill="url(#lostGradient)"   radius={[4, 4, 0, 0]} />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+          <ComposedChart data={chartData}>
+            <defs>
+              <linearGradient id="closedGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="lostGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
+            <Tooltip
+              contentStyle={chartTooltipStyle}
+              formatter={(value: number, name: string) => [
+                `${currencySymbol}${value.toLocaleString()}`,
+                name === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals'),
+              ]}
+            />
+            <Legend formatter={(v) => v === 'closedRevenue' ? t('metrics.closed-deals') : t('metrics.lost-deals')} />
+            <Bar dataKey="closedRevenue" name="closedRevenue" fill="url(#closedGradient)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="lostRevenue"   name="lostRevenue"   fill="url(#lostGradient)"   radius={[4, 4, 0, 0]} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
 
       <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-border">
         <div className="text-center">
@@ -229,47 +231,49 @@ const MonthlyLeadFlowChart = ({ monthlyData, isLoading }: { monthlyData: any[]; 
       <h3 className="text-xl font-semibold mb-6 text-center">
         {hasDeals ? t('metrics.leads-x-deals-per-month') : t('metrics.monthly-lead-flow')}
       </h3>
-      <ResponsiveContainer width="100%" height={350}>
-        <AreaChart data={monthlyData}>
-          <defs>
-            <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#8B5CF6" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
-            </linearGradient>
-            <linearGradient id="dealsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#10B981" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-          <YAxis stroke="#9CA3AF" fontSize={12} />
-          <Tooltip contentStyle={chartTooltipStyle} />
-          <Legend />
-          <Area
-            type="monotone"
-            dataKey="leads"
-            name={t('metrics.leads-label')}
-            stroke="#8B5CF6"
-            strokeWidth={3}
-            fill="url(#leadsGradient)"
-            dot={false}
-            activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
-          />
-          {hasDeals && (
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+          <AreaChart data={monthlyData}>
+            <defs>
+              <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#8B5CF6" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="dealsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#10B981" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
+            <YAxis stroke="#9CA3AF" fontSize={12} />
+            <Tooltip contentStyle={chartTooltipStyle} />
+            <Legend />
             <Area
               type="monotone"
-              dataKey="deals"
-              name={t('metrics.deals-label')}
-              stroke="#10B981"
+              dataKey="leads"
+              name={t('metrics.leads-label')}
+              stroke="#8B5CF6"
               strokeWidth={3}
-              fill="url(#dealsGradient)"
+              fill="url(#leadsGradient)"
               dot={false}
-              activeDot={{ r: 8, stroke: '#10B981', strokeWidth: 2 }}
+              activeDot={{ r: 8, stroke: '#8B5CF6', strokeWidth: 2 }}
             />
-          )}
-        </AreaChart>
-      </ResponsiveContainer>
+            {hasDeals && (
+              <Area
+                type="monotone"
+                dataKey="deals"
+                name={t('metrics.deals-label')}
+                stroke="#10B981"
+                strokeWidth={3}
+                fill="url(#dealsGradient)"
+                dot={false}
+                activeDot={{ r: 8, stroke: '#10B981', strokeWidth: 2 }}
+              />
+            )}
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
 
       {monthlyData.length > 0 && (
         <div className={`mt-6 grid gap-4 pt-4 border-t border-border ${hasDeals ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
@@ -342,7 +346,9 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           <Filter className="w-5 h-5 text-primary" /> {t('metrics.leads-by-stage')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">{t('metrics.no-funnels')}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground text-center">{t('metrics.no-funnels')}</p>
+        </div>
       </motion.div>
     );
   }
@@ -374,22 +380,24 @@ const LeadsByStageChart = ({ funnelsData, isLoading }: { funnelsData: FunnelData
         </Select>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={stageData} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-          <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
-          <YAxis type="category" dataKey="stage" stroke="#9CA3AF" fontSize={12} width={80} />
-          <Tooltip
-            contentStyle={chartTooltipStyle}
-            labelStyle={chartTooltipLabelStyle}
-            itemStyle={chartTooltipItemStyle}
-            formatter={(value: number) => [value, t('metrics.leads')]}
-          />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-            {stageData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+          <BarChart data={stageData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+            <XAxis type="number" stroke="#9CA3AF" fontSize={12} />
+            <YAxis type="category" dataKey="stage" stroke="#9CA3AF" fontSize={12} width={80} />
+            <Tooltip
+              contentStyle={chartTooltipStyle}
+              labelStyle={chartTooltipLabelStyle}
+              itemStyle={chartTooltipItemStyle}
+              formatter={(value: number) => [value, t('metrics.leads')]}
+            />
+            <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              {stageData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-3 justify-center">
         {stageData.map((stage) => (
@@ -422,7 +430,9 @@ const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: {
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.pipeline-vs-closed')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">{t('metrics.no-data')}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground text-center">{t('metrics.no-data')}</p>
+        </div>
       </motion.div>
     );
   }
@@ -444,23 +454,25 @@ const PipelineValueChart = ({ pipelineData, isLoading, currencySymbol = '$' }: {
         </h3>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-          <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
-          <YAxis type="category" dataKey="funnel" stroke="#9CA3AF" fontSize={12} width={120} />
-          <Tooltip
-            contentStyle={chartTooltipStyle}
-            formatter={(value: number, name: string) => [
-              `${currencySymbol}${value.toLocaleString()}`,
-              name === 'estimatedValue' ? t('metrics.estimated') : name === 'closedValue' ? t('metrics.closed') : t('metrics.gap'),
-            ]}
-          />
-          <Legend />
-          <Bar dataKey="estimatedValue" name={t('metrics.estimated-value')} fill="#8B5CF6" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="closedValue"    name={t('metrics.closed-value')}    fill="#10B981" radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+          <BarChart data={chartData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+            <XAxis type="number" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
+            <YAxis type="category" dataKey="funnel" stroke="#9CA3AF" fontSize={12} width={120} />
+            <Tooltip
+              contentStyle={chartTooltipStyle}
+              formatter={(value: number, name: string) => [
+                `${currencySymbol}${value.toLocaleString()}`,
+                name === 'estimatedValue' ? t('metrics.estimated') : name === 'closedValue' ? t('metrics.closed') : t('metrics.gap'),
+              ]}
+            />
+            <Legend />
+            <Bar dataKey="estimatedValue" name={t('metrics.estimated-value')} fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="closedValue"    name={t('metrics.closed-value')}    fill="#10B981" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         {chartData.slice(0, 3).map((item) => (
@@ -541,7 +553,9 @@ const DealsStagesDistributionChart = ({
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.deals-stages-distribution')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">{t('metrics.no-deal-funnels')}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground text-center">{t('metrics.no-deal-funnels')}</p>
+        </div>
       </motion.div>
     );
   }
@@ -596,12 +610,11 @@ const DealsStagesDistributionChart = ({
       </div>
 
       {totalSales === 0 ? (
-        <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
           {t('metrics.no-deals-in-funnel-period')}
         </div>
       ) : (
-        <>
-          <div className="flex flex-col items-center gap-6">
+        <div className="flex-1 flex flex-col items-center justify-center gap-6">
             {/* Donut Chart */}
             <div className="relative flex-shrink-0 w-full max-w-[240px]">
               <ResponsiveContainer width="100%" height={240}>
@@ -660,8 +673,7 @@ const DealsStagesDistributionChart = ({
                 </div>
               ))}
             </div>
-          </div>
-        </>
+        </div>
       )}
     </motion.div>
   );
@@ -692,7 +704,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
     <motion.div className="chart-container overflow-hidden" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
       <h3 className="text-xl font-semibold mb-6 text-center">{t('metrics.lead-pipeline-breakdown')}</h3>
 
-      <div className="flex flex-col items-center gap-0 py-4">
+      <div className="flex-1 flex flex-col items-center justify-center gap-0 py-4">
         {funnelSteps.map((step, index) => {
           // Always narrow from 100% down to ~25% regardless of values
           const topWidth = 100 - (index / totalSteps) * 75;
@@ -762,7 +774,9 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           <BarChart3 className="w-5 h-5 text-primary" /> {t('metrics.product-performance')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">{t('metrics.no-products-sold')}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground text-center">{t('metrics.no-products-sold')}</p>
+        </div>
       </motion.div>
     );
   }
@@ -772,32 +786,34 @@ const ProductsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { 
       <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
         <BarChart3 className="w-5 h-5 text-primary shrink-0" /> {t('metrics.product-performance')}
       </h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="product_name" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
-          <Tooltip
-            contentStyle={chartTooltipStyle}
-            content={({ active, payload, label }) => {
-              if (!active || !payload?.length) return null;
-              const item = payload[0]?.payload as ProductPerformanceItem;
-              return (
-                <div style={chartTooltipStyle} className="p-3 shadow-lg">
-                  <p className="font-semibold mb-1">{label}</p>
-                  <p className="text-sm">{t('metrics.units-sold')}: <span className="font-medium">{item.quantity_sold}</span></p>
-                  <p className="text-sm">{t('metrics.revenue')}: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                  <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
-                </div>
-              );
-            }}
-          />
-          <Legend />
-          <Bar yAxisId="left" dataKey="quantity_sold" name={t('metrics.units-sold')} fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+          <ComposedChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="product_name" stroke="#9CA3AF" fontSize={12} />
+            <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
+            <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
+            <Tooltip
+              contentStyle={chartTooltipStyle}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+                const item = payload[0]?.payload as ProductPerformanceItem;
+                return (
+                  <div style={chartTooltipStyle} className="p-3 shadow-lg">
+                    <p className="font-semibold mb-1">{label}</p>
+                    <p className="text-sm">{t('metrics.units-sold')}: <span className="font-medium">{item.quantity_sold}</span></p>
+                    <p className="text-sm">{t('metrics.revenue')}: <span className="font-medium">{currencySymbol}{item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    <p className="text-sm text-muted-foreground">Appeared in {item.sales_count} deals</p>
+                  </div>
+                );
+              }}
+            />
+            <Legend />
+            <Bar yAxisId="left" dataKey="quantity_sold" name={t('metrics.units-sold')} fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 5 }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 };
@@ -821,7 +837,9 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
         <h3 className="text-xl font-semibold flex items-center gap-2 mb-6">
           <Users className="w-5 h-5 text-primary" /> {t('metrics.agent-performance')}
         </h3>
-        <p className="text-muted-foreground text-center py-8">{t('metrics.no-closed-deals')}</p>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground text-center">{t('metrics.no-closed-deals')}</p>
+        </div>
       </motion.div>
     );
   }
@@ -831,23 +849,25 @@ const AgentsSalesRevenueChart = ({ data, isLoading, currencySymbol = '$' }: { da
       <h3 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-6">
         <Users className="w-5 h-5 text-primary shrink-0" /> {t('metrics.agent-performance')}
       </h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis dataKey="user_name" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
-          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
-          <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
-            formatter={(value: number, _name: string, entry: any) => [
-              entry?.dataKey === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
-              entry?.dataKey === 'revenue' ? t('metrics.revenue') : t('metrics.closed-deals'),
-            ]}
-          />
-          <Legend />
-          <Bar yAxisId="left" dataKey="sales_count" name={t('metrics.closed-deals')} fill="#F59E0B" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+          <ComposedChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="user_name" stroke="#9CA3AF" fontSize={12} />
+            <YAxis yAxisId="left" stroke="#9CA3AF" fontSize={12} />
+            <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" fontSize={12} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
+            <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartTooltipLabelStyle} itemStyle={chartTooltipItemStyle}
+              formatter={(value: number, _name: string, entry: any) => [
+                entry?.dataKey === 'revenue' ? `${currencySymbol}${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : value,
+                entry?.dataKey === 'revenue' ? t('metrics.revenue') : t('metrics.closed-deals'),
+              ]}
+            />
+            <Legend />
+            <Bar yAxisId="left" dataKey="sales_count" name={t('metrics.closed-deals')} fill="#F59E0B" radius={[4, 4, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="revenue" name={t('metrics.revenue')} stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 5 }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 };

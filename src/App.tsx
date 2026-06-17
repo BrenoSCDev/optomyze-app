@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import PasswordReset from "./pages/PasswordReset";
+import SetPassword from "./pages/SetPassword";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FunnelStages from "./components/stages/FunnelStages";
@@ -40,6 +41,7 @@ const App = () => (
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<PasswordReset />} />
+                <Route path="/set-password" element={<SetPassword />} />
                 <Route 
                   path="/" 
                   element={

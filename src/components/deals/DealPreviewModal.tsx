@@ -14,6 +14,7 @@ import {
   DollarSign, Package, TrendingUp, TrendingDown,
   FileText, Upload, Download, Eye, Trash2, File,
   CircleDot, GitBranch, Clock, AlertCircle, Activity,
+  CheckCircle, XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +59,9 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
   const [deletingDocId, setDeletingDocId] = useState<number | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [funnelStages, setFunnelStages] = useState<any[]>([]);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [lostDialogOpen, setLostDialogOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     if (isOpen && dealId) {
@@ -172,6 +176,58 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
+  const handleCloseDeal = async () => {
+    if (!sale) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await api.put(`/api/sales/${sale.id}/status`, { status: 'closed' });
+      setSale((prev: any) => prev ? {
+        ...prev,
+        status: res.data?.data?.status ?? 'closed',
+        stage: res.data?.data?.stage ?? prev.stage,
+        closed_at: res.data?.data?.closed_at,
+        lost_at: res.data?.data?.lost_at,
+      } : prev);
+      toast.success(t('lead-details.close-deal-success'), {
+        description: t('lead-details.close-deal-success-description'),
+      });
+      setCloseDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to close deal:', err);
+      toast.error(t('lead-details.close-deal-error'), {
+        description: t('lead-details.close-deal-error-description'),
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleMarkAsLost = async () => {
+    if (!sale) return;
+    setIsUpdatingStatus(true);
+    try {
+      const res = await api.put(`/api/sales/${sale.id}/status`, { status: 'lost' });
+      setSale((prev: any) => prev ? {
+        ...prev,
+        status: res.data?.data?.status ?? 'lost',
+        stage: res.data?.data?.stage ?? prev.stage,
+        closed_at: res.data?.data?.closed_at,
+        lost_at: res.data?.data?.lost_at,
+      } : prev);
+      toast.success(t('lead-details.mark-lost-success'), {
+        description: t('lead-details.mark-lost-success-description'),
+      });
+      setLostDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to mark deal as lost:', err);
+      toast.error(t('lead-details.mark-lost-error'), {
+        description: t('lead-details.mark-lost-error-description'),
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const currency = companyCurrency;
 
   const modalTree = (
@@ -282,6 +338,44 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0 self-end sm:self-start">
+                      {(sale.status === 'pending' || sale.status === 'sent') && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500 hidden sm:inline-flex"
+                            onClick={() => setCloseDialogOpen(true)}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            {t('lead-details.close-deal')}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 sm:hidden h-8 w-8"
+                            onClick={() => setCloseDialogOpen(true)}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:text-rose-500 hidden sm:inline-flex"
+                            onClick={() => setLostDialogOpen(true)}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            {t('lead-details.mark-as-lost')}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-rose-500/30 text-rose-500 hover:bg-rose-500/10 sm:hidden h-8 w-8"
+                            onClick={() => setLostDialogOpen(true)}
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -723,6 +817,74 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteDoc} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Close Deal Confirmation Dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.close-deal-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('lead-details.close-deal-confirmation')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdatingStatus}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseDeal}
+              disabled={isUpdatingStatus}
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {t('lead-details.close-deal')}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Mark as Lost Confirmation Dialog */}
+      <AlertDialog open={lostDialogOpen} onOpenChange={setLostDialogOpen}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('lead-details.mark-lost-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('lead-details.mark-lost-confirmation')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdatingStatus}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleMarkAsLost}
+              disabled={isUpdatingStatus}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {t('lead-details.mark-as-lost')}
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

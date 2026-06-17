@@ -109,7 +109,7 @@ const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix, highlig
       {/* Card Header with title, value, and optional icon */}
       <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight">{title}</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight truncate" title={title}>{title}</h3>
           <div className={cn('kpi-value', compact ? 'text-lg sm:text-xl lg:text-2xl' : 'text-xl sm:text-2xl lg:text-3xl')}>
             <AnimatedCounter value={value} delay={delay * 100} currencyPrefix={currencyPrefix} />
           </div>

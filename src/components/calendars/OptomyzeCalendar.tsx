@@ -25,8 +25,23 @@ import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
+import { enUS, ptBR, de, es, type Locale } from 'date-fns/locale';
+import type { Language } from '@/contexts/LanguageContext';
 
 type CalendarViewMode = 'month' | 'week' | 'day';
+
+const VIEW_MODE_LABEL_KEYS: Record<CalendarViewMode, string> = {
+  month: 'calendar.view-month',
+  week: 'calendar.view-week',
+  day: 'calendar.view-day',
+};
+
+const DATE_FNS_LOCALES: Record<Language, Locale> = {
+  'en': enUS,
+  'pt-BR': ptBR,
+  'de': de,
+  'es': es,
+};
 
 // Color mapping for event types
 const eventTypeColors: Record<string, string> = {
@@ -88,7 +103,8 @@ interface CalendarItem {
 }
 
 const OptomyzeCalendar: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = DATE_FNS_LOCALES[language] ?? enUS;
   const { user } = useAuth() as { user: { id: number; company_id: number } | null };
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -324,14 +340,14 @@ const OptomyzeCalendar: React.FC = () => {
   };
 
   const headerLabel = useMemo(() => {
-    if (viewMode === 'day') return format(currentDate, 'EEEE, MMMM d, yyyy');
+    if (viewMode === 'day') return format(currentDate, 'EEEE, MMMM d, yyyy', { locale: dateLocale });
     if (viewMode === 'week') {
       const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
       const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return `${format(wStart, 'MMM d')} - ${format(wEnd, 'MMM d, yyyy')}`;
+      return `${format(wStart, 'MMM d', { locale: dateLocale })} - ${format(wEnd, 'MMM d, yyyy', { locale: dateLocale })}`;
     }
-    return format(currentDate, 'MMMM yyyy');
-  }, [currentDate, viewMode]);
+    return format(currentDate, 'MMMM yyyy', { locale: dateLocale });
+  }, [currentDate, viewMode, dateLocale]);
 
   const getItemsForDate = (date: Date): CalendarItem[] => {
     return calendarItems.filter(item => isSameDay(item.date, date));
@@ -353,7 +369,11 @@ const OptomyzeCalendar: React.FC = () => {
 
   const selectedDateItems = selectedDate ? getItemsForDate(selectedDate) : [];
 
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekDays = useMemo(() => {
+    const refSunday = startOfWeek(new Date(), { weekStartsOn: 0 });
+    return eachDayOfInterval({ start: refSunday, end: addDays(refSunday, 6) })
+      .map((d) => format(d, 'EEE', { locale: dateLocale }));
+  }, [dateLocale]);
 
   // Get color for item based on type
   const getItemColor = (item: CalendarItem) => {
@@ -437,13 +457,13 @@ const OptomyzeCalendar: React.FC = () => {
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors capitalize ${
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                       viewMode === mode
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {mode}
+                    {t(VIEW_MODE_LABEL_KEYS[mode])}
                   </button>
                 ))}
               </div>
@@ -486,7 +506,7 @@ const OptomyzeCalendar: React.FC = () => {
                   <div className={`rounded-lg border ${isToday ? 'border-primary/50' : 'border-border'} bg-muted/30 p-4 min-h-[400px]`}>
                     <div className="flex items-center justify-between mb-3">
                       <span className={`text-lg font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                        {format(day, 'EEEE, MMMM d')}
+                        {format(day, 'EEEE, MMMM d', { locale: dateLocale })}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {dayItems.length} {dayItems.length === 1 ? 'item' : 'items'}
@@ -606,7 +626,7 @@ const OptomyzeCalendar: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <h3 className="text-lg font-semibold text-foreground mb-4 shrink-0">
-            {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : t('calendar.select-date')}
+            {selectedDate ? format(selectedDate, 'EEEE, MMMM d', { locale: dateLocale }) : t('calendar.select-date')}
           </h3>
 
           {isLoading ? (

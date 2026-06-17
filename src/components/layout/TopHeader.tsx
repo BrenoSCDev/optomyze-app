@@ -35,7 +35,7 @@ import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { getStorageUrl } from '@/lib/constants';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import UserAvatar from '@/components/ui/user-avatar';
-import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId, getDefaultSearchTarget } from '@/lib/searchConfig';
+import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId, getDefaultSearchTarget, SEARCH_TARGET_CHANGE_EVENT } from '@/lib/searchConfig';
 import optomyzeLogo from '@/assets/optomyze.png';
 import optomyzeLogoLight from '@/assets/optomyze-light.png';
 import OptoIcon from '@/assets/opto-icon.png';
@@ -94,21 +94,23 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Re-read search target whenever the window regains focus (user may have changed it in Preferences)
+  // Re-read search target whenever it changes: immediately via a same-tab
+  // custom event (fired by setDefaultSearchTarget), on window focus, or via
+  // the storage event when changed from another tab.
   useEffect(() => {
     const sync = () => setSearchTarget(getDefaultSearchTarget());
+    window.addEventListener(SEARCH_TARGET_CHANGE_EVENT, sync);
     window.addEventListener('focus', sync);
     window.addEventListener('storage', sync);
-    // Also poll periodically for same-tab changes
-    const interval = setInterval(sync, 2000);
     return () => {
+      window.removeEventListener(SEARCH_TARGET_CHANGE_EVENT, sync);
       window.removeEventListener('focus', sync);
       window.removeEventListener('storage', sync);
-      clearInterval(interval);
     };
   }, []);
 
   const currentSearchConfig = SEARCH_TARGETS[searchTarget];
+  const searchPlaceholder = t('header.search-placeholder').replace('{target}', t(currentSearchConfig.labelKey));
 
   // Renders the leading visual for a search result: a user avatar when
   // searching users, otherwise the target's generic icon.
@@ -490,7 +492,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             )}
             <Input
               type="text"
-              placeholder={`Search ${currentSearchConfig.labelKey}...`}
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -558,7 +560,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             )}
             <Input
               type="text"
-              placeholder={`Search ${currentSearchConfig.labelKey}...`}
+              placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -616,7 +618,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                 <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <Input
                   type="text"
-                  placeholder={`Search ${currentSearchConfig.labelKey}...`}
+                  placeholder={searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onKeyDown={handleKeyDown}

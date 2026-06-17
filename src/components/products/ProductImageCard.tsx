@@ -33,7 +33,7 @@ import { PrivateImage } from '@/components/ui/PrivateImage';
 interface ProductImageCardProps {
   image: ProductImage;
   onSetPrimary: (image: ProductImage) => void;
-  onUpdate: (image: ProductImage, data: { alt_text?: string; image_type?: string }) => void;
+  onUpdate: (image: ProductImage, data: { alt_text?: string }) => void;
   onDelete: (image: ProductImage) => void;
   isDragging?: boolean;
   dragHandleProps?: any;
@@ -52,7 +52,6 @@ const ProductImageCard = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editData, setEditData] = useState({
     alt_text: image.alt_text || '',
-    image_type: image.image_type || '',
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -106,11 +105,6 @@ const ProductImageCard = ({
           <p className="text-sm text-muted-foreground truncate">
             {image.alt_text || t('products.images.no-alt-text')}
           </p>
-          {image.image_type && (
-            <span className="inline-block px-2 py-0.5 bg-muted text-xs rounded">
-              {image.image_type}
-            </span>
-          )}
         </div>
 
         {/* Action Buttons */}
@@ -158,16 +152,6 @@ const ProductImageCard = ({
                 value={editData.alt_text}
                 onChange={(e) => setEditData(prev => ({ ...prev, alt_text: e.target.value }))}
                 placeholder={t('products.images.alt-text-placeholder')}
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label htmlFor="image_type">{t('products.images.image-type')}</Label>
-              <Input
-                id="image_type"
-                value={editData.image_type}
-                onChange={(e) => setEditData(prev => ({ ...prev, image_type: e.target.value }))}
-                placeholder={t('products.images.image-type-placeholder')}
                 className="mt-2"
               />
             </div>

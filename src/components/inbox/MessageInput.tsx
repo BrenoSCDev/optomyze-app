@@ -108,7 +108,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, onSendFile, disable
             <button
               onClick={() => imageInputRef.current?.click()}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 mb-1"
-              title="Send image"
+              title={t('chat.composer.attach-file')}
             >
               <Paperclip className="w-4 h-4" />
             </button>
@@ -123,7 +123,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, onSendFile, disable
                 value={value}
                 onChange={e => setValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message... (Enter to send)"
+                placeholder={t('chat.inbox.type-message')}
                 disabled={disabled}
                 rows={1}
                 className="w-full px-3 py-2.5 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none outline-none max-h-[120px] leading-5"
@@ -144,7 +144,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSend, onSendFile, disable
               onClick={handleSend}
               disabled={!value.trim() || disabled}
               className="w-8 h-8 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center text-primary-foreground transition-colors shrink-0 mb-1"
-              title="Send message"
+              title={t('chat.composer.send')}
             >
               <Send className="w-3.5 h-3.5" />
             </button>
