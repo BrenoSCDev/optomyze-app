@@ -288,6 +288,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   // Load messages when chat changes
   useEffect(() => {
     setReplyingTo(null);
+    setPendingMessages([]);
 
     if (!chat) {
       setLocalMessages([]);
