@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, Reply } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -262,7 +262,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<InboxMessage | null>(null);
 
   // Message pagination state
   const [localMessages, setLocalMessages] = useState<InboxMessage[]>([]);
@@ -287,7 +286,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
   // Load messages when chat changes
   useEffect(() => {
-    setReplyingTo(null);
     setPendingMessages([]);
 
     if (!chat) {
@@ -419,16 +417,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
     const currentMode = messageMode;
-    const replyToId = chat.channel === 'instagram' ? replyingTo?.id : undefined;
 
     setMessageText('');
     setIsSending(true);
-    setReplyingTo(null);
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
       const response = chat.channel === 'instagram'
-        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode, replyToId)
+        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
         : await sendInboxMessage(chat.channelable_id, {
             lead_id: chat.lead!.id,
             text,
@@ -497,7 +493,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
     const tempId = `pending-media-${Date.now()}`;
     setIsSendingMedia(true);
-    setReplyingTo(null);
     setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: mode }]);
 
     try {
@@ -794,19 +789,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     {(chat.channel === 'whatsapp' || chat.channel === 'instagram') && !isInternalNote(message) && (
                       <div className={cn(
                         "absolute top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-                        message.direction === 'outgoing'
-                          ? (chat.channel === 'instagram' ? "-left-16" : "-left-8")
-                          : (chat.channel === 'instagram' ? "-right-16" : "-right-8")
+                        message.direction === 'outgoing' ? "-left-8" : "-right-8"
                       )}>
-                      {chat.channel === 'instagram' && (
-                        <button
-                          type="button"
-                          onClick={() => setReplyingTo(message)}
-                          className="p-1 rounded-full bg-card border border-border/60 shadow-sm hover:bg-muted"
-                        >
-                          <Reply className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
-                      )}
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
@@ -1162,22 +1146,6 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             className="hidden"
             onChange={handleImageSelect}
           />
-
-          {replyingTo && (
-            <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-muted/60 border-l-2 border-primary/60">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-primary">{t('chat.inbox.replying-to')}</p>
-                <p className="text-xs text-muted-foreground truncate">{getReplyPreviewLabel(replyingTo)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setReplyingTo(null)}
-                className="shrink-0 p-1 rounded-full hover:bg-muted transition-colors"
-              >
-                <X className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
-            </div>
-          )}
 
           <MessageComposer
             value={messageText}
