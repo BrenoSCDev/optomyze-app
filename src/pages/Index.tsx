@@ -26,6 +26,7 @@ const N8nAgents              = lazy(() => import('@/components/agents/N8nAgents'
 const OptomyzeAgents         = lazy(() => import('@/components/agents/OptomyzeAgents'));
 const ApiTokens              = lazy(() => import('@/components/api/ApiTokens'));
 const AllowedOrigins         = lazy(() => import('@/components/api/AllowedOrigins'));
+const ApiRequestLogs         = lazy(() => import('@/components/api/ApiRequestLogs'));
 const ApiSetup               = lazy(() => import('@/components/api/ApiSetup'));
 const ManageUsers            = lazy(() => import('@/components/users/ManageUsers'));
 const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams'));
@@ -108,6 +109,7 @@ const Index = () => {
       case 'leads': return <LeadsManagement funnelId={funnelId} />;
       case 'api-tokens': return <ApiTokens />;
       case 'allowed-origins': return <AllowedOrigins />;
+      case 'api-logs': return <ApiRequestLogs />;
       case 'api-setup': return <ApiSetup />;
       case 'manage-users': return <ManageUsers />;
       case 'manage-teams': return <ManageTeams />;

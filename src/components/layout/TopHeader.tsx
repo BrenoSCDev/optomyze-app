@@ -415,7 +415,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               <motion.img
                 src={headerLogo}
                 alt="Optomyze"
-                className="h-6 hidden md:block"
+                className="h-7 hidden md:block"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}

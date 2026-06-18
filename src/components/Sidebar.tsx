@@ -140,6 +140,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   const apiItems = [
     { id: 'api-tokens', label: 'API Tokens', icon: () => <Key size={18}/> },
     { id: 'allowed-origins', label: t('api.allowed-origins.title'), icon: () => <Globe size={18}/> },
+    { id: 'api-logs', label: t('api.logs.title'), icon: () => <FileText size={18}/> },
     { id: 'api-setup', label: 'API Setup', icon: () => <BsDatabaseFillGear size={18}/> },
   ];
 
