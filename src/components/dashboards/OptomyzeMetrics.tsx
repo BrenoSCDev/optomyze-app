@@ -17,7 +17,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   TrendingUp, Users, UserX, DollarSign, Target, Percent, Trophy, UserCheck,
   AlertCircle, Filter, BarChart3, Calendar, TrendingDown, GripVertical, RefreshCw,
+  MessageSquareText,
 } from 'lucide-react';
+import ConversationsMetrics from '@/components/dashboards/ConversationsMetrics';
 import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -941,7 +943,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
   const [monthlyError,    setMonthlyError]    = useState<any>(null);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'periodic' | 'monthly'>('periodic');
+  const [activeTab, setActiveTab] = useState<'periodic' | 'monthly' | 'conversations'>('periodic');
 
   // Date range state (shared across tabs, reset cache on change)
   const [dateRange, setDateRange] = useState<DateRange>('30_days');
@@ -1272,6 +1274,12 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
             {t('metrics.tab.monthly')}
           </span>
         </TabButton>
+        <TabButton active={activeTab === 'conversations'} onClick={() => setActiveTab('conversations')}>
+          <span className="relative z-10 flex items-center gap-1.5">
+            <MessageSquareText className="w-3 h-3" />
+            {t('metrics.tab.conversations')}
+          </span>
+        </TabButton>
       </div>
 
       {/* ── Tab Content ── */}
@@ -1383,6 +1391,19 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
 
             {/* Monthly Lead Flow */}
             <MonthlyLeadFlowChart monthlyData={monthlyData} isLoading={loading} />
+          </motion.div>
+        )}
+
+        {/* ── TAB 3: Conversations ── */}
+        {activeTab === 'conversations' && (
+          <motion.div
+            key="conversations"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25 }}
+          >
+            <ConversationsMetrics />
           </motion.div>
         )}
       </AnimatePresence>

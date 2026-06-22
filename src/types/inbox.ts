@@ -114,6 +114,53 @@ export interface InboxChat {
   messages: InboxMessage[];
 }
 
+export interface ChatSession {
+  id: number;
+  status: 'active' | 'closed';
+  started_at: string;
+  first_message_at: string | null;
+  ended_at: string | null;
+  duration_seconds: number;
+  assigned_agent: { id: number; name: string } | null;
+}
+
+export type ClosingReasonOutcome = 'won' | 'lost' | 'neutral';
+
+export interface ClosingReason {
+  id: number;
+  name: string;
+  description?: string | null;
+  // Present only in the management list (GET /api/closing-reasons?all=1)
+  is_active?: boolean;
+  sort_order?: number;
+  outcome?: ClosingReasonOutcome;
+  closing_messages?: { id: number; name: string }[];
+}
+
+export interface ClosingMessage {
+  id: number;
+  company_id: number;
+  name: string;
+  message: string;
+  closing_reasons: { id: number; name: string }[];
+}
+
+export interface ConversationSettings {
+  id: number;
+  company_id: number;
+  welcome_messages_enabled: boolean;
+  closing_messages_enabled: boolean;
+}
+
+export interface WelcomeMessageAccount {
+  channel: InboxChannel;
+  channelable_type: string;
+  channelable_id: number;
+  label: string;
+  is_enabled: boolean;
+  message: string | null;
+}
+
 export interface PaginationMeta {
   current_page: number;
   last_page: number;

@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, X, Package } from 'lucide-react';
+import { Loader2, X, Package, Search } from 'lucide-react';
 import { AppointmentType } from '@/services/appointmentTypeApi';
 import { Appointment, AppointmentProduct, CreateAppointmentPayload, createAppointment, updateAppointment } from '@/services/appointmentApi';
 import { Product, getProducts } from '@/services/productApi';
+import { useCompanyTimezone } from '@/hooks/useCompanyTimezone';
 import { format, addMinutes, parseISO } from 'date-fns';
 
 const TIMEZONES = [
@@ -47,14 +48,18 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
   const { t } = useLanguage();
   const { toast } = useToast();
   const isEdit = !!appointment;
+  const companyTimezone = useCompanyTimezone();
+  const defaultTimezone = leadTimezone || companyTimezone || 'America/New_York';
 
   const [typeId, setTypeId] = useState<string>('');
   const [title, setTitle] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [endAt, setEndAt] = useState('');
-  const [timezone, setTimezone] = useState(leadTimezone || 'America/New_York');
+  const [timezone, setTimezone] = useState(defaultTimezone);
+  const [timezoneSearch, setTimezoneSearch] = useState('');
+  const [showTimezoneResults, setShowTimezoneResults] = useState(false);
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<'scheduled' | 'completed' | 'cancelled' | 'no_show'>('scheduled');
+  const [status, setStatus] = useState<'draft' | 'scheduled' | 'completed' | 'cancelled' | 'no_show'>('draft');
   const [saving, setSaving] = useState(false);
 
   const [selectedProducts, setSelectedProducts] = useState<AppointmentProduct[]>([]);
@@ -70,7 +75,7 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
       setTitle(appointment.title);
       setScheduledAt(toDatetimeLocal(appointment.scheduled_at));
       setEndAt(appointment.end_at ? toDatetimeLocal(appointment.end_at) : '');
-      setTimezone(appointment.timezone || leadTimezone || 'America/New_York');
+      setTimezone(appointment.timezone || defaultTimezone);
       setNotes(appointment.notes ?? '');
       setStatus(appointment.status);
       setSelectedProducts(appointment.products ?? []);
@@ -83,15 +88,17 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
       tomorrow.setHours(10, 0, 0, 0);
       setScheduledAt(format(tomorrow, "yyyy-MM-dd'T'HH:mm"));
       setEndAt('');
-      setTimezone(leadTimezone || 'America/New_York');
+      setTimezone(defaultTimezone);
       setNotes('');
-      setStatus('scheduled');
+      setStatus('draft');
       setSelectedProducts([]);
     }
+    setTimezoneSearch('');
+    setShowTimezoneResults(false);
     setProductSearch('');
     setSearchResults([]);
     setShowResults(false);
-  }, [appointment, isOpen, leadTimezone, appointmentTypes]);
+  }, [appointment, isOpen, defaultTimezone, appointmentTypes]);
 
   const handleProductSearch = useCallback((query: string) => {
     setProductSearch(query);
@@ -239,35 +246,53 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
             </div>
           </div>
 
-          {/* Timezone */}
+          {/* Timezone (searchable) */}
           <div className="space-y-1">
             <Label>{t('appointments.timezone')}</Label>
-            <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent className="max-h-60">
-                {TIMEZONES.map(tz => (
-                  <SelectItem key={tz} value={tz}>{tz}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                value={showTimezoneResults ? timezoneSearch : timezone}
+                onChange={e => { setTimezoneSearch(e.target.value); setShowTimezoneResults(true); }}
+                onFocus={() => { setTimezoneSearch(''); setShowTimezoneResults(true); }}
+                onBlur={() => setTimeout(() => setShowTimezoneResults(false), 150)}
+              />
+              {showTimezoneResults && (
+                <div className="absolute z-50 top-full mt-1 w-full rounded-md border bg-popover shadow-md max-h-48 overflow-y-auto">
+                  {TIMEZONES.filter(tz => tz.toLowerCase().includes(timezoneSearch.toLowerCase())).map(tz => (
+                    <button
+                      key={tz}
+                      type="button"
+                      onMouseDown={() => { setTimezone(tz); setShowTimezoneResults(false); }}
+                      className="w-full px-3 py-2 text-sm text-left hover:bg-accent"
+                    >
+                      {tz}
+                    </button>
+                  ))}
+                  {TIMEZONES.filter(tz => tz.toLowerCase().includes(timezoneSearch.toLowerCase())).length === 0 && (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">{t('appointments.no-timezone-match')}</div>
+                  )}
+                </div>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">{t('appointments.timezone-hint')}</p>
           </div>
 
-          {/* Status (edit only) */}
-          {isEdit && (
-            <div className="space-y-1">
-              <Label>{t('appointments.status')}</Label>
-              <Select value={status} onValueChange={v => setStatus(v as typeof status)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="scheduled">{t('appointments.status-scheduled')}</SelectItem>
-                  <SelectItem value="completed">{t('appointments.status-completed')}</SelectItem>
-                  <SelectItem value="cancelled">{t('appointments.status-cancelled')}</SelectItem>
-                  <SelectItem value="no_show">{t('appointments.status-no-show')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {/* Status */}
+          <div className="space-y-1">
+            <Label>{t('appointments.status')}</Label>
+            <Select value={status} onValueChange={v => setStatus(v as typeof status)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">{t('appointments.status-draft')}</SelectItem>
+                <SelectItem value="scheduled">{t('appointments.status-scheduled')}</SelectItem>
+                <SelectItem value="completed">{t('appointments.status-completed')}</SelectItem>
+                <SelectItem value="cancelled">{t('appointments.status-cancelled')}</SelectItem>
+                <SelectItem value="no_show">{t('appointments.status-no-show')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Notes */}
           <div className="space-y-1">

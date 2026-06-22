@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +27,9 @@ import ContactMessage from './ContactMessage';
 import InboxAvatar from './InboxAvatar';
 import MessageComposer from './MessageComposer';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
+import EndConversationDialog from './EndConversationDialog';
+import { ChatSession } from '@/types/inbox';
+import { fetchActiveSession } from '@/services/chatSessionApi';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
@@ -46,6 +49,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInbox } from '@/contexts/InboxContext';
+import { onLeadTransaction } from '@/contexts/NotificationContext';
+import { recordsApi } from '@/services/recordsApi';
+import { adaptRecord, adaptLeadTransactionPayload, AUTOMATION_ACTOR, type ActivityEvent } from '@/components/activity/types';
+import { resolveActivityRegistryEntry } from '@/components/activity/registry';
 
 /** Renders WhatsApp-style delivery ticks for an outgoing message's status. */
 const MessageStatusTicks: React.FC<{ status?: string; variant?: 'onBlue' | 'subtle' }> = ({ status, variant = 'onBlue' }) => {
@@ -67,6 +74,29 @@ const MessageStatusTicks: React.FC<{ status?: string; variant?: 'onBlue' | 'subt
     default:
       return null;
   }
+};
+
+/** Renders a lead `Record` (stage change, assignment, note, etc.) inline in the conversation timeline. */
+const LeadRecordLogEntry: React.FC<{ event: ActivityEvent }> = ({ event }) => {
+  const { t } = useLanguage();
+  const entry = resolveActivityRegistryEntry(event);
+  const Icon = entry.icon;
+  const actorName = event.actor.isSystem
+    ? t(event.actor.name === AUTOMATION_ACTOR ? 'activity.actor.automation' : 'activity.actor.system')
+    : event.actor.name;
+
+  return (
+    <div className="flex justify-center py-1">
+      <div className="flex items-start gap-1.5 max-w-[85%] px-2">
+        <Icon className={cn('h-3.5 w-3.5 shrink-0 mt-0.5', entry.iconColor)} />
+        <p className="text-xs text-muted-foreground leading-snug">
+          <span className="font-medium text-foreground">{t(entry.titleKey)}</span>
+          {event.description && <>: {event.description}</>}
+          <span className="text-muted-foreground/70"> · {extractTime(event.createdAt)} · {actorName}</span>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 /** Renders an image message fetched through the authenticated backend. */
@@ -262,6 +292,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
+  const [showEndConversation, setShowEndConversation] = useState(false);
 
   // Message pagination state
   const [localMessages, setLocalMessages] = useState<InboxMessage[]>([]);
@@ -274,6 +306,10 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const localMessageIdsRef = useRef<Set<number>>(new Set());
   // Saved scroll height for position restoration after prepend
   const savedScrollHeightRef = useRef<number | null>(null);
+
+  // Lead activity (Record) log entries shown inline in the timeline
+  const [leadActivityEvents, setLeadActivityEvents] = useState<ActivityEvent[]>([]);
+  const leadActivityIdsRef = useRef<Set<string>>(new Set());
 
   const getViewport = useCallback(() =>
     scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null,
@@ -311,6 +347,54 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       .catch(() => {})
       .finally(() => setIsLoadingMessages(false));
   }, [chat?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load the lead's Record log (stage changes, assignments, notes, etc.) when chat changes
+  useEffect(() => {
+    leadActivityIdsRef.current = new Set();
+    const leadId = chat?.lead?.id;
+    if (!leadId) {
+      setLeadActivityEvents([]);
+      return;
+    }
+    let cancelled = false;
+    recordsApi.fetchRecordsForLead(leadId)
+      .then(res => {
+        if (cancelled) return;
+        const events = res.records.map(r => adaptRecord(r, 'lead'));
+        events.forEach(e => leadActivityIdsRef.current.add(e.id));
+        setLeadActivityEvents(events);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [chat?.lead?.id]);
+
+  // Live-append new Record log entries for this lead as they're created elsewhere in the app
+  useEffect(() => {
+    const leadId = chat?.lead?.id;
+    if (!leadId) return;
+    return onLeadTransaction((payload) => {
+      if (payload.lead?.id !== leadId) return;
+      const event = adaptLeadTransactionPayload(payload);
+      if (leadActivityIdsRef.current.has(event.id)) return;
+      leadActivityIdsRef.current.add(event.id);
+      setLeadActivityEvents(prev => [...prev, event]);
+      setTimeout(scrollToBottom, 50);
+    });
+  }, [chat?.lead?.id, scrollToBottom]);
+
+  // Track the chat's active ChatSession (drives the "End Conversation" menu item)
+  const liveChatLastMessageAt = chat ? contextChats.find(c => c.id === chat.id)?.last_message_at ?? chat.last_message_at : null;
+  useEffect(() => {
+    if (!chat) {
+      setActiveSession(null);
+      return;
+    }
+    let cancelled = false;
+    fetchActiveSession(chat.id)
+      .then(data => { if (!cancelled) setActiveSession(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [chat?.id, liveChatLastMessageAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync new messages from WebSocket (context updates selectedChat.messages)
   useEffect(() => {
@@ -597,17 +681,32 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     });
   };
 
-  const groupMessagesByDate = (messages: InboxMessage[]) => {
-    const groups: { date: string; messages: InboxMessage[] }[] = [];
+  // A single chat timeline entry: either an inbox message or a lead Record log
+  type TimelineItem =
+    | { kind: 'message'; ts: string; message: InboxMessage }
+    | { kind: 'record'; ts: string; event: ActivityEvent };
+
+  /** Merges messages + lead activity records into one chronological, date-grouped timeline. */
+  const buildTimelineGroups = (messages: InboxMessage[], events: ActivityEvent[]) => {
+    // Records (e.g. "Conversation Started") are always created in the backend
+    // before the message that triggered them, but can land on the same
+    // second-precision timestamp. List events first so the stable sort below
+    // keeps records ahead of same-timestamp messages.
+    const items: TimelineItem[] = [
+      ...events.map((event): TimelineItem => ({ kind: 'record', ts: event.createdAt, event })),
+      ...messages.map((message): TimelineItem => ({ kind: 'message', ts: message.sent_at, message })),
+    ].sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+
+    const groups: { date: string; items: TimelineItem[] }[] = [];
     let currentDate = '';
 
-    messages.forEach((message) => {
-      const messageDate = new Date(message.sent_at).toDateString();
-      if (messageDate !== currentDate) {
-        currentDate = messageDate;
-        groups.push({ date: message.sent_at, messages: [message] });
+    items.forEach((item) => {
+      const itemDate = new Date(item.ts).toDateString();
+      if (itemDate !== currentDate) {
+        currentDate = itemDate;
+        groups.push({ date: item.ts, items: [item] });
       } else {
-        groups[groups.length - 1].messages.push(message);
+        groups[groups.length - 1].items.push(item);
       }
     });
 
@@ -669,7 +768,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     );
   }
 
-  const messageGroups = groupMessagesByDate(localMessages);
+  const timelineGroups = buildTimelineGroups(localMessages, leadActivityEvents);
   const canSend = !!chat.channelable_id;
 
   return (
@@ -725,6 +824,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
+                onClick={() => setShowEndConversation(true)}
+                disabled={!activeSession}
+              >
+                <CircleSlash className="h-4 w-4 mr-2" />
+                {t('chat.inbox.end-conversation')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => setShowClearConfirm(true)}
                 className="text-destructive focus:text-destructive"
               >
@@ -736,13 +842,23 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         </div>
       </div>
 
+      {activeSession && (
+        <EndConversationDialog
+          open={showEndConversation}
+          onOpenChange={setShowEndConversation}
+          chatId={chat.id}
+          session={activeSession}
+          onClosed={() => setActiveSession(null)}
+        />
+      )}
+
       {/* Messages */}
       <ScrollArea className="flex-1 min-h-0 p-4 w-full overflow-x-hidden" ref={scrollAreaRef} scrollbarVariant="dark">
         {isLoadingMessages ? (
           <div className="flex items-center justify-center h-full py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : localMessages.length > 0 ? (
+        ) : localMessages.length > 0 || leadActivityEvents.length > 0 ? (
           <div className="space-y-4 w-full min-w-0">
             {/* Load more indicator at top */}
             {isLoadingMoreMessages && (
@@ -756,7 +872,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               </p>
             )}
 
-            {messageGroups.map((group, groupIndex) => (
+            {timelineGroups.map((group, groupIndex) => (
               <div key={groupIndex} className="space-y-3">
                 {/* Date separator */}
                 <div className="flex items-center justify-center">
@@ -765,8 +881,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                   </span>
                 </div>
 
-                {/* Messages */}
-                {group.messages.map((message, messageIndex) => (
+                {/* Messages + lead activity log entries, interleaved chronologically */}
+                {group.items.map((item, itemIndex) => {
+                  if (item.kind === 'record') {
+                    return <LeadRecordLogEntry key={`record-${item.event.id}`} event={item.event} />;
+                  }
+                  const message = item.message;
+                  const messageIndex = itemIndex;
+                  return (
                   <motion.div
                     key={message.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -786,7 +908,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       />
                     )}
                     <div className="relative max-w-[75%]">
-                    {(chat.channel === 'whatsapp' || chat.channel === 'instagram') && !isInternalNote(message) && (
+                    {/* WhatsApp reactions are temporarily hidden — not working correctly yet. Code kept intact for Instagram and for re-enabling later. */}
+                    {chat.channel === 'instagram' && !isInternalNote(message) && (
                       <div className={cn(
                         "absolute top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
                         message.direction === 'outgoing' ? "-left-8" : "-right-8"
@@ -1061,7 +1184,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       />
                     )}
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             ))}
 

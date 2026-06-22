@@ -3,13 +3,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, XCircle, Mail, Users, BarChart3, Moon, FileStack, CalendarDays } from 'lucide-react';
+import { Bell, Package, DollarSign, Settings, List, Tag, Zap, Shield, XCircle, Mail, Users, BarChart3, Moon, FileStack, CalendarDays, MessageSquare, ListChecks, Send, MessageSquareText } from 'lucide-react';
 import { IoFunnelOutline } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useSettingsPanel } from '@/hooks/useSettingsPanel';
 import { useFunnelSettings } from '@/hooks/useFunnelSettings';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
+import { useConversationSettings } from '@/hooks/useConversationSettings';
 import { useCustomProductFields } from '@/hooks/useCustomProductFields';
 import { useLeadCustomFields } from '@/hooks/useLeadCustomFields';
 import { FunnelStage } from '@/services/funnelSettingsApi';
@@ -45,6 +47,14 @@ import {
   NotificationPreviewSection,
 } from './notifications';
 
+// Conversation Settings
+import {
+  WelcomeMessagesSection,
+  ClosingReasonsSection,
+  ClosingMessagesSection,
+  AutomaticClosingMessagesSection,
+} from './conversations';
+
 const CrmPanel = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('notifications');
@@ -56,6 +66,7 @@ const CrmPanel = () => {
     loading,
     saving,
     notificationSettings: initialNotificationSettings,
+    conversationSettings: initialConversationSettings,
     updateProductSettings,
     updateSalesSettings,
     hasProductChanges,
@@ -105,6 +116,14 @@ const CrmPanel = () => {
     updateEvent,
     updateQuietHours,
   } = useNotificationSettings({ initialData: initialNotificationSettings });
+
+  const {
+    settings: conversationSettings,
+    isActivated: conversationActivated,
+    activating: conversationActivating,
+    activate: activateConversations,
+    patchSettings: patchConversationSettingsHook,
+  } = useConversationSettings({ initialData: initialConversationSettings });
 
   const {
     fields: customProductFields,
@@ -184,10 +203,14 @@ const CrmPanel = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
+        <TabsList className="grid w-full grid-cols-6 mb-6">
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">{t('settings.crm-panel.tabs.notifications')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="conversations" className="gap-2">
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('settings.crm-panel.tabs.conversations')}</span>
           </TabsTrigger>
           <TabsTrigger value="funnels" className="gap-2">
             <IoFunnelOutline className="w-4 h-4" />
@@ -332,6 +355,127 @@ const CrmPanel = () => {
                   </AccordionContent>
                 </AccordionItem>
 
+              </Accordion>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Conversations Tab */}
+        <TabsContent value="conversations" className="mt-0">
+          <div className="glass-card p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {t('settings.crm-panel.conversations.title')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('settings.crm-panel.conversations.description')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {!conversationActivated ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <MessageSquare className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h4 className="text-lg font-medium mb-2">
+                  {t('settings.conversations.not-activated-title')}
+                </h4>
+                <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                  {t('settings.conversations.not-activated-description')}
+                </p>
+                <Button onClick={activateConversations} disabled={conversationActivating}>
+                  {conversationActivating ? t('common.activating') : t('settings.conversations.activate')}
+                </Button>
+              </div>
+            ) : conversationSettings && (
+              <Accordion type="single" collapsible className="w-full space-y-4">
+                <AccordionItem value="welcome-messages" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Send className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.conversations.welcome.title')}
+                      </span>
+                      <Switch
+                        checked={conversationSettings.welcome_messages_enabled}
+                        onCheckedChange={(checked) => patchConversationSettingsHook({ welcome_messages_enabled: checked })}
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-2"
+                      />
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <WelcomeMessagesSection />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="closing-reasons" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <ListChecks className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.conversations.closing-reasons.title')}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <ClosingReasonsSection />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="closing-messages" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <MessageSquareText className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.conversations.closing-messages.title')}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <ClosingMessagesSection />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="auto-closing-messages" className="border rounded-lg px-4 bg-background/50">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground">
+                        {t('settings.conversations.auto-closing.title')}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="py-4 px-2 border-t">
+                      <AutomaticClosingMessagesSection
+                        enabled={conversationSettings.closing_messages_enabled}
+                        onToggle={(checked) => patchConversationSettingsHook({ closing_messages_enabled: checked })}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               </Accordion>
             )}
           </div>

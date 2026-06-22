@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getEcho } from '@/services/echo';
 import {
   ChatConversation, ChatMessage,
@@ -15,6 +16,7 @@ interface ChatTabProps {
 }
 
 const ChatTab: React.FC<ChatTabProps> = ({ userId, active }) => {
+  const { t } = useLanguage();
   const { user: currentUser } = useAuth();
   const currentUserId = currentUser?.id;
 
@@ -142,7 +144,7 @@ const ChatTab: React.FC<ChatTabProps> = ({ userId, active }) => {
         ))}
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-            No messages yet. Say hello!
+            {t('user-profile.chat.no-messages')}
           </div>
         )}
         <div ref={bottomRef} />

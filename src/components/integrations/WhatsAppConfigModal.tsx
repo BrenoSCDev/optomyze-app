@@ -23,6 +23,7 @@ import { IoFunnelOutline } from 'react-icons/io5';
 import CreateInstanceModal from './CreateInstanceModal';
 import TestInstanceModal from './TestInstanceModal';
 import DeleteInstanceModal from './DeleteInstanceModal';
+import DisconnectInstanceModal from './DisconnectInstanceModal';
 import QRCodeModal from './QRCodeModal';
 import FunnelSelectionModal from './FunnelSelectionModal';
 
@@ -70,6 +71,7 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
   const [funnelModalOpen, setFunnelModalOpen] = useState(false);
   const [selectedInstance, setSelectedInstance] = useState<WhatsAppInstance | null>(null);
@@ -206,22 +208,13 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
     ));
   };
 
-  const handleDisconnect = async (instance: WhatsAppInstance) => {
-    try {
-      await api.post(`/api/integrations/whatsapp-evo-instances/disconnect/${instance.id}`);
-      handleStatusChange(instance.id, 'disconnected');
-      toast({
-        title: t('integrations.panel.disconnect.success-title'),
-        description: t('integrations.panel.disconnect.success-description'),
-      });
-    } catch (error) {
-      console.error('Error disconnecting instance:', error);
-      toast({
-        title: t('integrations.panel.disconnect.error-title'),
-        description: t('integrations.panel.disconnect.error-description'),
-        variant: 'destructive',
-      });
-    }
+  const handleDisconnect = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setDisconnectModalOpen(true);
+  };
+
+  const handleDisconnected = (instanceId: number) => {
+    handleStatusChange(instanceId, 'disconnected');
   };
 
   const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
@@ -478,6 +471,13 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
         onOpenChange={setDeleteModalOpen}
         instance={freshSelectedInstance}
         onInstanceDeleted={handleInstanceDeleted}
+      />
+
+      <DisconnectInstanceModal
+        open={disconnectModalOpen}
+        onOpenChange={setDisconnectModalOpen}
+        instance={freshSelectedInstance}
+        onDisconnected={handleDisconnected}
       />
 
       <QRCodeModal

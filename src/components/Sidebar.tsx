@@ -35,7 +35,6 @@ import {
   FileStack,
   ListTodo,
   TicketPlus,
-  MessageSquareText,
   Building,
   PieChart,
   Globe

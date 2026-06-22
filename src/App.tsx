@@ -33,9 +33,9 @@ const App = () => (
         <BrowserRouter>
           <NotificationProvider>
             <PresenceProvider>
+            <TooltipProvider>
             <UserProfileModalProvider>
             <InboxProvider>
-              <TooltipProvider>
               <Toaster />
               <Sonner position="top-right" richColors />
               <Routes>
@@ -102,9 +102,9 @@ const App = () => (
                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              </TooltipProvider>
             </InboxProvider>
             </UserProfileModalProvider>
+            </TooltipProvider>
             </PresenceProvider>
           </NotificationProvider>
         </BrowserRouter>

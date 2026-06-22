@@ -20,7 +20,7 @@ export interface Appointment {
   end_at: string | null;
   timezone: string;
   notes: string | null;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  status: 'draft' | 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   created_at: string;
   updated_at: string;
   appointment_type?: AppointmentType | null;
@@ -37,7 +37,7 @@ export interface CreateAppointmentPayload {
   end_at?: string;
   timezone?: string;
   notes?: string;
-  status?: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  status?: 'draft' | 'scheduled' | 'completed' | 'cancelled' | 'no_show';
   lead_timezone?: string;
   product_ids?: number[];
 }

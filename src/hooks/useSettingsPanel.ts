@@ -7,18 +7,23 @@ import {
   saveSettings,
 } from '@/services/settingsApi';
 import { ApiNotificationSettings } from '@/services/notificationSettingsApi';
+import { ConversationSettings } from '@/types/inbox';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SettingsPanelResponse extends SettingsPanel {
   notificationSettings?: ApiNotificationSettings | null;
+  conversationSettings?: ConversationSettings | null;
+  companyTimezone?: string | null;
 }
 
 export const useSettingsPanel = () => {
   const [settings, setSettings] = useState<SettingsPanel>(defaultSettings);
   const [originalSettings, setOriginalSettings] = useState<SettingsPanel>(defaultSettings);
   const [notificationSettings, setNotificationSettings] = useState<ApiNotificationSettings | null>(null);
+  const [conversationSettings, setConversationSettings] = useState<ConversationSettings | null>(null);
+  const [companyTimezone, setCompanyTimezone] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -32,6 +37,8 @@ export const useSettingsPanel = () => {
       const response = data as SettingsPanelResponse;
 
       setNotificationSettings(response.notificationSettings ?? null);
+      setConversationSettings(response.conversationSettings ?? null);
+      setCompanyTimezone(response.companyTimezone ?? null);
 
       setSettings({
         product_settings: response.product_settings || defaultSettings.product_settings,
@@ -140,6 +147,8 @@ export const useSettingsPanel = () => {
     loading,
     saving,
     notificationSettings,
+    conversationSettings,
+    companyTimezone,
     updateProductSettings,
     updateSalesSettings,
     hasProductChanges,

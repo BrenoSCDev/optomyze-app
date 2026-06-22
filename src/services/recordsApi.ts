@@ -52,6 +52,12 @@ export interface RecordsResponse {
   meta?: ActivityMeta;
 }
 
+export interface RecordableRecordsResponse {
+  recordable_type: 'Lead' | 'Sale';
+  recordable_id: number;
+  records: RecordItem[];
+}
+
 export interface ActivityTask {
   id: number;
   lead_id: number | null;
@@ -102,6 +108,18 @@ export const recordsApi = {
       return response.data;
     } catch (error) {
       console.error('Error fetching record logs:', error);
+      throw error;
+    }
+  },
+
+  fetchRecordsForLead: async (leadId: number): Promise<RecordableRecordsResponse> => {
+    try {
+      const response = await api.get('/api/records', {
+        params: { recordable_type: 'Lead', recordable_id: leadId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching lead records:', error);
       throw error;
     }
   },

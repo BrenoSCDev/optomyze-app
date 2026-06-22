@@ -7,7 +7,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, User, MapPin, CheckSquare, CalendarDays, AlertCircle, Loader2, Edit2, Trash2, FileText, ExternalLink, RefreshCw, Globe, CheckCircle2, XCircle, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,6 +21,7 @@ import {
   useDeleteCalendarEvent
 } from '@/hooks/useCalendarEvents';
 import { CalendarTask, CalendarEvent, CalendarAppointment, CalendarEventsResponse } from '@/services/calendarApi';
+import { Appointment, updateAppointment } from '@/services/appointmentApi';
 import { EventFormModal, EventFormData } from './EventFormModal';
 import { DeleteEventDialog } from './DeleteEventDialog';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
@@ -71,6 +72,7 @@ const taskStatusColors: Record<string, string> = {
 
 // Color mapping for appointment statuses
 const appointmentStatusColors: Record<string, string> = {
+  draft: 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40',
   scheduled: 'bg-teal-500/20 text-teal-700 dark:text-teal-400 border-teal-500/40',
   completed: 'bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40',
   cancelled: 'bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500/40',
@@ -119,6 +121,7 @@ const OptomyzeCalendar: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
   const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
+  const [updatingAppointmentId, setUpdatingAppointmentId] = useState<number | null>(null);
 
   const { data, isLoading, error, refetch, isFetching } = useCalendarEvents();
   const createEventMutation = useCreateCalendarEvent();
@@ -246,6 +249,7 @@ const OptomyzeCalendar: React.FC = () => {
         endDate: appt.end_at ? parseDateSafe(appt.end_at) : undefined,
         type: 'appointment',
         subType: appt.status,
+        status: appt.status,
         hasReminder: false,
         leadName: appt.lead ? `${appt.lead.first_name} ${appt.lead.last_name}` : undefined,
         leadId: appt.lead?.id,
@@ -274,6 +278,19 @@ const OptomyzeCalendar: React.FC = () => {
   const handleDeleteEvent = (item: CalendarItem) => {
     setSelectedEventForDelete(item);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleAppointmentStatusChange = async (item: CalendarItem, status: Appointment['status']) => {
+    setUpdatingAppointmentId(item.originalId);
+    try {
+      await updateAppointment(item.originalId, { status });
+      // No manual cache update needed — AppointmentController::update()
+      // broadcasts AppointmentLiveUpdate, already handled by the listener above.
+    } catch {
+      // Toast pattern matches the rest of this component's quiet failure handling.
+    } finally {
+      setUpdatingAppointmentId(null);
+    }
   };
 
   const handleEventFormSubmit = async (formData: EventFormData) => {
@@ -671,11 +688,8 @@ const OptomyzeCalendar: React.FC = () => {
                       <Badge
                         variant="outline"
                         className={item.type === 'appointment'
-                          ? 'text-xs capitalize border-border text-muted-foreground'
+                          ? `text-xs capitalize border ${appointmentStatusColors[item.status || ''] || 'border-border text-muted-foreground'}`
                           : getItemColor(item)}
-                        style={item.type === 'appointment' && item.appointmentTypeColor
-                          ? { borderColor: item.appointmentTypeColor + '66', color: item.appointmentTypeColor }
-                          : undefined}
                       >
                         {item.type === 'task' ? 'Task' : formatSubType(item.subType)}
                       </Badge>
@@ -707,6 +721,55 @@ const OptomyzeCalendar: React.FC = () => {
                       )}
                     </div>
                   </div>
+
+                  {/* Appointment quick status actions */}
+                  {item.type === 'appointment' && (item.status === 'draft' || item.status === 'scheduled') && (
+                    <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                      {item.status === 'draft' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={updatingAppointmentId === item.originalId}
+                          onClick={(e) => { e.stopPropagation(); handleAppointmentStatusChange(item, 'scheduled'); }}
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" />{t('appointments.confirm-schedule')}
+                        </Button>
+                      )}
+                      {item.status === 'scheduled' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={updatingAppointmentId === item.originalId}
+                            onClick={(e) => { e.stopPropagation(); handleAppointmentStatusChange(item, 'completed'); }}
+                          >
+                            <CheckCircle2 className="h-3 w-3 mr-1" />{t('appointments.mark-completed')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={updatingAppointmentId === item.originalId}
+                            onClick={(e) => { e.stopPropagation(); handleAppointmentStatusChange(item, 'cancelled'); }}
+                          >
+                            <XCircle className="h-3 w-3 mr-1" />{t('appointments.mark-cancelled')}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={updatingAppointmentId === item.originalId}
+                            onClick={(e) => { e.stopPropagation(); handleAppointmentStatusChange(item, 'no_show'); }}
+                          >
+                            <UserX className="h-3 w-3 mr-1" />{t('appointments.mark-no-show')}
+                          </Button>
+                        </>
+                      )}
+                      {updatingAppointmentId === item.originalId && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                    </div>
+                  )}
 
                   {/* Description */}
                   {item.description && (

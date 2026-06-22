@@ -8,6 +8,7 @@ import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import { useOnlinePresence } from '@/contexts/PresenceContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getUserProfile } from '@/services/userApi';
 import { User } from '@/types/user';
 import optomyzeLogo from '@/assets/user-banner.jpeg';
@@ -42,6 +43,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, initialTab,
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<UserProfileTabId>(initialTab);
+  const { t } = useLanguage();
   const { isUserOnline } = useOnlinePresence();
   const { user: currentUser } = useAuth();
   const backgroundUrl = usePrivateFile(user?.bg_pic);
@@ -99,17 +101,17 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, initialTab,
                 </Avatar>
                 <span
                   className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background ${online ? 'bg-green-500' : 'bg-gray-400'}`}
-                  title={online ? 'Online' : 'Offline'}
+                  title={online ? t('users.status.online') : t('users.status.offline')}
                 />
               </div>
               <div className="flex-1 min-w-0 pb-2">
-                <h2 className="text-lg font-bold text-foreground truncate">{user.name}</h2>
+                <h2 className="text-lg font-bold text-white py-1 truncate">{user.name}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline" className={`${getRoleColor(user.role)} text-xs capitalize`}>
                     {user.role}
                   </Badge>
                   <span className={`text-xs font-medium ${online ? 'text-green-500' : 'text-muted-foreground'}`}>
-                    {online ? 'Online' : 'Offline'}
+                    {online ? t('users.status.online') : t('users.status.offline')}
                   </span>
                 </div>
               </div>
@@ -118,9 +120,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, initialTab,
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as UserProfileTabId)} className="px-6 pb-6 pt-4">
               <TabsList className={`grid w-full ${isOwnProfile ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                {!isOwnProfile && <TabsTrigger value="chat">Chat</TabsTrigger>}
+                <TabsTrigger value="profile">{t('user-profile.tabs.profile')}</TabsTrigger>
+                <TabsTrigger value="performance">{t('user-profile.tabs.performance')}</TabsTrigger>
+                {!isOwnProfile && <TabsTrigger value="chat">{t('user-profile.tabs.chat')}</TabsTrigger>}
               </TabsList>
               <TabsContent value="profile" className="mt-4">
                 <ProfileTab user={user} online={online} />

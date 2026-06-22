@@ -35,6 +35,8 @@ interface KPICardProps {
   accent?: KpiAccent;
   /** Denser layout with a smaller value - for secondary/supporting metrics. */
   compact?: boolean;
+  /** Render `value` as-is with no count-up animation or numeric parsing — for already-formatted text like "2h 44m" that isn't a plain number/currency/percentage. */
+  staticValue?: boolean;
 }
 
 /**
@@ -91,7 +93,7 @@ const AnimatedCounter = ({ value, delay = 0, currencyPrefix }: { value: string |
   return <span>{displayValue.toLocaleString()}</span>;
 };
 
-const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix, highlight, accent, compact }: KPICardProps) => {
+const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix, highlight, accent, compact, staticValue }: KPICardProps) => {
   const accentStyle = accent ? KPI_ACCENTS[accent] : null;
 
   return (
@@ -111,7 +113,7 @@ const KPICard = ({ title, value, trend, icon, delay = 0, currencyPrefix, highlig
         <div className="flex-1 min-w-0">
           <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 leading-tight truncate" title={title}>{title}</h3>
           <div className={cn('kpi-value', compact ? 'text-lg sm:text-xl lg:text-2xl' : 'text-xl sm:text-2xl lg:text-3xl')}>
-            <AnimatedCounter value={value} delay={delay * 100} currencyPrefix={currencyPrefix} />
+            {staticValue ? <span>{value}</span> : <AnimatedCounter value={value} delay={delay * 100} currencyPrefix={currencyPrefix} />}
           </div>
         </div>
         {icon && (

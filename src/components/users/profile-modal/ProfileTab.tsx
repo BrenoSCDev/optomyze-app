@@ -4,6 +4,7 @@ import { Mail, Phone, Calendar, Users as UsersIcon, Circle } from 'lucide-react'
 import { User } from '@/types/user';
 import { format } from 'date-fns';
 import { formatPhoneNumber } from '@/lib/phone';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProfileTabProps {
   user: User;
@@ -11,6 +12,7 @@ interface ProfileTabProps {
 }
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
+  const { t } = useLanguage();
   let joined = '—';
   try {
     joined = format(new Date(user.created_at), 'MMM d, yyyy');
@@ -37,12 +39,12 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
 
         <div className="flex items-center gap-2.5 text-sm">
           <Circle className={`h-3 w-3 shrink-0 ${online ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
-          <span className="text-foreground">{online ? 'Online' : 'Offline'}</span>
+          <span className="text-foreground">{online ? t('users.status.online') : t('users.status.offline')}</span>
         </div>
 
         <div className="flex items-center gap-2.5 text-sm">
           <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="text-foreground">Joined {joined}</span>
+          <span className="text-foreground">{t('user-profile.joined')} {joined}</span>
         </div>
       </div>
 
@@ -50,7 +52,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
         <div>
           <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
             <UsersIcon className="h-4 w-4" />
-            <span>Teams</span>
+            <span>{t('user-profile.teams')}</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {user.managed_teams?.map(team => (
@@ -58,7 +60,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
                 key={`mgr-${team.id}`}
                 variant="outline"
                 className="bg-yellow-50 text-yellow-800 border-yellow-200 text-xs"
-                title="Manages this team"
+                title={t('user-profile.manages-team')}
               >
                 ★ {team.name}
               </Badge>

@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Handshake, Target, Trophy, CheckCircle2 } from 'lucide-react';
 import { getUserPerformance, UserPerformanceStats } from '@/services/userApi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PerformanceTabProps {
   userId: number;
   active: boolean;
 }
 
-const STATS: { key: keyof UserPerformanceStats; label: string; icon: React.ElementType }[] = [
-  { key: 'leads_assigned', label: 'Leads Assigned', icon: Users },
-  { key: 'deals_assigned', label: 'Deals Assigned', icon: Handshake },
-  { key: 'leads_converted', label: 'Leads Converted', icon: Target },
-  { key: 'deals_closed', label: 'Deals Closed', icon: Trophy },
-  { key: 'tasks_completed', label: 'Tasks Completed', icon: CheckCircle2 },
+const STATS: { key: keyof UserPerformanceStats; labelKey: string; icon: React.ElementType }[] = [
+  { key: 'leads_assigned', labelKey: 'user-profile.performance.leads-assigned', icon: Users },
+  { key: 'deals_assigned', labelKey: 'user-profile.performance.deals-assigned', icon: Handshake },
+  { key: 'leads_converted', labelKey: 'user-profile.performance.leads-converted', icon: Target },
+  { key: 'deals_closed', labelKey: 'user-profile.performance.deals-closed', icon: Trophy },
+  { key: 'tasks_completed', labelKey: 'user-profile.performance.tasks-completed', icon: CheckCircle2 },
 ];
 
 const PerformanceTab: React.FC<PerformanceTabProps> = ({ userId, active }) => {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<UserPerformanceStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -59,7 +61,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ userId, active }) => {
               <Icon className="h-4 w-4 text-primary" />
             </div>
             <span className="text-2xl font-bold text-foreground">{stats[stat.key]}</span>
-            <span className="text-xs text-muted-foreground">{stat.label}</span>
+            <span className="text-xs text-muted-foreground">{t(stat.labelKey)}</span>
           </div>
         );
       })}

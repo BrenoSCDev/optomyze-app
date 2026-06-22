@@ -395,7 +395,7 @@ export const LeadCreationDialog: React.FC<LeadCreationDialogProps> = ({
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <Label htmlFor="stage_id" className="flex items-center gap-2">
                     {t('lead.initial-stage')} *
                     {selectedStageId && (
