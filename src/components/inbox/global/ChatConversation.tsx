@@ -255,6 +255,52 @@ const InboxPrivateSticker: React.FC<{
   );
 };
 
+/** Renders a video message fetched through the authenticated backend.
+ *  A WhatsApp "GIF" is a looping mp4 videoMessage under the hood (isGif),
+ *  so it plays back muted/looping with no controls, like a real GIF. */
+const InboxPrivateVideo: React.FC<{
+  path: string;
+  isGif: boolean;
+  caption?: string | null;
+  isInternalNote: boolean;
+  direction: string;
+  status?: string;
+  sentAt: string;
+}> = ({ path, isGif, caption, isInternalNote, direction, status, sentAt }) => {
+  const url = usePrivateFile(path);
+
+  return (
+    <div className="space-y-1">
+      {url ? (
+        <video
+          src={url}
+          className="rounded-md max-w-full max-h-64 object-contain"
+          controls={!isGif}
+          autoPlay={isGif}
+          loop={isGif}
+          muted={isGif}
+          playsInline
+        />
+      ) : (
+        <div className="w-48 h-32 rounded-md bg-muted/40 animate-pulse" />
+      )}
+      {caption && (
+        <p className={cn('text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-2 pt-1', isInternalNote && 'text-amber-900 dark:text-amber-100')}>
+          {caption}
+        </p>
+      )}
+      <div className={cn('flex items-center gap-1 px-2 pb-1', direction === 'outgoing' ? 'justify-end' : 'justify-start')}>
+        <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : direction === 'outgoing' ? 'text-blue-100' : 'text-muted-foreground')}>
+          {new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        {direction === 'outgoing' && status && !isInternalNote && (
+          <MessageStatusTicks status={status} variant="onBlue" />
+        )}
+      </div>
+    </div>
+  );
+};
+
 interface ChatConversationProps {
   chat: InboxChat | null;
   onBack?: () => void;
@@ -951,6 +997,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       className={cn(
                         "rounded-lg shadow-sm overflow-hidden",
                         message.type === 'image' ? "p-1" :
+                        message.type === 'video' ? "p-1" :
                         message.type === 'audio' ? "px-2 py-1.5" :
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
@@ -1085,6 +1132,16 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           path={message.media_url}
                           direction={message.direction}
                           isInternalNote={isInternalNote(message)}
+                          status={message.status}
+                          sentAt={message.sent_at}
+                        />
+                      ) : message.type === 'video' && message.media_url ? (
+                        <InboxPrivateVideo
+                          path={message.media_url}
+                          isGif={!!message.metadata?.gif_playback}
+                          caption={message.text}
+                          isInternalNote={isInternalNote(message)}
+                          direction={message.direction}
                           status={message.status}
                           sentAt={message.sent_at}
                         />

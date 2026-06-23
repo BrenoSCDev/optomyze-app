@@ -9,11 +9,17 @@ import { InboxChannel, InboxChatResponse, InboxMessage, InboxReplySnapshot, Pagi
 
 /**
  * Fetch paginated inbox chats (20 per page), optionally filtered by channel
+ * and/or searched by lead first/last name, phone, or chat contact name.
+ * Search runs on the backend so it works across companies with hundreds of
+ * chats, not just the currently loaded page.
  */
-export const fetchInboxChats = async (page = 1, channel?: InboxChannel | 'all'): Promise<InboxChatResponse> => {
+export const fetchInboxChats = async (page = 1, channel?: InboxChannel | 'all', search?: string): Promise<InboxChatResponse> => {
   const params: Record<string, string | number> = { page };
   if (channel && channel !== 'all') {
     params.channel = channel;
+  }
+  if (search && search.trim() !== '') {
+    params.search = search.trim();
   }
   const response = await api.get('/api/inbox/chats', { params });
   return response.data;

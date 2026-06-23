@@ -6,9 +6,10 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2 } from 'lucide-react';
+import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2, Film, Search, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InboxChat } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,6 +33,9 @@ interface ChatListProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
+  /** Current value of the lead/chat search box (backend-searched, controlled by the parent). */
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
@@ -43,6 +47,8 @@ const ChatList: React.FC<ChatListProps> = ({
   onLoadMore,
   hasMore = false,
   isLoadingMore = false,
+  searchValue = '',
+  onSearchChange,
 }) => {
   const { t } = useLanguage();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -73,7 +79,7 @@ const ChatList: React.FC<ChatListProps> = ({
     return chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id;
   };
 
-  const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
+  const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'video' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage.type === 'image') {
@@ -81,6 +87,12 @@ const ChatList: React.FC<ChatListProps> = ({
           type: 'image',
           text: lastMessage.text || t('chat.inbox.photo'),
           imagePath: lastMessage.media_url ?? undefined,
+        };
+      }
+      if (lastMessage.type === 'video') {
+        return {
+          type: 'video',
+          text: lastMessage.metadata?.gif_playback ? t('chat.inbox.gif') : t('chat.inbox.video'),
         };
       }
       if (lastMessage.type === 'audio') {
@@ -127,20 +139,51 @@ const ChatList: React.FC<ChatListProps> = ({
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
+  const header = (
+    <div className="p-4 border-b border-border/50">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Inbox className="h-5 w-5 text-primary" />
+          {t('chat.inbox.conversations')}
+        </h2>
+        {onStartConversation && (
+          <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      {!isLoading && chats.length > 0 && (
+        <p className="text-sm text-muted-foreground mt-1">
+          {chats.length} {t('chat.inbox.chats-count')}
+        </p>
+      )}
+      {onSearchChange && (
+        <div className="relative mt-3">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={t('chat.inbox.search-chats-placeholder')}
+            className="pl-8 pr-8 h-9"
+          />
+          {searchValue && (
+            <button
+              type="button"
+              onClick={() => onSearchChange('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-border/50 flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Inbox className="h-5 w-5 text-primary" />
-            {t('chat.inbox.conversations')}
-          </h2>
-          {onStartConversation && (
-            <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        {header}
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse space-y-3 w-full p-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -155,21 +198,13 @@ const ChatList: React.FC<ChatListProps> = ({
   if (chats.length === 0) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-border/50 flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Inbox className="h-5 w-5 text-primary" />
-            {t('chat.inbox.conversations')}
-          </h2>
-          {onStartConversation && (
-            <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        {header}
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center space-y-2">
             <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/50" />
-            <p className="text-muted-foreground">{t('chat.inbox.no-chats')}</p>
+            <p className="text-muted-foreground">
+              {searchValue ? t('chat.inbox.no-search-results') : t('chat.inbox.no-chats')}
+            </p>
           </div>
         </div>
       </div>
@@ -178,15 +213,7 @@ const ChatList: React.FC<ChatListProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-border/50">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Inbox className="h-5 w-5 text-primary" />
-          {t('chat.inbox.conversations')}
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          {chats.length} {t('chat.inbox.chats-count')}
-        </p>
-      </div>
+      {header}
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="p-2 space-y-1">
           {chats.map((chat, index) => (
@@ -222,6 +249,16 @@ const ChatList: React.FC<ChatListProps> = ({
                       return (
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <ChatListImageThumb path={lastMsg.imagePath} />
+                          <span className="text-sm text-muted-foreground truncate">
+                            {lastMsg.text}
+                          </span>
+                        </div>
+                      );
+                    }
+                    if (lastMsg.type === 'video') {
+                      return (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Film className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm text-muted-foreground truncate">
                             {lastMsg.text}
                           </span>

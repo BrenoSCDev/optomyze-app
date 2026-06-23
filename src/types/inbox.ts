@@ -20,6 +20,9 @@ export interface InboxMessageMetadata extends InboxContactEntry {
   // Single contact fields (contact_name, contact_phone, vcard inherited above)
   // Multiple contacts
   contacts?: InboxContactEntry[];
+  // Set on 'video' messages that are actually a WhatsApp GIF (a looping,
+  // muted mp4 under the hood rather than a distinct message type).
+  gif_playback?: boolean;
 }
 
 export interface InboxMessageUser {

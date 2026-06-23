@@ -10,7 +10,7 @@
  * - Responsive design for desktop, tablet, and mobile
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Inbox as InboxIcon, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,13 +50,30 @@ const GlobalInbox: React.FC = () => {
   const [hasMoreChats, setHasMoreChats] = useState(false);
   const [isLoadingMoreChats, setIsLoadingMoreChats] = useState(false);
   const [channelFilter, setChannelFilter] = useState<InboxChannel | 'all'>('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch chats on mount and whenever the channel filter changes
+  // Debounce the raw input into the query actually sent to the backend, so
+  // we don't fire a request on every keystroke.
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => setSearchQuery(value.trim()), 350);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, []);
+
+  // Fetch chats on mount and whenever the channel filter or search changes
   useEffect(() => {
     loadChats();
     setSelectedChat(null);
     setMobileView('list');
-  }, [channelFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelFilter, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close chat on Esc key
   useEffect(() => {
@@ -75,7 +92,7 @@ const GlobalInbox: React.FC = () => {
     setError(null);
     setChatPage(1);
     try {
-      const response = await fetchInboxChats(1, channelFilter);
+      const response = await fetchInboxChats(1, channelFilter, searchQuery);
       const sortedChats = (response.data || []).sort((a, b) =>
         new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
       );
@@ -99,7 +116,7 @@ const GlobalInbox: React.FC = () => {
     setIsLoadingMoreChats(true);
     const nextPage = chatPage + 1;
     try {
-      const response = await fetchInboxChats(nextPage, channelFilter);
+      const response = await fetchInboxChats(nextPage, channelFilter, searchQuery);
       setChats(prev => {
         const existingIds = new Set(prev.map(c => c.id));
         const newChats = (response.data || []).filter(c => !existingIds.has(c.id));
@@ -223,6 +240,8 @@ const GlobalInbox: React.FC = () => {
                 onLoadMore={loadMoreChats}
                 hasMore={hasMoreChats}
                 isLoadingMore={isLoadingMoreChats}
+                searchValue={searchInput}
+                onSearchChange={handleSearchChange}
               />
             </div>
 
@@ -250,6 +269,8 @@ const GlobalInbox: React.FC = () => {
                 onLoadMore={loadMoreChats}
                 hasMore={hasMoreChats}
                 isLoadingMore={isLoadingMoreChats}
+                searchValue={searchInput}
+                onSearchChange={handleSearchChange}
               />
             </div>
 
@@ -279,6 +300,8 @@ const GlobalInbox: React.FC = () => {
                     onLoadMore={loadMoreChats}
                     hasMore={hasMoreChats}
                     isLoadingMore={isLoadingMoreChats}
+                    searchValue={searchInput}
+                    onSearchChange={handleSearchChange}
                   />
                 </motion.div>
               )}
