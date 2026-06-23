@@ -268,11 +268,29 @@ const InboxPrivateVideo: React.FC<{
   sentAt: string;
 }> = ({ path, isGif, caption, isInternalNote, direction, status, sentAt }) => {
   const url = usePrivateFile(path);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // React's `muted` JSX prop only sets the initial attribute, not the live
+  // DOM property browsers check for autoplay - without setting it
+  // imperatively first, Chrome/Safari silently block autoplay and the GIF
+  // is left stuck on a blank frame. Setting it on the element directly
+  // before calling play() is the reliable fix.
+  useEffect(() => {
+    if (!isGif || !url) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {
+      // Autoplay still blocked (e.g. browser setting) - clicking the
+      // element falls back to a manual, still-muted play below.
+    });
+  }, [isGif, url]);
 
   return (
     <div className="space-y-1">
       {url ? (
         <video
+          ref={videoRef}
           src={url}
           className="rounded-md max-w-full max-h-64 object-contain"
           controls={!isGif}
@@ -280,6 +298,10 @@ const InboxPrivateVideo: React.FC<{
           loop={isGif}
           muted={isGif}
           playsInline
+          preload="auto"
+          onClick={() => {
+            if (isGif) videoRef.current?.play().catch(() => {});
+          }}
         />
       ) : (
         <div className="w-48 h-32 rounded-md bg-muted/40 animate-pulse" />
