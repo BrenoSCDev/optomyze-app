@@ -45,5 +45,16 @@ export const funnelService = {
       console.error('Error updating funnel:', error);
       throw error;
     }
+  },
+
+  // Toggle funnel active status
+  async toggleFunnelStatus(funnelId) {
+    try {
+      const response = await api.patch(`/api/funnels/${funnelId}/toggle-status`);
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling funnel status:', error);
+      throw error;
+    }
   }
 };

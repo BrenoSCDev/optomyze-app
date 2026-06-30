@@ -185,6 +185,9 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
         ))}
       </div>
 
+      {/* Trend Analysis */}
+      <TrendAnalysisSection dailyTrend={dailyTrend} currencySymbol={cs} delay={1.4} />
+
       {/* Campaign Intelligence */}
       <CampaignIntelligencePanel intelligence={campaignIntelligence} currencySymbol={cs} delay={0.8} />
 
@@ -229,8 +232,7 @@ const MetaAds = ({ demoMode = false, demoData }: MetaAdsProps) => {
         </SectionCard>
       </div>
 
-      {/* Trend Analysis */}
-      <TrendAnalysisSection dailyTrend={dailyTrend} currencySymbol={cs} delay={1.4} />
+
 
       {/* Top Action Types */}
       <SectionCard title={t('meta.top-action-types')} icon={<ListChecks className="h-5 w-5" />} delay={1.6}>

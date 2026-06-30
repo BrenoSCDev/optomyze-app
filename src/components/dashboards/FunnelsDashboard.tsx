@@ -512,7 +512,7 @@ const FunnelsDashboard = () => {
     setTogglingFunnelId(funnel.id);
 
     try {
-      const updatedFunnel = await funnelService.updateFunnel(funnel.id, { is_active: nextActive });
+      const updatedFunnel = await funnelService.toggleFunnelStatus(funnel.id);
       updateFunnelInContext({ ...funnel, ...updatedFunnel, is_active: updatedFunnel?.is_active ?? nextActive });
     } catch (error) {
       console.error('Error toggling funnel status:', error);
