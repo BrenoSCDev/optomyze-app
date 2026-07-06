@@ -18,7 +18,7 @@ import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
 import { formatPhoneNumber } from '@/lib/phone';
-import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage } from '@/services/globalInboxApi';
+import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage, updateChatAiAgentService } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -348,7 +348,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 }) => {
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
-  const { handleChatCleared, chats: contextChats } = useInbox();
+  const { handleChatCleared, handleChatUpdated, chats: contextChats } = useInbox();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -449,6 +449,41 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       setTimeout(scrollToBottom, 50);
     });
   }, [chat?.lead?.id, scrollToBottom]);
+
+  // AI agent ownership: live flag from context (updated via inbox.chat.updated
+  // broadcasts and the toggle below), bound agent from the chat payload.
+  const [togglingAi, setTogglingAi] = useState(false);
+  const liveContextChat = chat ? contextChats.find(c => c.id === chat.id) : null;
+  const aiAgentActive = (liveContextChat?.ai_agent_service ?? chat?.ai_agent_service) === true;
+  const boundAgent = liveContextChat?.bound_agent ?? chat?.bound_agent ?? null;
+
+  const handleToggleAiAgent = async () => {
+    if (!chat || togglingAi) return;
+
+    setTogglingAi(true);
+    try {
+      const response = await updateChatAiAgentService(chat.id, !aiAgentActive);
+      // Broadcast goes toOthers — apply the change locally through the
+      // same context path so every view stays in sync.
+      handleChatUpdated({
+        chat: {
+          id: chat.id,
+          lead_id: chat.lead_id,
+          ai_agent_service: response.chat.ai_agent_service,
+        },
+        timestamp: new Date().toISOString(),
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast({
+        title: t('chat.inbox.ai-agent-toggle-failed'),
+        description: error?.response?.data?.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setTogglingAi(false);
+    }
+  };
 
   // Track the chat's active ChatSession (drives the "End Conversation" menu item)
   const liveChatLastMessageAt = chat ? contextChats.find(c => c.id === chat.id)?.last_message_at ?? chat.last_message_at : null;
@@ -881,6 +916,12 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                   {chat.lead.stage.name}
                 </Badge>
               )}
+              {boundAgent && aiAgentActive && (
+                <Badge className="text-[10px] px-1.5 py-0 gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10">
+                  <Bot className="h-3 w-3" />
+                  {t('chat.inbox.ai-agent-active')}
+                </Badge>
+              )}
             </div>
           </div>
           {/* Chat actions menu */}
@@ -891,6 +932,17 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={handleToggleAiAgent}
+                disabled={!boundAgent || togglingAi}
+              >
+                {togglingAi
+                  ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  : <Bot className="h-4 w-4 mr-2" />}
+                {aiAgentActive
+                  ? t('chat.inbox.ai-agent-pause')
+                  : t('chat.inbox.ai-agent-activate')}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setShowEndConversation(true)}
                 disabled={!activeSession}
@@ -1257,7 +1309,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     {message.direction === 'outgoing' && (
                       <InboxAvatar
                         profilePicPath={message.user?.profile_pic}
-                        name={message.user?.name || 'Optomyze'}
+                        name={message.user?.name || (message.ai_agent_id && boundAgent ? boundAgent.name : 'Optomyze')}
                         size="sm"
                         icon={!message.user ? <Bot className="h-4 w-4" /> : undefined}
                       />

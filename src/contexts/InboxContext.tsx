@@ -32,12 +32,23 @@ interface MessageUpdatedEvent {
   message: Pick<InboxMessage, 'id' | 'inbox_chat_id' | 'text' | 'reactions' | 'is_edited' | 'status'>;
 }
 
+// Broadcast event payload for chat-level state changes (AI ownership flag)
+interface ChatUpdatedEvent {
+  chat: {
+    id: number;
+    lead_id: number | null;
+    ai_agent_service: boolean;
+  };
+  timestamp: string;
+}
+
 interface InboxContextType {
   chats: InboxChat[];
   setChats: React.Dispatch<React.SetStateAction<InboxChat[]>>;
   handleNewMessage: (event: MessageReceivedEvent) => void;
   handleMessageUpdated: (event: MessageUpdatedEvent) => void;
   handleChatCleared: (chatId: number) => void;
+  handleChatUpdated: (event: ChatUpdatedEvent) => void;
   selectedChat: InboxChat | null;
   setSelectedChat: React.Dispatch<React.SetStateAction<InboxChat | null>>;
   isLoading: boolean;
@@ -174,6 +185,23 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
     );
   }, []);
 
+  // Merge chat-level state updates (AI agent ownership toggled on/off)
+  const handleChatUpdated = useCallback((event: ChatUpdatedEvent) => {
+    const { chat } = event;
+
+    setChats(prevChats =>
+      prevChats.map(c =>
+        c.id === chat.id ? { ...c, ai_agent_service: chat.ai_agent_service } : c
+      )
+    );
+
+    setSelectedChat(prevSelected =>
+      prevSelected && prevSelected.id === chat.id
+        ? { ...prevSelected, ai_agent_service: chat.ai_agent_service }
+        : prevSelected
+    );
+  }, []);
+
   // Handle chat messages cleared event
   const handleChatCleared = useCallback((chatId: number) => {
     console.log('💬 Clearing messages for chat:', chatId);
@@ -227,6 +255,12 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       handleMessageUpdated(event);
     });
 
+    // Listen for inbox.chat.updated events (AI agent ownership changes)
+    channel.listen('.inbox.chat.updated', (event: ChatUpdatedEvent) => {
+      console.log('💬 Received inbox.chat.updated event:', event);
+      handleChatUpdated(event);
+    });
+
     console.log('💬 Subscribed to Inbox message channel successfully');
 
     // Cleanup - only on logout or company change, NOT on route navigation
@@ -235,9 +269,10 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       channel.stopListening('.inbox.message.received');
       channel.stopListening('.inbox.messages.cleared');
       channel.stopListening('.inbox.message.updated');
+      channel.stopListening('.inbox.chat.updated');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
-  }, [user?.company_id, handleNewMessage, handleChatCleared, handleMessageUpdated]);
+  }, [user?.company_id, handleNewMessage, handleChatCleared, handleMessageUpdated, handleChatUpdated]);
 
   const value: InboxContextType = {
     chats,
@@ -245,6 +280,7 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
     handleNewMessage,
     handleMessageUpdated,
     handleChatCleared,
+    handleChatUpdated,
     selectedChat,
     setSelectedChat,
     isLoading,

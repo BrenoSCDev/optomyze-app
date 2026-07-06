@@ -14,6 +14,7 @@ export const DEFAULT_MENU_ORDER = [
   'settings',
   'reports',
   'integrations',
+  'aiAgents',
   'api',
   'organization',
   'chat',
@@ -47,8 +48,17 @@ export const MenuOrderProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const parsed: MenuOrderState = JSON.parse(stored);
         const validIds = new Set(DEFAULT_MENU_ORDER);
         const ordered = parsed.order.filter(id => validIds.has(id));
-        DEFAULT_MENU_ORDER.forEach(id => {
-          if (!ordered.includes(id)) ordered.push(id);
+        // Sections added after the user saved their order are inserted at
+        // their default position (right after their default predecessor)
+        // instead of being dumped at the end of the menu.
+        DEFAULT_MENU_ORDER.forEach((id, defaultIndex) => {
+          if (ordered.includes(id)) return;
+          const prevDefault = DEFAULT_MENU_ORDER
+            .slice(0, defaultIndex)
+            .reverse()
+            .find(prevId => ordered.includes(prevId));
+          const insertAt = prevDefault ? ordered.indexOf(prevDefault) + 1 : 0;
+          ordered.splice(insertAt, 0, id);
         });
         return ordered;
       }

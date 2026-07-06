@@ -23,6 +23,7 @@ const LeadsManagement        = lazy(() => import('@/components/leads/LeadsManage
 const ManageLeadCompanies    = lazy(() => import('@/components/companies/ManageLeadCompanies').then(m => ({ default: m.ManageLeadCompanies })));
 const IntegrationsApps       = lazy(() => import('@/components/integrations/IntegrationsApps'));
 const N8nAgents              = lazy(() => import('@/components/agents/N8nAgents'));
+const ManageAiAgents         = lazy(() => import('@/components/ai-agents/ManageAiAgents'));
 const OptomyzeAgents         = lazy(() => import('@/components/agents/OptomyzeAgents'));
 const ApiTokens              = lazy(() => import('@/components/api/ApiTokens'));
 const AllowedOrigins         = lazy(() => import('@/components/api/AllowedOrigins'));
@@ -104,6 +105,7 @@ const Index = () => {
           </div>
         );
       case 'integrations': return <IntegrationsApps />;
+      case 'manage-agents': return <ManageAiAgents />;
       case 'n8n-agents': return <N8nAgents />;
       case 'optomyze-agents': return <OptomyzeAgents />;
       case 'leads': return <LeadsManagement funnelId={funnelId} />;

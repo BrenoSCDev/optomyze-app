@@ -50,7 +50,7 @@ import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
-import { SiGoogleanalytics, SiN8N, SiGoogleads } from "react-icons/si";
+import { SiGoogleanalytics, SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 import { VscSettings } from "react-icons/vsc";
@@ -132,8 +132,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   ];
 
   const aiAgentsItems = [
-    { id: 'n8n-agents', label: t('agents.n8n.title'), icon: () => <SiN8N /> },
-    { id: 'optomyze-agents', label: t('agents.optomyze.menu-title'), icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
+    { id: 'manage-agents', label: t('ai-agents.manage.menu-title'), icon: () => <Bot size={16} />, badge: 'Beta' },
   ];
 
   const apiItems = [
@@ -183,7 +182,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     sectionId: string,
     icon: React.ReactNode,
     label: string,
-    items: { id: string; label: string; icon?: () => React.ReactNode; isExternal?: boolean; externalUrl?: string; path?: string }[],
+    items: { id: string; label: string; icon?: () => React.ReactNode; isExternal?: boolean; externalUrl?: string; path?: string; badge?: string }[],
     options?: { useNavLink?: boolean; roleGated?: boolean }
   ) => {
     if (options?.roleGated && user?.role === 'agent') return null;
@@ -249,6 +248,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
                   >
                     {item.icon ? <item.icon /> : null}
                     <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="ml-1 inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-blue-400">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -275,6 +279,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       { id: 'report-tasks', label: t('reports.tasks'), icon: () => <ListTodo size={14} /> },
     ]),
     integrations: () => renderExpandableSection('integrations', <Plug className="h-5 w-5" />, t('nav.integrations'), integrationsItems),
+    aiAgents: () => renderExpandableSection('aiAgents', <Bot className="h-5 w-5" />, t('nav.ai-agents'), aiAgentsItems),
     api: () => renderExpandableSection('api', <Database className="h-5 w-5" />, t('nav.api'), apiItems),
     organization: () => renderExpandableSection('organization', <Building className="h-5 w-5" />, t('nav.organization'), organizationItems, { roleGated: true }),
     chat: () => renderExpandableSection('chat', <Inbox className="h-5 w-5" />, t('nav.chat'), chatItems),

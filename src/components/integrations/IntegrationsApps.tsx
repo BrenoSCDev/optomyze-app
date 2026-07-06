@@ -41,6 +41,7 @@ import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
 import FacebookMessengerConfigModal from './FacebookMessengerConfigModal';
+import OpenAiConfigModal from './OpenAiConfigModal';
 import { Input } from '@/components/ui/input';
 import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
 import { cn } from '@/lib/utils';
@@ -336,6 +337,7 @@ const IntegrationsApps: React.FC = () => {
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
   const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
   const [showFacebookConfigModal, setShowFacebookConfigModal] = useState(false);
+  const [showOpenAiConfigModal, setShowOpenAiConfigModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const { token, user } = useAuth();
@@ -415,14 +417,13 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'artificial-intelligence',
       title: t('integrations.categories.ai') || 'Artificial Intelligence',
-      comingSoon: true,
       integrations: [
         {
           key: 'openai',
           name: 'OpenAI',
           description: t('integrations.openai.description') || 'Leverage OpenAI GPT models for intelligent automation and customer interactions.',
           available: false,
-          comingSoon: true,
+          beta: true,
           icon: <SiOpenai className="w-7 h-7" />
         },
         {
@@ -529,6 +530,8 @@ const IntegrationsApps: React.FC = () => {
         setShowInstagramConfigModal(true);
       } else if (integrationKey === 'facebook') {
         setShowFacebookConfigModal(true);
+      } else if (integrationKey === 'openai') {
+        setShowOpenAiConfigModal(true);
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -756,6 +759,11 @@ const IntegrationsApps: React.FC = () => {
         <FacebookMessengerConfigModal
           open={showFacebookConfigModal}
           onOpenChange={setShowFacebookConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <OpenAiConfigModal
+          open={showOpenAiConfigModal}
+          onOpenChange={setShowOpenAiConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
       </div>

@@ -16,8 +16,11 @@ import {
   Calendar,
   Clock,
   ChevronDown,
-  X
+  X,
+  Bot
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useInbox } from '@/contexts/InboxContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -61,9 +64,15 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
   defaultCollapsed = false
 }) => {
   const { t } = useLanguage();
+  const { chats: contextChats } = useInbox();
   const [leadOpen, setLeadOpen] = React.useState(!defaultCollapsed);
   const [channelOpen, setChannelOpen] = React.useState(!defaultCollapsed);
   const [metadataOpen, setMetadataOpen] = React.useState(!defaultCollapsed);
+
+  // Live AI ownership flag (updated via inbox.chat.updated broadcasts)
+  const liveContextChat = chat ? contextChats.find(c => c.id === chat.id) : null;
+  const aiAgentActive = (liveContextChat?.ai_agent_service ?? chat?.ai_agent_service) === true;
+  const boundAgent = liveContextChat?.bound_agent ?? chat?.bound_agent ?? null;
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -107,6 +116,28 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
+          {/* AI Agent */}
+          {boundAgent && (
+            <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/60">
+              <div className="flex items-center gap-2 min-w-0">
+                <Bot className="h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-medium text-sm truncate">{boundAgent.name}</p>
+                  <p className="text-xs text-muted-foreground">{t('chat.inbox.ai-agent')}</p>
+                </div>
+              </div>
+              {aiAgentActive ? (
+                <Badge className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10">
+                  {t('chat.inbox.ai-agent-active')}
+                </Badge>
+              ) : (
+                <Badge variant="secondary">
+                  {t('chat.inbox.ai-agent-paused')}
+                </Badge>
+              )}
+            </div>
+          )}
+
           {/* Lead Information */}
           <Collapsible open={leadOpen} onOpenChange={setLeadOpen}>
             <CollapsibleTrigger asChild>

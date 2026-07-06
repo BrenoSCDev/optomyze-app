@@ -151,6 +151,17 @@ export const sendInstagramMedia = async (
 };
 
 /**
+ * Toggle AI agent ownership of a conversation
+ */
+export const updateChatAiAgentService = async (
+  chatId: number,
+  enabled: boolean
+): Promise<{ message: string; chat: { id: number; ai_agent_service: boolean } }> => {
+  const response = await api.put(`/api/inbox/chats/${chatId}/ai-agent-service`, { enabled });
+  return response.data;
+};
+
+/**
  * Clear all messages from a chat
  */
 export const clearInboxChatMessages = async (chatId: number): Promise<{ message: string }> => {

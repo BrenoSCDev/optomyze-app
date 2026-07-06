@@ -315,6 +315,13 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         { id: 'integrations', label: 'Apps' },
       ],
     },
+    aiAgents: {
+      icon: <Bot className="h-3.5 w-3.5" />,
+      labelKey: 'nav.ai-agents',
+      children: [
+        { id: 'manage-agents', label: t('ai-agents.manage.menu-title') },
+      ],
+    },
     api: {
       icon: <Database className="h-3.5 w-3.5" />,
       labelKey: 'nav.api',

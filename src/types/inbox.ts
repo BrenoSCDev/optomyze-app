@@ -64,6 +64,7 @@ export interface InboxMessage {
   status: string;
   sent_at: string;
   user_id?: number | null;
+  ai_agent_id?: number | null;
   message_mode?: 'external' | 'internal';
   user?: InboxMessageUser | null;
 }
@@ -108,6 +109,8 @@ export interface InboxChat {
   contact_name?: string | null;
   is_group: number;
   is_archived: number;
+  ai_agent_service?: boolean;
+  bound_agent?: { id: number; name: string; status: 'enabled' | 'disabled' } | null;
   last_message_at: string;
   profile_pic_url?: string | null;
   created_at: string;
