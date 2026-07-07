@@ -111,3 +111,34 @@ export const getOpenAiModels = async (): Promise<string[]> => {
   const response = await api.get('/api/integrations/openai/models');
   return response.data.models || [];
 };
+
+export interface PreviewChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface PreviewChatToolCall {
+  tool: string;
+  arguments: Record<string, unknown>;
+  success: boolean;
+  simulated: boolean;
+}
+
+export interface PreviewChatResult {
+  reply: string | null;
+  tool_calls: PreviewChatToolCall[];
+  handover: boolean;
+  handover_message: string | null;
+}
+
+/**
+ * Sandbox chat against the agent config currently in the form (saved or
+ * not). Read-only tools run for real, mutations are simulated.
+ */
+export const previewAiAgentChat = async (
+  config: Omit<AiAgentPayload, 'name' | 'description' | 'response_delay_seconds'> & { name?: string },
+  messages: PreviewChatMessage[]
+): Promise<PreviewChatResult> => {
+  const response = await api.post('/api/ai-agents/preview-chat', { config, messages });
+  return response.data;
+};

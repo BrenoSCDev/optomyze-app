@@ -10,7 +10,8 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings } from 'lucide-react';
+import { HiOutlineDevicePhoneMobile } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -38,6 +39,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
+import { useOnlinePresence } from '@/contexts/PresenceContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -349,6 +353,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
   const { handleChatCleared, handleChatUpdated, chats: contextChats } = useInbox();
+  const { openUserProfile } = useUserProfileModal();
+  const { isUserOnline } = useOnlinePresence();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -1306,14 +1312,75 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       </div>
                     )}
                     </div>
-                    {message.direction === 'outgoing' && (
-                      <InboxAvatar
-                        profilePicPath={message.user?.profile_pic}
-                        name={message.user?.name || (message.ai_agent_id && boundAgent ? boundAgent.name : 'Optomyze')}
-                        size="sm"
-                        icon={!message.user ? <Bot className="h-4 w-4" /> : undefined}
-                      />
-                    )}
+                    {message.direction === 'outgoing' && (() => {
+                      // Resolve the outbound sender by explicit source, with
+                      // fallbacks for messages broadcast before `source` existed.
+                      const source = message.source;
+                      let kind: 'user' | 'ai_agent' | 'automation' | 'external';
+                      if (message.user || source === 'user') kind = 'user';
+                      else if (source === 'ai_agent' || message.ai_agent_id) kind = 'ai_agent';
+                      else if (source === 'automation') kind = 'automation';
+                      else kind = 'external';
+
+                      const senderName =
+                        kind === 'user' ? (message.user?.name || 'Optomyze')
+                        : kind === 'ai_agent' ? (message.ai_agent?.name || (boundAgent?.name) || t('chat.inbox.sender-ai'))
+                        : kind === 'automation' ? t('chat.inbox.sender-automation')
+                        : t('chat.inbox.sender-external');
+
+                      const icon =
+                        kind === 'ai_agent' ? <Bot className="h-4 w-4" />
+                        : kind === 'automation' ? <Settings className="h-4 w-4" />
+                        : kind === 'external' ? <HiOutlineDevicePhoneMobile className="h-4 w-4" />
+                        : undefined;
+
+                      // Live online/offline dot for human senders (reuses the
+                      // company presence channel).
+                      const userOnline = kind === 'user' && message.user ? isUserOnline(message.user.id) : false;
+
+                      const avatar = (
+                        <span className="relative inline-block">
+                          <InboxAvatar
+                            profilePicPath={kind === 'user' ? message.user?.profile_pic : undefined}
+                            name={senderName}
+                            size="sm"
+                            icon={icon}
+                          />
+                          {kind === 'user' && message.user && (
+                            <span
+                              className={cn(
+                                'absolute bottom-0 right-0.5 h-2 w-2 rounded-full ring-2 ring-background',
+                                userOnline ? 'bg-green-500' : 'bg-gray-400'
+                              )}
+                            />
+                          )}
+                        </span>
+                      );
+
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {kind === 'user' && message.user ? (
+                              <button
+                                type="button"
+                                onClick={() => openUserProfile(message.user!.id)}
+                                className="rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              >
+                                {avatar}
+                              </button>
+                            ) : (
+                              <span>{avatar}</span>
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            {senderName}
+                            {kind === 'user' && (
+                              <span className="text-muted-foreground"> · {userOnline ? t('users.status.online') : t('users.status.offline')}</span>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })()}
                   </motion.div>
                   );
                 })}
@@ -1371,12 +1438,41 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                     )}
                   </div>
                 </div>
-                <InboxAvatar
-                  profilePicPath={currentUser?.profile_pic}
-                  name={currentUser?.name || 'Optomyze'}
-                  size="sm"
-                  icon={!currentUser ? <Bot className="h-4 w-4" /> : undefined}
-                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    {currentUser ? (
+                      <button
+                        type="button"
+                        onClick={() => openUserProfile(currentUser.id)}
+                        className="rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <span className="relative inline-block">
+                          <InboxAvatar
+                            profilePicPath={currentUser.profile_pic}
+                            name={currentUser.name || 'Optomyze'}
+                            size="sm"
+                          />
+                          <span
+                            className={cn(
+                              'absolute bottom-0 right-0.5 h-2 w-2 rounded-full ring-2 ring-background',
+                              isUserOnline(currentUser.id) ? 'bg-green-500' : 'bg-gray-400'
+                            )}
+                          />
+                        </span>
+                      </button>
+                    ) : (
+                      <span>
+                        <InboxAvatar
+                          profilePicPath={undefined}
+                          name="Optomyze"
+                          size="sm"
+                          icon={<Bot className="h-4 w-4" />}
+                        />
+                      </span>
+                    )}
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{currentUser?.name || 'Optomyze'}</TooltipContent>
+                </Tooltip>
               </motion.div>
             ))}
           </div>

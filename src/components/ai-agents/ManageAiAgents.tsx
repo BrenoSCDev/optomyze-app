@@ -41,7 +41,7 @@ import {
   updateAiAgentStatus,
   deleteAiAgent,
 } from '@/services/aiAgentApi';
-import AiAgentFormModal from './AiAgentFormModal';
+import AiAgentStudio from './AiAgentStudio';
 
 const ManageAiAgents: React.FC = () => {
   const { t } = useLanguage();
@@ -292,8 +292,8 @@ const ManageAiAgents: React.FC = () => {
           </div>
         )}
 
-        {/* Create / Edit modal */}
-        <AiAgentFormModal
+        {/* Create / Edit studio (slide-up panel with live chat preview) */}
+        <AiAgentStudio
           open={showFormModal}
           onOpenChange={setShowFormModal}
           agent={editingAgent}

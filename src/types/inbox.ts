@@ -65,8 +65,11 @@ export interface InboxMessage {
   sent_at: string;
   user_id?: number | null;
   ai_agent_id?: number | null;
+  /** How the message entered the CRM. */
+  source?: 'contact' | 'user' | 'ai_agent' | 'automation' | 'external' | null;
   message_mode?: 'external' | 'internal';
   user?: InboxMessageUser | null;
+  ai_agent?: { id: number; name: string } | null;
 }
 
 export interface InboxFunnel {

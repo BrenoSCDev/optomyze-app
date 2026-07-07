@@ -216,7 +216,7 @@ const OpenAiConfigModal: React.FC<OpenAiConfigModalProps> = ({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <SiOpenai className="w-5 h-5 text-[#10A37F]" />
+            <SiOpenai className="w-5 h-5 text-black dark:text-white" />
             {t('integrations.openai.modal-title')}
           </DialogTitle>
           <DialogDescription>

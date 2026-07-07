@@ -113,10 +113,10 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(0,129,251,0.5)]',
   },
   'google-ads': {
-    gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.10),rgba(52,168,83,0.04))]',
-    iconColor: 'text-[#4285F4]',
-    hoverBorder: 'hover:border-[#4285F4]/40',
-    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(66,133,244,0.5)]',
+    gradient: 'bg-[linear-gradient(135deg,rgba(251,188,4,0.12),rgba(251,188,4,0.03))]',
+    iconColor: 'text-[#FBBC04]',
+    hoverBorder: 'hover:border-[#FBBC04]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(251,188,4,0.5)]',
   },
   'google-analytics': {
     gradient: 'bg-[linear-gradient(135deg,rgba(249,171,0,0.10),rgba(249,171,0,0.02))]',
@@ -125,10 +125,12 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(249,171,0,0.5)]',
   },
   openai: {
-    gradient: 'bg-[linear-gradient(135deg,rgba(16,163,127,0.10),rgba(16,163,127,0.02))]',
-    iconColor: 'text-[#10A37F]',
-    hoverBorder: 'hover:border-[#10A37F]/40',
-    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(16,163,127,0.5)]',
+    // OpenAI's brand color is black — in dark mode the tint and icon flip
+    // to white so they stay visible on the dark card background.
+    gradient: 'bg-[linear-gradient(135deg,rgba(0,0,0,0.12),rgba(0,0,0,0.02))] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.10),rgba(255,255,255,0.02))]',
+    iconColor: 'text-black dark:text-white',
+    hoverBorder: 'hover:border-black/40 dark:hover:border-white/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(0,0,0,0.5)] dark:hover:shadow-[0_12px_30px_-14px_rgba(255,255,255,0.25)]',
   },
   gemini: {
     gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.08),rgba(168,85,247,0.05))]',
