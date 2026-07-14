@@ -186,9 +186,7 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         { name: 'type',         type: 'string',  required: true,  description: t('api.params.product-type-required'), constraints: 'product | service | digital' },
         { name: 'description',  type: 'string',  required: false, description: t('api.params.product-description') },
         { name: 'cost_price',   type: 'number',  required: false, description: t('api.params.product-cost-price') },
-        { name: 'category_ids', type: 'array',   required: false, description: 'Array of category IDs to assign to this product.' },
         { name: 'is_active',    type: 'boolean', required: false, description: t('api.params.product-is-active-default') },
-        { name: 'is_favorite',  type: 'boolean', required: false, description: 'Mark product as favorite.' },
         { name: 'metadata',     type: 'object',  required: false, description: t('api.params.product-metadata') },
       ],
       exampleBody: {
@@ -198,9 +196,7 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         base_price: 299.00,
         cost_price: 50.00,
         type: "service",
-        category_ids: [2],
         is_active: true,
-        is_favorite: false,
         metadata: { billing_cycle: "monthly" }
       },
       exampleResponses: [
@@ -239,20 +235,16 @@ export const getProductsEndpoints = (t: (key: string) => string): EndpointCatego
         { name: 'name',         type: 'string',  required: false, description: t('api.params.product-name'), constraints: 'max 255' },
         { name: 'sku',          type: 'string',  required: false, description: t('api.params.product-sku') },
         { name: 'base_price',   type: 'number',  required: false, description: t('api.params.product-base-price') },
-        { name: 'type',         type: 'string',  required: false, description: t('api.params.product-type-required'), constraints: 'product | service | digital' },
+        { name: 'type',         type: 'string',  required: false, description: t('api.params.product-type-required'), constraints: 'product | service' },
         { name: 'description',  type: 'string',  required: false, description: t('api.params.product-description') },
         { name: 'cost_price',   type: 'number',  required: false, description: t('api.params.product-cost-price') },
-        { name: 'category_ids', type: 'array',   required: false, description: 'Array of category IDs to sync. Replaces existing category associations.' },
         { name: 'is_active',    type: 'boolean', required: false, description: t('api.params.product-is-active') },
-        { name: 'is_favorite',  type: 'boolean', required: false, description: 'Mark or unmark product as favorite.' },
         { name: 'metadata',     type: 'object',  required: false, description: t('api.params.product-metadata') },
       ],
       exampleBody: {
         name: "Enterprise Plan v2",
         base_price: 1400.00,
-        is_active: false,
-        is_favorite: true,
-        category_ids: [1, 2]
+        is_active: false
       },
       exampleResponses: [
         {

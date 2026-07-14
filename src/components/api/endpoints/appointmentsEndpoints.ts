@@ -98,5 +98,65 @@ export const getAppointmentsEndpoints = (t: (key: string) => string): EndpointCa
         { status: 404, label: '404 Not Found', body: { message: 'Appointment not found' } },
       ]
     },
+    {
+      id: 'sync-appointment-products',
+      method: 'POST',
+      path: '/appointments/{id}/products/sync',
+      summary: t('api.sync-appointment-products-summary'),
+      description: t('api.sync-appointment-products-description'),
+      pathParams: [{ name: 'id', type: 'integer', required: true, description: 'Appointment ID' }],
+      bodyParams: [
+        { name: 'product_ids', type: 'array', required: true, description: 'Array of product IDs. Replaces the appointment\'s full product set (sync).' },
+        { name: 'product_ids.*', type: 'integer', required: true, description: 'Product ID (must exist)' },
+      ],
+      exampleBody: { product_ids: [12, 34] },
+      exampleResponses: [
+        {
+          status: 200, label: '200 OK',
+          body: { message: 'Products updated.', products: [{ id: 12, name: 'Enterprise Plan', sku: 'ENT-001', base_price: 1200.0, type: 'product' }] }
+        },
+        { status: 404, label: '404 Not Found', body: { message: 'Appointment not found' } },
+      ]
+    },
+    {
+      id: 'create-lead-appointment',
+      method: 'POST',
+      path: '/lead-appointments',
+      summary: t('api.create-lead-appointment-summary'),
+      description: t('api.create-lead-appointment-description'),
+      bodyParams: [
+        { name: 'phone', type: 'string', required: true, description: 'Lead phone number; matched against existing leads (Brazilian formats supported)', constraints: 'max 20' },
+        { name: 'lead', type: 'object', required: false, description: 'Lead data used only when no lead matches the phone. lead.funnel_id and lead.first_name are then required.' },
+        { name: 'appointment', type: 'object', required: true, description: 'Appointment data — always created on every call.' },
+        { name: 'appointment.title', type: 'string', required: true, description: 'Appointment title', constraints: 'max 255' },
+        { name: 'appointment.scheduled_at', type: 'datetime', required: true, description: 'Start date/time (ISO 8601)' },
+        { name: 'appointment.end_at', type: 'datetime', required: false, description: 'End date/time (>= scheduled_at)' },
+        { name: 'appointment.appointment_type_id', type: 'integer', required: false, description: 'ID of the appointment type' },
+        { name: 'appointment.timezone', type: 'string', required: false, description: 'IANA timezone; defaults to company timezone' },
+        { name: 'appointment.notes', type: 'string', required: false, description: 'Optional notes' },
+        { name: 'appointment.status', type: 'string', required: false, description: 'draft | scheduled | completed | cancelled | no_show (default draft)' },
+        { name: 'appointment.product_ids', type: 'array', required: false, description: 'Array of product IDs to link to the appointment' },
+      ],
+      exampleBody: {
+        phone: '+5511999990000',
+        lead: { funnel_id: 1, first_name: 'John', last_name: 'Doe', email: 'john@example.com' },
+        appointment: { appointment_type_id: 2, title: 'Discovery Call', scheduled_at: '2026-05-01T14:00:00.000Z', end_at: '2026-05-01T14:30:00.000Z', product_ids: [12] },
+      },
+      exampleResponses: [
+        {
+          status: 201, label: '201 Created',
+          body: {
+            message: 'Lead and appointment created successfully',
+            data: {
+              lead: { id: 14, first_name: 'John', last_name: 'Doe', phone: '5511999990000', funnel_id: 1, stage_id: 3 },
+              lead_created: true,
+              appointment: { id: 5, lead_id: 14, title: 'Discovery Call', scheduled_at: '2026-05-01T14:00:00.000Z', status: 'draft', timezone: 'America/Sao_Paulo' },
+            }
+          }
+        },
+        { status: 404, label: '404 Not Found', body: { message: 'Funnel not found' } },
+        { status: 422, label: '422 Unprocessable Entity', body: { message: 'lead.funnel_id and lead.first_name are required to create a new lead for this phone number' } },
+      ]
+    },
   ]
 });
