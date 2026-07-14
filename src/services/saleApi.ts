@@ -40,7 +40,7 @@ export interface SaleResponse {
   status: string;
   subtotal: number;
   charges_total: number;
-  discounts_total: number;
+  discount_total: number;
   total: number;
   items: any[];
   charges: any[];

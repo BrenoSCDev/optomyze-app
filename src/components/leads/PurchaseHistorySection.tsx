@@ -106,7 +106,7 @@ export interface Sale {
   subtotal: number;
   total_value: number;
   charges_total: number;
-  discounts_total: number;
+  discount_total: number;
   final_total: number;
   currency: string;
   created_at: string;
@@ -378,7 +378,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
   };
 
   const totalCharges = sale.charges_total || 0;
-  const totalDiscounts = sale.discounts_total || 0;
+  const totalDiscounts = sale.discount_total || 0;
   const items = sale.items || [];
   const charges = sale.charges || [];
   const discounts = sale.discounts || [];

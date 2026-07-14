@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCurrency } from '@/hooks/useCurrency';
 import type { Product } from '@/services/productApi';
 import { getProductImages, getPrimaryImageUrl } from '@/services/productImageApi';
 import { PrivateImage } from '@/components/ui/PrivateImage';
@@ -30,6 +31,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavorite, onArchive, onUnarchive }: ProductCardProps) => {
   const { t } = useLanguage();
+  const { formatCurrency } = useCurrency();
   const [primaryImageUrl, setPrimaryImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(true);
 
@@ -53,12 +55,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
     return () => { cancelled = true; };
   }, [product.id]);
 
-  const formatPrice = (price: number) => {
-    return parseFloat(String(price)).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
+  const formatPrice = (price: number) => formatCurrency(parseFloat(String(price)) || 0);
 
   const TypeIcon = product.type === 'service' ? Briefcase : Package;
 
@@ -176,7 +173,7 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
 
         <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
           <p className="text-base font-semibold text-foreground">
-            ${formatPrice(product.base_price)}
+            {formatPrice(product.base_price)}
           </p>
           {!product.is_archived && (
             <div className="flex items-center gap-2">

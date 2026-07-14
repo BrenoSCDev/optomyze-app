@@ -24,6 +24,7 @@ import { createProduct, updateProduct, type Product, type ProductFormData, type 
 import { getProductCategories } from '@/services/productCategoryApi';
 import { getSettings, defaultSettings } from '@/services/settingsApi';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 import ProductImageGallery from './ProductImageGallery';
 import ProductCustomFieldsTab from './ProductCustomFieldsTab';
 
@@ -46,6 +47,7 @@ const generateSku = (format: string): string => {
 const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { currencyCode, symbol } = useCurrency();
   const isEdit = !!product;
 
   const [loading, setLoading] = useState(false);
@@ -279,8 +281,9 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
               id="product-price"
               value={parseFloat(String(formData.base_price)) || 0}
               onValueChange={(v) => setFormData(prev => ({ ...prev, base_price: String(v) }))}
+              currency={currencyCode}
               disabled={loading}
-              placeholder="$0.00"
+              placeholder={`${symbol}0.00`}
             />
           </div>
         </div>
