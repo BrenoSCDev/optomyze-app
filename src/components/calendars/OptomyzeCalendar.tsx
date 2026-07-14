@@ -162,7 +162,7 @@ const OptomyzeCalendar: React.FC = () => {
         status: task.status,
         hasReminder: task.reminder === 1,
         attendee: task.assignee?.name,
-        leadName: task.lead ? `${task.lead.first_name} ${task.lead.last_name}` : undefined,
+        leadName: task.lead ? `${task.lead.first_name} ${task.lead.last_name || ''}`.trim() : undefined,
         leadId: task.lead?.id,
         funnelId: task.lead?.funnel_id,
       });
@@ -199,7 +199,7 @@ const OptomyzeCalendar: React.FC = () => {
         status: appt.status,
         hasReminder: false,
         attendee: appt.user?.name,
-        leadName: appt.lead ? `${appt.lead.first_name} ${appt.lead.last_name}` : undefined,
+        leadName: appt.lead ? `${appt.lead.first_name} ${appt.lead.last_name || ''}`.trim() : undefined,
         leadId: appt.lead?.id,
         funnelId: appt.lead?.funnel_id,
         appointmentTypeColor: appt.appointment_type?.color,
