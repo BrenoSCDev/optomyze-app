@@ -274,7 +274,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
         {/* Base Price */}
         <div>
           <Label htmlFor="product-price">
-            {t('products.price-label')} <span className="text-destructive">*</span>
+            {t('products.price-label')} ({currencyCode}) <span className="text-destructive">*</span>
           </Label>
           <div className="mt-2">
             <CurrencyInput
