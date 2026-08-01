@@ -101,7 +101,7 @@ const UserFiltersComponent: React.FC<UserFiltersProps> = ({
           </div>
 
           <Button variant="outline" size="sm" onClick={onExport}>
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
             {t('users.filters.export')}
           </Button>
         </div>
@@ -139,7 +139,7 @@ const UserFiltersComponent: React.FC<UserFiltersProps> = ({
           {/* Clear Filters */}
           {hasActiveFilters && (
             <Button variant="outline" size="sm" onClick={onClearFilters}>
-              <X className="h-4 w-4 mr-2" />
+              <X className="h-4 w-4" />
               {t('users.filters.clear')}
             </Button>
           )}

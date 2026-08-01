@@ -262,7 +262,7 @@ const ApiTokens = () => {
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-4 space-y-6 text-blue-800 dark:text-blue-200">
                 <div className="grid gap-4">
-                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                  <div className="p-4 rounded-lg bg-surface-20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Key className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       {t('api.tokens.general-understanding')}
@@ -283,7 +283,7 @@ const ApiTokens = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                  <div className="p-4 rounded-lg bg-surface-20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       {t('api.tokens.security-considerations')}
@@ -322,7 +322,7 @@ const ApiTokens = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg bg-white/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
+                  <div className="p-4 rounded-lg bg-surface-20 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
                       <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       {t('api.tokens.business-awareness')}
@@ -381,7 +381,7 @@ const ApiTokens = () => {
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   {t('api.tokens.generate-token')}
                 </Button>
               </DialogTrigger>

@@ -680,7 +680,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     <DollarSign className="h-4 w-4" /> {t('sale.additional-charges')}
                   </Label>
                   <Button type="button" variant="outline" size="sm" onClick={addCharge} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
-                    <Plus className="mr-1 h-3 w-3" /> {t('sale.add-charge')}
+                    <Plus className="h-3 w-3" /> {t('sale.add-charge')}
                   </Button>
                 </div>
                 {charges.length > 0 ? (
@@ -719,7 +719,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
                     <Tag className="h-4 w-4" /> {t('sale.discounts')}
                   </Label>
                   <Button type="button" variant="outline" size="sm" onClick={addDiscount} className="border-deal/20 bg-background text-foreground hover:bg-deal/10">
-                    <Plus className="mr-1 h-3 w-3" /> {t('sale.add-discount')}
+                    <Plus className="h-3 w-3" /> {t('sale.add-discount')}
                   </Button>
                 </div>
                 {discounts.length > 0 ? (

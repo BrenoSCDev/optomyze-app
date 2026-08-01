@@ -42,7 +42,7 @@ import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { getEcho } from '@/services/echo';
 import { IoFunnelOutline } from 'react-icons/io5';
-import { SiGoogleanalytics, SiGoogleads } from 'react-icons/si';
+import { SiGoogleads } from 'react-icons/si';
 import { FaMeta } from 'react-icons/fa6';
 import { RiAppsFill } from 'react-icons/ri';
 import { BsDatabaseFillGear } from 'react-icons/bs';
@@ -276,7 +276,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         { id: 'plan-usage', label: t('dashboard.plan-usage') },
         { id: 'meta-ads', label: t('dashboard.meta-ads') },
         { id: 'google-ads', label: t('dashboard.google-ads') },
-        { id: 'google-analytics', label: t('dashboard.google-analytics') },
       ],
     },
     leads: {
@@ -337,6 +336,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       children: [
         { id: 'manage-users', label: t('organization.users') },
         { id: 'manage-teams', label: t('organization.teams') },
+        { id: 'optomyze-inbox', label: t('nav.optomyze-teams') },
       ],
     },
     chat: {
@@ -344,7 +344,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.chat',
       children: [
         { id: 'global-inbox', label: t('nav.global-inbox') },
-        { id: 'optomyze-inbox', label: t('nav.optomyze-teams') },
       ],
     },
     calendars: {
@@ -439,7 +438,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
             const config = sectionConfig[sectionId];
             if (!config) return null;
             // Role gating
-            if (sectionId === 'organization' && user?.role === 'agent') return null;
 
             const isActive = sectionContainsActive(sectionId);
             const hasChildren = config.children.length > 0;
@@ -461,13 +459,13 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   <DropdownMenuContent
                     align="start"
                     sideOffset={8}
-                    className="min-w-[160px] bg-background/95 backdrop-blur-md border border-white/20"
+                    className="min-w-[160px] bg-background/95 backdrop-blur-md border border-border-strong"
                   >
                     {config.children.map((child) => (
                       <DropdownMenuItem
                         key={child.id}
                         className={`cursor-pointer text-xs ${
-                          activeSection === child.id ? 'bg-white/[0.08] text-foreground' : ''
+                          activeSection === child.id ? 'bg-surface-3 text-foreground' : ''
                         }`}
                         onClick={() => {
                           if (child.path) {
@@ -513,13 +511,13 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
+                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-border-strong rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
                 >
                   {searchResults.map((result) => (
                     <button
                       key={result.id}
                       onClick={() => handleResultSelect(result)}
-                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
                     >
                       {renderResultLeading(result, 'w-8 h-8', 'h-4 w-4')}
                       <div className="flex-1 min-w-0">
@@ -545,7 +543,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-white/20 rounded-lg shadow-xl z-50 p-4"
+                  className="absolute top-full left-0 right-0 mt-2 bg-background border border-border-strong rounded-lg shadow-xl z-50 p-4"
                 >
                   <p className="text-sm text-muted-foreground text-center">
                     {t('header.no-results')}
@@ -572,7 +570,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
-              className="w-48 h-8 pl-8 pr-8 text-xs bg-background/20 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
+              className="w-48 h-8 pl-8 pr-8 text-xs bg-sidebar-hover border-sidebar-border text-sidebar-foreground-active placeholder:text-sidebar-foreground focus:border-ring focus:ring-ring/40"
             />
             <AnimatePresence>
               {showResults && searchResults.length > 0 && (
@@ -580,13 +578,13 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 mt-2 w-72 bg-background border border-white/20 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
+                  className="absolute top-full right-0 mt-2 w-72 bg-background border border-border-strong rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
                 >
                   {searchResults.map((result) => (
                     <button
                       key={result.id}
                       onClick={() => handleResultSelect(result)}
-                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
                     >
                       {renderResultLeading(result, 'w-7 h-7', 'h-3.5 w-3.5')}
                       <div className="flex-1 min-w-0">
@@ -617,7 +615,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
           <AnimatePresence>
             {searchExpanded ? (
               <motion.div
-                className="fixed inset-x-0 top-0 h-16 bg-background/95 backdrop-blur-md border-b border-white/10 flex items-center px-4 gap-2 z-[60]"
+                className="fixed inset-x-0 top-0 h-16 bg-background/95 backdrop-blur-md border-b border-border flex items-center px-4 gap-2 z-[60]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -643,12 +641,12 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                 </Button>
 
                 {showResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-0 bg-background border-b border-white/20 shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-0 bg-background border-b border-border-strong shadow-xl z-50 overflow-hidden max-h-72 overflow-y-auto">
                     {searchResults.map((result) => (
                       <button
                         key={result.id}
                         onClick={() => handleResultSelect(result)}
-                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-white/5 last:border-b-0 flex items-center gap-3"
+                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
                       >
                         {renderResultLeading(result, 'w-8 h-8', 'h-4 w-4')}
                         <div className="flex-1 min-w-0">
@@ -694,7 +692,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-96 glass-card backdrop-blur-md bg-background/95 border border-white/20 max-h-96 overflow-hidden"
+            className="w-96 glass-card backdrop-blur-md bg-background/95 border border-border-strong max-h-96 overflow-hidden"
             sideOffset={8}
           >
             <div className="flex items-center justify-between px-3 py-2">
@@ -719,7 +717,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                     className="h-7 text-xs text-primary hover:text-primary/80"
                     onClick={(e) => { e.preventDefault(); markAllAsRead(); }}
                   >
-                    <Check className="h-3 w-3 mr-1" />
+                    <Check className="h-3 w-3" />
                     {t('header.mark-all-read') || 'Mark all read'}
                   </Button>
                 )}
@@ -778,26 +776,26 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
               <Button variant="ghost" className="flex items-center gap-2 px-2 py-1.5 h-auto hover:bg-primary/10">
                 <div className="flex-shrink-0">
                   {userProfilePicUrl ? (
-                    <img src={userProfilePicUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
+                    <img src={userProfilePicUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-border-strong" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-white/20">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-border-strong">
                       <span className="text-primary font-semibold text-sm">{user.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
                     </div>
                   )}
                 </div>
                 {!headerNavMode && <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>}
-                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-fast hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 glass-card backdrop-blur-md bg-background/95 border border-white/20" sideOffset={8}>
-              <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black">
+            <DropdownMenuContent align="end" className="w-48 glass-card backdrop-blur-md bg-background/95 border border-border-strong" sideOffset={8}>
+              <DropdownMenuItem className="cursor-pointer hover:bg-accent hover:text-accent-foreground">
                 <Link to="/profile" className="flex items-center w-full">
-                  <UserCircle className="h-4 w-4 mr-2" />
+                  <UserCircle className="h-4 w-4" />
                   {t('header.my-profile')}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-white hover:text-black" onClick={logout}>
-                <LogOut className="h-4 w-4 mr-2" />
+              <DropdownMenuItem className="cursor-pointer hover:bg-accent hover:text-accent-foreground" onClick={logout}>
+                <LogOut className="h-4 w-4" />
                 {t('nav.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>

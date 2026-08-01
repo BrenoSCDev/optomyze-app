@@ -263,10 +263,17 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     setOverId(null);
   }, []);
 
-  const handleDealClick = (dealId: string) => {
+  const handleDealClick = useCallback((dealId: string) => {
     setPreviewDealId(dealId);
     setPreviewOpen(true);
-  };
+  }, []);
+
+  // Was an inline arrow in the column props, which handed every column a new
+  // identity on each render and defeated memoisation of the card tree.
+  const handleTagClick = useCallback((deal: any) => {
+    setSelectedDealForTag(deal);
+    setTagModalOpen(true);
+  }, []);
 
   const totalDeals = funnel.stages?.reduce((sum: number, s: any) => sum + (s.deals?.length || 0), 0) || 0;
   const totalSalesValue = useMemo(() => {
@@ -425,7 +432,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
                   index={index}
                   onAddDeal={handleAddDeal}
                   onDealClick={handleDealClick}
-                  onTagClick={(deal) => { setSelectedDealForTag(deal); setTagModalOpen(true); }}
+                  onTagClick={handleTagClick}
                   activeId={activeId}
                   overId={overId}
                   showProducts={displaySettings.showProducts}
@@ -436,7 +443,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
 
             <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
               {activeId && draggedDeal ? (
-                <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
+                <div className="relative transform rotate-2 scale-105 transition-colors duration-fast ease-standard pointer-events-none">
                   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
                   <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
                     <DealCard deal={draggedDeal} isDragging={false} onDealClick={handleDealClick} showProducts={displaySettings.showProducts} showCharges={displaySettings.showCharges} />

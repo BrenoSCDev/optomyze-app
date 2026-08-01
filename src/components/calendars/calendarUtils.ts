@@ -47,7 +47,7 @@ export const eventTypeColors: Record<string, string> = {
   internal: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/50',
   deadline: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/50',
   reminder: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/50',
-  other: 'bg-gray-500/15 text-gray-700 dark:text-gray-400 border-gray-500/50',
+  other: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/50',
 };
 
 export const taskPriorityColors: Record<string, string> = {
@@ -61,22 +61,22 @@ export const taskStatusColors: Record<string, string> = {
   pending: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/50',
   in_progress: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/50',
   completed: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/50',
-  cancelled: 'bg-gray-500/15 text-gray-700 dark:text-gray-400 border-gray-500/50',
+  cancelled: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/50',
 };
 
 export const appointmentStatusColors: Record<string, string> = {
   draft: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/50',
   scheduled: 'bg-teal-500/15 text-teal-700 dark:text-teal-400 border-teal-500/50',
   completed: 'bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/50',
-  cancelled: 'bg-gray-500/15 text-gray-700 dark:text-gray-400 border-gray-500/50',
+  cancelled: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/50',
   no_show: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/50',
 };
 
 // Solid dot colors used for the day-density indicator and chip accent bars
 export const densityDotColors = {
-  appointment: { draft: '#f59e0b', scheduled: '#14b8a6', completed: '#22c55e', cancelled: '#6b7280', no_show: '#ef4444' },
+  appointment: { draft: '#f59e0b', scheduled: '#14b8a6', completed: '#22c55e', cancelled: '#64748b', no_show: '#ef4444' },
   taskPriority: { urgent: '#ef4444', high: '#f97316', medium: '#eab308', low: '#22c55e' },
-  eventType: { call: '#3b82f6', meeting: '#a855f7', internal: '#22c55e', deadline: '#ef4444', reminder: '#eab308', other: '#6b7280' },
+  eventType: { call: '#3b82f6', meeting: '#a855f7', internal: '#22c55e', deadline: '#ef4444', reminder: '#eab308', other: '#64748b' },
 };
 
 export type StatusBadgeKind = 'appointment-status' | 'task-priority' | 'task-status' | 'event-type';

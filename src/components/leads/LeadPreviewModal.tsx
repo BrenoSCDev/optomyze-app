@@ -277,7 +277,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 z-[60] bg-overlay backdrop-blur-sm"
               onClick={onClose}
             />
 
@@ -405,7 +405,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hidden sm:inline-flex"
                         onClick={() => setEditModalOpen(true)}
                       >
-                        <Edit className="h-4 w-4 mr-1" />
+                        <Edit className="h-4 w-4" />
                         {t('lead-details.edit-lead')}
                       </Button>
                       <Button
@@ -424,21 +424,21 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
                           <DropdownMenuItem onClick={() => setTagModalOpen(true)} className="cursor-pointer">
-                            <Tags className="w-4 h-4 mr-2" />
+                            <Tags className="w-4 h-4" />
                             {t('lead-card.manage-tags')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setMoveFunnelModalOpen(true)} className="cursor-pointer">
-                            <GitBranch className="w-4 h-4 mr-2" />
+                            <GitBranch className="w-4 h-4" />
                             {t('lead-card.move-funnel')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setAssignUserModalOpen(true)} className="cursor-pointer">
-                            <UserCheck className="w-4 h-4 mr-2" />
+                            <UserCheck className="w-4 h-4" />
                             {t('lead-details.assign-user')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-destructive cursor-pointer">
-                            <Trash2 className="w-4 h-4 mr-2" />
+                            <Trash2 className="w-4 h-4" />
                             {t('lead-details.delete-lead')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>

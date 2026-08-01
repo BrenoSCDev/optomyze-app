@@ -47,7 +47,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
       case 'moderator':
         return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
@@ -126,7 +126,7 @@ const UserTableView: React.FC<UserTableViewProps> = ({
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1.5">
-                  <span className={`h-2 w-2 rounded-full ${isUserOnline(user.id) ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className={`h-2 w-2 rounded-full ${isUserOnline(user.id) ? 'bg-green-500' : 'bg-muted-foreground'}`} />
                   <span className={`text-sm font-medium ${isUserOnline(user.id) ? 'text-green-600' : 'text-muted-foreground'}`}>
                     {isUserOnline(user.id) ? t('users.status.online') : t('users.status.offline')}
                   </span>

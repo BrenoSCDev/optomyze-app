@@ -116,7 +116,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-foreground">{t('documents.title')}</h3>
           <Button onClick={onUploadClick} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Upload className="w-4 h-4 mr-2" />
+            <Upload className="w-4 h-4" />
             {t('documents.upload')}
           </Button>
         </div>
@@ -192,7 +192,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   variant="outline"
                   className="border-border bg-background text-foreground hover:bg-muted"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   {t('documents.download')}
                 </Button>
                 <Button 
@@ -201,7 +201,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   variant="ghost"
                   className="border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="w-4 h-4" />
                   {t('documents.close')}
                 </Button>
               </div>
@@ -229,7 +229,7 @@ const DocumentsSection: React.FC<DocumentsSectionProps> = ({ documents, onUpload
                   onClick={() => previewDoc && handleDownload(previewDoc)}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   {t('documents.download-file')}
                 </Button>
               </div>

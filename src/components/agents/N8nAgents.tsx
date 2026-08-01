@@ -323,7 +323,7 @@ const N8nAgents: React.FC = () => {
           /* Enhanced Agents Grid */
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {agents.map((agent) => (
-              <div key={agent.id} className="glass-card p-6 hover:border-primary/50 transition-all duration-300 group">
+              <div key={agent.id} className="glass-card p-6 hover:border-primary/50 transition-colors duration-base ease-standard group">
                 {/* Main Content - Horizontal Layout */}
                 <div className="flex items-center gap-4 mb-4">
                   {/* Platform Icon */}

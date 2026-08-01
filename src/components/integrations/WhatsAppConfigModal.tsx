@@ -16,7 +16,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../services/api';
 import { format } from 'date-fns';
-import { Loader2, Key, Globe, Info, Plus, Trash2, QrCode, Unplug, CheckCircle2 } from 'lucide-react';
+import { Loader2, Key, Globe, Info, Plus, Trash2, QrCode, Unplug, CheckCircle2, RefreshCw, Wifi } from 'lucide-react';
 import { SiWhatsapp } from "react-icons/si";
 import { CiPlay1 } from "react-icons/ci";
 import { IoFunnelOutline } from 'react-icons/io5';
@@ -26,12 +26,18 @@ import DeleteInstanceModal from './DeleteInstanceModal';
 import DisconnectInstanceModal from './DisconnectInstanceModal';
 import QRCodeModal from './QRCodeModal';
 import FunnelSelectionModal from './FunnelSelectionModal';
+import ConnectionStatusModal, { ConnectionStatusResponse } from './ConnectionStatusModal';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { formatPhoneNumber } from '@/lib/phone';
 
 interface WhatsAppInstance {
   instance_name: string;
   id: number;
   created_at: string;
   status?: string;
+  profile_name?: string | null;
+  profile_pic_url?: string | null;
+  phone_number?: string | null;
   funnel_id?: number;
   funnel?: {
     id: number;
@@ -70,6 +76,8 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
   // Instance management modal states
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [testModalOpen, setTestModalOpen] = useState(false);
+  const [connectionModalOpen, setConnectionModalOpen] = useState(false);
+  const [refreshingStatuses, setRefreshingStatuses] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
   const [qrCodeModalOpen, setQrCodeModalOpen] = useState(false);
@@ -81,20 +89,67 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
     ? instances.find(i => i.id === selectedInstance.id) || selectedInstance
     : null;
 
+  /**
+   * Merge a live connection check (Evolution's /instance/connectionState) into
+   * a local instance. When the instance isn't connected the stored profile no
+   * longer describes a live session, so it is cleared.
+   */
+  const applyConnectionResult = (
+    instance: WhatsAppInstance,
+    result: ConnectionStatusResponse
+  ): WhatsAppInstance => ({
+    ...instance,
+    status: result.status,
+    profile_name: result.profile?.name ?? null,
+    profile_pic_url: result.profile?.picture_url ?? null,
+    phone_number: result.profile?.phone_number ?? null,
+  });
+
+  /**
+   * Statuses stored locally can be stale (the phone may have been unlinked
+   * outside the CRM), so the panel always confirms them against Evolution.
+   */
+  const refreshConnectionStatuses = useCallback(async () => {
+    setRefreshingStatuses(true);
+
+    try {
+      const response = await api.get<{ instances: ConnectionStatusResponse[] }>(
+        '/api/integrations/whatsapp-evo-instances/connection-status'
+      );
+
+      const liveById = new Map(response.data.instances.map(result => [result.id, result]));
+
+      setInstances(prev => prev.map(instance => {
+        const live = liveById.get(instance.id);
+        return live ? applyConnectionResult(instance, live) : instance;
+      }));
+    } catch (error) {
+      console.error('Error refreshing WhatsApp connection statuses:', error);
+    } finally {
+      setRefreshingStatuses(false);
+    }
+  }, []);
+
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get('/api/integrations/available/settings');
+      const instanceList: WhatsAppInstance[] = response.data.wpp_evo_instances || [];
+
       setConfigured(!!response.data.wpp_evo_configured);
       setBaseUrl(response.data.wpp_evo_base_url || '');
-      setInstances(response.data.wpp_evo_instances || []);
+      setInstances(instanceList);
       setFunnels(response.data.funnels || []);
+
+      if (instanceList.length > 0) {
+        refreshConnectionStatuses();
+      }
     } catch (error) {
       console.error('Error fetching WhatsApp integration settings:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshConnectionStatuses]);
 
   useEffect(() => {
     if (open) {
@@ -197,6 +252,17 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
     setQrCodeModalOpen(true);
   };
 
+  const openConnectionModal = (instance: WhatsAppInstance) => {
+    setSelectedInstance(instance);
+    setConnectionModalOpen(true);
+  };
+
+  const handleConnectionResult = useCallback((result: ConnectionStatusResponse) => {
+    setInstances(prev => prev.map(instance =>
+      instance.id === result.id ? applyConnectionResult(instance, result) : instance
+    ));
+  }, []);
+
   const openFunnelModal = (instance: WhatsAppInstance) => {
     setSelectedInstance(instance);
     setFunnelModalOpen(true);
@@ -214,7 +280,11 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
   };
 
   const handleDisconnected = (instanceId: number) => {
-    handleStatusChange(instanceId, 'disconnected');
+    setInstances(prev => prev.map(instance =>
+      instance.id === instanceId
+        ? { ...instance, status: 'disconnected', profile_name: null, profile_pic_url: null, phone_number: null }
+        : instance
+    ));
   };
 
   const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
@@ -345,10 +415,23 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
                           {t('integrations.whatsapp-evo.instances-description')}
                         </p>
                       </div>
-                      <Button onClick={() => setCreateModalOpen(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        {t('integrations.panel.create-instance')}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {instances.length > 0 && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={refreshConnectionStatuses}
+                            disabled={refreshingStatuses}
+                            title={t('integrations.panel.connection.refresh-all')}
+                          >
+                            <RefreshCw className={`w-4 h-4 ${refreshingStatuses ? 'animate-spin' : ''}`} />
+                          </Button>
+                        )}
+                        <Button onClick={() => setCreateModalOpen(true)}>
+                          <Plus className="w-4 h-4" />
+                          {t('integrations.panel.create-instance')}
+                        </Button>
+                      </div>
                     </div>
 
                     {instances.length > 0 ? (
@@ -359,16 +442,40 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
                             className="border border-border rounded-lg p-4 bg-card hover:bg-accent/5 transition-colors"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-                                <SiWhatsapp className="w-5 h-5 text-green-500" />
-                              </div>
+                              {instance.status === 'connected' && (instance.profile_pic_url || instance.profile_name) ? (
+                                <div className="relative shrink-0">
+                                  <Avatar className="w-10 h-10 border border-green-500/30">
+                                    {instance.profile_pic_url && (
+                                      <AvatarImage src={instance.profile_pic_url} alt={instance.profile_name || instance.instance_name} />
+                                    )}
+                                    <AvatarFallback className="bg-green-500/20 text-green-700 dark:text-green-300 text-xs font-medium">
+                                      {(instance.profile_name || instance.instance_name).slice(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-background flex items-center justify-center">
+                                    <SiWhatsapp className="w-3 h-3 text-green-500" />
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                                  <SiWhatsapp className="w-5 h-5 text-green-500" />
+                                </div>
+                              )}
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-foreground truncate">
                                   {instance.instance_name}
                                 </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
-                                </p>
+                                {instance.status === 'connected' && (instance.profile_name || instance.phone_number) ? (
+                                  <p className="text-sm text-muted-foreground truncate">
+                                    {[instance.profile_name, instance.phone_number ? formatPhoneNumber(instance.phone_number) : null]
+                                      .filter(Boolean)
+                                      .join(' · ')}
+                                  </p>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">
+                                    {format(new Date(instance.created_at), 'dd/MM/yyyy HH:mm')}
+                                  </p>
+                                )}
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
                                   <Badge
                                     variant="secondary"
@@ -393,7 +500,7 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
                                   className="flex-1"
                                   onClick={() => openQrCodeModal(instance)}
                                 >
-                                  <QrCode className="w-4 h-4 mr-1" />
+                                  <QrCode className="w-4 h-4" />
                                   QR
                                 </Button>
                               )}
@@ -401,18 +508,29 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
                                 variant="outline"
                                 size="sm"
                                 className="flex-1"
-                                onClick={() => openTestModal(instance)}
+                                onClick={() => openConnectionModal(instance)}
                               >
-                                <CiPlay1 className="w-4 h-4 mr-1" />
-                                {t('common.test')}
+                                <Wifi className="w-4 h-4" />
+                                {t('integrations.panel.connection.check-button')}
                               </Button>
+                              {instance.status === 'connected' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => openTestModal(instance)}
+                                >
+                                  <CiPlay1 className="w-4 h-4" />
+                                  {t('common.test')}
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="flex-1"
                                 onClick={() => openFunnelModal(instance)}
                               >
-                                <IoFunnelOutline className="w-4 h-4 mr-1" />
+                                <IoFunnelOutline className="w-4 h-4" />
                                 {t('integrations.panel.funnel.button')}
                               </Button>
                               {instance.status === 'connected' && (
@@ -422,7 +540,7 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
                                   className="flex-1 text-orange-600 hover:text-orange-600 hover:bg-orange-500/10 border-orange-500/30"
                                   onClick={() => handleDisconnect(instance)}
                                 >
-                                  <Unplug className="w-4 h-4 mr-1" />
+                                  <Unplug className="w-4 h-4" />
                                   {t('integrations.panel.disconnect.button')}
                                 </Button>
                               )}
@@ -480,10 +598,19 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
         onDisconnected={handleDisconnected}
       />
 
+      <ConnectionStatusModal
+        open={connectionModalOpen}
+        onOpenChange={setConnectionModalOpen}
+        instance={freshSelectedInstance}
+        onStatusChange={handleConnectionResult}
+        onShowQrCode={openQrCodeModal}
+      />
+
       <QRCodeModal
         open={qrCodeModalOpen}
         onOpenChange={setQrCodeModalOpen}
         instance={freshSelectedInstance}
+        onStatusChange={handleConnectionResult}
       />
 
       <FunnelSelectionModal

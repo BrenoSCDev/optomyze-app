@@ -18,6 +18,8 @@ import {
   FlaskConical,
   Rocket,
   Clock,
+  LayoutTemplate,
+  MessagesSquare,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -42,6 +44,7 @@ import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
 import FacebookMessengerConfigModal from './FacebookMessengerConfigModal';
 import OpenAiConfigModal from './OpenAiConfigModal';
+import WidgetsSlab from '../widgets/WidgetsSlab';
 import { Input } from '@/components/ui/input';
 import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
 import { cn } from '@/lib/utils';
@@ -54,6 +57,8 @@ interface Integration {
   comingSoon?: boolean;
   beta?: boolean;
   popular?: boolean;
+  /** Widgets and other built-in tools need no install step. */
+  alwaysAvailable?: boolean;
   icon: React.ReactNode;
 }
 
@@ -124,12 +129,24 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     hoverBorder: 'hover:border-[#F9AB00]/40',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(249,171,0,0.5)]',
   },
+  'form-widget': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(124,58,237,0.10),rgba(124,58,237,0.02))]',
+    iconColor: 'text-[#7C3AED]',
+    hoverBorder: 'hover:border-[#7C3AED]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(124,58,237,0.5)]',
+  },
+  'chat-widget': {
+    gradient: 'bg-[linear-gradient(135deg,rgba(14,165,233,0.10),rgba(14,165,233,0.02))]',
+    iconColor: 'text-[#0EA5E9]',
+    hoverBorder: 'hover:border-[#0EA5E9]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(14,165,233,0.5)]',
+  },
   openai: {
     // OpenAI's brand color is black — in dark mode the tint and icon flip
     // to white so they stay visible on the dark card background.
     gradient: 'bg-[linear-gradient(135deg,rgba(0,0,0,0.12),rgba(0,0,0,0.02))] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.10),rgba(255,255,255,0.02))]',
     iconColor: 'text-black dark:text-white',
-    hoverBorder: 'hover:border-black/40 dark:hover:border-white/40',
+    hoverBorder: 'hover:border-black/40 ',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(0,0,0,0.5)] dark:hover:shadow-[0_12px_30px_-14px_rgba(255,255,255,0.25)]',
   },
   gemini: {
@@ -250,7 +267,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       return (
         <button
           onClick={() => onAction(integration.key, 'configure')}
-          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-primary text-primary-foreground rounded-lg transition-all duration-300 text-sm group-hover:shadow-md"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-primary text-primary-foreground rounded-lg transition-colors duration-base ease-standard text-sm group-hover:shadow-md"
         >
           <Settings className="w-4 h-4" />
           {t('integrations.configure')}
@@ -260,7 +277,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
       return (
         <button
           onClick={() => onAction(integration.key, 'install')}
-          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-accent text-accent-foreground rounded-lg transition-all duration-300 text-sm group-hover:shadow-md"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-accent text-accent-foreground rounded-lg transition-colors duration-base ease-standard text-sm group-hover:shadow-md"
         >
           <Download className="w-4 h-4" />
           {t('integrations.install')}
@@ -272,10 +289,10 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   return (
     <div
       className={cn(
-        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-all duration-300",
+        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-colors duration-base ease-standard",
         isComingSoon
           ? "opacity-60"
-          : cn(brand.gradient, brand.hoverBorder, brand.hoverShadow, "hover:-translate-y-1")
+          : cn(brand.gradient, brand.hoverBorder, brand.hoverShadow, "")
       )}
     >
       {/* Brand icon + status badges */}
@@ -340,6 +357,7 @@ const IntegrationsApps: React.FC = () => {
   const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
   const [showFacebookConfigModal, setShowFacebookConfigModal] = useState(false);
   const [showOpenAiConfigModal, setShowOpenAiConfigModal] = useState(false);
+  const [widgetsSlabType, setWidgetsSlabType] = useState<'form' | 'chat' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const { token, user } = useAuth();
@@ -455,6 +473,30 @@ const IntegrationsApps: React.FC = () => {
       ]
     },
     {
+      id: 'widgets',
+      title: t('integrations.categories.widgets') || 'Widgets',
+      integrations: [
+        {
+          key: 'form-widget',
+          name: t('integrations.form-widget.name') || 'Website Form Widget',
+          description: t('integrations.form-widget.description') || 'Build embeddable website forms that create leads in your CRM automatically.',
+          available: true,
+          alwaysAvailable: true,
+          popular: true,
+          icon: <LayoutTemplate className="w-7 h-7" />
+        },
+        {
+          key: 'chat-widget',
+          name: t('integrations.chat-widget.name') || 'Website Chat Widget',
+          description: t('integrations.chat-widget.description') || 'Add a live chat bubble to your website and answer visitors straight from the inbox.',
+          available: true,
+          alwaysAvailable: true,
+          beta: true,
+          icon: <MessagesSquare className="w-7 h-7" />
+        }
+      ]
+    },
+    {
       id: 'google-apps',
       title: t('integrations.categories.google-apps') || 'Google Apps',
       comingSoon: true,
@@ -500,7 +542,7 @@ const IntegrationsApps: React.FC = () => {
           ...category,
           integrations: category.integrations.map(integration => {
             const apiKey = `${integration.key.replace('-', '_')}_available`;
-            const isAvailable = response.data[apiKey] || false;
+            const isAvailable = integration.alwaysAvailable || response.data[apiKey] || false;
             return {
               ...integration,
               available: isAvailable,
@@ -534,6 +576,10 @@ const IntegrationsApps: React.FC = () => {
         setShowFacebookConfigModal(true);
       } else if (integrationKey === 'openai') {
         setShowOpenAiConfigModal(true);
+      } else if (integrationKey === 'form-widget') {
+        setWidgetsSlabType('form');
+      } else if (integrationKey === 'chat-widget') {
+        setWidgetsSlabType('chat');
       } else {
         toast({
           title: t('integrations.configuration'),
@@ -684,7 +730,7 @@ const IntegrationsApps: React.FC = () => {
                 key={option.id}
                 onClick={() => setActiveFilter(option.id)}
                 className={cn(
-                  "relative whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-200",
+                  "relative whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-fast",
                   activeFilter === option.id
                     ? "text-foreground font-semibold"
                     : "text-muted-foreground font-medium hover:text-foreground/80"
@@ -693,7 +739,7 @@ const IntegrationsApps: React.FC = () => {
                 {option.label}
                 <span
                   className={cn(
-                    "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                    "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-fast",
                     activeFilter === option.id ? "opacity-100" : "opacity-0"
                   )}
                 />
@@ -767,6 +813,11 @@ const IntegrationsApps: React.FC = () => {
           open={showOpenAiConfigModal}
           onOpenChange={setShowOpenAiConfigModal}
           onConfigurationSaved={handleConfigSaved}
+        />
+        <WidgetsSlab
+          isOpen={widgetsSlabType !== null}
+          type={widgetsSlabType ?? undefined}
+          onClose={() => setWidgetsSlabType(null)}
         />
       </div>
     </div>

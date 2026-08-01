@@ -85,7 +85,7 @@ const AudioMessagePlayer: React.FC<AudioMessagePlayerProps> = ({ src, duration, 
         ${isOwn ? 'bg-primary-foreground/25' : 'bg-muted-foreground/25'}`}
       >
         <div
-          className={`h-full rounded-full transition-[width] duration-150 ease-linear
+          className={`h-full rounded-full transition-[width] duration-fast ease-linear
             ${isOwn ? 'bg-primary-foreground/80' : 'bg-foreground/70'}`}
           style={{ width: `${progress}%` }}
         />

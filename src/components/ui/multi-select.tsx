@@ -102,16 +102,25 @@ const MultiSelect = ({
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      {/* Trigger Button */}
-      <button
-        type="button"
+      {/* Trigger — a div rather than a <button> because each selected chip
+          carries its own remove button, and a button cannot nest a button. */}
+      <div
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
         onClick={handleToggleDropdown}
-        disabled={disabled}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggleDropdown();
+          }
+        }}
         className={cn(
           "w-full px-3 py-2 text-left bg-background border border-input rounded-lg",
           "focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400",
-          "transition-all duration-200",
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-accent/10",
+          "transition-colors duration-fast ease-standard",
+          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-accent/10",
           isOpen && "ring-2 ring-purple-400 border-purple-400"
         )}
       >
@@ -136,6 +145,7 @@ const MultiSelect = ({
                   >
                     {option.name}
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeOption(option);
@@ -157,12 +167,12 @@ const MultiSelect = ({
           </div>
           <ChevronDown
             className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform duration-200 ml-2 flex-shrink-0",
+              "w-4 h-4 text-muted-foreground transition-transform duration-fast ml-2 flex-shrink-0",
               isOpen && "transform rotate-180"
             )}
           />
         </div>
-      </button>
+      </div>
 
       {/* Dropdown Content */}
       <AnimatePresence>
@@ -221,7 +231,7 @@ const MultiSelect = ({
                       {/* Color swatch */}
                       {option.color && (
                         <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0 border border-white/10"
+                          className="w-2.5 h-2.5 rounded-full shrink-0 border border-border"
                           style={{ backgroundColor: option.color }}
                         />
                       )}

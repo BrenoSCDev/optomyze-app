@@ -35,7 +35,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onEdit, onView, onDelete }) =
   };
 
   return (
-    <Card className="glass-card hover:shadow-lg transition-all duration-300 hover:border-primary/30">
+    <Card className="glass-card hover:shadow-lg transition-colors duration-base ease-standard hover:border-primary/30">
       <CardContent className="p-6">
         {/* Header with actions */}
         <div className="flex justify-between items-start mb-4">
@@ -55,18 +55,18 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onEdit, onView, onDelete }) =
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onView(team)}>
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4" />
                 {t('teams.actions.view')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(team)}>
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4" />
                 {t('teams.actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onDelete(team)}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
                 {t('teams.actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>

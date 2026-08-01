@@ -173,7 +173,7 @@ const CustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Props)
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{t('settings.products.custom-fields-desc')}</p>
         <Button size="sm" onClick={handleAdd}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.products.add-field')}
         </Button>
       </div>

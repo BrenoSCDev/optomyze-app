@@ -391,15 +391,15 @@ const ManageUsers = () => {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-lg border border-border bg-gray-50 dark:bg-gray-800/30 p-4">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700/40">
-            <Users className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        <div className="flex items-start gap-3 rounded-lg border border-border bg-surface-2 p-4">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-3">
+            <Users className="h-4 w-4 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+            <p className="text-sm font-semibold text-foreground">
               {t('users.roles.agent') || 'Agent'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-xs text-subtle mt-0.5">
               {t('users.roles.agent-description') || 'Can only view their own leads and deals. Read-only access to team members.'}
             </p>
           </div>

@@ -251,7 +251,7 @@ const SaleDocumentUploadModal: React.FC<SaleDocumentUploadModalProps> = ({
               </>
             ) : (
               <>
-                <Upload className="w-4 h-4 mr-2" />
+                <Upload className="w-4 h-4" />
                 {t('lead-details.upload')}
               </>
             )}

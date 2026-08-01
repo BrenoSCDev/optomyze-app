@@ -156,7 +156,7 @@ const ManageAiAgents: React.FC = () => {
           </div>
 
           <Button onClick={openCreate} disabled={openAiAvailable === false}>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             {t('ai-agents.create')}
           </Button>
         </div>
@@ -183,7 +183,7 @@ const ManageAiAgents: React.FC = () => {
               variant="outline"
               onClick={() => (window.location.href = '/?section=integrations')}
             >
-              <Plug className="w-4 h-4 mr-2" />
+              <Plug className="w-4 h-4" />
               {t('ai-agents.go-to-integrations')}
             </Button>
           </div>
@@ -200,7 +200,7 @@ const ManageAiAgents: React.FC = () => {
               {t('ai-agents.empty-description')}
             </p>
             <Button onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4" />
               {t('ai-agents.create')}
             </Button>
           </div>
@@ -210,7 +210,7 @@ const ManageAiAgents: React.FC = () => {
             {agents.map(agent => (
               <div
                 key={agent.id}
-                className="group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg"
+                className="group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-colors duration-base ease-standard hover:border-primary/40 hover:shadow-lg"
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3 min-w-0">

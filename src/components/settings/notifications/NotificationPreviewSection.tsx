@@ -96,7 +96,7 @@ export default function NotificationPreviewSection({ events, enabledChannels }: 
           {t('settings.notifications.preview.hint')}
         </p>
         <Button onClick={() => setIsOpen(true)}>
-          <Send className="w-4 h-4 mr-2" />
+          <Send className="w-4 h-4" />
           {t('settings.notifications.preview.send-test')}
         </Button>
       </div>
@@ -191,7 +191,7 @@ export default function NotificationPreviewSection({ events, enabledChannels }: 
               onClick={handleSendTest}
               disabled={!selectedEvent || !selectedChannel || !selectedUser}
             >
-              <Send className="w-4 h-4 mr-2" />
+              <Send className="w-4 h-4" />
               {t('settings.notifications.preview.send-test')}
             </Button>
           </DialogFooter>

@@ -167,7 +167,7 @@ const PipelinesSection = ({ settings, onUpdate }: Props) => {
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{t('settings.sales.pipelines-desc')}</p>
         <Button size="sm" onClick={handleAddPipeline}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.sales.add-pipeline')}
         </Button>
       </div>
@@ -209,7 +209,7 @@ const PipelinesSection = ({ settings, onUpdate }: Props) => {
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-muted-foreground">{t('settings.sales.stages')}</span>
                   <Button variant="outline" size="sm" onClick={() => handleAddStage(pipeline.id)}>
-                    <Plus className="w-3 h-3 mr-1" />
+                    <Plus className="w-3 h-3" />
                     {t('settings.sales.add-stage')}
                   </Button>
                 </div>

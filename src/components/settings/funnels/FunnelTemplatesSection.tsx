@@ -258,7 +258,7 @@ const FunnelTemplatesSection = ({
           </Select>
         </div>
         <Button size="sm" onClick={handleAddTemplate}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.funnels.add-template')}
         </Button>
       </div>
@@ -279,7 +279,7 @@ const FunnelTemplatesSection = ({
             </div>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" onClick={handleOpenCreateFromTemplate}>
-                <Copy className="w-4 h-4 mr-1" />
+                <Copy className="w-4 h-4" />
                 {t('settings.funnels.create-from-template')}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => handleEditTemplate(selectedTemplate)}>
@@ -296,7 +296,7 @@ const FunnelTemplatesSection = ({
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">{t('settings.funnels.template-stages')}</h4>
               <Button variant="outline" size="sm" onClick={handleAddStage}>
-                <Plus className="w-3 h-3 mr-1" />
+                <Plus className="w-3 h-3" />
                 {t('settings.funnels.add-stage')}
               </Button>
             </div>

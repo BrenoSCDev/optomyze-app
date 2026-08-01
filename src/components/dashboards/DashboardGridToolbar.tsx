@@ -48,7 +48,7 @@ const DashboardGridToolbar = ({
     <TooltipProvider>
       <div className="flex items-center gap-1.5">
         {/* Grid columns selector */}
-        <div className="flex items-center gap-0.5 p-0.5 bg-white/5 rounded-md border border-white/10">
+        <div className="flex items-center gap-0.5 p-0.5 bg-surface-2 rounded-md border border-border">
           {GRID_OPTIONS.map(opt => (
             <Tooltip key={opt.value}>
               <TooltipTrigger asChild>
@@ -57,7 +57,7 @@ const DashboardGridToolbar = ({
                   className={`p-1.5 rounded transition-colors ${
                     gridColumns === opt.value
                       ? 'bg-primary/20 text-primary'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-surface-2'
                   }`}
                 >
                   {opt.icon}

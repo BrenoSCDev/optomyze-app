@@ -118,18 +118,18 @@ const ProductCard = ({ product, onEdit, onDelete, onToggleActive, onToggleFavori
             <DropdownMenuContent align="end">
               {!product.is_archived && onArchive && (
                 <DropdownMenuItem onClick={() => onArchive(product)}>
-                  <Archive className="mr-2 h-4 w-4" />
+                  <Archive className="h-4 w-4" />
                   {t('products.archive')}
                 </DropdownMenuItem>
               )}
               {product.is_archived && onUnarchive && (
                 <DropdownMenuItem onClick={() => onUnarchive(product)}>
-                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  <ArchiveRestore className="h-4 w-4" />
                   {t('products.unarchive')}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => onDelete(product)} className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 className="h-4 w-4" />
                 {t('products.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>

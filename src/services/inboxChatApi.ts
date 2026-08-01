@@ -30,13 +30,25 @@ export interface ChatMessage {
 export interface ChatConversation {
   id: number;
   type: 'private' | 'group';
-  name: string;
+  /**
+   * Nullable. Groups may be created without a name (`conversations.name` is
+   * nullable), and a private conversation derives its name from the other
+   * participant — who resolves to null once that user is soft-deleted.
+   * Render via `conversationDisplayName()` rather than reading directly.
+   */
+  name: string | null;
   cover_image_url: string | null;
   participants: ChatParticipant[];
   last_message: ChatMessage | null;
   last_message_at: string | null;
   created_at: string;
 }
+
+/** Safe display name for a conversation, never empty. */
+export const conversationDisplayName = (
+  conv: Pick<ChatConversation, 'name' | 'type'>
+): string =>
+  conv.name?.trim() || (conv.type === 'group' ? 'Unnamed group' : 'Unknown user');
 
 export interface ChatContact {
   id: number;

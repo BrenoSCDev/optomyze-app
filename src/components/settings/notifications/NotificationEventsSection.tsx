@@ -82,7 +82,7 @@ export default function NotificationEventsSection({ events, onUpdate }: Props) {
                         {t(`settings.notifications.events.${eventKey}`)}
                       </span>
                       <Badge variant="outline" className={priorityColors[eventConfig.priority]}>
-                        <PriorityIcon className="w-3 h-3 mr-1" />
+                        <PriorityIcon className="w-3 h-3" />
                         {t(`settings.notifications.priority.${eventConfig.priority}`)}
                       </Badge>
                     </div>

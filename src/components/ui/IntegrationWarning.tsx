@@ -32,7 +32,7 @@ export const IntegrationWarning = ({
           onClick={onButtonClick}
           className="w-full"
         >
-          <Settings className="w-4 h-4 mr-2" />
+          <Settings className="w-4 h-4" />
           {buttonText}
         </Button>
       </Card>

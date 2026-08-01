@@ -55,8 +55,8 @@ export const AgendaEventCard: React.FC<AgendaEventCardProps> = ({
     <div
       onClick={onClick ? () => onClick(item) : undefined}
       className={cn(
-        'rounded-lg border border-border bg-card/60 p-3 sm:p-4 transition-all',
-        isCompact ? 'cursor-pointer hover:scale-[1.02]' : 'hover:shadow-sm'
+        'rounded-lg border border-border bg-card/60 p-3 sm:p-4 transition-colors duration-fast ease-standard',
+        isCompact ? 'cursor-pointer hover:bg-surface-2' : 'hover:shadow-elevation-sm'
       )}
       style={{ borderLeftColor: accentColor, borderLeftWidth: 4 }}
     >
@@ -159,7 +159,7 @@ export const AgendaEventCard: React.FC<AgendaEventCardProps> = ({
                     onStatusChange?.(item, 'scheduled');
                   }}
                 >
-                  <CheckCircle2 className="h-3 w-3 mr-1" />{t('appointments.confirm-schedule')}
+                  <CheckCircle2 className="h-3 w-3" />{t('appointments.confirm-schedule')}
                 </Button>
               )}
               {item.status === 'scheduled' && (
@@ -174,7 +174,7 @@ export const AgendaEventCard: React.FC<AgendaEventCardProps> = ({
                       onStatusChange?.(item, 'completed');
                     }}
                   >
-                    <CheckCircle2 className="h-3 w-3 mr-1" />{t('appointments.mark-completed')}
+                    <CheckCircle2 className="h-3 w-3" />{t('appointments.mark-completed')}
                   </Button>
                   <Button
                     size="sm"
@@ -186,7 +186,7 @@ export const AgendaEventCard: React.FC<AgendaEventCardProps> = ({
                       onStatusChange?.(item, 'cancelled');
                     }}
                   >
-                    <XCircle className="h-3 w-3 mr-1" />{t('appointments.mark-cancelled')}
+                    <XCircle className="h-3 w-3" />{t('appointments.mark-cancelled')}
                   </Button>
                   <Button
                     size="sm"
@@ -198,7 +198,7 @@ export const AgendaEventCard: React.FC<AgendaEventCardProps> = ({
                       onStatusChange?.(item, 'no_show');
                     }}
                   >
-                    <UserX className="h-3 w-3 mr-1" />{t('appointments.mark-no-show')}
+                    <UserX className="h-3 w-3" />{t('appointments.mark-no-show')}
                   </Button>
                 </>
               )}

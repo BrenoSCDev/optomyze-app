@@ -445,7 +445,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
           glass-card hover-glow h-full cursor-grab active:cursor-grabbing
           ${isDragging ? 'ring-2 ring-primary shadow-2xl scale-105' : ''} 
           ${reordering ? 'pointer-events-none' : ''}
-          transition-all duration-200
+          transition-colors duration-fast ease-standard
         `}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-3">
@@ -637,7 +637,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
               className="btn-primary"
               disabled={loading}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               {t('stages.new_stage')}
             </Button>
           </div>
@@ -676,7 +676,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
                   onClick={() => setShowNewStageModal(true)}
                   className="btn-primary"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   {t('stages.create_first')}
                 </Button>
               </motion.div>
@@ -798,10 +798,10 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
                     key={color.value}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    className={`w-8 h-8 rounded-full border-2 transition-colors duration-fast ease-standard ${
                       formData.color === color.value 
-                        ? 'border-primary ring-2 ring-primary/30 scale-110' 
-                        : 'border-border hover:scale-105'
+                        ? 'border-primary ring-2 ring-primary/30' 
+                        : 'border-border hover:ring-2 hover:ring-ring/40'
                     }`}
                     style={{ backgroundColor: color.value }}
                     title={color.label}

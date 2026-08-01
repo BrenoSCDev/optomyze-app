@@ -4,6 +4,7 @@
  * Individual lead card with glassmorphism design for the Kanban board
  */
 
+import { memo } from 'react';
 import { Lead } from '@/types/leads';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -91,8 +92,8 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className={`glass-card p-4 cursor-pointer transition-all duration-300 border-l-4 relative ${getPriorityColor(lead.priority)} ${
-          isDragging ? 'opacity-20 scale-95' : 'hover:scale-102'
+        className={`glass-card p-4 cursor-pointer transition-colors duration-base ease-standard border-l-4 relative ${getPriorityColor(lead.priority)} ${
+          isDragging ? 'opacity-20 scale-95' : 'hover:border-border-strong'
         } ${isMoving ? 'opacity-60' : ''}`}
         whileHover={{ y: isDragging ? 0 : -2 }}
         layout
@@ -128,7 +129,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
               <DropdownMenuTrigger asChild>
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 transition-all duration-200 group"
+                  className="p-1 rounded-md bg-surface-2 hover:bg-surface-3 border border-border hover:border-primary/50 transition-colors duration-fast ease-standard group"
                   title={t('lead-card.more-actions')}
                 >
                   <MoreVertical className="w-3 h-3 text-gray-400 group-hover:text-primary" />
@@ -140,7 +141,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                     onClick={(e) => { e.stopPropagation(); onTagClick(lead); }}
                     className="cursor-pointer"
                   >
-                    <Tag className="w-4 h-4 mr-2" />
+                    <Tag className="w-4 h-4" />
                     {t('lead-card.manage-tags')}
                   </DropdownMenuItem>
                 )}
@@ -149,7 +150,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                     onClick={(e) => { e.stopPropagation(); onAssignUser(lead); }}
                     className="cursor-pointer"
                   >
-                    <UserCheck className="w-4 h-4 mr-2" />
+                    <UserCheck className="w-4 h-4" />
                     {t('lead-details.assign-user')}
                   </DropdownMenuItem>
                 )}
@@ -158,7 +159,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                     onClick={(e) => { e.stopPropagation(); onMoveFunnel(lead); }}
                     className="cursor-pointer"
                   >
-                    <GitBranch className="w-4 h-4 mr-2" />
+                    <GitBranch className="w-4 h-4" />
                     {t('lead-card.move-funnel')}
                   </DropdownMenuItem>
                 )}
@@ -169,7 +170,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                       onClick={(e) => { e.stopPropagation(); onDeleteLead(lead); }}
                       className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2 className="w-4 h-4" />
                       {t('lead-details.delete-lead')}
                     </DropdownMenuItem>
                   </>
@@ -218,7 +219,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       )}
 
       {/* Bottom Section */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
+      <div className="flex items-center justify-between pt-2 border-t border-border mt-2">
       
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
@@ -234,7 +235,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
       {showAssignedUser && (lead as any).assigned_user && (
         <ClickableUser
           userId={(lead as any).assigned_user.id}
-          className="flex items-center gap-2 pt-2 mt-2 border-t border-white/10 w-full"
+          className="flex items-center gap-2 pt-2 mt-2 border-t border-border w-full"
         >
           <UserAvatar
             name={(lead as any).assigned_user.name}
@@ -266,4 +267,11 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
   );
 };
 
-export default LeadCard;
+/**
+ * Memoised: opening any modal on the board (create lead, filters, tags…) sets
+ * state on KanbanBoard, which would otherwise re-render every card on every
+ * column synchronously before the modal can paint. All props here are scalars
+ * or callbacks the board holds stable via useCallback, so the default shallow
+ * compare is enough.
+ */
+export default memo(LeadCard);

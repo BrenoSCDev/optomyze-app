@@ -68,7 +68,7 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group/widget transition-shadow duration-150 ${
+      className={`relative group/widget transition-shadow duration-fast ${
         isDragging ? 'opacity-40' : ''
       } ${editMode ? 'ring-1 ring-primary/20 ring-dashed rounded-xl cursor-grab active:cursor-grabbing' : ''} ${
         !id.startsWith('kpi-') ? 'min-h-[420px] h-full flex flex-col' : ''
@@ -89,7 +89,7 @@ const DashboardWidget = ({ id, colSpan, maxSpan, editMode, onSetSpan, children }
       {/* Hover controls (non-edit mode) */}
       {!editMode && (
         <TooltipProvider>
-          <div className="absolute top-3 right-3 z-30 flex items-center gap-1 opacity-0 group-hover/widget:opacity-100 transition-opacity duration-200">
+          <div className="absolute top-3 right-3 z-30 flex items-center gap-1 opacity-0 group-hover/widget:opacity-100 transition-opacity duration-fast">
             {maxSpan > 1 && (
               <Tooltip>
                 <TooltipTrigger asChild>

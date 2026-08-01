@@ -495,7 +495,7 @@ const StartPurchaseModal = ({
                   {commissionType === 'percentage' && (
                     <div className="space-y-2">
                       <Label className="text-muted-foreground text-sm">{t('sale.reference-value')}</Label>
-                      <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2 text-foreground">
+                      <div className="bg-surface-2 border border-border rounded-md px-3 py-2 text-foreground">
                         {formatPrice(productsSubtotal)}
                       </div>
                       <p className="text-xs text-muted-foreground">{t('sale.reference-value-hint')}</p>
@@ -526,7 +526,7 @@ const StartPurchaseModal = ({
                   onClick={addCharge}
                   className="glass-card text-xs"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-3 h-3" />
                   {t('sale.add-charge')}
                 </Button>
               </div>
@@ -602,7 +602,7 @@ const StartPurchaseModal = ({
                   onClick={addDiscount}
                   className="glass-card text-xs"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
+                  <Plus className="w-3 h-3" />
                   {t('sale.add-discount')}
                 </Button>
               </div>
@@ -722,7 +722,7 @@ const StartPurchaseModal = ({
               </>
             ) : (
               <>
-                <Briefcase className="w-4 h-4 mr-2" />
+                <Briefcase className="w-4 h-4" />
                 {t('sale.create-deal')}
               </>
             )}

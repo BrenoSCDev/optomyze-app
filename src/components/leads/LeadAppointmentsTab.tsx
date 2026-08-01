@@ -18,7 +18,7 @@ const statusColors: Record<string, string> = {
   draft: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   scheduled: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-  cancelled: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  cancelled: 'bg-muted text-muted-foreground border-border-strong',
   no_show: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
@@ -128,7 +128,7 @@ const LeadAppointmentsTab = ({ leadId, leadTimezone }: Props) => {
                       disabled={updatingId === appt.id}
                       onClick={() => handleQuickStatusChange(appt, 'scheduled')}
                     >
-                      <CheckCircle2 className="w-3 h-3 mr-1" />{t('appointments.confirm-schedule')}
+                      <CheckCircle2 className="w-3 h-3" />{t('appointments.confirm-schedule')}
                     </Button>
                   )}
                   {appt.status === 'scheduled' && (
@@ -140,7 +140,7 @@ const LeadAppointmentsTab = ({ leadId, leadTimezone }: Props) => {
                         disabled={updatingId === appt.id}
                         onClick={() => handleQuickStatusChange(appt, 'completed')}
                       >
-                        <CheckCircle2 className="w-3 h-3 mr-1" />{t('appointments.mark-completed')}
+                        <CheckCircle2 className="w-3 h-3" />{t('appointments.mark-completed')}
                       </Button>
                       <Button
                         size="sm"
@@ -149,7 +149,7 @@ const LeadAppointmentsTab = ({ leadId, leadTimezone }: Props) => {
                         disabled={updatingId === appt.id}
                         onClick={() => handleQuickStatusChange(appt, 'cancelled')}
                       >
-                        <XCircle className="w-3 h-3 mr-1" />{t('appointments.mark-cancelled')}
+                        <XCircle className="w-3 h-3" />{t('appointments.mark-cancelled')}
                       </Button>
                       <Button
                         size="sm"
@@ -158,7 +158,7 @@ const LeadAppointmentsTab = ({ leadId, leadTimezone }: Props) => {
                         disabled={updatingId === appt.id}
                         onClick={() => handleQuickStatusChange(appt, 'no_show')}
                       >
-                        <UserX className="w-3 h-3 mr-1" />{t('appointments.mark-no-show')}
+                        <UserX className="w-3 h-3" />{t('appointments.mark-no-show')}
                       </Button>
                     </>
                   )}
@@ -198,7 +198,7 @@ const LeadAppointmentsTab = ({ leadId, leadTimezone }: Props) => {
           )}
         </div>
         <Button size="sm" variant="outline" onClick={() => { setEditingAppointment(null); setModalOpen(true); }}>
-          <Plus className="w-4 h-4 mr-1" />{t('appointments.schedule-btn')}
+          <Plus className="w-4 h-4" />{t('appointments.schedule-btn')}
         </Button>
       </div>
 

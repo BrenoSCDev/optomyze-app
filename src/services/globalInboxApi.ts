@@ -113,6 +113,23 @@ export const sendInboxMedia = async (
  * Send a text message to a chat via an Instagram integration, optionally
  * replying to an existing message in the same chat.
  */
+/**
+ * Reply to a Website Chat conversation. There is no third-party API to call:
+ * storing the message delivers it, and the visitor's widget picks it up on
+ * its next poll.
+ */
+export const sendWebsiteChatMessage = async (
+  chatId: number,
+  text: string,
+  messageMode: 'external' | 'internal' = 'external'
+): Promise<SendMessageResponse> => {
+  const response = await api.post(
+    `/api/inbox/chats/${chatId}/website-messages`,
+    { text, message_mode: messageMode }
+  );
+  return response.data;
+};
+
 export const sendInstagramMessage = async (
   integrationId: number,
   chatId: number,

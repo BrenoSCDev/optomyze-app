@@ -176,7 +176,7 @@ const AppointmentTypesSection = () => {
             <Label className="text-xs">{t('appointments.type-color')}</Label>
             <div className="flex gap-2 flex-wrap">
               {PRESET_COLORS.map(c => (
-                <button key={c} className={`w-6 h-6 rounded-full border-2 ${newColor === c ? 'border-white scale-110' : 'border-transparent'} transition-transform`} style={{ backgroundColor: c }} onClick={() => setNewColor(c)} />
+                <button key={c} className={`w-6 h-6 rounded-full border-2 ${newColor === c ? 'border-white' : 'border-transparent'} transition-transform`} style={{ backgroundColor: c }} onClick={() => setNewColor(c)} />
               ))}
             </div>
           </div>
@@ -189,7 +189,7 @@ const AppointmentTypesSection = () => {
 
       {!showAddForm && (
         <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />{t('appointments.add-type')}
+          <Plus className="w-4 h-4" />{t('appointments.add-type')}
         </Button>
       )}
     </div>

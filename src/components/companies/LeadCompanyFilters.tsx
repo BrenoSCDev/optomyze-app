@@ -78,7 +78,7 @@ export function LeadCompanyFilters({
             <SheetTitle>{t('companies.filters')}</SheetTitle>
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-4 w-4" />
                 {t('companies.filter.clear-all')}
               </Button>
             )}

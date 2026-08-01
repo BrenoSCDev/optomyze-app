@@ -261,7 +261,7 @@ const ProductImageGallery = ({ productId, onImageChange }: ProductImageGalleryPr
           </p>
         </div>
         <Button onClick={() => setShowUploader(true)} size="sm">
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           {t('products.images.add-image')}
         </Button>
       </div>
@@ -299,7 +299,7 @@ const ProductImageGallery = ({ productId, onImageChange }: ProductImageGalleryPr
             {t('products.images.no-images-description')}
           </p>
           <Button onClick={() => setShowUploader(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             {t('products.images.add-first-image')}
           </Button>
         </div>

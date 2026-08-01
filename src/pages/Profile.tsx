@@ -373,7 +373,7 @@ const Profile = () => {
         )}
 
         <motion.main
-          className="flex-1 transition-all duration-300"
+          className="flex-1 transition-colors duration-base ease-standard"
           initial={false}
           animate={{
             marginLeft: useHeaderLayout
@@ -399,7 +399,7 @@ const Profile = () => {
                 size="sm"
                 onClick={() => bgPicInputRef.current?.click()}
               >
-                <Camera className="w-4 h-4 mr-2" />
+                <Camera className="w-4 h-4" />
                 {t('profile.change-background')}
               </Button>
               {(bgPicPreview || savedBgPicUrl) && (bgPicPreview || savedBgPicUrl) !== optomyzeLogo && (
@@ -489,12 +489,12 @@ const Profile = () => {
                 >
                   {isEditing ? (
                     <>
-                      <X className="w-4 h-4 mr-2" />
+                      <X className="w-4 h-4" />
                       Cancel
                     </>
                   ) : (
                     <>
-                      <Edit className="w-4 h-4 mr-2" />
+                      <Edit className="w-4 h-4" />
                       Edit Profile
                     </>
                   )}
@@ -601,7 +601,7 @@ const Profile = () => {
                             </>
                           ) : (
                             <>
-                              <Save className="w-4 h-4 mr-2" />
+                              <Save className="w-4 h-4" />
                               {t('profile.save-changes')}
                             </>
                           )}

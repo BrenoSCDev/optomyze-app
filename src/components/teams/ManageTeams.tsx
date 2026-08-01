@@ -227,7 +227,7 @@ const ManageTeams = () => {
             </Button>
           ) : (
             <Button onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               {t('teams.actions.create-first')}
             </Button>
           )}

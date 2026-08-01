@@ -12,8 +12,15 @@ interface CreateGroupModalProps {
   contacts: ChatContact[];
 }
 
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function getInitials(name: string | null | undefined): string {
+  // Names arrive from the API and can be null (deleted user / unnamed group).
+  return (name ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function getAvatarUrl(url: string | null | undefined): string | null {
@@ -68,7 +75,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCr
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-overlay backdrop-blur-sm z-[100]"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
           />

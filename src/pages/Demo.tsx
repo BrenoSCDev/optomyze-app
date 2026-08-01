@@ -71,7 +71,7 @@ const Demo = () => {
         )}
 
         <motion.main
-          className="flex-1 transition-all duration-300"
+          className="flex-1 transition-colors duration-base ease-standard"
           initial={false}
           animate={{
             marginLeft: useHeaderLayout

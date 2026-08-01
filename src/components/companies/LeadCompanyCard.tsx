@@ -25,7 +25,7 @@ const statusColors: Record<string, string> = {
   lead: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   customer: 'bg-green-500/20 text-green-400 border-green-500/30',
   partner: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  inactive: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  inactive: 'bg-muted text-muted-foreground border-border-strong',
 };
 
 export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompanyCardProps) {
@@ -39,7 +39,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
     .toUpperCase();
 
   return (
-    <Card className="group hover:border-primary/50 transition-all duration-200 bg-card/50 backdrop-blur-sm">
+    <Card className="group hover:border-primary/50 transition-colors duration-fast ease-standard bg-card/50 backdrop-blur-sm">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           <Avatar className="h-14 w-14 rounded-lg border border-border">
@@ -101,7 +101,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             className="flex-1 h-8 text-xs"
             onClick={() => onView(company)}
           >
-            <Eye className="h-3.5 w-3.5 mr-1.5" />
+            <Eye className="h-3.5 w-3.5" />
             {t('companies.view')}
           </Button>
           <Button
@@ -110,7 +110,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             className="flex-1 h-8 text-xs"
             onClick={() => onEdit(company)}
           >
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            <Pencil className="h-3.5 w-3.5" />
             {t('common.edit')}
           </Button>
           <Button
@@ -119,7 +119,7 @@ export function LeadCompanyCard({ company, onView, onEdit, onDelete }: LeadCompa
             className="flex-1 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => onDelete(company)}
           >
-            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            <Trash2 className="h-3.5 w-3.5" />
             {t('common.delete')}
           </Button>
         </div>

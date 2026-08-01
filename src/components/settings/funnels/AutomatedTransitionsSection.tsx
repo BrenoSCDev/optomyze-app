@@ -87,7 +87,7 @@ const AutomatedTransitionsSection = ({ transitions, funnels, onUpdate }: Props) 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{t('settings.funnels.transitions-desc')}</p>
         <Button size="sm" onClick={handleAdd}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.funnels.add-transition')}
         </Button>
       </div>

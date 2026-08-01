@@ -96,7 +96,7 @@ const DraggableTaskCard: React.FC<{
 
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
             <button
-              className="p-1 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1 rounded hover:bg-surface-3 text-muted-foreground hover:text-foreground transition-colors"
               onClick={(e) => { e.stopPropagation(); onEdit(task); }}
               title="Edit"
             >
@@ -194,7 +194,7 @@ const DroppableKanbanColumn: React.FC<{
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-w-[240px] flex flex-col rounded-lg transition-all duration-200 ${
+      className={`flex-1 min-w-[240px] flex flex-col rounded-lg transition-colors duration-fast ease-standard ${
         isOver ? 'bg-accent/5 ring-1 ring-accent/20' : ''
       }`}
     >
@@ -238,7 +238,7 @@ const DeleteConfirmModal: React.FC<{
   onCancel: () => void;
   loading: boolean;
 }> = ({ task, onConfirm, onCancel, loading }) => (
-  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[80] p-4">
+  <div className="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-[80] p-4">
     <motion.div
       className="glass-card w-full max-w-sm p-6"
       initial={{ opacity: 0, scale: 0.95 }}
@@ -257,7 +257,7 @@ const DeleteConfirmModal: React.FC<{
       </div>
       <div className="flex gap-2 justify-end">
         <Button variant="outline" size="sm" onClick={onCancel} disabled={loading}
-          className="border-white/10 hover:bg-white/10">
+          className="border-border hover:bg-surface-3">
           Cancel
         </Button>
         <Button size="sm" onClick={onConfirm} disabled={loading}

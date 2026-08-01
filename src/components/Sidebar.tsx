@@ -50,7 +50,7 @@ import OptoIcon from '@/assets/opto-icon.png';
 import OptoIconLight from '@/assets/opto-icon-light.png';
 import { IoFunnelOutline, IoLanguage } from "react-icons/io5";
 import { FaMeta } from "react-icons/fa6";
-import { SiGoogleanalytics, SiGoogleads } from "react-icons/si";
+import { SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 import { VscSettings } from "react-icons/vsc";
@@ -98,7 +98,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     { id: 'plan-usage', label: t('dashboard.plan-usage'), icon: () => <img src={icon} alt="Plan Usage" className="h-4 w-4" /> },
     { id: 'meta-ads', label: t('dashboard.meta-ads'), icon: () => <FaMeta size={18}/> },
     { id: 'google-ads', label: t('dashboard.google-ads'), icon: () => <SiGoogleads size={16}/> },
-    { id: 'google-analytics', label: t('dashboard.google-analytics'), icon: () => <SiGoogleanalytics size={16}/> },
   ];
 
   const leadsItems = funnels
@@ -145,11 +144,11 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
   const organizationItems = [
     { id: 'manage-users', label: t('organization.users'), icon: () => <Users size={18}/> },
     { id: 'manage-teams', label: t('organization.teams'), icon: () => <UsersRound size={18}/> },
+    { id: 'optomyze-inbox', label: t('nav.optomyze-teams'), icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const chatItems = [
     { id: 'global-inbox',      label: t('nav.global-inbox'), icon: () => <MessageCircle size={18}/> },
-    { id: 'optomyze-inbox',    label: t('nav.optomyze-teams'),    icon: () => <img src={icon} alt="Optomyze" className="h-4 w-4" /> },
   ];
 
   const calendarsItems = [
@@ -281,7 +280,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     integrations: () => renderExpandableSection('integrations', <Plug className="h-5 w-5" />, t('nav.integrations'), integrationsItems),
     aiAgents: () => renderExpandableSection('aiAgents', <Bot className="h-5 w-5" />, t('nav.ai-agents'), aiAgentsItems),
     api: () => renderExpandableSection('api', <Database className="h-5 w-5" />, t('nav.api'), apiItems),
-    organization: () => renderExpandableSection('organization', <Building className="h-5 w-5" />, t('nav.organization'), organizationItems, { roleGated: true }),
+    organization: () => renderExpandableSection('organization', <Building className="h-5 w-5" />, t('nav.organization'), organizationItems),
     chat: () => renderExpandableSection('chat', <Inbox className="h-5 w-5" />, t('nav.chat'), chatItems),
     calendars: () => renderExpandableSection('calendars', <CalendarDays className="h-5 w-5" />, t('nav.calendars'), calendarsItems),
     products: () => renderExpandableSection('products', <Package className="h-5 w-5" />, t('nav.products'), productsItems),
@@ -295,7 +294,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/60 z-30 md:hidden"
+            className="fixed inset-0 bg-overlay z-30 md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -305,7 +304,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       </AnimatePresence>
 
     <motion.div
-      className={`fixed left-0 top-0 h-screen z-40 transition-all duration-300 rounded-none
+      className={`fixed left-0 top-0 h-screen z-40 transition-colors duration-base ease-standard rounded-none
         md:translate-x-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         ${effectivelyCollapsed ? 'md:w-16' : 'md:w-64'}
@@ -336,7 +335,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="text-muted-foreground hover:text-foreground hover:bg-white/5 hidden md:flex"
+          className="text-sidebar-foreground hover:text-sidebar-foreground-hover hover:bg-sidebar-hover hidden md:flex"
         >
           {effectivelyCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </Button>

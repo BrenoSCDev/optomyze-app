@@ -116,7 +116,7 @@ const PasswordReset = () => {
       {/* Right Half - Password Reset Form */}
       <div className="right-half">
         <div className="w-full max-w-md animate-fade-in">
-          <div className="rounded-3xl p-8 lg:p-10 shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 transition-all duration-300 hover:bg-white/15 hover:shadow-glow">
+          <div className="rounded-xl p-8 lg:p-10 shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 transition-colors duration-base ease-standard hover:bg-white/15 hover:shadow-glow">
             
             {success ? (
               <div className="text-center">
@@ -185,7 +185,7 @@ const PasswordReset = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={loading}
-                        className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 transition-all"
+                        className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 transition-colors duration-fast ease-standard"
                         required
                         minLength={8}
                       />
@@ -240,7 +240,7 @@ const PasswordReset = () => {
                         onChange={(e) => setPasswordConfirmation(e.target.value)}
                         disabled={loading}
                         className={`
-                          bg-white/10 text-white placeholder:text-white/60 focus:ring-purple-400/20 pr-10 h-12 transition-all
+                          bg-white/10 text-white placeholder:text-white/60 focus:ring-purple-400/20 pr-10 h-12 transition-colors duration-fast ease-standard
                           ${passwordConfirmation && password !== passwordConfirmation
                             ? 'border-red-500 focus:border-red-500' 
                             : 'border-white/30 focus:border-purple-400'
@@ -281,7 +281,7 @@ const PasswordReset = () => {
                     type="submit"
                     disabled={loading || !email || !token || password.length < 8 || password !== passwordConfirmation}
                     variant="black"
-                    className="w-full transition-all duration-300 h-12 font-semibold"
+                    className="w-full transition-colors duration-base ease-standard h-12 font-semibold"
                   >
                     {loading ? (
                       <>

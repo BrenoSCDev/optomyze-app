@@ -512,12 +512,12 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   }, []);
 
   // Handle tag icon click
-  const handleTagClick = (lead: any) => {
+  const handleTagClick = useCallback((lead: any) => {
     setTagModalState({
       isOpen: true,
       selectedLead: lead
     });
-  };
+  }, []);
 
   // Handle tag modal close
   const handleTagModalClose = () => {
@@ -528,10 +528,10 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   };
 
   // Handle lead click to open preview modal
-  const handleLeadClick = (leadId: string) => {
+  const handleLeadClick = useCallback((leadId: string) => {
     setPreviewLeadId(leadId);
     setPreviewOpen(true);
-  };
+  }, []);
 
   // Handle tags updated with API response data
   const handleTagsUpdated = (leadId: string, updatedLead: any) => {
@@ -563,9 +563,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   };
 
   // Handle delete lead click - open confirmation dialog
-  const handleDeleteLeadClick = (lead: any) => {
+  const handleDeleteLeadClick = useCallback((lead: any) => {
     setDeleteLeadTarget(lead);
-  };
+  }, []);
 
   // Confirm lead deletion
   const handleConfirmDeleteLead = async () => {
@@ -585,9 +585,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   };
 
   // Handle assign user click - open assign user modal
-  const handleAssignUserClick = (lead: any) => {
+  const handleAssignUserClick = useCallback((lead: any) => {
     setAssignUserTarget(lead);
-  };
+  }, []);
 
   // Merge the newly assigned user into the lead card
   const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
@@ -604,9 +604,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   };
 
   // Handle move-to-funnel click - open move funnel modal
-  const handleMoveFunnelClick = (lead: any) => {
+  const handleMoveFunnelClick = useCallback((lead: any) => {
     setMoveFunnelTarget(lead);
-  };
+  }, []);
 
   // After a lead has been moved to a different funnel, remove it from this board
   const handleLeadMovedToFunnel = (leadId: string) => {
@@ -651,7 +651,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         {/* Right Side Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           {/* View Switcher */}
-          <div className="flex items-center rounded-md border dark:border-white/20 overflow-hidden">
+          <div className="flex items-center rounded-md border overflow-hidden">
             <Button
               variant="ghost"
               size="sm"
@@ -664,7 +664,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 border-l dark:border-white/20 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
+              className={`rounded-none h-9 px-2.5 border-l  ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
               onClick={() => handleViewModeChange('table')}
               title={t('funnel.page.view-table') || 'Table'}
             >
@@ -676,7 +676,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           <Button
             variant="outline"
             size="sm"
-            className="glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground"
+            className="glass-card hover:bg-muted hover:text-foreground"
             onClick={async () => {
               if (onRefresh) {
                 setIsRefreshing(true);
@@ -705,7 +705,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           <Button
             variant="outline"
             size="sm"
-            className="glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground"
+            className="glass-card hover:bg-muted hover:text-foreground"
             onClick={handleExport}
             disabled={isExporting}
           >
@@ -734,7 +734,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             variant="outline"
             size="sm"
             onClick={() => setFilterDialogOpen(true)}
-            className={`glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground ${
+            className={`glass-card  hover:bg-muted  hover:text-foreground ${
               Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
@@ -802,7 +802,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
               }}
             >
               {activeId && draggedLead ? (
-                <div className="relative transform rotate-2 scale-105 transition-all duration-200 pointer-events-none">
+                <div className="relative transform rotate-2 scale-105 transition-colors duration-fast ease-standard pointer-events-none">
                   <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
                   <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
                     <LeadCard
@@ -931,7 +931,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       {/* Entry Requirement Errors Modal */}
       {entryErrors && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEntryErrors(null)} />
+          <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={() => setEntryErrors(null)} />
           <div className="relative glass-card p-6 max-w-md w-full mx-4 space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-destructive/20">

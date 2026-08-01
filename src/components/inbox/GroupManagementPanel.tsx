@@ -14,8 +14,15 @@ interface GroupManagementPanelProps {
   onConversationUpdated: (conv: ChatConversation) => void;
 }
 
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function getInitials(name: string | null | undefined): string {
+  // Names arrive from the API and can be null (deleted user / unnamed group).
+  return (name ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function getAvatarUrl(url: string | null | undefined): string | null {

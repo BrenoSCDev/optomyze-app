@@ -40,7 +40,7 @@ const InsightsPanel = ({ insights, delay = 0 }: InsightsPanelProps) => {
         {insights.map((insight) => (
           <li
             key={insight.id}
-            className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/40 p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-md"
+            className="flex items-start gap-3 rounded-xl border border-border/60 bg-card/40 p-3 transition-colors duration-base ease-standard hover:border-border hover:shadow-md"
           >
             <span className={cn('flex items-center justify-center w-8 h-8 rounded-lg shrink-0', ICON_BG_CLASSES[insight.type], COLOR_CLASSES[insight.type])}>
               {ICONS[insight.type]}

@@ -51,7 +51,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         if (e.key === 'Enter' || e.key === ' ') onSelectDate(day);
       }}
       className={cn(
-        'flex flex-col rounded-lg text-left transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'flex flex-col rounded-lg text-left transition-colors duration-fast ease-standard cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
         cellMinH,
         isCurrentMonth ? 'bg-muted/40 hover:bg-muted/70' : 'bg-transparent opacity-40',
         isSelected && 'ring-2 ring-primary bg-primary/10',

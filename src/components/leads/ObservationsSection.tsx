@@ -166,7 +166,7 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4" />
                 {t('observations.add')}
               </>
             )}
@@ -208,7 +208,7 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
                       onClick={handleCancelEdit}
                       disabled={isUpdating}
                     >
-                      <X className="w-4 h-4 mr-1" />
+                      <X className="w-4 h-4" />
                       {t('common.cancel')}
                     </Button>
                     <Button
@@ -220,7 +220,7 @@ const ObservationsSection: React.FC<ObservationsSectionProps> = ({
                       {isUpdating ? (
                         <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                       ) : (
-                        <Save className="w-4 h-4 mr-1" />
+                        <Save className="w-4 h-4" />
                       )}
                       {t('common.save')}
                     </Button>

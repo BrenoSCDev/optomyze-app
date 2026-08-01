@@ -310,10 +310,10 @@ const StageEditModal: React.FC<StageEditModalProps> = ({
                   key={color.value}
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  className={`w-8 h-8 rounded-full border-2 transition-colors duration-fast ease-standard ${
                     formData.color === color.value 
-                      ? 'border-primary ring-2 ring-primary/30 scale-110' 
-                      : 'border-border hover:scale-105'
+                      ? 'border-primary ring-2 ring-primary/30' 
+                      : 'border-border hover:ring-2 hover:ring-ring/40'
                   }`}
                   style={{ backgroundColor: color.value }}
                   title={color.label}

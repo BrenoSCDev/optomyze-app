@@ -12,7 +12,6 @@ const OptomyzeMetrics        = lazy(() => import('@/components/dashboards/Optomy
 const PlanUsage              = lazy(() => import('@/components/dashboards/PlanUsage'));
 const MetaAds                = lazy(() => import('@/components/dashboards/MetaAds'));
 const GoogleAds              = lazy(() => import('@/components/dashboards/GoogleAds'));
-const GoogleAnalytics        = lazy(() => import('@/components/dashboards/GoogleAnalytics'));
 const TagsDashboard          = lazy(() => import('@/components/dashboards/TagsDashboard'));
 const FunnelsDashboard       = lazy(() => import('@/components/dashboards/FunnelsDashboard'));
 const RecordLogsDashboard    = lazy(() => import('@/components/reports/RecordLogsDashboard'));
@@ -84,7 +83,6 @@ const Index = () => {
       case 'plan-usage': return <PlanUsage />;
       case 'meta-ads': return <MetaAds />;
       case 'google-ads': return <GoogleAds />;
-      case 'google-analytics': return <GoogleAnalytics />;
       case 'crm-panel': return <CrmPanel />;
       case 'preferences': return <PreferencesPanel />;
       case 'funnels': return <FunnelsDashboard />;
@@ -179,7 +177,7 @@ const Index = () => {
         )}
 
         <motion.main
-          className="flex-1 min-w-0 overflow-x-hidden transition-all duration-300"
+          className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-base ease-standard"
           initial={false}
           animate={{
             marginLeft: useHeaderLayout

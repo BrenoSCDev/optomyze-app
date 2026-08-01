@@ -174,7 +174,7 @@ const AllowedOrigins = () => {
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   {t('api.allowed-origins.new-origin')}
                 </Button>
               </DialogTrigger>

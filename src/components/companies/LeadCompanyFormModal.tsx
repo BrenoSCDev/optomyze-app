@@ -219,7 +219,7 @@ export function LeadCompanyFormModal({
                           size="sm"
                           onClick={() => document.getElementById('logo-upload')?.click()}
                         >
-                          <Upload className="h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4" />
                           {t('companies.upload-logo')}
                         </Button>
                         {logoPreview && (
@@ -229,7 +229,7 @@ export function LeadCompanyFormModal({
                             size="sm"
                             onClick={removeLogo}
                           >
-                            <X className="h-4 w-4 mr-2" />
+                            <X className="h-4 w-4" />
                             {t('companies.remove')}
                           </Button>
                         )}

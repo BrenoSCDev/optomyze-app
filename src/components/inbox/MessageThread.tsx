@@ -7,6 +7,7 @@ import { getEcho } from '@/services/echo';
 import {
   ChatConversation, ChatContact, ChatMessage, MessagesMeta,
   fetchMessages, sendTextMessage, sendFileMessage, deleteMessages, deleteGroup,
+  conversationDisplayName,
 } from '@/services/inboxChatApi';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -30,8 +31,15 @@ interface MessageThreadProps {
   onConversationDeleted?: (convId: number) => void;
 }
 
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function getInitials(name: string | null | undefined): string {
+  // Names arrive from the API and can be null (deleted user / unnamed group).
+  return (name ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 /** Small component so we can call usePrivateFile inside JSX for the header avatar. */
@@ -292,7 +300,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       await deleteGroup(conversation.id);
       setShowDeleteConfirm(false);
       onConversationDeleted?.(conversation.id);
-      toast({ title: 'Group deleted', description: `"${conversation.name}" has been deleted.` });
+      toast({ title: 'Group deleted', description: `"${conversationDisplayName(conversation)}" has been deleted.` });
     } catch (err: any) {
       toast({ title: 'Error', description: err?.response?.data?.message || 'Failed to delete group.', variant: 'destructive' });
     } finally {
@@ -331,7 +339,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   }
 
   const isGroup = conversation.type === 'group';
-  const initials = getInitials(conversation.name);
+  const conversationName = conversationDisplayName(conversation);
+  const initials = getInitials(conversationName);
   const meParticipant = conversation.participants.find(p => p.id === currentUserId);
   const otherParticipant = !isGroup ? conversation.participants.find(p => p.id !== currentUserId) : null;
   const isGroupAdmin = isGroup && meParticipant?.conversation_role === 'admin';
@@ -362,13 +371,13 @@ const MessageThread: React.FC<MessageThreadProps> = ({
               isGroup={isGroup}
               coverPath={conversation.cover_image_url}
               otherPicPath={otherParticipant?.profile_pic_url}
-              name={conversation.name}
+              name={conversationName}
               initials={initials}
             />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-foreground truncate">{conversation.name}</p>
+            <p className="font-semibold text-sm text-foreground truncate">{conversationName}</p>
             {isGroup ? (
               <p className="text-xs text-muted-foreground">{conversation.participants.length} members</p>
             ) : (
@@ -529,7 +538,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Group</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{conversation.name}"? This action cannot be undone and all messages will be lost.
+              Are you sure you want to delete "{conversationName}"? This action cannot be undone and all messages will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

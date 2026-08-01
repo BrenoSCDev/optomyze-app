@@ -164,14 +164,14 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 mb-6">
           <TabsTrigger 
             value="info" 
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <Info className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.info')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="tasks" 
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <ListTodo className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
@@ -183,7 +183,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           </TabsTrigger>
           <TabsTrigger 
             value="documents" 
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <FileText className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.documents-short')}</span>
@@ -195,7 +195,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           </TabsTrigger>
           <TabsTrigger 
             value="observations" 
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <StickyNote className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.observations')}</span>
@@ -207,7 +207,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           </TabsTrigger>
           <TabsTrigger
             value="appointments"
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <Calendar className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.appointments')}</span>
@@ -215,21 +215,21 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
           {/* <TabsTrigger
             value="contracts"
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <FileSignature className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.contracts')}</span>
           </TabsTrigger> */}
           <TabsTrigger
             value="custom-fields"
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <Settings2 className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.custom-fields') || 'Fields'}</span>
           </TabsTrigger>
           <TabsTrigger
             value="chat"
-            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <MessageCircle className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.chat')}</span>
@@ -312,7 +312,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 const InfoItem = ({ label, value, icon, notSet, customIcon }: { label: string; value: string | undefined; icon?: React.ReactNode; notSet: string; customIcon?: React.ReactNode }) => (
   <div className="flex items-center gap-3">
     {customIcon ?? (
-      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted text-foreground dark:bg-white/10 dark:text-white shrink-0">
+      <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted text-foreground shrink-0">
         {icon}
       </div>
     )}
@@ -413,7 +413,7 @@ const LeadInfoContent = ({ lead }: { lead: Lead }) => {
             value={formatEnumLabel(lead.source_platform)}
             notSet={t('lead-details.not-set')}
             customIcon={
-              <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted dark:bg-white/10 shrink-0">
+              <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted shrink-0">
                 <SourcePlatformIcon source={lead.source_platform} />
               </div>
             }
@@ -520,7 +520,7 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
         {lead.email && (
           <button
             onClick={() => copyToClipboard(lead.email, t('lead-details.email'))}
-            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-colors duration-fast ease-standard"
             title={`${t('common.copy')} ${t('lead-details.email').toLowerCase()}`}
           >
             <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -541,7 +541,7 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
         {lead.phone && (
           <button
             onClick={() => copyToClipboard(lead.phone, t('lead-details.phone'))}
-            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+            className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-colors duration-fast ease-standard"
             title={`${t('common.copy')} ${t('lead-details.phone').toLowerCase()}`}
           >
             <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -561,7 +561,7 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
         </div>
         <button
           onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
-          className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+          className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-colors duration-fast ease-standard"
           title={`${t('common.copy')} ${t('lead-details.full-name').toLowerCase()}`}
         >
           <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />

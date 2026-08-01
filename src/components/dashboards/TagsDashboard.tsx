@@ -94,7 +94,7 @@ const EmptyState = ({ onCreateNew }: { onCreateNew: () => void }) => {
         className="neon-border"
         onClick={onCreateNew}
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Plus className="h-4 w-4" />
         {t('tags.create-first')}
       </Button>
     </motion.div>
@@ -120,7 +120,7 @@ const TagCard = memo(({ tag, isDeleting, onEdit, onDelete }: TagCardProps) => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="glass-card p-6 rounded-lg group hover:scale-[1.02] transition-all duration-300 neon-border"
+      className="glass-card p-6 rounded-lg group transition-colors duration-fast ease-standard neon-border"
     >
       <div className="flex items-center justify-between">
         {/* Left Section - Tag Info */}
@@ -415,7 +415,7 @@ const TagsDashboard = () => {
         <Dialog open={showNewTagModal} onOpenChange={setShowNewTagModal}>
           <DialogTrigger asChild>
             <Button className="neon-border w-full sm:w-auto shrink-0" size="lg">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               {t('tags.new-tag')}
             </Button>
           </DialogTrigger>
@@ -490,7 +490,7 @@ const TagsDashboard = () => {
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4" />
                     {t('common.create')}
                   </>
                 )}

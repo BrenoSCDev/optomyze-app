@@ -5,6 +5,8 @@
  * Visually distinct from lead cards in sales funnels.
  */
 
+import { memo } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
@@ -85,7 +87,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className={`deal-glass-card p-3 cursor-pointer transition-all duration-300 relative border-t-2 border-t-deal ${
+        className={`deal-glass-card p-3 cursor-pointer transition-colors duration-base ease-standard relative border-t-2 border-t-deal ${
           isDragging ? 'opacity-20 scale-95' : ''
         }`}
         whileHover={{ y: isDragging ? 0 : -2 }}
@@ -258,7 +260,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
                   e.stopPropagation();
                   onTagClick(deal);
                 }}
-                className="p-1 rounded-md bg-white/5 hover:bg-deal/20 border border-white/10 hover:border-deal/50 transition-all duration-200 group"
+                className="p-1 rounded-md bg-surface-2 hover:bg-deal/20 border border-border hover:border-deal/50 transition-colors duration-fast ease-standard group"
                 title="Manage tags"
               >
                 <Tag className="h-2.5 w-2.5 text-muted-foreground group-hover:text-deal transition-colors" />
@@ -282,4 +284,6 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
   );
 };
 
-export default DealCard;
+/** Memoised: see LeadCard — a board-level state change (opening any
+ *  modal) must not re-render every card before the modal paints. */
+export default memo(DealCard);

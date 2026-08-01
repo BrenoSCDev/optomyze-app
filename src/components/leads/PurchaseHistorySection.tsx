@@ -204,7 +204,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
       'closed': 'bg-green-600/20 text-green-400 border-green-600/30',
       'lost': 'bg-red-600/20 text-red-400 border-red-600/30'
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-600/20 text-gray-400 border-gray-600/30';
+    return colors[status as keyof typeof colors] || 'bg-muted text-muted-foreground border-border-strong';
   };
 
   const formatCurrency = (value: number, currency: string) => {
@@ -246,7 +246,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
     if (ext === 'pdf') return <FileText className="w-4 h-4 text-red-400 flex-shrink-0" />;
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />;
     if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />;
-    return <File className="w-4 h-4 text-gray-400 flex-shrink-0" />;
+    return <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />;
   };
 
   const handleDelete = async () => {
@@ -606,7 +606,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
             className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
             onClick={() => setUploadModalOpen(true)}
           >
-            <Upload className="w-3 h-3 mr-1" />
+            <Upload className="w-3 h-3" />
             {t('lead-details.upload')}
           </Button>
         </div>
@@ -661,7 +661,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               className="glass-card text-xs text-green-400 border-green-600/30 hover:bg-green-600/20 hover:text-green-300"
               onClick={() => setCloseDialogOpen(true)}
             >
-              <CheckCircle className="w-3 h-3 mr-1" />
+              <CheckCircle className="w-3 h-3" />
               {t('lead-details.close-deal')}
             </Button>
             <Button 
@@ -670,7 +670,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               className="glass-card text-xs text-red-400 border-red-600/30 hover:bg-red-600/20 hover:text-red-300"
               onClick={() => setLostDialogOpen(true)}
             >
-              <XCircle className="w-3 h-3 mr-1" />
+              <XCircle className="w-3 h-3" />
               {t('lead-details.mark-as-lost')}
             </Button>
           </>
@@ -681,7 +681,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
           className="glass-card text-xs"
           onClick={() => setUploadModalOpen(true)}
         >
-          <Upload className="w-3 h-3 mr-1" />
+          <Upload className="w-3 h-3" />
           {t('lead-details.upload-document')}
         </Button>
         <Button
@@ -704,28 +704,28 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
 
       {/* Document Preview Modal */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-gray-900 border-white/10 p-0 overflow-hidden [&>button]:hidden">
-          <DialogHeader className="p-4 border-b border-white/10">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-popover border-border p-0 overflow-hidden [&>button]:hidden">
+          <DialogHeader className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-white truncate pr-4">
+              <DialogTitle className="text-foreground truncate pr-4">
                 {previewDoc && getDocName(previewDoc)}
               </DialogTitle>
               <div className="flex items-center gap-2">
                 <Button 
                   onClick={() => previewDoc && handleDownloadDocument(previewDoc)}
                   size="sm" 
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                  className="bg-surface-3 hover:bg-surface-3 text-foreground border border-border"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   {t('documents.download')}
                 </Button>
                 <Button 
                   onClick={() => setPreviewDoc(null)}
                   size="sm" 
                   variant="ghost"
-                  className="bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10"
+                  className="bg-surface-2 hover:bg-surface-3 text-muted-foreground hover:text-foreground border border-border"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="w-4 h-4" />
                   {t('documents.close')}
                 </Button>
               </div>
@@ -744,16 +744,16 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
               </div>
             ) : (
               <div className="text-center py-16">
-                <File className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                <p className="text-gray-400 mb-2">{t('documents.preview-not-available')}</p>
-                <p className="text-gray-500 text-sm mb-6">
+                <File className="w-16 h-16 text-subtle mx-auto mb-4" />
+                <p className="text-muted-foreground mb-2">{t('documents.preview-not-available')}</p>
+                <p className="text-subtle text-sm mb-6">
                   {t('documents.download-to-view')}
                 </p>
                 <Button 
                   onClick={() => previewDoc && handleDownloadDocument(previewDoc)}
                   className="bg-primary hover:bg-primary/80"
                 >
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   {t('documents.download-file')}
                 </Button>
               </div>
@@ -848,7 +848,7 @@ const SaleCard: React.FC<SaleCardProps> = ({ sale, onDeleted, onUpdated }) => {
             <AlertDialogAction
               onClick={handleCloseDeal}
               disabled={isUpdatingStatus}
-              className="bg-green-600 text-white hover:bg-green-700"
+              className="bg-success text-success-foreground hover:bg-success/90"
             >
               {isUpdatingStatus ? (
                 <>

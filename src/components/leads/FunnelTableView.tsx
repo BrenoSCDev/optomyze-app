@@ -212,9 +212,9 @@ const FunnelTableView = ({
           <AccordionItem
             key={column.id}
             value={column.id}
-            className="glass-card border-white/10 rounded-lg overflow-hidden"
+            className="glass-card border-border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-white/5">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-surface-2">
               <div className="flex items-center gap-3 flex-1">
                 {/* Stage color indicator */}
                 <div
@@ -246,7 +246,7 @@ const FunnelTableView = ({
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-white/10 hover:bg-transparent">
+                      <TableRow className="border-border hover:bg-transparent">
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-name') || 'Name'}</TableHead>
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-contact') || 'Contact'}</TableHead>
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-score') || 'Score'}</TableHead>
@@ -267,7 +267,7 @@ const FunnelTableView = ({
                       {column.leads.map((lead: any) => (
                         <TableRow
                           key={lead.id}
-                          className="border-white/5 hover:bg-white/5 cursor-pointer"
+                          className="border-border hover:bg-surface-2 cursor-pointer"
                           onClick={() => handleLeadClick(lead.id)}
                         >
                           {/* Name */}
@@ -353,7 +353,7 @@ const FunnelTableView = ({
                                     e.stopPropagation();
                                     onTagClick(lead);
                                   }}
-                                  className="p-1 rounded-md hover:bg-white/10 transition-colors"
+                                  className="p-1 rounded-md hover:bg-surface-3 transition-colors"
                                 >
                                   <Tag className="w-3 h-3 text-muted-foreground hover:text-accent" />
                                 </button>
@@ -391,10 +391,10 @@ const FunnelTableView = ({
                                 handleMoveLeadToStage(lead.id, column.id, newStageId)
                               }
                             >
-                              <SelectTrigger className="h-8 w-[140px] text-xs bg-background border-white/10">
+                              <SelectTrigger className="h-8 w-[140px] text-xs bg-background border-border">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-background border-white/10 z-50">
+                              <SelectContent className="bg-background border-border z-50">
                                 {columns.map((col) => (
                                   <SelectItem key={col.id} value={col.id}>
                                     <div className="flex items-center gap-2">

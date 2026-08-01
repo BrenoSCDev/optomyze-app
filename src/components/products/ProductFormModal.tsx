@@ -199,7 +199,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, type: 'product' }))}
-            className={`p-4 rounded-lg border transition-all ${
+            className={`p-4 rounded-lg border transition-colors duration-fast ease-standard ${
               formData.type === 'product'
                 ? 'bg-primary/20 border-primary text-primary'
                 : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/40'
@@ -211,7 +211,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, type: 'service' }))}
-            className={`p-4 rounded-lg border transition-all ${
+            className={`p-4 rounded-lg border transition-colors duration-fast ease-standard ${
               formData.type === 'service'
                 ? 'bg-primary/20 border-primary text-primary'
                 : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/40'
@@ -223,7 +223,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, type: 'digital' }))}
-            className={`p-4 rounded-lg border transition-all ${
+            className={`p-4 rounded-lg border transition-colors duration-fast ease-standard ${
               formData.type === 'digital'
                 ? 'bg-primary/20 border-primary text-primary'
                 : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/40'
@@ -308,7 +308,7 @@ const ProductFormModal = ({ isOpen, onClose, product, onSuccess }: ProductFormMo
                       selected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id]
                     )
                   }
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-fast ease-standard ${
                     selected
                       ? 'text-white border-transparent'
                       : 'bg-transparent text-muted-foreground border-border hover:border-primary/50'

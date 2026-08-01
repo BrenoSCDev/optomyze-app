@@ -640,7 +640,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-border">
                 <th className="text-left p-3 font-medium">Campaign</th>
                 <th className="text-center p-3 font-medium">Status</th>
                 <th className="text-right p-3 font-medium">Impressions</th>
@@ -659,7 +659,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
                 return (
                   <motion.tr
                     key={campaign.campaign.id}
-                    className="border-b border-white/5 hover:bg-white/5"
+                    className="border-b border-border hover:bg-surface-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 1.7 + index * 0.03 }}
@@ -700,7 +700,7 @@ const GoogleAds = ({ demoMode = false, demoData }: GoogleAdsProps) => {
         </div>
         
         {/* Legend for CPA */}
-        <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+        <div className="mt-4 p-4 bg-surface-2 rounded-lg border border-border">
           <h4 className="text-sm font-semibold mb-2">CPA Color Guide:</h4>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="flex items-center gap-1">

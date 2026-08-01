@@ -102,7 +102,7 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
               size="sm"
               className="bg-primary hover:bg-primary/80"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" />
+              <ShoppingCart className="w-4 h-4" />
               {t('sale.start-purchase')}
             </Button>
           )}
@@ -111,7 +111,7 @@ const ProductsSection = ({ leadId, products, onProductsChanged, onStartPurchase 
             variant="outline"
             size="sm"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             {t('lead-details.add-products')}
           </Button>
         </div>
@@ -392,7 +392,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-overlay backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -587,7 +587,7 @@ const ProductSearchPanel: React.FC<ProductSearchPanelProps> = ({
                 {submitting ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('lead-details.adding')}</>
                 ) : (
-                  <><Plus className="w-4 h-4 mr-2" />{t('lead-details.add-products-confirm')}</>
+                  <><Plus className="w-4 h-4" />{t('lead-details.add-products-confirm')}</>
                 )}
               </Button>
             </div>

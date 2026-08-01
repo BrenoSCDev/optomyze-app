@@ -112,7 +112,7 @@ const UsageCard = ({ metric }: { metric: UsageMetric }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="glass-card border-white/10 hover:border-primary/30 transition-all duration-300">
+      <Card className="glass-card border-border hover:border-primary/30 transition-colors duration-base ease-standard">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -148,7 +148,7 @@ const UsageCard = ({ metric }: { metric: UsageMetric }) => {
             
             <Progress 
               value={percentage} 
-              className={`h-2 bg-gray-800 ${
+              className={`h-2 bg-surface-3 ${
                 isCritical 
                   ? '[&>div]:bg-destructive' 
                   : isHighUsage 
@@ -458,7 +458,7 @@ const PlanUsage = ({ demoMode = false, demoData }: PlanUsageProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.5 }}
       >
-        <Card className="glass-card border-white/10">
+        <Card className="glass-card border-border">
           <CardHeader>
             <CardTitle className="text-lg">{t('planUsage.usageSummary')}</CardTitle>
             <CardDescription>{t('planUsage.summaryDescription')}</CardDescription>

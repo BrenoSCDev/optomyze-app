@@ -1,14 +1,25 @@
 import React, { useId, useState } from 'react';
 import {
-  Search, Plus, Users, MessageSquare, UserCheck, Hash,
+  Search, Plus, Users, MessageSquare, UserCheck, Hash, RefreshCw, Filter, X,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { ChatConversation, ChatContact } from '@/services/inboxChatApi';
+import { ChatConversation, ChatContact, conversationDisplayName } from '@/services/inboxChatApi';
 import { extractTime } from '@/lib/utils';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 
 type Tab = 'all' | 'contacts' | 'groups';
+
+/** Read-state tabs. Presentational until the filtering lands, as in the inbox. */
+export type ReadFilter = 'all' | 'unread' | 'read';
 
 interface ConversationListProps {
   conversations: ChatConversation[];
@@ -18,10 +29,20 @@ interface ConversationListProps {
   onContactClick: (contact: ChatContact) => void;
   onOpenCreateGroup: () => void;
   isLoading?: boolean;
+  /** Reloads conversations + contacts; renders the refresh action when supplied. */
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function getInitials(name: string | null | undefined): string {
+  // Names arrive from the API and can be null (deleted user / unnamed group).
+  return (name ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 const ConversationAvatar: React.FC<{ conv: ChatConversation; currentUserId: number | undefined }> = ({ conv, currentUserId }) => {
@@ -33,7 +54,7 @@ const ConversationAvatar: React.FC<{ conv: ChatConversation; currentUserId: numb
   if (isGroup && blobUrl) {
     return (
       <div className="w-10 h-10 rounded-full overflow-hidden border border-accent/30 shrink-0">
-        <img src={blobUrl} alt={conv.name} className="w-full h-full object-cover" />
+        <img src={blobUrl} alt={conversationDisplayName(conv)} className="w-full h-full object-cover" />
       </div>
     );
   }
@@ -47,13 +68,13 @@ const ConversationAvatar: React.FC<{ conv: ChatConversation; currentUserId: numb
   if (blobUrl) {
     return (
       <div className="w-10 h-10 rounded-full overflow-hidden border border-primary/30 shrink-0">
-        <img src={blobUrl} alt={conv.name} className="w-full h-full object-cover" />
+        <img src={blobUrl} alt={conversationDisplayName(conv)} className="w-full h-full object-cover" />
       </div>
     );
   }
   return (
     <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-semibold text-sm text-primary shrink-0">
-      {getInitials(conv.name)}
+      {getInitials(conversationDisplayName(conv))}
     </div>
   );
 };
@@ -96,17 +117,21 @@ function getLastMessagePreview(conv: ChatConversation): string {
 const ConversationList: React.FC<ConversationListProps> = ({
   conversations, contacts, selectedConversation,
   onSelectConversation, onContactClick, onOpenCreateGroup, isLoading,
+  onRefresh, isRefreshing = false,
 }) => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const currentUserId = user?.id;
   const instanceId = useId();
   const [tab, setTab] = useState<Tab>('all');
+  const [readFilter, setReadFilter] = useState<ReadFilter>('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [search, setSearch] = useState('');
 
   const lowerSearch = search.toLowerCase();
 
   const filteredConversations = conversations
-    .filter(c => c.name.toLowerCase().includes(lowerSearch))
+    .filter(c => conversationDisplayName(c).toLowerCase().includes(lowerSearch))
     .sort((a, b) => {
       const ta = a.last_message_at ?? a.created_at;
       const tb = b.last_message_at ?? b.created_at;
@@ -119,58 +144,153 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   const filteredGroups = filteredConversations.filter(c => c.type === 'group');
 
-  const tabs: { id: Tab; label: string; count?: number }[] = [
-    { id: 'all',      label: 'All' },
-    { id: 'contacts', label: 'Contacts' },
-    { id: 'groups',   label: 'Groups' },
+  const typeLabel = (id: Tab): string => {
+    switch (id) {
+      case 'all': return t('chat.inbox.filter-all');
+      case 'contacts': return t('chat.teams.filter-contacts');
+      case 'groups': return t('chat.teams.filter-groups');
+    }
+  };
+
+  const readTabs: { key: ReadFilter; label: string }[] = [
+    { key: 'all', label: t('chat.inbox.tab-all-messages') },
+    { key: 'unread', label: t('chat.inbox.tab-unread') },
+    { key: 'read', label: t('chat.inbox.tab-read') },
   ];
 
+  const conversationCount = conversations.length;
 
   return (
     <div className="h-full flex flex-col bg-background/50">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-border/40">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-foreground text-sm">Messages</h2>
-          <button
-            onClick={onOpenCreateGroup}
-            className="w-7 h-7 rounded-lg bg-primary/15 hover:bg-primary/25 flex items-center justify-center text-primary transition-colors"
-            title="Create Group"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </button>
+      {/* Header — mirrors the Global Inbox: title + count, icon actions,
+          search, then read-state tabs. The page-level header this panel used
+          to sit under has been removed, so this is the only chrome. */}
+      <div className="px-3 pt-3 pb-0 border-b border-border/40">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-semibold flex items-center gap-2 min-w-0">
+            <MessageSquare className="h-4 w-4 text-primary shrink-0" />
+            <span className="truncate">{t('chat.teams.conversations')}</span>
+            {!isLoading && conversationCount > 0 && (
+              <span className="text-xs font-normal text-muted-foreground shrink-0">
+                ({conversationCount})
+              </span>
+            )}
+          </h2>
+
+          <div className="flex items-center gap-0.5 shrink-0">
+            {/* Kept, unlike the inbox's "New Conversation": a group can only
+                come into existence from here, so removing it would remove the
+                capability rather than just the button. */}
+            {onOpenCreateGroup && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onOpenCreateGroup}
+                    aria-label={t('chat.teams.new-group')}
+                  >
+                    <Plus />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('chat.teams.new-group')}</TooltipContent>
+              </Tooltip>
+            )}
+
+            {onRefresh && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onRefresh}
+                    disabled={isRefreshing}
+                    aria-label={t('chat.inbox.refresh-conversations')}
+                  >
+                    <RefreshCw className={cn(isRefreshing && 'animate-spin')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('chat.inbox.refresh-conversations')}</TooltipContent>
+              </Tooltip>
+            )}
+
+            <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('chat.inbox.filter-conversations')}
+                      className={cn('relative', tab !== 'all' && 'text-primary')}
+                    >
+                      <Filter />
+                      {tab !== 'all' && (
+                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                {!isFilterOpen && (
+                  <TooltipContent>{t('chat.inbox.filter-conversations')}</TooltipContent>
+                )}
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  {t('chat.inbox.filter-channel-label')}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={tab} onValueChange={(v) => setTab(v as Tab)}>
+                  {(['all', 'contacts', 'groups'] as Tab[]).map(id => (
+                    <DropdownMenuRadioItem key={id} value={id} className="text-sm">
+                      {typeLabel(id)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <div className="relative mt-2.5">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search conversations..."
-            className="w-full pl-9 pr-3 py-2 text-xs bg-muted/40 border border-border/30 rounded-lg outline-none focus:border-primary/50 focus:bg-muted/60 transition-colors text-foreground placeholder:text-muted-foreground"
+            placeholder={t('chat.inbox.search-chats-placeholder')}
+            className="flex h-9 w-full rounded-md border border-input-border bg-input-bg pl-8 pr-8 text-sm text-foreground placeholder:text-input-placeholder outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background transition-colors duration-fast ease-standard"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-border/40 shrink-0">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 py-2.5 text-xs font-medium transition-colors relative flex items-center justify-center gap-1.5
-              ${tab === t.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-          >
-            {t.label}
-            {tab === t.id && (
-              <motion.div
-                layoutId={`tab-underline-${instanceId}`}
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t"
-              />
-            )}
-          </button>
-        ))}
+        {/* Read-state tabs. Presentational for now, same as the Global Inbox. */}
+        <div className="mt-2.5 flex items-center gap-4">
+          {readTabs.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setReadFilter(key)}
+              aria-current={readFilter === key}
+              className={cn(
+                'relative -mb-px border-b-2 pb-2 pt-0.5 text-xs font-medium transition-colors duration-fast ease-standard',
+                readFilter === key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
@@ -204,7 +324,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-sm font-medium truncate text-foreground/80">{conv.name}</span>
+                          <span className="text-sm font-medium truncate text-foreground/80">{conversationDisplayName(conv)}</span>
                           <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{time}</span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -279,7 +399,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     >
                       <ConversationAvatar conv={conv} currentUserId={currentUserId} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{conv.name}</p>
+                        <p className="text-sm font-medium text-foreground truncate">{conversationDisplayName(conv)}</p>
                         <p className="text-xs text-muted-foreground">{memberCount} members</p>
                       </div>
                     </button>

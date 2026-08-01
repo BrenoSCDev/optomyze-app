@@ -38,7 +38,7 @@ const FunnelSettingsDropdown = ({
         <Button
           variant="outline"
           size="sm"
-          className="glass-card dark:border-white/20 hover:bg-muted dark:hover:bg-white/10 hover:text-foreground"
+          className="glass-card hover:bg-muted hover:text-foreground"
         >
           <Settings className="h-4 w-4 sm:mr-1" />
           <span className="hidden sm:inline">{t('funnel.page.settings')}</span>

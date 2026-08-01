@@ -138,7 +138,7 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage, onStageClick, mo
       {/* Progress Bar (full width) */}
       <div className="mb-3 bg-muted rounded-full h-1.5 overflow-hidden">
         <div
-          className="h-full bg-primary rounded-full transition-all duration-300"
+          className="h-full bg-primary rounded-full transition-colors duration-base ease-standard"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
@@ -163,14 +163,14 @@ const FunnelProgress: React.FC<FunnelProgressProps> = ({ stage, onStageClick, mo
                   } ${isMoving && movingStageId !== s.id ? 'opacity-50' : ''}`}
                 >
                   <div className={`
-                    w-5 h-5 rounded-full flex items-center justify-center transition-all
+                    w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-fast ease-standard
                     ${isCompleted
                       ? 'bg-green-500/20 text-green-600 dark:text-green-400'
                       : isCurrent
                         ? 'bg-primary/20 text-primary ring-2 ring-primary/30'
                         : 'bg-muted text-muted-foreground'
                     }
-                    ${isClickable ? 'hover:ring-2 hover:ring-primary/40 hover:scale-110' : ''}
+                    ${isClickable ? 'hover:ring-2 hover:ring-primary/40' : ''}
                   `}>
                     {movingStageId === s.id ? (
                       <Loader2 className="w-3 h-3 animate-spin" />

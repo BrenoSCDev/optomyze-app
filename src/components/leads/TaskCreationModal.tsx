@@ -185,7 +185,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
 
   const modalTree = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-overlay backdrop-blur-sm p-4">
         <motion.div
           className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card text-card-foreground shadow-2xl scrollbar-thin"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -374,7 +374,7 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
                         !formData.due_date && 'text-muted-foreground'
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="h-4 w-4" />
                       {formData.due_date ? format(formData.due_date, 'PPP') : t('tasks.modal.select-due-date')}
                     </Button>
                   </PopoverTrigger>

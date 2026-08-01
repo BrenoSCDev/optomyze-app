@@ -46,12 +46,12 @@ const UserCard: React.FC<UserCardProps> = ({
       case 'manager':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
   return (
-    <div className="glass-card overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col">
+    <div className="glass-card overflow-hidden transition-colors duration-base ease-standard hover:shadow-lg flex flex-col">
 
       {/* Cover image */}
       <div className="relative h-32 shrink-0">
@@ -75,7 +75,7 @@ const UserCard: React.FC<UserCardProps> = ({
               variant="ghost"
               size="icon"
               onClick={() => onEdit(user)}
-              className="h-7 w-7 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+              className="h-7 w-7 bg-scrim/40 backdrop-blur-sm hover:bg-scrim/60 text-white"
               title={t('users.card.edit') || 'Edit'}
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -84,7 +84,7 @@ const UserCard: React.FC<UserCardProps> = ({
               variant="ghost"
               size="icon"
               onClick={() => onToggleStatus(user)}
-              className="h-7 w-7 bg-black/30 backdrop-blur-sm hover:bg-black/50 text-white"
+              className="h-7 w-7 bg-scrim/40 backdrop-blur-sm hover:bg-scrim/60 text-white"
               title={user.is_active ? t('users.card.deactivate') : t('users.card.activate')}
             >
               {user.is_active ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
@@ -141,7 +141,7 @@ const UserCard: React.FC<UserCardProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 mt-1">
-          <span className={`h-2 w-2 rounded-full ${online ? 'bg-green-500' : 'bg-gray-400'}`} />
+          <span className={`h-2 w-2 rounded-full ${online ? 'bg-green-500' : 'bg-muted-foreground'}`} />
           <span className={`text-xs font-medium ${online ? 'text-green-600' : 'text-muted-foreground'}`}>
             {online ? t('users.status.online') : t('users.status.offline')}
           </span>

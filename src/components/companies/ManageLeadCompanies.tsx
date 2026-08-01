@@ -234,7 +234,7 @@ export function ManageLeadCompanies() {
             onClick={() => setShowFilters(true)}
             className="relative"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4" />
             {t('companies.filters')}
             {activeFilterCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
@@ -245,7 +245,7 @@ export function ManageLeadCompanies() {
 
           {/* Create Button */}
           <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             {t('companies.create')}
           </Button>
         </div>
@@ -285,7 +285,7 @@ export function ManageLeadCompanies() {
           </p>
           {companies.length === 0 && (
             <Button onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               {t('companies.create')}
             </Button>
           )}

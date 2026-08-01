@@ -24,10 +24,10 @@ const TagColorPicker = ({ value, onChange, disabled, className }: TagColorPicker
           onClick={() => onChange(color.value)}
           disabled={disabled}
           className={cn(
-            "w-7 h-7 rounded-full border-2 transition-all",
+            "w-7 h-7 rounded-full border-2 transition-colors duration-fast ease-standard",
             value?.toLowerCase() === color.value.toLowerCase()
-              ? "border-primary ring-2 ring-primary/30 scale-110"
-              : "border-border hover:scale-105",
+              ? "border-primary ring-2 ring-primary/30"
+              : "border-border hover:ring-2 hover:ring-ring/40",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{ backgroundColor: color.value }}

@@ -93,7 +93,7 @@ const CampaignIntelligencePanel = ({ intelligence, currencySymbol, delay = 0 }: 
         {cards.map((card) => (
           <div
             key={card.key}
-            className="group rounded-xl border border-border/60 bg-card/40 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-md"
+            className="group rounded-xl border border-border/60 bg-card/40 p-4 transition-colors duration-base ease-standard hover:border-border hover:shadow-md"
           >
             <div className="flex items-center gap-2 mb-3">
               <div className={cn('flex items-center justify-center w-8 h-8 rounded-lg shrink-0', card.iconBg, card.iconColor)}>
@@ -110,7 +110,7 @@ const CampaignIntelligencePanel = ({ intelligence, currencySymbol, delay = 0 }: 
         ))}
 
         {intelligence.wastedSpend.length > 0 && (
-          <div className="group rounded-xl border border-border/60 bg-card/40 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-border hover:shadow-md">
+          <div className="group rounded-xl border border-border/60 bg-card/40 p-4 transition-colors duration-base ease-standard hover:border-border hover:shadow-md">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-orange-500/10 text-orange-400">
                 <Ban className="h-4 w-4" />

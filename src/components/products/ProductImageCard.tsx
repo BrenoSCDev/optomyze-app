@@ -70,7 +70,7 @@ const ProductImageCard = ({
   return (
     <>
       <div
-        className={`relative group bg-card border border-border rounded-lg overflow-hidden transition-all duration-200 ${
+        className={`relative group bg-card border border-border rounded-lg overflow-hidden transition-colors duration-fast ease-standard ${
           isDragging ? 'opacity-50 scale-105 shadow-xl' : 'hover:border-primary/50'
         } ${image.is_primary ? 'ring-2 ring-primary' : ''}`}
       >

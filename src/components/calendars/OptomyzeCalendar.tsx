@@ -374,7 +374,7 @@ const OptomyzeCalendar: React.FC = () => {
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
           <Button className="bg-primary hover:bg-primary/80" onClick={handleCreateEvent}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             {t('calendar.new-event')}
           </Button>
         </div>

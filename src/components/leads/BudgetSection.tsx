@@ -38,7 +38,7 @@ const buildFormatCurrency = (currencyCode: string) => (value: number | string): 
 // Status badge colors
 const getStatusBadge = (status: QuoteStatus, t: (key: string) => string) => {
   const statusConfig: Record<QuoteStatus, { bg: string; text: string }> = {
-    draft: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
+    draft: { bg: 'bg-muted', text: 'text-muted-foreground' },
     sent: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
     approved: { bg: 'bg-green-500/20', text: 'text-green-400' },
     rejected: { bg: 'bg-red-500/20', text: 'text-red-400' },
@@ -111,7 +111,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
         transition={{ delay: 0.35 }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+          <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary" />
             {t('lead-details.budget')}
             {budgets.length > 0 && (
@@ -125,7 +125,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
             size="sm"
             className="bg-primary hover:bg-primary/80"
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             {t('lead-details.create-budget')}
           </Button>
         </div>
@@ -136,8 +136,8 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
           </div>
         ) : budgets.length === 0 ? (
           <div className="text-center py-8">
-            <FileText className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-            <p className="text-gray-400">{t('lead-details.no-budgets')}</p>
+            <FileText className="w-12 h-12 text-subtle mx-auto mb-3" />
+            <p className="text-muted-foreground">{t('lead-details.no-budgets')}</p>
           </div>
         ) : (
           <ScrollArea className="max-h-[400px]">
@@ -145,7 +145,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
               {budgets.map((budget) => (
                 <div 
                   key={budget.id}
-                  className="bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-white/20 transition-colors"
+                  className="bg-surface-2 border border-border rounded-lg overflow-hidden hover:border-border-strong transition-colors"
                 >
                   {/* Budget Header */}
                   <div 
@@ -154,10 +154,10 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex flex-col">
-                        <span className="text-white font-medium">
+                        <span className="text-foreground font-medium">
                           {t('quote.title')} #{budget.id}
                         </span>
-                        <span className="text-gray-400 text-sm">
+                        <span className="text-muted-foreground text-sm">
                           {format(new Date(budget.created_at), 'dd/MM/yyyy HH:mm')}
                         </span>
                       </div>
@@ -167,54 +167,54 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
                       <span className="text-primary font-bold text-lg">
                         {formatCurrency(budget.total)}
                       </span>
-                      <Eye className={`w-4 h-4 text-gray-400 transition-transform ${expandedBudget === budget.id ? 'rotate-180' : ''}`} />
+                      <Eye className={`w-4 h-4 text-muted-foreground transition-transform ${expandedBudget === budget.id ? 'rotate-180' : ''}`} />
                     </div>
                   </div>
 
                   {/* Expanded Content */}
                   {expandedBudget === budget.id && (
-                    <div className="border-t border-white/10 p-4">
+                    <div className="border-t border-border p-4">
                       {/* Items Table */}
                       <div className="mb-4">
-                        <div className="grid grid-cols-[2fr_80px_100px_100px] gap-2 px-3 py-2 bg-white/5 rounded-t-md text-xs font-medium text-gray-400">
+                        <div className="grid grid-cols-[2fr_80px_100px_100px] gap-2 px-3 py-2 bg-surface-2 rounded-t-md text-xs font-medium text-muted-foreground">
                           <div>{t('quote.product')}</div>
                           <div className="text-center">{t('quote.quantity')}</div>
                           <div className="text-right">{t('quote.unit-price')}</div>
                           <div className="text-right">{t('quote.total')}</div>
                         </div>
-                        <div className="divide-y divide-white/5">
+                        <div className="divide-y divide-border">
                           {budget.items.map((item, index) => (
                             <div 
                               key={index} 
                               className="grid grid-cols-[2fr_80px_100px_100px] gap-2 px-3 py-2.5 text-sm"
                             >
-                              <div className="text-white">{item.description}</div>
-                              <div className="text-center text-gray-300">{item.quantity}</div>
-                              <div className="text-right text-gray-300">{formatCurrency(item.unit_price)}</div>
-                              <div className="text-right text-white font-medium">{formatCurrency(item.total)}</div>
+                              <div className="text-foreground">{item.description}</div>
+                              <div className="text-center text-muted-foreground">{item.quantity}</div>
+                              <div className="text-right text-muted-foreground">{formatCurrency(item.unit_price)}</div>
+                              <div className="text-right text-foreground font-medium">{formatCurrency(item.total)}</div>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       {/* Summary */}
-                      <div className="flex justify-between items-center border-t border-white/10 pt-3 mb-4">
-                        <div className="text-sm text-gray-400">
+                      <div className="flex justify-between items-center border-t border-border pt-3 mb-4">
+                        <div className="text-sm text-muted-foreground">
                           {budget.discount && parseFloat(budget.discount) > 0 && (
                             <span>{t('quote.discount')}: -{formatCurrency(budget.discount)}</span>
                           )}
                         </div>
                         <div className="text-right">
-                          <span className="text-gray-400 text-sm mr-2">{t('quote.final-total')}:</span>
+                          <span className="text-muted-foreground text-sm mr-2">{t('quote.final-total')}:</span>
                           <span className="text-xl font-bold text-primary">{formatCurrency(budget.total)}</span>
                         </div>
                       </div>
 
                       {/* Notes */}
                       {budget.notes && (
-                        <div className="mb-4 p-3 bg-white/5 rounded-md">
-                          <span className="text-xs text-gray-400 block mb-1">{t('quote.notes')}:</span>
-                          <p className="text-sm text-gray-300">{budget.notes}</p>
+                        <div className="mb-4 p-3 bg-surface-2 rounded-md">
+                          <span className="text-xs text-muted-foreground block mb-1">{t('quote.notes')}:</span>
+                          <p className="text-sm text-muted-foreground">{budget.notes}</p>
                         </div>
                       )}
 
@@ -226,7 +226,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
                           onClick={() => handleViewInERP(budget.id)}
                           className="glass-card text-sm"
                         >
-                          <ExternalLink className="w-4 h-4 mr-2" />
+                          <ExternalLink className="w-4 h-4" />
                           {t('quote.view-in-erp')}
                         </Button>
                         <Button
@@ -235,7 +235,7 @@ const BudgetSection = ({ leadId, customerName, leadEmail = '', leadPhone = '', e
                           onClick={() => handleDownloadPDF(budget.id)}
                           className="glass-card text-sm"
                         >
-                          <Download className="w-4 h-4 mr-2" />
+                          <Download className="w-4 h-4" />
                           {t('quote.download-pdf')}
                         </Button>
                       </div>

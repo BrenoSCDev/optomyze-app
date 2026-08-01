@@ -25,8 +25,15 @@ function formatDaySeparator(iso: string): string {
   return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+function getInitials(name: string | null | undefined): string {
+  // Names arrive from the API and can be null (deleted user / unnamed group).
+  return (name ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -122,7 +129,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </div>
 
-          <span className={`text-[10px] text-muted-foreground mt-1 px-1 ${message.type === 'audio' ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-150 ${isOwn ? 'text-right' : 'text-left'}`}>
+          <span className={`text-[10px] text-muted-foreground mt-1 px-1 ${message.type === 'audio' ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-fast ${isOwn ? 'text-right' : 'text-left'}`}>
             {time}
           </span>
         </div>

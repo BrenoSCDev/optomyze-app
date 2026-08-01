@@ -130,7 +130,7 @@ const LeadCustomFieldsTab = ({ leadId }: Props) => {
           {t('settings.leads.lead-fields-desc') || 'Custom fields for this lead.'}
         </p>
         <Button size="sm" onClick={handleAdd}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.leads.add-field') || 'Add Field'}
         </Button>
       </div>

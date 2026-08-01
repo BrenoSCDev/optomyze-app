@@ -6,17 +6,29 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Pencil, Loader2, Film, Search, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Loader2, Film, Search, X, RefreshCw, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { InboxChat } from '@/types/inbox';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { InboxChat, InboxChannel } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
 import { formatPhoneNumber } from '@/lib/phone';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import InboxAvatar from './InboxAvatar';
+import ChannelIcon from './ChannelIcon';
+
+/** Read-state tabs. Purely presentational until the filtering lands. */
+export type ReadFilter = 'all' | 'unread' | 'read';
+
+const CHANNEL_FILTERS: (InboxChannel | 'all')[] = [
+  'all', 'whatsapp', 'instagram', 'messenger', 'website', 'sms',
+];
 
 const ChatListImageThumb: React.FC<{ path: string | undefined }> = ({ path }) => {
   const url = usePrivateFile(path);
@@ -29,13 +41,25 @@ interface ChatListProps {
   selectedChat: InboxChat | null;
   onSelectChat: (chat: InboxChat) => void;
   isLoading: boolean;
-  onStartConversation?: () => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
   /** Current value of the lead/chat search box (backend-searched, controlled by the parent). */
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  /** Reloads the conversation list; renders the refresh action when supplied. */
+  onRefresh?: () => void;
+  /**
+   * Total conversations matching the current filters, from the backend's
+   * paginator count — not `chats.length`, which is only the loaded page(s).
+   * Falls back to the loaded count when the parent doesn't supply it.
+   */
+  totalCount?: number;
+  /** Channel ("conversation type") filter, moved here from the old page-level bar. */
+  channelFilter?: InboxChannel | 'all';
+  onChannelFilterChange?: (channel: InboxChannel | 'all') => void;
+  readFilter?: ReadFilter;
+  onReadFilterChange?: (filter: ReadFilter) => void;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
@@ -43,15 +67,21 @@ const ChatList: React.FC<ChatListProps> = ({
   selectedChat,
   onSelectChat,
   isLoading,
-  onStartConversation,
   onLoadMore,
   hasMore = false,
   isLoadingMore = false,
   searchValue = '',
   onSearchChange,
+  onRefresh,
+  totalCount,
+  channelFilter = 'all',
+  onChannelFilterChange,
+  readFilter = 'all',
+  onReadFilterChange,
 }) => {
   const { t } = useLanguage();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
 
   // Detect scroll-to-bottom for loading more chats
   const handleScroll = useCallback(() => {
@@ -139,26 +169,112 @@ const ChatList: React.FC<ChatListProps> = ({
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
+  const channelLabel = (channel: InboxChannel | 'all'): string => {
+    switch (channel) {
+      case 'all': return t('chat.inbox.filter-all');
+      case 'whatsapp': return t('chat.inbox.filter-whatsapp');
+      case 'instagram': return t('chat.inbox.filter-instagram');
+      case 'messenger': return t('chat.inbox.filter-messenger');
+      case 'sms': return t('chat.inbox.filter-sms');
+      case 'website': return t('chat.inbox.filter-website');
+      default: return channel;
+    }
+  };
+
+  const conversationCount = totalCount ?? chats.length;
+
+  const readTabs: { key: ReadFilter; label: string }[] = [
+    { key: 'all', label: t('chat.inbox.tab-all-messages') },
+    { key: 'unread', label: t('chat.inbox.tab-unread') },
+    { key: 'read', label: t('chat.inbox.tab-read') },
+  ];
+
   const header = (
-    <div className="p-4 border-b border-border/50">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Inbox className="h-5 w-5 text-primary" />
-          {t('chat.inbox.conversations')}
+    <div className="px-3 pt-3 pb-0 border-b border-border/50">
+      {/* Title + actions. This is the inbox's only header now — the page-level
+          one was removed to give the message thread back its vertical space. */}
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold flex items-center gap-2 min-w-0">
+          <Inbox className="h-4 w-4 text-primary shrink-0" />
+          <span className="truncate">{t('chat.inbox.conversations')}</span>
+          {!isLoading && conversationCount > 0 && (
+            <span className="text-xs font-normal text-muted-foreground shrink-0">
+              ({conversationCount})
+            </span>
+          )}
         </h2>
-        {onStartConversation && (
-          <Button variant="ghost" size="icon" onClick={onStartConversation} title={t('chat.inbox.start-conversation')} className="h-8 w-8">
-            <Pencil className="h-4 w-4" />
-          </Button>
-        )}
+
+        <div className="flex items-center gap-0.5 shrink-0">
+          {onRefresh && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onRefresh}
+                  disabled={isLoading}
+                  aria-label={t('chat.inbox.refresh-conversations')}
+                  className="h-8 w-8"
+                >
+                  <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('chat.inbox.refresh-conversations')}</TooltipContent>
+            </Tooltip>
+          )}
+
+          {onChannelFilterChange && (
+            <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t('chat.inbox.filter-conversations')}
+                      className={cn(
+                        'relative h-8 w-8 text-muted-foreground hover:bg-surface-3 hover:text-foreground',
+                        channelFilter !== 'all' && 'text-primary'
+                      )}
+                    >
+                      <Filter className="h-4 w-4" />
+                      {/* Dot marks a narrowed list when the icon alone can't */}
+                      {channelFilter !== 'all' && (
+                        <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                {/* Dropped while the menu is open, otherwise the tooltip
+                    lingers on top of the menu it just opened. */}
+                {!isFilterOpen && (
+                  <TooltipContent>{t('chat.inbox.filter-conversations')}</TooltipContent>
+                )}
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  {t('chat.inbox.filter-channel-label')}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={channelFilter}
+                  onValueChange={(value) => onChannelFilterChange(value as InboxChannel | 'all')}
+                >
+                  {CHANNEL_FILTERS.map((channel) => (
+                    <DropdownMenuRadioItem key={channel} value={channel} className="gap-2 text-sm">
+                      {channel !== 'all' && <ChannelIcon channel={channel} className="h-3.5 w-3.5" />}
+                      {channelLabel(channel)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
-      {!isLoading && chats.length > 0 && (
-        <p className="text-sm text-muted-foreground mt-1">
-          {chats.length} {t('chat.inbox.chats-count')}
-        </p>
-      )}
+
       {onSearchChange && (
-        <div className="relative mt-3">
+        <div className="relative mt-2.5">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchValue}
@@ -175,6 +291,28 @@ const ChatList: React.FC<ChatListProps> = ({
               <X className="h-4 w-4" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Read-state tabs. Presentational for now — filtering lands later. */}
+      {onReadFilterChange && (
+        <div className="mt-2.5 flex items-center gap-4">
+          {readTabs.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onReadFilterChange(key)}
+              aria-current={readFilter === key}
+              className={cn(
+                'relative -mb-px border-b-2 pb-2 pt-0.5 text-xs font-medium transition-colors',
+                readFilter === key
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -224,7 +362,7 @@ const ChatList: React.FC<ChatListProps> = ({
               transition={{ delay: index * 0.05 }}
               onClick={() => onSelectChat(chat)}
               className={cn(
-                "p-3 rounded-lg cursor-pointer transition-all duration-200 group",
+                "p-3 rounded-lg cursor-pointer transition-colors duration-fast ease-standard group",
                 "hover:bg-muted/60",
                 selectedChat?.id === chat.id
                   ? "bg-muted border-l-2 border-primary text-foreground"
@@ -311,18 +449,9 @@ const ChatList: React.FC<ChatListProps> = ({
                       </p>
                     );
                   })()}
-                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    {chat.lead?.funnel && (
-                      <Badge variant="outline" className="text-xs px-1.5 py-0">
-                        {chat.lead.funnel.name}
-                      </Badge>
-                    )}
-                    {chat.channel === 'whatsapp' && chat.instance && (
-                      <Badge variant="secondary" className="text-xs px-1.5 py-0 bg-green-100 text-green-800">
-                        {chat.instance.instance_name?.split('_')[0] || 'Instance'}
-                      </Badge>
-                    )}
-                  </div>
+                  {/* Funnel and WhatsApp instance intentionally omitted here —
+                      the row stays to name / preview / time. Both are shown in
+                      ChatDetails once a conversation is opened. */}
                 </div>
               </div>
             </motion.div>

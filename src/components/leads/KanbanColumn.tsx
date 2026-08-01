@@ -9,6 +9,8 @@
  * - Lead cards use useDraggable (not useSortable) to avoid mixed droppable conflicts
  */
 
+import { memo } from 'react';
+
 import { useState, useMemo } from 'react';
 import { useCurrency } from '@/hooks/useCurrency';
 import { KanbanColumn as ColumnType } from '@/types/leads';
@@ -72,7 +74,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
   const getColumnColor = () => {
     if (column.color === 'green') return 'border-green-500/30 bg-green-500/5';
     if (column.color === 'red') return 'border-red-500/30 bg-red-500/5';
-    return 'border-white/10';
+    return 'border-border';
   };
 
   // Determine if this column is the current drop target
@@ -81,7 +83,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
+      className={`glass-card p-4 w-80 flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
         isOver || isDropTarget ? 'ring-2 ring-primary/50 bg-primary/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -128,12 +130,12 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border">
                 <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
-                  <ArrowDownNarrowWide className="h-4 w-4 mr-2" />
+                  <ArrowDownNarrowWide className="h-4 w-4" />
                   Newest first
                   {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
-                  <ArrowUpNarrowWide className="h-4 w-4 mr-2" />
+                  <ArrowUpNarrowWide className="h-4 w-4" />
                   Oldest first
                   {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
@@ -219,4 +221,5 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
   );
 };
 
-export default KanbanColumn;
+/** Memoised for the same reason as LeadCard — see the note there. */
+export default memo(KanbanColumn);

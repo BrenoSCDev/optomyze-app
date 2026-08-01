@@ -124,7 +124,7 @@ const TeamViewModal: React.FC<TeamViewModalProps> = ({
             {t('teams.view.close')}
           </Button>
           <Button onClick={() => { onOpenChange(false); onEdit(team); }}>
-            <Edit className="h-4 w-4 mr-2" />
+            <Edit className="h-4 w-4" />
             {t('teams.view.edit')}
           </Button>
         </DialogFooter>

@@ -38,7 +38,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ user, online }) => {
         )}
 
         <div className="flex items-center gap-2.5 text-sm">
-          <Circle className={`h-3 w-3 shrink-0 ${online ? 'fill-green-500 text-green-500' : 'fill-gray-400 text-gray-400'}`} />
+          <Circle className={`h-3 w-3 shrink-0 ${online ? 'fill-green-500 text-green-500' : 'fill-muted-foreground text-muted-foreground'}`} />
           <span className="text-foreground">{online ? t('users.status.online') : t('users.status.offline')}</span>
         </div>
 

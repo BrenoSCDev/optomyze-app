@@ -240,7 +240,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+              className="fixed inset-0 z-[60] bg-overlay backdrop-blur-sm"
               onClick={onClose}
             />
 
@@ -346,7 +346,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                             className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500 hidden sm:inline-flex"
                             onClick={() => setCloseDialogOpen(true)}
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <CheckCircle className="h-4 w-4" />
                             {t('lead-details.close-deal')}
                           </Button>
                           <Button
@@ -363,7 +363,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                             className="border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:text-rose-500 hidden sm:inline-flex"
                             onClick={() => setLostDialogOpen(true)}
                           >
-                            <XCircle className="h-4 w-4 mr-1" />
+                            <XCircle className="h-4 w-4" />
                             {t('lead-details.mark-as-lost')}
                           </Button>
                           <Button
@@ -382,7 +382,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         className="border-deal/20 text-deal hover:bg-deal/10 hover:text-deal hidden sm:inline-flex"
                         onClick={handleOpenEdit}
                       >
-                        <Edit className="h-4 w-4 mr-1" />
+                        <Edit className="h-4 w-4" />
                         {t('common.edit')}
                       </Button>
                       <Button
@@ -406,7 +406,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                       <div className="lg:col-span-2 space-y-5">
                         {/* Lead Information */}
                         {sale.lead && (
-                          <div className="deal-glass-card p-5 hover:scale-100">
+                          <div className="deal-glass-card p-5">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                               <User className="h-4 w-4" />
                               {t('deal-preview.lead-info')}
@@ -474,7 +474,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                         {/* Products / Items */}
                         {sale.items && sale.items.length > 0 && (
-                          <div className="deal-glass-card p-5 hover:scale-100">
+                          <div className="deal-glass-card p-5">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                               <Package className="h-4 w-4" />
                               {t('deal-preview.products')} ({sale.items.length})
@@ -505,7 +505,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         )}
 
                         {/* Financial Summary */}
-                        <div className="deal-glass-card p-5 hover:scale-100">
+                        <div className="deal-glass-card p-5">
                           <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                             <DollarSign className="h-4 w-4" />
                             {t('deal-preview.financial-summary')}
@@ -565,7 +565,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         </div>
 
                         {/* Deal Details */}
-                        <div className="deal-glass-card p-5 hover:scale-100">
+                        <div className="deal-glass-card p-5">
                           <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Clock className="h-4 w-4" />
                             {t('deal-preview.deal-details')}
@@ -614,7 +614,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                         {/* Record Log */}
                         {sale.records && sale.records.length > 0 && (
-                          <div className="deal-glass-card p-5 hover:scale-100">
+                          <div className="deal-glass-card p-5">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                               <Activity className="h-4 w-4" />
                               {t('deal-preview.activity-log')} ({sale.records.length})
@@ -631,7 +631,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                       {/* Right Column - 1/3 */}
                       <div className="space-y-5">
                         {/* Quick Stats */}
-                        <div className="deal-glass-card p-5 hover:scale-100">
+                        <div className="deal-glass-card p-5">
                           <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3">
                             {t('deal-preview.quick-overview')}
                           </h3>
@@ -656,7 +656,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         </div>
 
                         {/* Documents */}
-                        <div className="deal-glass-card p-5 hover:scale-100">
+                        <div className="deal-glass-card p-5">
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider flex items-center gap-2">
                               <FileText className="h-4 w-4" />
@@ -667,7 +667,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                               className="h-7 text-xs border-deal/20 text-deal hover:bg-deal/10 hover:text-deal"
                               onClick={() => setUploadModalOpen(true)}
                             >
-                              <Upload className="h-3 w-3 mr-1" />
+                              <Upload className="h-3 w-3" />
                               {t('deal-preview.upload')}
                             </Button>
                           </div>
@@ -719,7 +719,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                         {/* Assigned User */}
                         {sale.user && (
-                          <div className="deal-glass-card p-5 hover:scale-100">
+                          <div className="deal-glass-card p-5">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
                               <User className="h-4 w-4" />
                               {t('deal-preview.assigned-to')}
@@ -771,7 +771,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               <DialogTitle className="text-foreground truncate pr-4">{previewDoc?.filename}</DialogTitle>
               <div className="flex items-center gap-2">
                 <Button onClick={() => previewDoc && handleDownloadDoc(previewDoc)} size="sm" variant="outline" className="border-deal/20">
-                  <Download className="w-4 h-4 mr-1" />
+                  <Download className="w-4 h-4" />
                   {t('common.download')}
                 </Button>
                 <Button onClick={() => setPreviewDoc(null)} size="sm" variant="ghost">
@@ -795,7 +795,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                 <File className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
                 <p className="text-muted-foreground mb-4">{t('deal-preview.preview-not-available')}</p>
                 <Button onClick={() => previewDoc && handleDownloadDoc(previewDoc)}>
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   {t('deal-preview.download-file')}
                 </Button>
               </div>

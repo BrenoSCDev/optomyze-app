@@ -92,7 +92,7 @@ const LeadCustomFieldsSection = ({ fields, saving, onAdd, onEdit, onDelete }: Pr
           {t('settings.leads.custom-fields-desc') || 'Default fields added to every new lead.'}
         </p>
         <Button size="sm" onClick={handleAdd}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.leads.add-field') || 'Add Field'}
         </Button>
       </div>

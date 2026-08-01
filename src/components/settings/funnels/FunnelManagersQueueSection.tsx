@@ -240,7 +240,7 @@ const FunnelManagersQueueSection = () => {
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{t('queues.description')}</p>
         <Button size="sm" onClick={openCreateForm}>
-          <Plus className="h-4 w-4 mr-1" />
+          <Plus className="h-4 w-4" />
           {t('queues.new-queue')}
         </Button>
       </div>

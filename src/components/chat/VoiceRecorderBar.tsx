@@ -127,7 +127,7 @@ const VoiceRecorderBar = ({
             type="button"
             onClick={togglePlayback}
             aria-label={isPlaying ? t('chat.recorder.pause') : t('chat.recorder.play')}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors duration-fast ease-standard hover:opacity-90"
           >
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </button>
@@ -158,7 +158,7 @@ const VoiceRecorderBar = ({
           type="button"
           onClick={onStop}
           aria-label={t('chat.recorder.stop')}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors duration-fast ease-standard hover:opacity-90"
         >
           <Square className="h-3.5 w-3.5 fill-current" />
         </button>
@@ -168,7 +168,7 @@ const VoiceRecorderBar = ({
           onClick={onSend}
           disabled={isSending}
           aria-label={t('chat.recorder.send')}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 disabled:opacity-60"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-colors duration-fast ease-standard hover:opacity-90 disabled:opacity-60"
         >
           {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </button>

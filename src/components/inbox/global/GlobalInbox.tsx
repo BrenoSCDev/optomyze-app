@@ -5,14 +5,17 @@
  * connected messaging channels (WhatsApp today; Instagram, Messenger, SMS in
  * the future) with:
  * - 3-panel layout: Chat list, Conversation, Details
- * - Channel filter bar (All / WhatsApp / Instagram / Messenger / SMS)
  * - Real-time updates via WebSocket
  * - Responsive design for desktop, tablet, and mobile
+ *
+ * There is deliberately no page-level header here. Title, refresh, the
+ * channel ("conversation type") filter and the read-state tabs all live in
+ * the ChatList header so the message thread keeps the full panel height.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Inbox as InboxIcon, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,12 +23,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useInbox } from '@/contexts/InboxContext';
 import { fetchInboxChats } from '@/services/globalInboxApi';
 import { InboxChannel, InboxChat, InboxMessage } from '@/types/inbox';
-import ChannelFilterBar from './ChannelFilterBar';
-import ChatList from './ChatList';
+import ChatList, { ReadFilter } from './ChatList';
 import ChatConversation from './ChatConversation';
 import ChatDetails from './ChatDetails';
-import StartConversationModal from './StartConversationModal';
-import { cn } from '@/lib/utils';
 
 type ViewMode = 'list' | 'conversation' | 'details';
 
@@ -45,11 +45,16 @@ const GlobalInbox: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<ViewMode>('list');
-  const [showStartModal, setShowStartModal] = useState(false);
   const [chatPage, setChatPage] = useState(1);
   const [hasMoreChats, setHasMoreChats] = useState(false);
   const [isLoadingMoreChats, setIsLoadingMoreChats] = useState(false);
+  // Total matching conversations as counted by the backend (meta.total), not
+  // the number currently paginated into `chats`.
+  const [totalChats, setTotalChats] = useState(0);
   const [channelFilter, setChannelFilter] = useState<InboxChannel | 'all'>('all');
+  // Read-state tabs. Held here rather than in ChatList so that wiring the
+  // actual filtering into loadChats() later is a one-line change.
+  const [readFilter, setReadFilter] = useState<ReadFilter>('all');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,6 +102,7 @@ const GlobalInbox: React.FC = () => {
         new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
       );
       setChats(sortedChats);
+      setTotalChats(response.meta.total);
       setHasMoreChats(response.meta.current_page < response.meta.last_page);
     } catch (err) {
       console.error('Failed to fetch inbox chats:', err);
@@ -124,6 +130,8 @@ const GlobalInbox: React.FC = () => {
           new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
         );
       });
+      // Re-read the total: rows can be added or removed between page fetches.
+      setTotalChats(response.meta.total);
       setHasMoreChats(response.meta.current_page < response.meta.last_page);
       setChatPage(nextPage);
     } catch {
@@ -168,41 +176,25 @@ const GlobalInbox: React.FC = () => {
     );
   };
 
+  // Every chat list instance (desktop / tablet / mobile) gets the same header
+  // controls, so they're built once here.
+  const listControls = {
+    onRefresh: loadChats,
+    channelFilter,
+    onChannelFilterChange: setChannelFilter,
+    readFilter,
+    onReadFilterChange: setReadFilter,
+    // A websocket can prepend a chat that wasn't in the last count, so floor
+    // the total at what's actually loaded — the header must never claim
+    // fewer conversations than the list is showing. Corrects on next fetch.
+    totalCount: Math.max(totalChats, chats.length),
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden min-h-0">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-3 py-3 sm:px-4 sm:py-4 border-b border-border/50 bg-background flex items-center justify-between gap-3 shrink-0"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-            <InboxIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-tight truncate">
-              {t('chat.inbox.title')}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">
-              {t('chat.inbox.description')}
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={loadChats}
-          disabled={isLoading}
-          className="shrink-0 h-8 w-8 sm:h-9 sm:w-auto sm:px-3 sm:gap-2"
-        >
-          <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-          <span className="hidden sm:inline">{t('common.refresh')}</span>
-        </Button>
-      </motion.div>
-
-      {/* Channel Filter Bar */}
-      <ChannelFilterBar value={channelFilter} onChange={setChannelFilter} />
+      {/* No page-level header: the title, refresh, channel filter and read
+          tabs all live in the ChatList header now, so the message thread
+          keeps the full height of the panel. */}
 
       {/* Error State */}
       {error && !isLoading && (
@@ -230,18 +222,18 @@ const GlobalInbox: React.FC = () => {
           {/* Desktop Layout - 3 columns */}
           <div className="hidden lg:flex flex-1">
             {/* Chat List - Left Panel */}
-            <div className="w-80 border-r border-border/50 shrink-0">
+            <div className="w-[22rem] xl:w-96 border-r border-border/50 shrink-0">
               <ChatList
                 chats={chats}
                 selectedChat={selectedChat}
                 onSelectChat={handleSelectChat}
                 isLoading={isLoading}
-                onStartConversation={() => setShowStartModal(true)}
                 onLoadMore={loadMoreChats}
                 hasMore={hasMoreChats}
                 isLoadingMore={isLoadingMoreChats}
                 searchValue={searchInput}
                 onSearchChange={handleSearchChange}
+                {...listControls}
               />
             </div>
 
@@ -259,18 +251,18 @@ const GlobalInbox: React.FC = () => {
           {/* Tablet Layout - 2 columns */}
           <div className="hidden md:flex lg:hidden flex-1 min-h-0">
             {/* Chat List - Left Panel */}
-            <div className="w-72 border-r border-border/50 shrink-0">
+            <div className="w-80 border-r border-border/50 shrink-0">
               <ChatList
                 chats={chats}
                 selectedChat={selectedChat}
                 onSelectChat={handleSelectChat}
                 isLoading={isLoading}
-                onStartConversation={() => setShowStartModal(true)}
                 onLoadMore={loadMoreChats}
                 hasMore={hasMoreChats}
                 isLoadingMore={isLoadingMoreChats}
                 searchValue={searchInput}
                 onSearchChange={handleSearchChange}
+                {...listControls}
               />
             </div>
 
@@ -296,12 +288,12 @@ const GlobalInbox: React.FC = () => {
                     selectedChat={selectedChat}
                     onSelectChat={handleSelectChat}
                     isLoading={isLoading}
-                    onStartConversation={() => setShowStartModal(true)}
                     onLoadMore={loadMoreChats}
                     hasMore={hasMoreChats}
                     isLoadingMore={isLoadingMoreChats}
                     searchValue={searchInput}
                     onSearchChange={handleSearchChange}
+                    {...listControls}
                   />
                 </motion.div>
               )}
@@ -344,11 +336,6 @@ const GlobalInbox: React.FC = () => {
         </div>
       )}
 
-      <StartConversationModal
-        open={showStartModal}
-        onClose={() => setShowStartModal(false)}
-        onSuccess={loadChats}
-      />
     </div>
   );
 };

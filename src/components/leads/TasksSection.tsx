@@ -84,7 +84,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
           )}
         </h3>
         <Button onClick={onCreateTask} size="sm" className="bg-primary hover:bg-primary/80">
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           {t('tasks.new-task')}
         </Button>
       </div>
@@ -120,7 +120,7 @@ const EmptyTasksState: React.FC<{ onCreateTask: () => void }> = ({ onCreateTask 
       <h4 className="mb-2 font-medium text-foreground">{t('tasks.no-tasks')}</h4>
       <p className="mb-4 text-sm text-muted-foreground">{t('tasks.no-tasks-description')}</p>
       <Button onClick={onCreateTask} variant="outline" size="sm" className="border-border bg-background hover:bg-muted">
-        <Plus className="w-4 h-4 mr-2" />
+        <Plus className="w-4 h-4" />
         {t('tasks.create-first')}
       </Button>
     </div>
@@ -204,7 +204,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
 
   return (
     <motion.div 
-      className={`group rounded-lg border border-border bg-background/60 p-4 transition-all hover:bg-muted/40 ${
+      className={`group rounded-lg border border-border bg-background/60 p-4 transition-colors duration-fast ease-standard hover:bg-muted/40 ${
         isDimmed ? 'opacity-60' : ''
       }`}
       initial={{ opacity: 0, y: 10 }}
@@ -257,7 +257,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
           {/* Actions Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-               <button className="rounded-md p-1.5 opacity-100 transition-all hover:bg-muted md:opacity-0 md:group-hover:opacity-100">
+               <button className="rounded-md p-1.5 opacity-100 transition-colors duration-fast ease-standard hover:bg-muted md:opacity-0 md:group-hover:opacity-100">
                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -266,14 +266,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
                 onClick={onEdit}
                  className="cursor-pointer focus:bg-muted focus:text-foreground"
               >
-                <Pencil className="w-4 h-4 mr-2" />
+                <Pencil className="w-4 h-4" />
                 {t('tasks.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={onDelete}
                  className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-4 h-4" />
                 {t('tasks.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>

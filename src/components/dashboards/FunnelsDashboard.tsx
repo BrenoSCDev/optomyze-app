@@ -70,7 +70,7 @@ const ActionButton = ({ tooltip, onClick, disabled, destructive, children }: Act
         onClick={onClick}
         disabled={disabled}
         className={cn(
-          "h-8 w-8 text-muted-foreground transition-colors duration-200",
+          "h-8 w-8 text-muted-foreground transition-colors duration-fast",
           destructive
             ? "hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
             : "hover:bg-muted hover:text-foreground"
@@ -112,8 +112,8 @@ const FunnelCard = ({
   return (
     <div
       className={cn(
-        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-all duration-300",
-        "hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
+        "group relative flex flex-col bg-card border border-border/60 rounded-2xl p-4 transition-colors duration-base ease-standard",
+        "hover:border-primary/30 hover:shadow-lg"
       )}
     >
       {/* Icon + name + status / active toggle */}
@@ -233,7 +233,7 @@ const EmptyState = ({ onCreateClick, t }: { onCreateClick: () => void; t: (key: 
     <h3 className="text-lg font-semibold text-foreground mb-1">{t('funnels.no-funnels')}</h3>
     <p className="text-muted-foreground text-sm max-w-sm mb-6">{t('funnels.no-funnels-subtitle')}</p>
     <Button onClick={onCreateClick}>
-      <Plus className="h-4 w-4 mr-2" />
+      <Plus className="h-4 w-4" />
       {t('funnels.create-funnel')}
     </Button>
   </div>
@@ -551,7 +551,7 @@ const FunnelsDashboard = () => {
           </div>
 
           <Button onClick={openNewFunnelModal} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
           </Button>
         </div>
@@ -566,7 +566,7 @@ const FunnelsDashboard = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "relative flex items-center gap-2 whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-200",
+                "relative flex items-center gap-2 whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-fast",
                 activeTab === tab.id
                   ? "text-foreground font-semibold"
                   : "text-muted-foreground font-medium hover:text-foreground/80"
@@ -576,7 +576,7 @@ const FunnelsDashboard = () => {
               {tab.label}
               <span
                 className={cn(
-                  "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-200",
+                  "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-fast",
                   activeTab === tab.id ? "opacity-100" : "opacity-0"
                 )}
               />
@@ -739,8 +739,8 @@ const FunnelsDashboard = () => {
               ) : (
                 <>
                   {selectedTemplateId
-                    ? <FileStack className="h-4 w-4 mr-2" />
-                    : <Plus className="h-4 w-4 mr-2" />
+                    ? <FileStack className="h-4 w-4" />
+                    : <Plus className="h-4 w-4" />
                   }
                   {selectedTemplateId ? t('funnels.create-from-template') : t('common.create')}
                 </>
@@ -829,7 +829,7 @@ const FunnelsDashboard = () => {
                 </>
               ) : (
                 <>
-                  <Pencil className="h-4 w-4 mr-2" />
+                  <Pencil className="h-4 w-4" />
                   {t('common.update')}
                 </>
               )}

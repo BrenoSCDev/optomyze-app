@@ -383,7 +383,7 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-overlay backdrop-blur-sm"
             onClick={() => onOpenChange(false)}
           />
 
@@ -649,7 +649,7 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
                     onClick={handlePreviewReset}
                     disabled={previewMessages.length === 0}
                   >
-                    <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                    <RotateCcw className="w-3.5 h-3.5" />
                     {t('ai-agents.preview.reset')}
                   </Button>
                 </div>

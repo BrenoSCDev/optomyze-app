@@ -188,7 +188,7 @@ const FunnelStructureSection = ({
           </Select>
         </div>
         <Button size="sm" onClick={handleAddFunnel}>
-          <Plus className="w-4 h-4 mr-1" />
+          <Plus className="w-4 h-4" />
           {t('settings.funnels.add-funnel')}
         </Button>
       </div>
@@ -229,7 +229,7 @@ const FunnelStructureSection = ({
             <div className="flex items-center justify-between mb-4">
               <h4 className="font-medium">{t('settings.funnels.stages')}</h4>
               <Button variant="outline" size="sm" onClick={handleAddStage}>
-                <Plus className="w-3 h-3 mr-1" />
+                <Plus className="w-3 h-3" />
                 {t('settings.funnels.add-stage')}
               </Button>
             </div>

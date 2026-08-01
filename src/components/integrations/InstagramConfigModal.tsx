@@ -427,7 +427,7 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                         {disconnecting ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
-                          <Trash2 className="w-4 h-4 mr-2" />
+                          <Trash2 className="w-4 h-4" />
                         )}
                         {disconnecting ? t('integrations.instagram.disconnecting') : t('integrations.instagram.disconnect-account')}
                       </Button>
@@ -616,7 +616,7 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.97 }}
                         transition={{ duration: 0.25, ease: 'easeOut' }}
-                        className={`flex flex-col items-center gap-4 rounded-lg border border-dashed px-4 py-8 transition-colors duration-500 ${
+                        className={`flex flex-col items-center gap-4 rounded-lg border border-dashed px-4 py-8 transition-colors duration-slow ${
                           webhookTestStatus === 'verified'
                             ? 'border-green-500/30 bg-green-500/5'
                             : 'border-primary/30 bg-primary/5'
@@ -624,19 +624,19 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                       >
                         <div className="relative flex h-16 w-16 items-center justify-center">
                           <span
-                            className={`absolute inline-flex h-full w-full animate-ping rounded-full transition-colors duration-500 ${
+                            className={`absolute inline-flex h-full w-full animate-ping rounded-full transition-colors duration-slow ${
                               webhookTestStatus === 'verified' ? 'bg-green-500/20' : 'bg-primary/20'
                             }`}
                             style={{ animationDuration: '2.5s', animationTimingFunction: 'ease-in-out' }}
                           />
                           <span
-                            className={`absolute inline-flex h-3/4 w-3/4 animate-ping rounded-full transition-colors duration-500 ${
+                            className={`absolute inline-flex h-3/4 w-3/4 animate-ping rounded-full transition-colors duration-slow ${
                               webhookTestStatus === 'verified' ? 'bg-green-500/30' : 'bg-primary/30'
                             }`}
                             style={{ animationDuration: '2.5s', animationTimingFunction: 'ease-in-out', animationDelay: '750ms' }}
                           />
                           <span
-                            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-500 ${
+                            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-slow ${
                               webhookTestStatus === 'verified' ? 'bg-green-500' : 'bg-primary'
                             }`}
                           >
@@ -663,7 +663,7 @@ const InstagramConfigModal: React.FC<InstagramConfigModalProps> = ({
                           </p>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={handleStopWebhookTest}>
-                          <X className="mr-2 h-4 w-4" />
+                          <X className="h-4 w-4" />
                           {t('integrations.instagram.stop-listening')}
                         </Button>
                       </motion.div>

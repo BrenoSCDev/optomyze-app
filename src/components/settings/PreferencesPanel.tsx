@@ -123,7 +123,6 @@ const PreferencesPanel: React.FC = () => {
   );
 
   const visibleMenuOrder = menuOrder.filter(id => {
-    if (id === 'organization' && user?.role === 'agent') return false;
     return true;
   });
 
@@ -377,7 +376,7 @@ const PreferencesPanel: React.FC = () => {
                       toast.success(t('settings.preferences.toast.search-target').replace('{name}', config.labelKey));
                     }}
                     className={`
-                      flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-all duration-200 cursor-pointer
+                      flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-colors duration-fast ease-standard cursor-pointer
                       ${isSelected
                         ? 'border-accent bg-accent/10 shadow-sm shadow-accent/10'
                         : 'border-border/40 hover:border-border/80 hover:bg-muted/50'

@@ -19,7 +19,8 @@ import { InboxChat, InboxMessage } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
 import { formatPhoneNumber } from '@/lib/phone';
-import { sendInboxMessage, sendInboxMedia, sendInstagramMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage, updateChatAiAgentService } from '@/services/globalInboxApi';
+import { sendInboxMessage, sendInboxMedia, sendInstagramMessage,
+  sendWebsiteChatMessage, sendInstagramMedia, clearInboxChatMessages, fetchInboxChatMessages, sendInboxReaction, transcribeInboxMessage, updateChatAiAgentService } from '@/services/globalInboxApi';
 import { toast } from '@/hooks/use-toast';
 import AudioPlayer from './AudioPlayer';
 import DocumentMessage from './DocumentMessage';
@@ -603,7 +604,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     if (!messageText.trim() || !chat?.channelable_id) {
       return;
     }
-    if (chat.channel !== 'instagram' && !chat?.lead?.id) {
+    if (chat.channel !== 'instagram' && chat.channel !== 'website' && !chat?.lead?.id) {
       return;
     }
 
@@ -616,13 +617,15 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
-      const response = chat.channel === 'instagram'
-        ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
-        : await sendInboxMessage(chat.channelable_id, {
-            lead_id: chat.lead!.id,
-            text,
-            message_mode: currentMode
-          });
+      const response = chat.channel === 'website'
+        ? await sendWebsiteChatMessage(chat.id, text, currentMode)
+        : chat.channel === 'instagram'
+          ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
+          : await sendInboxMessage(chat.channelable_id, {
+              lead_id: chat.lead!.id,
+              text,
+              message_mode: currentMode
+            });
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
@@ -944,7 +947,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               >
                 {togglingAi
                   ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  : <Bot className="h-4 w-4 mr-2" />}
+                  : <Bot className="h-4 w-4" />}
                 {aiAgentActive
                   ? t('chat.inbox.ai-agent-pause')
                   : t('chat.inbox.ai-agent-activate')}
@@ -953,14 +956,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                 onClick={() => setShowEndConversation(true)}
                 disabled={!activeSession}
               >
-                <CircleSlash className="h-4 w-4 mr-2" />
+                <CircleSlash className="h-4 w-4" />
                 {t('chat.inbox.end-conversation')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setShowClearConfirm(true)}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4" />
                 {t('chat.inbox.clear-messages')}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -1061,7 +1064,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                                 type="button"
                                 onClick={() => handleReact(message, emoji)}
                                 className={cn(
-                                  "text-lg p-1 rounded hover:bg-muted hover:scale-125 transition-transform",
+                                  "text-lg p-1 rounded hover:bg-surface-3 transition-colors duration-fast ease-standard",
                                   message.reactions?.agent?.emoji === emoji && "bg-muted"
                                 )}
                               >
@@ -1101,7 +1104,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             : isInternalNote(message)
                               ? "bg-amber-200/40 dark:bg-amber-950/30 border-amber-400/60 text-amber-900/80 dark:text-amber-100/80"
                               : message.direction === 'outgoing'
-                                ? "bg-white/10 border-blue-100/60 text-blue-50"
+                                ? "bg-surface-3 border-blue-100/60 text-blue-50"
                                 : "bg-muted/60 border-primary/40 text-foreground/70"
                         )}>
                           <p className="truncate">{getReplyPreviewLabel(message.reply_to_snapshot)}</p>
@@ -1350,7 +1353,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             <span
                               className={cn(
                                 'absolute bottom-0 right-0.5 h-2 w-2 rounded-full ring-2 ring-background',
-                                userOnline ? 'bg-green-500' : 'bg-gray-400'
+                                userOnline ? 'bg-green-500' : 'bg-muted-foreground'
                               )}
                             />
                           )}
@@ -1364,7 +1367,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                               <button
                                 type="button"
                                 onClick={() => openUserProfile(message.user!.id)}
-                                className="rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                className="rounded-full transition-colors duration-fast ease-standard hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                               >
                                 {avatar}
                               </button>
@@ -1444,7 +1447,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       <button
                         type="button"
                         onClick={() => openUserProfile(currentUser.id)}
-                        className="rounded-full transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="rounded-full transition-colors duration-fast ease-standard hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         <span className="relative inline-block">
                           <InboxAvatar
@@ -1455,7 +1458,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           <span
                             className={cn(
                               'absolute bottom-0 right-0.5 h-2 w-2 rounded-full ring-2 ring-background',
-                              isUserOnline(currentUser.id) ? 'bg-green-500' : 'bg-gray-400'
+                              isUserOnline(currentUser.id) ? 'bg-green-500' : 'bg-muted-foreground'
                             )}
                           />
                         </span>
@@ -1507,9 +1510,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             isSending={isSending}
             mode={messageMode}
             onModeChange={setMessageMode}
-            onAttach={() => imageInputRef.current?.click()}
+            // Website chat is text-only for now — hide the media affordances
+            // rather than offering actions the channel can't deliver.
+            onAttach={chat.channel === 'website' ? undefined : () => imageInputRef.current?.click()}
             isAttaching={isSendingMedia}
-            onSendAudio={(file) => handleSendMedia(file, 'audio', messageMode)}
+            onSendAudio={chat.channel === 'website' ? undefined : (file) => handleSendMedia(file, 'audio', messageMode)}
           />
         </div>
       ) : (
@@ -1526,13 +1531,13 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/95 backdrop-blur-sm"
             onClick={() => setLightboxImage(null)}
           >
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+              className="absolute top-4 right-4 text-white hover:bg-surface-3 z-10"
               onClick={() => setLightboxImage(null)}
             >
               <X className="h-6 w-6" />

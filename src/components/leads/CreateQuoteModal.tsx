@@ -249,8 +249,8 @@ const CreateQuoteModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl bg-gray-900 border-white/10 text-white max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/10">
+      <DialogContent className="max-w-5xl bg-popover border-border text-foreground max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <FileText className="w-5 h-5 text-primary" />
             {t('quote.title')}
@@ -264,30 +264,30 @@ const CreateQuoteModal = ({
         ) : (
           <div className="flex-1 overflow-hidden flex min-h-0">
             {/* Left Column - Quote Details */}
-            <div className="w-[320px] border-r border-white/10 p-6 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
-              <h3 className="text-sm font-medium text-gray-400">{t('quote.details')}</h3>
+            <div className="w-[320px] border-r border-border p-6 space-y-5 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
+              <h3 className="text-sm font-medium text-muted-foreground">{t('quote.details')}</h3>
 
               {/* Customer */}
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">{t('quote.customer')}</Label>
-                <div className="bg-white/5 border border-white/10 rounded-md px-3 py-2.5 text-white">
+                <Label className="text-muted-foreground text-sm">{t('quote.customer')}</Label>
+                <div className="bg-surface-2 border border-border rounded-md px-3 py-2.5 text-foreground">
                   {customerName}
                 </div>
               </div>
 
               {/* Unit */}
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">{t('quote.unit')}</Label>
+                <Label className="text-muted-foreground text-sm">{t('quote.unit')}</Label>
                 <Select value={unitId} onValueChange={setUnitId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="bg-input-bg border-input-border text-foreground">
                     <SelectValue placeholder={t('quote.select-unit')} />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-white/10">
+                  <SelectContent className="bg-popover border-border">
                     {units.map(unit => (
                       <SelectItem 
                         key={unit.id} 
                         value={String(unit.id)} 
-                        className="text-white hover:bg-white/10"
+                        className="text-foreground hover:bg-surface-3"
                       >
                         {unit.name}
                       </SelectItem>
@@ -298,21 +298,21 @@ const CreateQuoteModal = ({
 
               {/* Valid Until */}
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">{t('quote.valid-until')}</Label>
+                <Label className="text-muted-foreground text-sm">{t('quote.valid-until')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        'w-full justify-start text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10',
-                        !validUntil && 'text-gray-500'
+                        'w-full justify-start text-left font-normal bg-input-bg border-input-border text-foreground hover:bg-surface-3',
+                        !validUntil && 'text-subtle'
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="h-4 w-4" />
                       {validUntil ? format(validUntil, 'dd/MM/yyyy') : t('quote.select-date')}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-gray-800 border-white/10" align="start">
+                  <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
                     <Calendar
                       mode="single"
                       selected={validUntil}
@@ -326,17 +326,17 @@ const CreateQuoteModal = ({
 
               {/* Status */}
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">{t('quote.status')}</Label>
+                <Label className="text-muted-foreground text-sm">{t('quote.status')}</Label>
                 <Select value={status} onValueChange={(v) => setStatus(v as QuoteStatus)}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="bg-input-bg border-input-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-white/10">
+                  <SelectContent className="bg-popover border-border">
                     {QUOTE_STATUSES.map(s => (
                       <SelectItem 
                         key={s} 
                         value={s} 
-                        className="text-white hover:bg-white/10"
+                        className="text-foreground hover:bg-surface-3"
                       >
                         {t(`quote.status-${s}`)}
                       </SelectItem>
@@ -347,12 +347,12 @@ const CreateQuoteModal = ({
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">{t('quote.notes')}</Label>
+                <Label className="text-muted-foreground text-sm">{t('quote.notes')}</Label>
                 <Textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder={t('quote.notes-placeholder')}
-                  className="bg-white/5 border-white/10 text-white resize-none min-h-[100px]"
+                  className="bg-input-bg border-input-border text-foreground resize-none min-h-[100px]"
                 />
               </div>
             </div>
@@ -360,7 +360,7 @@ const CreateQuoteModal = ({
             {/* Right Column - Quote Items */}
             <div className="flex-1 flex flex-col p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-400">{t('quote.items')}</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">{t('quote.items')}</h3>
                 <Button
                   type="button"
                   variant="outline"
@@ -368,16 +368,16 @@ const CreateQuoteModal = ({
                   onClick={addQuoteItem}
                   className="glass-card text-sm"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
+                  <Plus className="w-4 h-4" />
                   {t('quote.add-product')}
                 </Button>
               </div>
 
               {/* Items Table */}
               <div className="flex-1 overflow-hidden">
-                <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden h-full flex flex-col">
+                <div className="bg-surface-2 border border-border rounded-lg overflow-hidden h-full flex flex-col">
                   {/* Table Header */}
-                  <div className="grid grid-cols-[2fr_80px_120px_100px_40px] gap-2 px-4 py-3 bg-white/5 text-sm font-medium text-gray-400 border-b border-white/10">
+                  <div className="grid grid-cols-[2fr_80px_120px_100px_40px] gap-2 px-4 py-3 bg-surface-2 text-sm font-medium text-muted-foreground border-b border-border">
                     <div>{t('quote.product')}</div>
                     <div className="text-center">{t('quote.quantity')}</div>
                     <div className="text-right">{t('quote.unit-price')}</div>
@@ -388,34 +388,34 @@ const CreateQuoteModal = ({
                   {/* Table Body */}
                   <ScrollArea className="flex-1">
                     {quoteItems.length === 0 ? (
-                      <div className="flex items-center justify-center py-12 text-gray-500">
+                      <div className="flex items-center justify-center py-12 text-subtle">
                         {t('quote.no-items')}
                       </div>
                     ) : (
-                      <div className="divide-y divide-white/5">
+                      <div className="divide-y divide-border">
                         {quoteItems.map(item => (
                           <div 
                             key={item.id} 
-                            className="grid grid-cols-[2fr_80px_120px_100px_40px] gap-2 px-4 py-3 items-center hover:bg-white/5 transition-colors"
+                            className="grid grid-cols-[2fr_80px_120px_100px_40px] gap-2 px-4 py-3 items-center hover:bg-surface-2 transition-colors"
                           >
                             {/* Product Select */}
                             <Select
                               value={item.product_id ? String(item.product_id) : ''}
                               onValueChange={(v) => updateQuoteItem(item.id, 'product_id', Number(v))}
                             >
-                              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                              <SelectTrigger className="bg-input-bg border-input-border text-foreground">
                                 <SelectValue placeholder={t('quote.select-product')} />
                               </SelectTrigger>
-                              <SelectContent className="bg-gray-800 border-white/10 max-h-[200px]">
+                              <SelectContent className="bg-popover border-border max-h-[200px]">
                                 {products.filter(p => p.is_active).map(product => (
                                   <SelectItem 
                                     key={product.id} 
                                     value={String(product.id)} 
-                                    className="text-white hover:bg-white/10"
+                                    className="text-foreground hover:bg-surface-3"
                                   >
                                     <div className="flex flex-col">
                                       <span className="font-medium">{product.name}</span>
-                                      <span className="text-xs text-gray-400">{product.sku}</span>
+                                      <span className="text-xs text-muted-foreground">{product.sku}</span>
                                     </div>
                                   </SelectItem>
                                 ))}
@@ -428,23 +428,23 @@ const CreateQuoteModal = ({
                               min={1}
                               value={item.quantity}
                               onChange={(e) => updateQuoteItem(item.id, 'quantity', Number(e.target.value) || 1)}
-                              className="bg-white/5 border-white/10 text-white text-center"
+                              className="bg-input-bg border-input-border text-foreground text-center"
                             />
 
                             {/* Unit Price with currency mask */}
                             <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                               <Input
                                 type="text"
                                 value={formatCurrencyInput(item.unit_price)}
                                 onChange={(e) => handleUnitPriceChange(item.id, e.target.value)}
-                                className="bg-white/5 border-white/10 text-white text-right pl-9"
+                                className="bg-input-bg border-input-border text-foreground text-right pl-9"
                                 placeholder="0,00"
                               />
                             </div>
 
                             {/* Total */}
-                            <div className="text-right text-white font-medium">
+                            <div className="text-right text-foreground font-medium">
                               {formatCurrency(item.total)}
                             </div>
 
@@ -465,31 +465,31 @@ const CreateQuoteModal = ({
                   </ScrollArea>
 
                   {/* Summary Section */}
-                  <div className="border-t border-white/10 p-4 space-y-3 bg-white/5">
+                  <div className="border-t border-border p-4 space-y-3 bg-surface-2">
                     {/* Subtotal */}
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">{t('quote.subtotal')}</span>
-                      <span className="text-white font-medium">{formatCurrency(subtotal)}</span>
+                      <span className="text-muted-foreground">{t('quote.subtotal')}</span>
+                      <span className="text-foreground font-medium">{formatCurrency(subtotal)}</span>
                     </div>
 
                     {/* Discount */}
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">{t('quote.discount')}</span>
+                      <span className="text-muted-foreground text-sm">{t('quote.discount')}</span>
                       <div className="relative w-32">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                         <Input
                           type="text"
                           value={discountInput}
                           onChange={(e) => handleDiscountChange(e.target.value)}
-                          className="bg-white/5 border-white/10 text-white text-right pl-9 h-9"
+                          className="bg-input-bg border-input-border text-foreground text-right pl-9 h-9"
                           placeholder="0,00"
                         />
                       </div>
                     </div>
 
                     {/* Total */}
-                    <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                      <span className="text-white font-semibold">{t('quote.final-total')}</span>
+                    <div className="flex justify-between items-center pt-2 border-t border-border">
+                      <span className="text-foreground font-semibold">{t('quote.final-total')}</span>
                       <span className="text-xl font-bold text-primary">{formatCurrency(total)}</span>
                     </div>
                   </div>
@@ -499,7 +499,7 @@ const CreateQuoteModal = ({
           </div>
         )}
 
-        <DialogFooter className="px-6 py-4 border-t border-white/10 bg-gray-900/50">
+        <DialogFooter className="px-6 py-4 border-t border-border bg-surface-1">
           <Button 
             variant="outline" 
             onClick={handleClose} 
@@ -511,7 +511,7 @@ const CreateQuoteModal = ({
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting || !isValid || loading}
-            className="bg-white text-black hover:bg-gray-200"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isSubmitting ? (
               <>

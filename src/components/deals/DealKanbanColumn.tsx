@@ -4,7 +4,7 @@
  * Teal-accented drop target column for the Deal Kanban board.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo , memo} from 'react';
 import { Button } from '@/components/ui/button';
 import DealCard from './DealCard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,7 +56,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   return (
     <motion.div
       ref={setNodeRef}
-      className={`deal-glass-card p-4 w-80 flex-shrink-0 transition-all duration-300 relative min-h-[400px] overflow-hidden ${
+      className={`deal-glass-card p-4 w-80 flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
         isOver || isDropTarget ? 'ring-2 ring-deal/50 bg-deal/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -92,12 +92,12 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border">
                 <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
-                  <ArrowDownNarrowWide className="h-4 w-4 mr-2" />
+                  <ArrowDownNarrowWide className="h-4 w-4" />
                   Newest first
                   {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
-                  <ArrowUpNarrowWide className="h-4 w-4 mr-2" />
+                  <ArrowUpNarrowWide className="h-4 w-4" />
                   Oldest first
                   {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
@@ -170,4 +170,6 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   );
 };
 
-export default DealKanbanColumn;
+/** Memoised: see LeadCard — a board-level state change (opening any
+ *  modal) must not re-render every card before the modal paints. */
+export default memo(DealKanbanColumn);

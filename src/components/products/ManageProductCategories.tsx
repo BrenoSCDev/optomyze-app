@@ -168,7 +168,7 @@ const ManageProductCategories = () => {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="glass-card p-5 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+              className="glass-card p-5 hover:border-primary/50 transition-colors duration-base ease-standard hover:shadow-lg hover:shadow-primary/10"
             >
               {/* Color swatch + name */}
               <div className="flex items-center gap-3 mb-3">
@@ -259,7 +259,7 @@ const ManageProductCategories = () => {
                     key={c}
                     type="button"
                     onClick={() => setFormData((p) => ({ ...p, color: c }))}
-                    className={`w-7 h-7 rounded-full transition-transform ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
+                    className={`w-7 h-7 rounded-full transition-shadow duration-fast ease-standard ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
                     style={{ backgroundColor: c }}
                   />
                 ))}

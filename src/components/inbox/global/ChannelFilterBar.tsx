@@ -16,7 +16,7 @@ interface ChannelFilterBarProps {
   onChange: (channel: InboxChannel | 'all') => void;
 }
 
-const FILTERS: (InboxChannel | 'all')[] = ['all', 'whatsapp', 'instagram', 'messenger', 'sms'];
+const FILTERS: (InboxChannel | 'all')[] = ['all', 'whatsapp', 'instagram', 'messenger', 'website', 'sms'];
 
 const ChannelFilterBar: React.FC<ChannelFilterBarProps> = ({ value, onChange }) => {
   const { t } = useLanguage();
@@ -28,6 +28,7 @@ const ChannelFilterBar: React.FC<ChannelFilterBarProps> = ({ value, onChange }) 
       case 'instagram': return t('chat.inbox.filter-instagram');
       case 'messenger': return t('chat.inbox.filter-messenger');
       case 'sms': return t('chat.inbox.filter-sms');
+      case 'website': return t('chat.inbox.filter-website');
       default: return channel;
     }
   };

@@ -668,7 +668,7 @@ const DealsStagesDistributionChart = ({
                   {/* Mini progress bar */}
                   <div className="w-20 bg-muted rounded-full h-1.5 flex-shrink-0">
                     <div
-                      className="h-1.5 rounded-full transition-all duration-700"
+                      className="h-1.5 rounded-full transition-colors duration-slow ease-standard"
                       style={{ width: `${stage.percentage}%`, backgroundColor: stage.color }}
                     />
                   </div>
@@ -732,7 +732,7 @@ const LeadBreakdownFunnel = ({ data, isLoading }: { data: any; isLoading: boolea
                   points={`${200 - topWidth * 2},0 ${200 + topWidth * 2},0 ${200 + bottomWidth * 2},64 ${200 - bottomWidth * 2},64`}
                   fill={step.color}
                   opacity={0.7}
-                  className="transition-opacity duration-200 group-hover:opacity-90"
+                  className="transition-opacity duration-fast group-hover:opacity-90"
                 />
                 <text x="200" y="30" textAnchor="middle" fill="rgba(255,255,255,0.95)" fontSize="12" fontWeight="600">
                   {step.name}
@@ -900,7 +900,7 @@ const DateRangeSelector = ({ value, onChange }: { value: DateRange; onChange: (v
 const TabButton = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
   <button
     onClick={onClick}
-    className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+    className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-fast ease-standard ${
       active
         ? 'text-foreground bg-muted shadow-sm'
         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -1306,7 +1306,7 @@ const OptomyzeMetrics = ({ demoMode = false, demoPeriodicData, demoMonthlyData }
                   title={t('metrics.refresh')}
                   onClick={fetchMetricsData}
                   disabled={loading}
-                  className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors disabled:opacity-50"
+                  className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
