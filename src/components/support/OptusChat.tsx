@@ -138,9 +138,9 @@ const OptusChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-full bg-primary/10">
             <Bot className="h-6 w-6 text-primary" />
@@ -187,10 +187,10 @@ const OptusChat = () => {
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
-        <div className="space-y-4 pb-4">
+      <ScrollArea className="flex-1 min-h-0 px-4" ref={scrollRef}>
+        <div className="space-y-4 py-4">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[40vh] text-center">
+            <div className="flex h-64 flex-col items-center justify-center text-center">
               <div className="p-4 rounded-full bg-primary/10 mb-4">
                 <Bot className="h-10 w-10 text-primary" />
               </div>
@@ -271,7 +271,7 @@ const OptusChat = () => {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="mt-4 pt-4 border-t border-border">
+      <div className="border-t border-border p-3">
         <div className="flex gap-2">
           <Input
             ref={inputRef}

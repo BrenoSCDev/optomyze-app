@@ -106,7 +106,7 @@ interface Funnel {
   is_active: boolean;
   created_by: number;
   settings: any;
-  type: 'sale' | 'deal';
+  type: 'contact' | 'deal';
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -586,14 +586,14 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
           {!isEmbedded && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <button
-                onClick={() => navigate('/?section=funnels')}
+                onClick={() => navigate('/?section=crm-panel&tab=funnels')}
                 className="hover:text-foreground transition-colors"
               >
                 {t('nav.settings')}
               </button>
               <ChevronRight className="h-4 w-4" />
               <button
-                onClick={() => navigate('/?section=funnels')}
+                onClick={() => navigate('/?section=crm-panel&tab=funnels')}
                 className="hover:text-foreground transition-colors"
               >
                 {t('nav.funnels')}
@@ -616,7 +616,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onBack ? onBack() : navigate('/?section=funnels')}
+                  onClick={() => onBack ? onBack() : navigate('/?section=crm-panel&tab=funnels')}
                   className="hover:bg-primary/10"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -883,7 +883,7 @@ const FunnelStages = ({ funnelIdProp, onBack, isEmbedded = false }: FunnelStages
         }}
         stage={selectedStage}
         funnelId={funnelId || ''}
-        funnelType={funnel?.type || 'sale'}
+        funnelType={funnel?.type || 'contact'}
         onUpdate={handleStageUpdate}
       />
 

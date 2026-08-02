@@ -6,7 +6,7 @@
  * - Others are synthesized via Web Audio API for zero-dependency tones.
  * - "none" plays nothing.
  *
- * Preference is persisted in localStorage under "optomyze_notification_sound".
+ * The chosen sound is a server-backed user preference.
  */
 
 export type NotificationSoundId = 'default' | 'soft-bell' | 'digital-pop' | 'subtle-ping' | 'bright-chime' | 'none';
@@ -17,6 +17,8 @@ export interface NotificationSoundOption {
   description: string;
 }
 
+import { readCachedPreferences } from '@/contexts/UserPreferencesContext';
+
 export const NOTIFICATION_SOUNDS: NotificationSoundOption[] = [
   { id: 'default', label: 'Default Chime', description: 'Classic notification tone' },
   { id: 'soft-bell', label: 'Soft Bell', description: 'Gentle bell sound' },
@@ -26,18 +28,20 @@ export const NOTIFICATION_SOUNDS: NotificationSoundOption[] = [
   { id: 'none', label: 'No Sound', description: 'Mute notifications' },
 ];
 
-const LS_KEY = 'optomyze_notification_sound';
-
+/**
+ * The chosen sound now lives in the server-backed user preferences.
+ *
+ * This module is called from plain functions (playNotificationSound runs from
+ * websocket handlers, outside React), so it reads the preferences *cache*
+ * rather than the context. The cache is rewritten on every preference change,
+ * so it never lags behind what the user picked.
+ */
 export function getSelectedSound(): NotificationSoundId {
-  const stored = localStorage.getItem(LS_KEY);
+  const stored = readCachedPreferences().notification_sound;
   if (stored && NOTIFICATION_SOUNDS.some(s => s.id === stored)) {
     return stored as NotificationSoundId;
   }
   return 'default';
-}
-
-export function setSelectedSound(id: NotificationSoundId): void {
-  localStorage.setItem(LS_KEY, id);
 }
 
 // ─── Audio context helpers ──────────────────────────────────────────────────

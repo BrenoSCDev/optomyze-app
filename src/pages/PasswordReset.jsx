@@ -4,14 +4,19 @@ import { Eye, EyeOff, AlertCircle, CheckCircle, Lock, Loader2 } from 'lucide-rea
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import Spline from '@splinetool/react-spline';
 import api from '../services/api';
 import optomyzeLogo from '../assets/optomyze.png';
-import '../css/Login.css';
+import optomyzeLogoLight from '../assets/optomyze-light.png';
+import AuthLayout from '../components/auth/AuthLayout';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PasswordReset = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useLanguage();
+  const { mode } = useTheme();
+  const logo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
   
   const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
@@ -107,209 +112,132 @@ const PasswordReset = () => {
   };
 
   return (
-    <div className="login-container">
-      {/* Left Half - Spline 3D Animation (Desktop Only) */}
-      <div className="left-half">
-        <Spline scene="https://prod.spline.design/3Lak4Ex5AvAtpnD5/scene.splinecode" />
-      </div>
-
-      {/* Right Half - Password Reset Form */}
-      <div className="right-half">
-        <div className="w-full max-w-md animate-fade-in">
-          <div className="rounded-xl p-8 lg:p-10 shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 transition-colors duration-base ease-standard hover:bg-white/15 hover:shadow-glow">
-            
-            {success ? (
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-400" />
-                </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Password Reset Successful!</h2>
-                <p className="text-white/80 mb-4">
-                  Your password has been reset successfully.
-                </p>
-                <p className="text-white/60 text-sm">
-                  Redirecting to login page in 3 seconds...
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Logo */}
-                <div className="text-center mb-8">
-                  <img
-                    src={optomyzeLogo}
-                    alt="Optomyze"
-                    className="h-12 mx-auto mb-6 filter brightness-0 invert"
-                  />
-                  <div className="w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lock className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">Reset Password</h1>
-                  <p className="text-white/80 text-sm lg:text-base">Enter your new password below</p>
-                </div>
-
-                {/* Error Display */}
-                {error && (
-                  <div className="mb-6 p-4 bg-red-600/20 border border-red-600/30 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-red-400 text-sm">{error}</p>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Email Display */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white">
-                      Email Address
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      readOnly
-                      className="bg-white/5 border-white/20 text-white/60 cursor-not-allowed h-12"
-                    />
-                  </div>
-
-                  {/* New Password Field */}
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-white">
-                      New Password <span className="text-red-400">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your new password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={loading}
-                        className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 transition-colors duration-fast ease-standard"
-                        required
-                        minLength={8}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                        disabled={loading}
-                      >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
-                    </div>
-                    
-                    {/* Password Strength Indicator */}
-                    {password && (
-                      <div className="mt-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs text-white/60">Password strength:</span>
-                          <span className={`text-xs font-medium ${passwordStrength.color}`}>
-                            {passwordStrength.text}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((level) => (
-                            <div
-                              key={level}
-                              className={`h-1 flex-1 rounded-full ${
-                                level <= passwordStrength.score 
-                                  ? passwordStrength.score <= 2 ? 'bg-red-400' : 
-                                    passwordStrength.score <= 3 ? 'bg-yellow-400' : 
-                                    passwordStrength.score <= 4 ? 'bg-blue-400' : 'bg-green-400'
-                                  : 'bg-white/20'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Confirm Password Field */}
-                  <div className="space-y-2">
-                    <Label htmlFor="passwordConfirmation" className="text-white">
-                      Confirm New Password <span className="text-red-400">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="passwordConfirmation"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm your new password"
-                        value={passwordConfirmation}
-                        onChange={(e) => setPasswordConfirmation(e.target.value)}
-                        disabled={loading}
-                        className={`
-                          bg-white/10 text-white placeholder:text-white/60 focus:ring-purple-400/20 pr-10 h-12 transition-colors duration-fast ease-standard
-                          ${passwordConfirmation && password !== passwordConfirmation
-                            ? 'border-red-500 focus:border-red-500' 
-                            : 'border-white/30 focus:border-purple-400'
-                          }
-                        `}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                        disabled={loading}
-                      >
-                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </button>
-                    </div>
-                    
-                    {/* Password Match Indicator */}
-                    {passwordConfirmation && (
-                      <div className="mt-2 flex items-center gap-2 text-sm">
-                        {password === passwordConfirmation ? (
-                          <>
-                            <CheckCircle className="w-4 h-4 text-green-400" />
-                            <span className="text-green-400">Passwords match</span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle className="w-4 h-4 text-red-400" />
-                            <span className="text-red-400">Passwords do not match</span>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    disabled={loading || !email || !token || password.length < 8 || password !== passwordConfirmation}
-                    variant="black"
-                    className="w-full transition-colors duration-base ease-standard h-12 font-semibold"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Resetting Password...
-                      </>
-                    ) : (
-                      'Reset Password'
-                    )}
-                  </Button>
-
-                  {/* Back to Login Link */}
-                  <div className="text-center">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/login')}
-                      className="text-sm text-white/60 hover:text-white transition-colors"
-                    >
-                      Back to Login
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
+    <AuthLayout>
+      {success ? (
+        <div className="text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle className="h-7 w-7 text-success" />
           </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {t('auth.reset-success-title')}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t('auth.reset-success-desc')}</p>
+          <p className="mt-6 text-xs text-muted-foreground">{t('auth.redirecting')}</p>
         </div>
-      </div>
-    </div>
+      ) : (
+        <>
+          <div className="mb-8">
+            <img src={logo} alt="Optomyze" className="mb-8 h-8" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {t('auth.reset-title')}
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">{t('auth.reset-subtitle')}</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('auth.email')}</Label>
+              {/* Read-only: the address is fixed by the reset token. */}
+              <Input id="email" type="email" value={email} readOnly className="h-11 bg-muted text-muted-foreground" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('auth.new-password')}</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder={t('auth.create-password-placeholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="h-11 pr-10"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-fast hover:text-foreground"
+                  disabled={loading}
+                  aria-label={showPassword ? t('auth.hide-password') : t('auth.show-password')}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="passwordConfirmation">{t('auth.confirm-password')}</Label>
+              <div className="relative">
+                <Input
+                  id="passwordConfirmation"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  placeholder={t('auth.confirm-password-placeholder')}
+                  value={passwordConfirmation}
+                  onChange={(e) => setPasswordConfirmation(e.target.value)}
+                  disabled={loading}
+                  className={`h-11 pr-10 ${
+                    passwordConfirmation && password !== passwordConfirmation ? 'border-destructive' : ''
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-fast hover:text-foreground"
+                  disabled={loading}
+                  aria-label={showConfirmPassword ? t('auth.hide-password') : t('auth.show-password')}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {passwordConfirmation && (
+                <div className="flex items-center gap-1.5 pt-0.5 text-xs">
+                  {password === passwordConfirmation ? (
+                    <><CheckCircle className="h-3.5 w-3.5 text-success" /><span className="text-success">{t('auth.passwords-match')}</span></>
+                  ) : (
+                    <><AlertCircle className="h-3.5 w-3.5 text-destructive" /><span className="text-destructive">{t('auth.passwords-differ')}</span></>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading || !email || !token || password.length < 8 || password !== passwordConfirmation}
+              className="h-11 w-full"
+            >
+              {loading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('auth.resetting')}</>
+              ) : (
+                t('auth.reset-cta')
+              )}
+            </Button>
+          </form>
+
+          <p className="mt-8 border-t border-border pt-6 text-center text-sm">
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="font-medium text-primary transition-colors duration-fast hover:underline"
+            >
+              {t('auth.back-to-login')}
+            </button>
+          </p>
+        </>
+      )}
+    </AuthLayout>
   );
 };
 

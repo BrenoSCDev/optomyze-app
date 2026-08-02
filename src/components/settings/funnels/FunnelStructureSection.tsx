@@ -23,7 +23,7 @@ interface Props {
 
 const emptyFunnel: Omit<Funnel, 'id'> = {
   name: '',
-  type: 'sale',
+  type: 'contact',
   isDefault: false,
   appliesTo: 'both',
   stages: [],
@@ -73,7 +73,7 @@ const FunnelStructureSection = ({
     setEditingFunnel(funnel);
     setFunnelForm({
       name: funnel.name,
-      type: funnel.type ?? 'sale',
+      type: funnel.type ?? 'contact',
       isDefault: funnel.isDefault,
       appliesTo: funnel.appliesTo,
       stages: funnel.stages,
@@ -319,14 +319,14 @@ const FunnelStructureSection = ({
               <div className="grid gap-2">
                 <Label>{t('funnels.type')}</Label>
                 <Select
-                  value={funnelForm.type ?? 'sale'}
-                  onValueChange={(value: 'sale' | 'deal') => setFunnelForm({ ...funnelForm, type: value })}
+                  value={funnelForm.type ?? 'contact'}
+                  onValueChange={(value: 'contact' | 'deal') => setFunnelForm({ ...funnelForm, type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sale">{t('funnels.sales-funnels')}</SelectItem>
+                    <SelectItem value="contact">{t('funnels.sales-funnels')}</SelectItem>
                     <SelectItem value="deal">{t('funnels.deal-funnels')}</SelectItem>
                   </SelectContent>
                 </Select>

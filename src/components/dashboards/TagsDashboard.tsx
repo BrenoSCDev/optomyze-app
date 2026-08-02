@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import TagScopeSelector, { TAG_SCOPES, TagScope, tagScopeLabelKey } from '@/components/tags/TagScopeSelector';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -48,6 +49,12 @@ interface TagData {
   company_id: number;
   name: string;
   color: string;
+  /** Which entities this tag may be attached to. Null means "everywhere". */
+  scopes: TagScope[] | null;
+  /** Present only when the list was requested with_counts. */
+  leads_count?: number;
+  sales_count?: number;
+  tasks_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -142,6 +149,28 @@ const TagCard = memo(({ tag, isDeleting, onEdit, onDelete }: TagCardProps) => {
             <p className="text-sm text-muted-foreground">
               {t('tags.created')} {new Date(tag.created_at).toLocaleDateString()}
             </p>
+
+            {/* Where this tag is offered, and how often it is actually used.
+                A null `scopes` predates scoping and meant "everywhere". */}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {(tag.scopes?.length ? tag.scopes : TAG_SCOPES).map(scope => {
+                const count = scope === 'lead' ? tag.leads_count
+                  : scope === 'deal' ? tag.sales_count
+                  : tag.tasks_count;
+
+                return (
+                  <span
+                    key={scope}
+                    className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {t(tagScopeLabelKey(scope))}
+                    {typeof count === 'number' && count > 0 && (
+                      <span className="tabular-nums text-foreground">{count}</span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -197,7 +226,12 @@ const TagCard = memo(({ tag, isDeleting, onEdit, onDelete }: TagCardProps) => {
 });
 TagCard.displayName = 'TagCard';
 
-const TagsDashboard = () => {
+interface TagsDashboardProps {
+  /** Rendered inside the CRM Panel, which supplies its own heading. */
+  embedded?: boolean;
+}
+
+const TagsDashboard = ({ embedded = false }: TagsDashboardProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [tags, setTags] = useState<TagData[]>([]);
@@ -211,18 +245,21 @@ const TagsDashboard = () => {
   const editTagNameRef = useRef<HTMLInputElement>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ name: string; color: string; scopes: TagScope[] }>({
     name: '',
-    color: DEFAULT_TAG_COLOR
+    color: DEFAULT_TAG_COLOR,
+    // New tags apply everywhere until narrowed — the least surprising default.
+    scopes: [...TAG_SCOPES],
   });
   const [formErrors, setFormErrors] = useState({
     name: ''
   });
 
   // Edit form state
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<{ name: string; color: string; scopes: TagScope[] }>({
     name: '',
-    color: DEFAULT_TAG_COLOR
+    color: DEFAULT_TAG_COLOR,
+    scopes: [...TAG_SCOPES],
   });
   const [editFormErrors, setEditFormErrors] = useState({
     name: ''
@@ -232,7 +269,7 @@ const TagsDashboard = () => {
   const fetchTags = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await tagService.getAllTags();
+      const response = await tagService.getAllTags({ withCounts: true });
       setTags(response.data || []);
     } catch (error) {
       console.error('Failed to fetch tags:', error);
@@ -265,7 +302,7 @@ const TagsDashboard = () => {
 
     setCreating(true);
     try {
-      const response = await tagService.createTag(formData.name.trim(), user.company_id, formData.color);
+      const response = await tagService.createTag(formData.name.trim(), user.company_id, formData.color, formData.scopes);
 
       // Extract the new tag from the API response
       const newTag = response.data || response;
@@ -273,7 +310,7 @@ const TagsDashboard = () => {
       // Optimistic update - add the new tag to the state
       setTags(prev => [...prev, newTag]);
 
-      setFormData({ name: '', color: DEFAULT_TAG_COLOR });
+      setFormData({ name: '', color: DEFAULT_TAG_COLOR, scopes: [...TAG_SCOPES] });
       setFormErrors({ name: '' });
       setShowNewTagModal(false);
 
@@ -318,6 +355,7 @@ const TagsDashboard = () => {
       const response = await tagService.updateTag(editingTag.id, {
         name: editFormData.name.trim(),
         color: editFormData.color,
+        scopes: editFormData.scopes,
       });
 
       const updatedTag = response.data || response;
@@ -372,7 +410,12 @@ const TagsDashboard = () => {
   // Open the edit modal for a tag, pre-filling the form
   const openEditTag = useCallback((tag: TagData) => {
     setEditingTag(tag);
-    setEditFormData({ name: tag.name, color: tag.color || DEFAULT_TAG_COLOR });
+    setEditFormData({
+      name: tag.name,
+      color: tag.color || DEFAULT_TAG_COLOR,
+      // A null `scopes` is a pre-scoping tag, which meant "usable everywhere".
+      scopes: tag.scopes?.length ? tag.scopes : [...TAG_SCOPES],
+    });
     setEditFormErrors({ name: '' });
   }, []);
 
@@ -400,17 +443,20 @@ const TagsDashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className={embedded ? 'space-y-6' : 'space-y-8'}>
+      {/* Header. The title and breadcrumb are dropped when embedded — the CRM
+          Panel already labels this section — but the create action stays. */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 futuristic-text break-words">
-            {t('tags.title')}
-          </h1>
-          <nav className="text-sm text-muted-foreground">
-            {t('tags.breadcrumb')}
-          </nav>
-        </div>
+        {!embedded && (
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 futuristic-text break-words">
+              {t('tags.title')}
+            </h1>
+            <nav className="text-sm text-muted-foreground">
+              {t('tags.breadcrumb')}
+            </nav>
+          </div>
+        )}
 
         <Dialog open={showNewTagModal} onOpenChange={setShowNewTagModal}>
           <DialogTrigger asChild>
@@ -464,13 +510,22 @@ const TagsDashboard = () => {
                   disabled={creating}
                 />
               </div>
+              <div className="space-y-2">
+                <Label className="text-foreground">{t('tags.used-for')}</Label>
+                <TagScopeSelector
+                  value={formData.scopes}
+                  onChange={(scopes) => setFormData(prev => ({ ...prev, scopes }))}
+                  disabled={creating}
+                />
+                <p className="text-xs text-muted-foreground">{t('tags.used-for-hint')}</p>
+              </div>
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
                   setShowNewTagModal(false);
-                  setFormData({ name: '', color: DEFAULT_TAG_COLOR });
+                  setFormData({ name: '', color: DEFAULT_TAG_COLOR, scopes: [...TAG_SCOPES] });
                   setFormErrors({ name: '' });
                 }}
                 disabled={creating}
@@ -571,6 +626,16 @@ const TagsDashboard = () => {
                 onChange={(color) => setEditFormData(prev => ({ ...prev, color }))}
                 disabled={updating}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-foreground">{t('tags.used-for')}</Label>
+              <TagScopeSelector
+                value={editFormData.scopes}
+                onChange={(scopes) => setEditFormData(prev => ({ ...prev, scopes }))}
+                disabled={updating}
+              />
+              <p className="text-xs text-muted-foreground">{t('tags.used-for-hint')}</p>
             </div>
           </div>
           <div className="flex gap-3">

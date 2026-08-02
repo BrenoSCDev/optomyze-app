@@ -16,7 +16,7 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { KanbanColumn as ColumnType } from '@/types/leads';
 import { Button } from '@/components/ui/button';
 import LeadCard from './LeadCard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Plus,
   MoreVertical,
@@ -43,6 +43,7 @@ interface KanbanColumnProps {
   onTagClick?: (lead: any) => void;
   onLeadClick?: (leadId: string) => void;
   onDeleteLead?: (lead: any) => void;
+  onArchiveLead?: (lead: any) => void;
   onAssignUser?: (lead: any) => void;
   onMoveFunnel?: (lead: any) => void;
   activeId?: string | null;
@@ -53,7 +54,7 @@ interface KanbanColumnProps {
   showAssignedUser?: boolean;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onArchiveLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [sortOrder, setSortOrder] = useState<'default' | 'oldest' | 'newest'>('default');
   const { currencyCode: companyCurrency } = useCurrency();
@@ -83,7 +84,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-80 flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
+      className={`glass-card p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
         isOver || isDropTarget ? 'ring-2 ring-primary/50 bg-primary/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -169,18 +170,19 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
           </motion.div>
         )}
         
-        <AnimatePresence>
-          {sortedLeads.map((lead) => (
-            <motion.div
-              key={lead.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                opacity: activeId === lead.id ? 0.3 : 1,
-              }}
-            >
+        {/*
+          No AnimatePresence around the cards. The optimistic move removes a
+          card from one column and inserts it into another in the same commit;
+          an exit animation kept the old copy on screen through the transition,
+          so the card appeared in both columns at once. Dragging is not the
+          moment for entry/exit choreography.
+
+          The dragged card is hidden rather than faded — the DragOverlay copy
+          is the one the user is following, and a 30%-opacity twin left behind
+          reads as a rendering fault.
+        */}
+        {sortedLeads.map((lead) => (
+            <div key={lead.id} className={activeId === lead.id ? 'invisible' : undefined}>
               <LeadCard
                 lead={lead}
                 isDragging={activeId === lead.id}
@@ -188,14 +190,14 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
                 onTagClick={onTagClick}
                 onLeadClick={onLeadClick}
                 onDeleteLead={onDeleteLead}
+                onArchiveLead={onArchiveLead}
                 onAssignUser={onAssignUser}
                 onMoveFunnel={onMoveFunnel}
                 showEstimatedValue={showEstimatedValues}
                 showAssignedUser={showAssignedUser}
               />
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
         
         {/* Empty State */}
         {column.leads.length === 0 && !activeId && (

@@ -10,6 +10,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '../../hooks/use-toast';
 import api from '../../services/api';
 import optomyzeLogo from '../../assets/optomyze.png';
+import optomyzeLogoLight from '../../assets/optomyze-light.png';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -22,6 +24,9 @@ const LoginForm = () => {
   
   const { login } = useAuth();
   const { t } = useLanguage();
+  const { mode } = useTheme();
+  // optomyze.png is the white mark for dark surfaces; -light is the dark mark.
+  const logo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -70,95 +75,93 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md animate-fade-in">
-      {/* Glassmorphism Login Card */}
-      <div className="rounded-xl p-8 lg:p-10 shadow-2xl border border-white/20 backdrop-blur-xl bg-white/10 transition-colors duration-base ease-standard hover:bg-white/15 hover:shadow-glow">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img
-            src={optomyzeLogo}
-            alt="Optomyze"
-            className="h-12 mx-auto mb-6 filter brightness-0 invert"
+    <div className="w-full">
+      {/* Header. No card wrapper — the panel itself is the surface. */}
+      <div className="mb-8">
+        <img src={logo} alt="Optomyze" className="mb-8 h-8" />
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {t('auth.welcome')}
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">{t('auth.subtitle')}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email">{t('auth.email')}</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder={t('auth.email-placeholder')}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            className="h-11"
+            required
           />
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">{t('auth.welcome')}</h1>
-          <p className="text-white/80 text-sm lg:text-base">{t('auth.subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">
-              {t('auth.email')}
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 h-12 transition-colors duration-fast ease-standard"
-              required
-            />
-          </div>
-
-          {/* Password Field */}
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">
-              {t('auth.password')}
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20 pr-10 h-12 transition-colors duration-fast ease-standard"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
-                disabled={isLoading}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            variant="black"
-            className="w-full transition-colors duration-base ease-standard h-12 font-semibold"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('auth.signingin')}
-              </>
-            ) : (
-              t('auth.signin')
-            )}
-          </Button>
-
-          {/* Forgot Password Link */}
-          <div className="text-center">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">{t('auth.password')}</Label>
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className="text-sm text-white hover:text-white/80 transition-colors"
+              className="text-xs font-medium text-primary transition-colors duration-fast hover:underline"
               disabled={isLoading}
             >
               {t('auth.forgot-password')}
             </button>
           </div>
-        </form>
-      </div>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder={t('auth.password-placeholder')}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              className="h-11 pr-10"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-fast hover:text-foreground"
+              disabled={isLoading}
+              aria-label={showPassword ? t('auth.hide-password') : t('auth.show-password')}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        <Button type="submit" disabled={isLoading} className="h-11 w-full">
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('auth.signingin')}
+            </>
+          ) : (
+            t('auth.signin')
+          )}
+        </Button>
+      </form>
+
+      {/* Self-service entry point: the CRM is sold directly now, so someone
+          landing here without an account needs a way forward. */}
+      <p className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+        {t('auth.no-account')}{' '}
+        <a
+          href="https://www.optomyze.io/solutions/crm"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-primary transition-colors duration-fast hover:underline"
+        >
+          {t('auth.get-started')}
+        </a>
+      </p>
 
       {/* Forgot Password Modal */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>

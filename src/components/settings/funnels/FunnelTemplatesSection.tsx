@@ -19,7 +19,7 @@ interface Props {
   onAddTemplate: (funnel: Funnel) => Promise<void>;
   onUpdateTemplate: (id: string, updates: Partial<Funnel>) => void;
   onDeleteTemplate: (id: string) => Promise<void>;
-  onCreateFunnelFromTemplate: (templateId: string, newFunnelName?: string, funnelType?: 'sale' | 'deal') => Promise<void>;
+  onCreateFunnelFromTemplate: (templateId: string, newFunnelName?: string, funnelType?: 'contact' | 'deal') => Promise<void>;
   onAddTemplateStage: (templateId: string, stage: Omit<FunnelStage, 'id'>) => Promise<FunnelStage>;
   onUpdateTemplateStage: (templateId: string, stageId: string, updates: Partial<FunnelStage>) => Promise<void>;
   onDeleteTemplateStage: (templateId: string, stageId: string) => Promise<void>;
@@ -84,7 +84,7 @@ const FunnelTemplatesSection = ({
   const [templateForm, setTemplateForm] = useState<Omit<Funnel, 'id'>>(emptyFunnel);
   const [stageForm, setStageForm] = useState<Omit<FunnelStage, 'id'>>(emptyStage);
   const [newFunnelName, setNewFunnelName] = useState('');
-  const [newFunnelType, setNewFunnelType] = useState<'sale' | 'deal'>('sale');
+  const [newFunnelType, setNewFunnelType] = useState<'contact' | 'deal'>('contact');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -220,7 +220,7 @@ const FunnelTemplatesSection = ({
   const handleOpenCreateFromTemplate = () => {
     if (!selectedTemplate) return;
     setNewFunnelName(`${selectedTemplate.name} (Copy)`);
-    setNewFunnelType('sale');
+    setNewFunnelType('contact');
     setIsCreateFromTemplateDialogOpen(true);
   };
 
@@ -500,13 +500,13 @@ const FunnelTemplatesSection = ({
               <Label>{t('funnels.type')}</Label>
               <Select
                 value={newFunnelType}
-                onValueChange={(value: 'sale' | 'deal') => setNewFunnelType(value)}
+                onValueChange={(value: 'contact' | 'deal') => setNewFunnelType(value)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sale">{t('funnels.sales-funnels')}</SelectItem>
+                  <SelectItem value="contact">{t('funnels.sales-funnels')}</SelectItem>
                   <SelectItem value="deal">{t('funnels.deal-funnels')}</SelectItem>
                 </SelectContent>
               </Select>

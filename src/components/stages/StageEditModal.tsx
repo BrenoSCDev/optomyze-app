@@ -73,7 +73,7 @@ interface StageEditModalProps {
   onClose: () => void;
   stage: Stage | null;
   funnelId: string;
-  funnelType: 'sale' | 'deal';
+  funnelType: 'contact' | 'deal';
   onUpdate: (updatedStage: Stage) => void;
 }
 

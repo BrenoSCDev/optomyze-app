@@ -28,14 +28,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useMenuOrder } from '@/contexts/MenuOrderContext';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { getStorageUrl } from '@/lib/constants';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import UserAvatar from '@/components/ui/user-avatar';
-import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId, getDefaultSearchTarget, SEARCH_TARGET_CHANGE_EVENT } from '@/lib/searchConfig';
+import SEARCH_TARGETS, { globalSearch, UnifiedSearchResult, SearchTargetId } from '@/lib/searchConfig';
+import { searchMenu } from '@/lib/menuSearchIndex';
 import optomyzeLogo from '@/assets/optomyze.png';
 import optomyzeLogoLight from '@/assets/optomyze-light.png';
 import OptoIcon from '@/assets/opto-icon.png';
@@ -54,10 +55,9 @@ interface TopHeaderProps {
   onMobileMenuToggle?: () => void;
   activeSection?: string;
   onSectionChange?: (section: string) => void;
-  headerNavMode?: boolean;
 }
 
-const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSectionChange, headerNavMode = false }: TopHeaderProps) => {
+const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSectionChange }: TopHeaderProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -72,13 +72,12 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isDealModalOpen, setIsDealModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [searchTarget, setSearchTarget] = useState<SearchTargetId>(getDefaultSearchTarget);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, funnels, logout } = useAuth();
   const { t } = useLanguage();
+  const { preferences } = useUserPreferences();
   const userProfilePicUrl = usePrivateFile(user?.profile_pic);
-  const { menuOrder } = useMenuOrder();
   const { mode } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
   const { openUserProfile } = useUserProfileModal();
@@ -86,7 +85,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   // - Header nav mode → midnight-blue bg → white logo
   // - Sidebar mode (light theme) → card bg → dark logo
   // - Sidebar mode (dark theme) → dark bg → white logo
-  const headerLogo = headerNavMode || mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
+  const headerLogo = mode === 'dark' ? optomyzeLogo : optomyzeLogoLight;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -94,20 +93,15 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Re-read search target whenever it changes: immediately via a same-tab
-  // custom event (fired by setDefaultSearchTarget), on window focus, or via
-  // the storage event when changed from another tab.
-  useEffect(() => {
-    const sync = () => setSearchTarget(getDefaultSearchTarget());
-    window.addEventListener(SEARCH_TARGET_CHANGE_EVENT, sync);
-    window.addEventListener('focus', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener(SEARCH_TARGET_CHANGE_EVENT, sync);
-      window.removeEventListener('focus', sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
+  /*
+   * The default search target comes straight from user preferences. It used to
+   * be mirrored into local state and re-synced through a custom event, a focus
+   * listener and the storage event; the context re-renders on change, so all of
+   * that plumbing is gone.
+   */
+  const searchTarget: SearchTargetId = SEARCH_TARGETS[preferences.default_search_target]
+    ? preferences.default_search_target
+    : 'leads';
 
   const currentSearchConfig = SEARCH_TARGETS[searchTarget];
   const searchPlaceholder = t('header.search-placeholder').replace('{target}', t(currentSearchConfig.labelKey));
@@ -138,6 +132,14 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       setShowResults(false);
       return;
     }
+    // The `menu` target searches the navigation itself — resolved locally,
+    // with no request and no spinner.
+    if (searchTarget === 'menu') {
+      setSearchResults(searchMenu(query, t, funnels as any));
+      setShowResults(true);
+      return;
+    }
+
     setIsSearching(true);
     try {
       const results = await globalSearch(searchTarget, query);
@@ -179,6 +181,20 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       case 'users':
         openUserProfile(result.id);
         break;
+      case 'menu': {
+        // Funnels are real routes; everything else is a section on the
+        // dashboard shell, optionally opening a specific CRM Panel tab.
+        const { sectionId, path, tab } = (result.meta ?? {}) as {
+          sectionId?: string; path?: string; tab?: string;
+        };
+
+        if (path) {
+          navigate(path);
+        } else if (sectionId) {
+          navigate(`/?section=${sectionId}${tab ? `&tab=${tab}` : ''}`);
+        }
+        break;
+      }
     }
   };
 
@@ -253,14 +269,17 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     }
   };
 
-  // Build header nav items with submenus
-  const leadsItems = funnels?.filter(f => f.is_active && f.type === 'sale').map(f => ({
-    id: f.id.toString(), label: f.name, path: `/leads/${f.id}`
-  })) || [];
-
-  const dealsItems = funnels?.filter(f => f.is_active && f.type === 'deal').map(f => ({
-    id: f.id.toString(), label: f.name, path: `/deals/${f.id}`
-  })) || [];
+  // Every active funnel in one list, mirroring the sidebar's unified menu.
+  // The two types still route differently, and ids are prefixed so a sale and
+  // a deal funnel sharing a numeric id can't collide.
+  const funnelItems = [
+    ...(funnels?.filter(f => f.is_active && f.type === 'contact').map(f => ({
+      id: `sale-${f.id}`, label: f.name, path: `/leads/${f.id}`
+    })) || []),
+    ...(funnels?.filter(f => f.is_active && f.type === 'deal').map(f => ({
+      id: `deal-${f.id}`, label: f.name, path: `/deals/${f.id}`
+    })) || []),
+  ];
 
   // Section config for header nav dropdowns
   const sectionConfig: Record<string, {
@@ -278,24 +297,17 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         { id: 'google-ads', label: t('dashboard.google-ads') },
       ],
     },
-    leads: {
-      icon: <Users className="h-3.5 w-3.5" />,
-      labelKey: 'nav.leads',
-      children: leadsItems,
-    },
-    deals: {
-      icon: <MdCurrencyExchange className="h-3.5 w-3.5" />,
-      labelKey: 'nav.deals',
-      children: dealsItems,
+    funnels: {
+      icon: <IoFunnelOutline className="h-3.5 w-3.5" />,
+      labelKey: 'nav.funnels',
+      children: funnelItems,
     },
     settings: {
       icon: <Settings className="h-3.5 w-3.5" />,
       labelKey: 'nav.settings',
       children: [
         { id: 'crm-panel', label: t('nav.crm-panel') },
-        { id: 'funnels', label: t('nav.funnels') },
         { id: 'companies', label: t('nav.companies') },
-        { id: 'tags', label: t('nav.tags') },
         { id: 'preferences', label: t('nav.preferences') },
       ],
     },
@@ -304,7 +316,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.reports',
       children: [
         { id: 'record-logs', label: t('reports.record-logs') },
-        { id: 'report-tasks', label: t('reports.tasks') },
+        { id: 'tasks', label: t('nav.tasks') },
       ],
     },
     integrations: {
@@ -358,7 +370,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.products',
       children: [
         { id: 'manage-products', label: t('products.manage') },
-        { id: 'product-categories', label: 'Product Categories' },
       ],
     },
     support: {
@@ -366,7 +377,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       labelKey: 'nav.support',
       children: [
         { id: 'open-ticket', label: t('support.open-ticket') },
-        { id: 'talk-to-optus', label: t('support.talk-to-optus') },
       ],
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -384,19 +394,15 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     <motion.header
       className="fixed top-0 left-0 w-full z-40 h-16 backdrop-blur-md flex items-center px-4 sm:px-6 rounded-none"
       style={{
-        background: headerNavMode ? 'hsl(var(--sidebar-bg))' : 'hsl(var(--card))',
-        borderBottom: headerNavMode
-          ? '1px solid hsl(var(--sidebar-border))'
-          : '1px solid hsl(var(--border))',
-        color: headerNavMode
-          ? 'hsl(var(--sidebar-text-active))'
-          : 'hsl(var(--card-foreground))',
-        transition: 'background 0.4s ease, border-color 0.4s ease, color 0.4s ease',
+        background: 'hsl(var(--header-bg))',
+        borderBottom: '1px solid hsl(var(--header-border))',
+        color: 'hsl(var(--card-foreground))',
+        transition: 'var(--transition-smooth)',
       }}
       initial={false}
       animate={{ 
-        left: headerNavMode ? 0 : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256)),
-        width: headerNavMode ? '100%' : (isMobile ? '100%' : (sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)'))
+        left: isMobile ? 0 : (sidebarCollapsed ? 64 : 256),
+        width: isMobile ? '100%' : (sidebarCollapsed ? 'calc(100% - 64px)' : 'calc(100% - 256px)')
       }}
       transition={{ duration: 0.3 }}
     >
@@ -412,83 +418,23 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Logo: always show in header mode, only show when sidebar collapsed otherwise */}
-        {headerNavMode ? (
-          <img src={headerLogo} alt="Optomyze" className="h-6 hidden md:block" />
-        ) : (
-          <AnimatePresence>
-            {sidebarCollapsed && (
-              <motion.img
-                src={headerLogo}
-                alt="Optomyze"
-                className="h-7 hidden md:block"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-              />
-            )}
-          </AnimatePresence>
-        )}
+        {/* Logo: shown only while the sidebar is collapsed */}
+        <AnimatePresence>
+          {sidebarCollapsed && (
+            <motion.img
+              src={headerLogo}
+              alt="Optomyze"
+              className="h-7 hidden md:block"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Header Navigation Bar (only in header mode on desktop) */}
-      {headerNavMode && !isMobile && (
-        <nav className="hidden md:flex items-center gap-0.5 ml-4 overflow-x-auto scrollbar-thin flex-1 min-w-0">
-          {menuOrder.map((sectionId) => {
-            const config = sectionConfig[sectionId];
-            if (!config) return null;
-            // Role gating
-
-            const isActive = sectionContainsActive(sectionId);
-            const hasChildren = config.children.length > 0;
-
-            if (hasChildren) {
-              return (
-                <DropdownMenu key={sectionId}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={`header-nav-item flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-                        isActive ? 'active' : ''
-                      }`}
-                    >
-                      {config.icon}
-                      <span>{t(config.labelKey)}</span>
-                      <ChevronDown className="h-3 w-3 opacity-50" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    sideOffset={8}
-                    className="min-w-[160px] bg-background/95 backdrop-blur-md border border-border-strong"
-                  >
-                    {config.children.map((child) => (
-                      <DropdownMenuItem
-                        key={child.id}
-                        className={`cursor-pointer text-xs ${
-                          activeSection === child.id ? 'bg-surface-3 text-foreground' : ''
-                        }`}
-                        onClick={() => {
-                          if (child.path) {
-                            navigate(child.path);
-                          } else {
-                            handleNavClick(child.id);
-                          }
-                        }}
-                      >
-                        {child.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              );
-            }
-            return null;
-          })}
-        </nav>
-      )}
-
       {/* Center Section - Search Bar (only when NOT in header mode, or on smaller screens) */}
-      {!headerNavMode && (
+      {(
         <div className="flex-1 flex justify-center max-w-xl mx-4">
           <div ref={searchContainerRef} className="hidden md:flex relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -555,60 +501,8 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         </div>
       )}
 
-      {/* In header mode, add a compact search */}
-      {headerNavMode && (
-        <div className="hidden md:flex items-center ml-auto mr-2">
-          <div ref={searchContainerRef} className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground z-10" />
-            {isSearching && (
-              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground animate-spin" />
-            )}
-            <Input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onFocus={() => searchQuery.length >= 3 && searchResults.length > 0 && setShowResults(true)}
-              className="w-48 h-8 pl-8 pr-8 text-xs bg-sidebar-hover border-sidebar-border text-sidebar-foreground-active placeholder:text-sidebar-foreground focus:border-ring focus:ring-ring/40"
-            />
-            <AnimatePresence>
-              {showResults && searchResults.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full right-0 mt-2 w-72 bg-background border border-border-strong rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto"
-                >
-                  {searchResults.map((result) => (
-                    <button
-                      key={result.id}
-                      onClick={() => handleResultSelect(result)}
-                      className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
-                    >
-                      {renderResultLeading(result, 'w-7 h-7', 'h-3.5 w-3.5')}
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium text-foreground truncate block">{result.title}</span>
-                        {result.subtitle && <span className="text-xs text-muted-foreground truncate block">{result.subtitle}</span>}
-                      </div>
-                      {result.badge && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                          result.badge.variant === 'success' ? 'bg-green-500/20 text-green-400' :
-                          result.badge.variant === 'destructive' ? 'bg-destructive/20 text-destructive' :
-                          'bg-muted text-muted-foreground'
-                        }`}>{result.badge.label}</span>
-                      )}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      )}
-
       {/* Right Section */}
-      <div className="flex items-center gap-1 shrink-0 ml-auto" ref={!headerNavMode ? searchContainerRef : undefined}>
+      <div className="flex items-center gap-1 shrink-0 ml-auto" ref={searchContainerRef}>
 
         {/* Mobile Search */}
         <div className="md:hidden relative">
@@ -783,7 +677,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
                     </div>
                   )}
                 </div>
-                {!headerNavMode && <span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>}
+                {<span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>}
                 <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-fast hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
               </Button>
             </DropdownMenuTrigger>

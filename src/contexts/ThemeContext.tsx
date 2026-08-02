@@ -1,25 +1,22 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+/**
+ * THEME
+ *
+ * A thin view over the server-backed user preferences. The `useTheme()` API is
+ * unchanged so no consumer had to be touched; only the storage moved.
+ *
+ * The DOM class is applied from whatever the preferences context currently
+ * holds — which on first paint is its localStorage cache, so the page never
+ * flashes the wrong colour scheme while the server copy is in flight.
+ */
 
-export type ThemeMode = 'dark' | 'light';
+import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { ThemeMode, useUserPreferences } from './UserPreferencesContext';
 
-const STORAGE_KEY = 'crm_appearance';
+export type { ThemeMode };
 
 interface ThemeContextType {
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
-}
-
-function getStoredMode(): ThemeMode {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed.mode === 'dark' || parsed.mode === 'light') {
-        return parsed.mode;
-      }
-    }
-  } catch {}
-  return 'dark';
 }
 
 function applyModeToDOM(mode: ThemeMode) {
@@ -34,19 +31,22 @@ function applyModeToDOM(mode: ThemeMode) {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setModeState] = useState<ThemeMode>(getStoredMode);
+  const { preferences, updatePreferences } = useUserPreferences();
+  const mode = preferences.theme;
 
   useEffect(() => {
     applyModeToDOM(mode);
   }, [mode]);
 
   const setMode = useCallback((newMode: ThemeMode) => {
-    setModeState(newMode);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: newMode }));
-  }, []);
+    // Optimistic inside the preferences context, so the switch is instant.
+    void updatePreferences({ theme: newMode });
+  }, [updatePreferences]);
+
+  const value = useMemo(() => ({ mode, setMode }), [mode, setMode]);
 
   return (
-    <ThemeContext.Provider value={{ mode, setMode }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

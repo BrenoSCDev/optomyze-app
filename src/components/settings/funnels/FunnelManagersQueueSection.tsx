@@ -399,7 +399,7 @@ const FunnelManagersQueueSection = () => {
                 {allFunnels.length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-2">{t('queues.no-funnels')}</p>
                 ) : (
-                  allFunnels.filter(f => f.type === 'sale').map(funnel => {
+                  allFunnels.filter(f => f.type === 'contact').map(funnel => {
                     const isSelected = formFunnelIds.includes(funnel.id);
                     // Check if this funnel is assigned to another queue
                     const assignedQueue = queues.find(q =>

@@ -33,7 +33,7 @@ const DEAL_STAGE_TYPES: StageTypeOption[] = [
 ];
 
 // Get stage types based on funnel type
-export const getStageTypesForFunnel = (funnelType: 'sale' | 'deal'): StageTypeOption[] => {
+export const getStageTypesForFunnel = (funnelType: 'contact' | 'deal'): StageTypeOption[] => {
   if (funnelType === 'deal') {
     return [...SHARED_STAGE_TYPES, ...DEAL_STAGE_TYPES];
   }

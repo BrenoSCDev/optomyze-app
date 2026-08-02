@@ -6,9 +6,10 @@
  */
 
 import api from '@/services/api';
-import { Users, UserCircle } from 'lucide-react';
+import { Compass, Users, UserCircle } from 'lucide-react';
 import { MdCurrencyExchange } from 'react-icons/md';
 import type { ComponentType } from 'react';
+import { readCachedPreferences } from '@/contexts/UserPreferencesContext';
 
 // ── Unified search result shape ────────────────────────────────────────
 export interface UnifiedSearchResult {
@@ -20,15 +21,20 @@ export interface UnifiedSearchResult {
   meta?: Record<string, any>;
 }
 
-export type SearchTargetId = 'leads' | 'deals' | 'users';
+export type SearchTargetId = 'leads' | 'deals' | 'users' | 'menu';
 
 export interface SearchTargetConfig {
   id: SearchTargetId;
   labelKey: string;
   icon: ComponentType<{ className?: string }>;
-  endpoint: string;
-  /** Map raw API response array → unified results */
-  mapper: (data: any[]) => UnifiedSearchResult[];
+  /**
+   * Absent for targets resolved on the client. `menu` searches the navigation
+   * itself, so there is nothing to call.
+   */
+  endpoint?: string;
+  mapper?: (data: any[]) => UnifiedSearchResult[];
+  /** True when results come from the client rather than an API call. */
+  local?: boolean;
 }
 
 // ── Per-target configs ─────────────────────────────────────────────────
@@ -64,6 +70,12 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
           : undefined,
       })),
   },
+  menu: {
+    id: 'menu',
+    labelKey: 'search.target.menu',
+    icon: Compass as any,
+    local: true,
+  },
   users: {
     id: 'users',
     labelKey: 'nav.users',
@@ -89,32 +101,25 @@ export async function globalSearch(
   query: string,
 ): Promise<UnifiedSearchResult[]> {
   const config = SEARCH_TARGETS[target];
+
+  // Local targets (menu) are resolved by the caller; there is no endpoint.
+  if (config.local || !config.endpoint || !config.mapper) {
+    return [];
+  }
+
   const res = await api.get(config.endpoint, { params: { q: query } });
   const raw = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
   return config.mapper(raw);
 }
 
-// ── localStorage persistence ───────────────────────────────────────────
-
-const STORAGE_KEY = 'crm_preferences';
-
-/** Fired immediately (same tab) whenever the default search target changes. */
-export const SEARCH_TARGET_CHANGE_EVENT = 'crm:search-target-changed';
+// ── Persistence ────────────────────────────────────────────────────────
+//
+// The default target now lives in the server-backed user preferences
+// (UserPreferencesContext). This module keeps only the reader, for the few
+// call sites that need it outside React; writes go through
+// updatePreferences({ default_search_target }).
 
 export function getDefaultSearchTarget(): SearchTargetId {
-  try {
-    const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const val = prefs?.search?.defaultTarget;
-    if (val && val in SEARCH_TARGETS) return val as SearchTargetId;
-  } catch { /* ignore */ }
-  return 'leads';
-}
-
-export function setDefaultSearchTarget(target: SearchTargetId): void {
-  try {
-    const prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    prefs.search = { ...prefs.search, defaultTarget: target };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  } catch { /* ignore */ }
-  window.dispatchEvent(new CustomEvent(SEARCH_TARGET_CHANGE_EVENT, { detail: target }));
+  const stored = readCachedPreferences().default_search_target;
+  return stored && stored in SEARCH_TARGETS ? (stored as SearchTargetId) : 'leads';
 }

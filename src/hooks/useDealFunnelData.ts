@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { getEcho } from '@/services/echo';
+import { tagAppliesTo } from '@/components/tags/TagScopeSelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -25,7 +26,8 @@ export const useDealFunnelData = (funnelId: string | undefined) => {
       setError(null);
       const data = await dealFunnelService.getDealFunnelData(funnelId);
       setFunnelData(data);
-      setAvailableTags(data?.tags || []);
+      // Embedded in the funnel payload, so filtered here rather than via ?scope=.
+      setAvailableTags((data?.tags || []).filter((tag: any) => tagAppliesTo(tag, 'deal')));
     } catch (err: any) {
       console.error('Failed to fetch deal funnel data:', err);
       setError(err);

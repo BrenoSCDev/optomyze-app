@@ -10,7 +10,6 @@ import { mockPeriodicData, mockMonthlyChartsData } from '@/data/mockMetricsData'
 import { mockPlanUsageData } from '@/data/mockPlanUsageData';
 import { mockMetaAdsData } from '@/data/mockMetaAdsData';
 import { mockGoogleAdsData } from '@/data/mockGoogleAdsData';
-import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { BarChart3, CreditCard, Activity } from 'lucide-react';
 import { FaMeta } from 'react-icons/fa6';
@@ -20,7 +19,6 @@ const Demo = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { navLayout } = useMenuOrder();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -28,7 +26,6 @@ const Demo = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const useHeaderLayout = navLayout === 'header' && !isMobile;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -40,16 +37,14 @@ const Demo = () => {
       </div>
 
       <TopHeader
-        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        sidebarCollapsed={sidebarCollapsed}
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection="optomyze-metrics"
         onSectionChange={() => {}}
-        headerNavMode={useHeaderLayout}
       />
 
       <div className="relative z-10 flex pt-16">
-        {!useHeaderLayout && (
-          <Sidebar
+                  <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             activeSection="optomyze-metrics"
@@ -57,26 +52,12 @@ const Demo = () => {
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
-        )}
-
-        {useHeaderLayout && isMobile && (
-          <Sidebar
-            isCollapsed={false}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            activeSection="optomyze-metrics"
-            onSectionChange={() => {}}
-            mobileOpen={mobileSidebarOpen}
-            onMobileClose={() => setMobileSidebarOpen(false)}
-          />
-        )}
 
         <motion.main
           className="flex-1 transition-colors duration-base ease-standard"
           initial={false}
           animate={{
-            marginLeft: useHeaderLayout
-              ? 0
-              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+            marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)
           }}
         >
           <div className="p-4 sm:p-8">

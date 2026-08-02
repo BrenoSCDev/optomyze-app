@@ -6,7 +6,6 @@
 
 import { getSalesEndpoints } from './endpoints/salesEndpoints';
 import { getProductsEndpoints } from './endpoints/productsEndpoints';
-import { getEventsEndpoints } from './endpoints/eventsEndpoints';
 import { getUsersEndpoints } from './endpoints/usersEndpoints';
 import { getTeamsEndpoints } from './endpoints/teamsEndpoints';
 import { getLeadCompaniesEndpoints } from './endpoints/leadCompaniesEndpoints';
@@ -286,7 +285,6 @@ export const getEndpointCategories = (t: (key: string) => string): EndpointCateg
   },
   getSalesEndpoints(t),
   getProductsEndpoints(t),
-  getEventsEndpoints(t),
   getAppointmentsEndpoints(t),
   getObservationsEndpoints(t),
   getTasksEndpoints(t),

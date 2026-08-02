@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { authService } from '../services/auth';
+import api from '../services/api';
 import { initEcho, disconnectEcho } from '../services/echo';
 
 const AuthContext = createContext(undefined);
@@ -54,6 +55,7 @@ const initialState = {
 };
 
 export const AuthProvider = ({ children }) => {
+  const refreshFunnelsRef = React.useRef(null);
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
@@ -68,6 +70,9 @@ export const AuthProvider = ({ children }) => {
     if (authData.token) {
       initEcho();
       console.log('🔌 Echo initialized on app load (existing session)');
+      // The cached funnel list is a login-time snapshot; it goes stale when a
+      // funnel is toggled or contact pipelines are switched in another session.
+      refreshFunnelsRef.current?.();
     }
   }, []);
 
@@ -102,8 +107,39 @@ export const AuthProvider = ({ children }) => {
     console.log('🔌 Echo disconnected on logout');
     
     await authService.logout();
+
+    // Clear the preferences first-paint cache. Without this, the next person to
+    // sign in on this machine briefly sees the previous user's theme and
+    // language before their own preferences arrive from the server.
+    try {
+      localStorage.removeItem('optomyze_preferences_cache');
+      // Also drop any pre-sign-in changes, or they would be applied to
+      // whoever signs in next on this machine.
+      localStorage.removeItem('optomyze_preferences_pending');
+    } catch { /* private mode */ }
+
     dispatch({ type: 'LOGOUT' });
   };
+
+  /**
+   * Re-reads the navigable funnels from the server. The list depends on both
+   * each funnel's is_active flag and the company's contact-pipeline switch, so
+   * anything that changes either must call this to keep the menu honest —
+   * otherwise the sidebar keeps showing the login-time snapshot.
+   */
+  const refreshFunnels = async () => {
+    try {
+      const { data } = await api.get('/api/funnels/navigation');
+      const funnels = data?.data ?? [];
+      localStorage.setItem('optomyze_funnels', JSON.stringify(funnels));
+      dispatch({ type: 'UPDATE_FUNNELS', payload: funnels });
+      return funnels;
+    } catch {
+      return null;   // keep the current menu rather than blanking it
+    }
+  };
+
+  refreshFunnelsRef.current = refreshFunnels;
 
   const updateFunnels = (funnels) => {
     localStorage.setItem('optomyze_funnels', JSON.stringify(funnels));
@@ -133,6 +169,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     ...state,
     login,
+    refreshFunnels,
     logout,
     updateFunnels,
     updateFunnel,

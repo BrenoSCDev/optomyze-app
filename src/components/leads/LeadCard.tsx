@@ -17,6 +17,7 @@ import {
   Tag,
   MoreVertical,
   UserCheck,
+  Archive,
   GitBranch,
   Trash2
 } from 'lucide-react';
@@ -44,26 +45,28 @@ interface LeadCardProps {
   onTagClick?: (lead: Lead) => void;
   onLeadClick?: (leadId: string) => void;
   onDeleteLead?: (lead: Lead) => void;
+  /** Archiving hides the lead everywhere without deleting it. */
+  onArchiveLead?: (lead: Lead) => void;
   onAssignUser?: (lead: Lead) => void;
   onMoveFunnel?: (lead: Lead) => void;
   showEstimatedValue?: boolean;
   showAssignedUser?: boolean;
 }
 
-const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, onDeleteLead, onAssignUser, onMoveFunnel, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
+const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick, onDeleteLead, onArchiveLead, onAssignUser, onMoveFunnel, showEstimatedValue = true, showAssignedUser = true }: LeadCardProps) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
   const {
     attributes,
     listeners,
     setNodeRef,
-    transform,
-    isDragging: isCurrentlyDragging,
   } = useDraggable({ id: lead.id });
 
-  const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-  };
+  /*
+   * No transform is applied here on purpose. The board renders a DragOverlay
+   * copy that follows the cursor; translating this element as well would drag
+   * the original along underneath it, showing two cards at once.
+   */
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'border-l-red-500';
@@ -88,22 +91,25 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
 
   return (
     <div className="relative">
-      <motion.div
+      {/*
+        A plain div, not motion.div. Once whileHover and layout were removed
+        this carried no motion props, and framer-motion runs its own pointer
+        gesture layer — not something to leave sitting between the card and the
+        drag sensor for no benefit.
+      */}
+      <div
         ref={setNodeRef}
-        style={style}
         {...attributes}
-        className={`glass-card p-4 cursor-pointer transition-colors duration-base ease-standard border-l-4 relative ${getPriorityColor(lead.priority)} ${
-          isDragging ? 'opacity-20 scale-95' : 'hover:border-border-strong'
+        {...listeners}
+        className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard border-l-4 relative touch-none ${getPriorityColor(lead.priority)} ${
+          isDragging ? 'invisible' : 'hover:border-border-strong'
         } ${isMoving ? 'opacity-60' : ''}`}
-        whileHover={{ y: isDragging ? 0 : -2 }}
-        layout
       >
         {/* Lead Header */}
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <div {...listeners} className="cursor-grab active:cursor-grabbing">
-              <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-            </div>
+            {/* Visual affordance only — the whole card is draggable. */}
+            <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground transition-colors" />
             <UserAvatar
               name={lead.name}
               profilePicPath={lead.avatar}
@@ -124,7 +130,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
           </div>
 
           {/* More Actions Menu */}
-          {(onTagClick || onAssignUser || onMoveFunnel || onDeleteLead) && (
+          {(onTagClick || onAssignUser || onMoveFunnel || onDeleteLead || onArchiveLead) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -161,6 +167,17 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
                   >
                     <GitBranch className="w-4 h-4" />
                     {t('lead-card.move-funnel')}
+                  </DropdownMenuItem>
+                )}
+                {onArchiveLead && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onArchiveLead(lead); }}
+                    className="cursor-pointer"
+                  >
+                    <Archive className="w-4 h-4" />
+                    {(lead as any).is_active === false
+                      ? t('contacts.action-unarchive')
+                      : t('contacts.action-archive')}
                   </DropdownMenuItem>
                 )}
                 {onDeleteLead && (
@@ -247,8 +264,8 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
           </span>
         </ClickableUser>
       )}
-      </motion.div>
-      
+      </div>
+
       {/* Loading Overlay for Moving State */}
       {isMoving && (
         <motion.div

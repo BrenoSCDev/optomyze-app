@@ -33,9 +33,8 @@ import {
 import { VscSourceControl } from "react-icons/vsc";
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
-import TasksSection from './TasksSection';
+import LeadTasksPanel from './LeadTasksPanel';
 import DocumentsSection from './DocumentsSection';
 import ObservationsSection from './ObservationsSection';
 import { Observation } from '@/services/observationApi';
@@ -106,27 +105,22 @@ interface Lead {
 
 interface LeadDetailTabsProps {
   lead: Lead;
-  tasks: Task[];
   documents: LeadDocument[];
   observations: Observation[];
-  onCreateTask: () => void;
-  onEditTask: (task: Task) => void;
-  onDeleteTask: (task: Task) => void;
   onUploadDocument: () => void;
   onDocumentDeleted: (documentId: number) => void;
   onObservationCreated: (observation: Observation) => void;
   onObservationUpdated: (observation: Observation) => void;
   onObservationDeleted: (observationId: number) => void;
+  /** Tab to open on; defaults to 'info'. */
+  initialTab?: string;
 }
 
 const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
+  initialTab,
   lead,
-  tasks,
   documents,
   observations,
-  onCreateTask,
-  onEditTask,
-  onDeleteTask,
   onUploadDocument,
   onDocumentDeleted,
   onObservationCreated,
@@ -134,7 +128,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
   onObservationDeleted
 }) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'info');
 
   // Most recently active inbox chat for this lead, across all channels
   // (WhatsApp, Instagram, Messenger, ...)
@@ -175,11 +169,6 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           >
             <ListTodo className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.tasks')}</span>
-            {tasks.length > 0 && (
-              <Badge className="hidden sm:inline-flex ml-1 sm:ml-1.5 bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">
-                {tasks.length}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger 
             value="documents" 
@@ -251,12 +240,7 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
         {/* Tasks Tab */}
         <TabsContent value="tasks" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <TasksSectionContent
-            tasks={tasks}
-            onCreateTask={onCreateTask}
-            onEditTask={onEditTask}
-            onDeleteTask={onDeleteTask}
-          />
+          <LeadTasksPanel leadId={lead.id} />
         </TabsContent>
 
         {/* Documents Tab */}
@@ -571,31 +555,6 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
   );
 };
 
-// Tasks Section Content (wrapper without card styling)
-interface TasksSectionContentProps {
-  tasks: Task[];
-  onCreateTask: () => void;
-  onEditTask: (task: Task) => void;
-  onDeleteTask: (task: Task) => void;
-}
-
-const TasksSectionContent: React.FC<TasksSectionContentProps> = ({
-  tasks,
-  onCreateTask,
-  onEditTask,
-  onDeleteTask
-}) => {
-  const { t } = useLanguage();
-
-  return (
-    <TasksSection
-      tasks={tasks}
-      onCreateTask={onCreateTask}
-      onEditTask={onEditTask}
-      onDeleteTask={onDeleteTask}
-    />
-  );
-};
 
 // Documents Section Content (wrapper without card styling)
 interface DocumentsSectionContentProps {

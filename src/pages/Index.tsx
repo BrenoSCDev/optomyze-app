@@ -3,8 +3,8 @@ import { useLocation, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { useLanguage } from '@/contexts/LanguageContext';
 import TopHeader from '@/components/layout/TopHeader';
-import { useMenuOrder } from '@/contexts/MenuOrderContext';
 
 // Lazy-loaded feature components — each becomes a separate Rollup chunk,
 // dramatically reducing the monolithic bundle that was causing 400 s builds.
@@ -12,11 +12,10 @@ const OptomyzeMetrics        = lazy(() => import('@/components/dashboards/Optomy
 const PlanUsage              = lazy(() => import('@/components/dashboards/PlanUsage'));
 const MetaAds                = lazy(() => import('@/components/dashboards/MetaAds'));
 const GoogleAds              = lazy(() => import('@/components/dashboards/GoogleAds'));
-const TagsDashboard          = lazy(() => import('@/components/dashboards/TagsDashboard'));
-const FunnelsDashboard       = lazy(() => import('@/components/dashboards/FunnelsDashboard'));
 const RecordLogsDashboard    = lazy(() => import('@/components/reports/RecordLogsDashboard'));
-const TasksDashboard         = lazy(() => import('@/components/reports/TasksDashboard'));
 const PreferencesPanel       = lazy(() => import('@/components/settings/PreferencesPanel'));
+const BusinessProfilePanel   = lazy(() => import('@/components/settings/BusinessProfilePanel'));
+const ManageContacts         = lazy(() => import('@/components/contacts/ManageContacts'));
 const CrmPanel               = lazy(() => import('@/components/settings/CrmPanel'));
 const LeadsManagement        = lazy(() => import('@/components/leads/LeadsManagement'));
 const ManageLeadCompanies    = lazy(() => import('@/components/companies/ManageLeadCompanies').then(m => ({ default: m.ManageLeadCompanies })));
@@ -33,17 +32,16 @@ const ManageTeams            = lazy(() => import('@/components/teams/ManageTeams
 const GlobalInbox            = lazy(() => import('@/components/inbox/global/GlobalInbox'));
 const OptomyzeInbox          = lazy(() => import('@/components/inbox/OptomyzeInbox'));
 const OptomyzeCalendar       = lazy(() => import('@/components/calendars/OptomyzeCalendar'));
+const TaskWorkspace          = lazy(() => import('@/components/tasks/TaskWorkspace'));
 const ManageProducts         = lazy(() => import('@/components/products/ManageProducts'));
-const ManageProductCategories = lazy(() => import('@/components/products/ManageProductCategories'));
 const ContractsPlaceholder   = lazy(() => import('@/components/placeholders/ContractsPlaceholder'));
-const OptusChat              = lazy(() => import('@/components/support/OptusChat'));
 const OpenTicket             = lazy(() => import('@/components/support/OpenTicket'));
 
 const Index = () => {
+  const { t } = useLanguage();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { navLayout } = useMenuOrder();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -75,7 +73,6 @@ const Index = () => {
   };
 
   // On desktop, use header layout if selected; on mobile always use sidebar (drawer)
-  const useHeaderLayout = navLayout === 'header' && !isMobile;
 
   const renderDashboard = () => {
     switch (activeSection) {
@@ -84,12 +81,11 @@ const Index = () => {
       case 'meta-ads': return <MetaAds />;
       case 'google-ads': return <GoogleAds />;
       case 'crm-panel': return <CrmPanel />;
+      case 'business-profile': return <BusinessProfilePanel />;
+      case 'contacts': return <ManageContacts />;
       case 'preferences': return <PreferencesPanel />;
-      case 'funnels': return <FunnelsDashboard />;
-      case 'tags': return <TagsDashboard />;
       case 'companies': return <ManageLeadCompanies />;
       case 'record-logs': return <RecordLogsDashboard />;
-      case 'report-tasks': return <TasksDashboard />;
       case 'general':
       case 'users':
       case 'api-keys':
@@ -116,12 +112,11 @@ const Index = () => {
       case 'global-inbox': return <GlobalInbox />;
       case 'optomyze-inbox': return <OptomyzeInbox />;
       case 'optomyze-calendar': return <OptomyzeCalendar />;
+      case 'tasks': return <TaskWorkspace />;
       case 'manage-products': return <ManageProducts />;
-      case 'product-categories': return <ManageProductCategories />;
       case 'model-contracts':
       case 'list-contracts': return <ContractsPlaceholder />;
       case 'open-ticket': return <OpenTicket />;
-      case 'talk-to-optus': return <OptusChat />;
       default:
         return (
           <div className="flex items-center justify-center h-64">
@@ -144,17 +139,15 @@ const Index = () => {
       </div>
 
       <TopHeader
-        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        sidebarCollapsed={sidebarCollapsed}
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection={activeSection}
         onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
-        headerNavMode={useHeaderLayout}
       />
 
       <div className="relative z-10 flex pt-16">
         {/* Sidebar: hidden on desktop when using header layout, always available on mobile */}
-        {!useHeaderLayout && (
-          <Sidebar
+                  <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={toggleSidebar}
             activeSection={activeSection}
@@ -162,31 +155,20 @@ const Index = () => {
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
-        )}
-
-        {/* On mobile with header layout, still need mobile sidebar */}
-        {useHeaderLayout && isMobile && (
-          <Sidebar
-            isCollapsed={false}
-            onToggle={toggleSidebar}
-            activeSection={activeSection}
-            onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
-            mobileOpen={mobileSidebarOpen}
-            onMobileClose={() => setMobileSidebarOpen(false)}
-          />
-        )}
 
         <motion.main
           className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-base ease-standard"
           initial={false}
           animate={{
-            marginLeft: useHeaderLayout
-              ? 0
-              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+            marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)
           }}
         >
           {(() => {
-            const isInboxSection = activeSection === 'global-inbox' || activeSection === 'optomyze-inbox';
+            // Sections that own their own chrome and manage scrolling
+            // internally: they get the full content box with no page padding.
+            const isInboxSection = activeSection === 'global-inbox'
+              || activeSection === 'optomyze-inbox'
+              || activeSection === 'tasks';
             return (
               <div className={isInboxSection ? 'p-0 h-[calc(100vh-4rem)]' : 'p-4 sm:p-8'}>
                 <AnimatePresence mode="wait">

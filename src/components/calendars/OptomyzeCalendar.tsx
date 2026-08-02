@@ -1,617 +1,506 @@
 /**
- * OPTOMYZE CALENDAR COMPONENT
+ * CALENDAR
  *
- * Displays a full calendar view with events and appointments
- * Connected to /api/events for real data with full CRUD support
+ * The CRM's scheduling workspace. Appointments are the only entity shown —
+ * the parallel "Events" concept has been removed.
+ *
+ * Layout is deliberately bare: no page header and no day sidebar, so the grid
+ * itself owns the full content area. All management happens in
+ * AppointmentModal, so the user never navigates away to edit a booking.
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckSquare, ChevronLeft, ChevronRight, Loader2, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
-import { getEcho } from '@/services/echo';
+import { cn } from '@/lib/utils';
+import { Appointment, getCompanyAppointments } from '@/services/appointmentApi';
+import { AppointmentType, getAppointmentTypes } from '@/services/appointmentTypeApi';
+import AppointmentModal from './AppointmentModal';
+import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import {
-  useCalendarEvents,
-  useCreateCalendarEvent,
-  useUpdateCalendarEvent,
-  useDeleteCalendarEvent
-} from '@/hooks/useCalendarEvents';
-import { CalendarTask, CalendarEvent, CalendarAppointment, CalendarEventsResponse } from '@/services/calendarApi';
-import { Appointment, updateAppointment } from '@/services/appointmentApi';
-import { EventFormModal, EventFormData } from './EventFormModal';
-import { DeleteEventDialog } from './DeleteEventDialog';
-import { DayDetailsDialog } from './DayDetailsDialog';
-import { CalendarDayCell } from './CalendarDayCell';
-import { EventChip } from './EventChip';
-import { AgendaEventCard } from './AgendaEventCard';
-import { CalendarItem } from './calendarUtils';
-import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, startOfWeek, endOfWeek, parseISO, isAfter, addDays } from 'date-fns';
-import { enUS, ptBR, de, es, type Locale } from 'date-fns/locale';
-import type { Language } from '@/contexts/LanguageContext';
+  WorkspaceTask, fetchTaskCalendar, isTaskDone, isTaskOverdue,
+} from '@/services/taskWorkspaceApi';
 
-type CalendarViewMode = 'month' | 'week' | 'day';
+type View = 'month' | 'week' | 'day';
 
-const VIEW_MODE_LABEL_KEYS: Record<CalendarViewMode, string> = {
-  month: 'calendar.view-month',
-  week: 'calendar.view-week',
-  day: 'calendar.view-day',
+const HOUR_HEIGHT = 48; // px per hour in week/day views
+const DAY_START = 0;
+const DAY_END = 24;
+
+/* ---------- date helpers (local, no external dependency) ---------- */
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d: Date, n: number) => { const c = new Date(d); c.setDate(c.getDate() + n); return c; };
+const addMonths = (d: Date, n: number) => { const c = new Date(d); c.setMonth(c.getMonth() + n); return c; };
+const startOfWeek = (d: Date) => addDays(startOfDay(d), -d.getDay());
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/**
+ * The API sends wall-clock time in the appointment's own timezone, so the
+ * components are read literally rather than letting Date shift them into the
+ * browser's zone — same reasoning as extractTime() in lib/utils.
+ */
+const parseWallClock = (iso: string): Date => {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : new Date(iso);
 };
 
-const DATE_FNS_LOCALES: Record<Language, Locale> = {
-  'en': enUS,
-  'pt-BR': ptBR,
-  'de': de,
-  'es': es,
-};
+const minutesInto = (d: Date) => d.getHours() * 60 + d.getMinutes();
+
+const toInputValue = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` +
+  `T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
 const OptomyzeCalendar: React.FC = () => {
   const { t, language } = useLanguage();
-  const dateLocale = DATE_FNS_LOCALES[language] ?? enUS;
-  const { user } = useAuth() as { user: { id: number; company_id: number } | null };
-  const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
+  const locale = language || undefined;
 
-  // Lead preview modal state
-  const [previewLeadId, setPreviewLeadId] = useState<string | null>(null);
+  const [view, setView] = useState<View>('month');
+  const [cursor, setCursor] = useState<Date>(() => startOfDay(new Date()));
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [types, setTypes] = useState<AppointmentType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Modal states
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedEventForEdit, setSelectedEventForEdit] = useState<CalendarEvent | null>(null);
-  const [selectedEventForDelete, setSelectedEventForDelete] = useState<CalendarItem | null>(null);
-  const [updatingAppointmentId, setUpdatingAppointmentId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [slotStart, setSlotStart] = useState<string | null>(null);
 
-  // Expanded day view (triggered by "+N more" in the month/week grid)
-  const [dayDetailsDate, setDayDetailsDate] = useState<Date | null>(null);
+  // Tasks share the grid with appointments. On by default because "what is on
+  // today" is the question this page exists to answer, but dismissable for
+  // anyone who wants the booking schedule alone.
+  const [showTasks, setShowTasks] = useState(true);
+  const [tasks, setTasks] = useState<WorkspaceTask[]>([]);
+  const [openTaskId, setOpenTaskId] = useState<number | null>(null);
+  /** Bumped after an edit in the task modal to force the range refetch. */
+  const [taskReloadKey, setTaskReloadKey] = useState(0);
 
-  const { data, isLoading, error, refetch, isFetching } = useCalendarEvents();
-  const createEventMutation = useCreateCalendarEvent();
-  const updateEventMutation = useUpdateCalendarEvent();
-  const deleteEventMutation = useDeleteCalendarEvent();
-
-  // Live appointment updates via private appointments.{company_id} channel
-  useEffect(() => {
-    if (!user?.company_id) return;
-    const echo = getEcho();
-    if (!echo) return;
-
-    const channelName = `appointments.${user.company_id}`;
-    const channel = echo.private(channelName);
-
-    channel.listen('.appointment.live', (payload: any) => {
-      queryClient.setQueryData<CalendarEventsResponse>(['calendarEvents'], (old) => {
-        if (!old) return old;
-
-        if (payload.action === 'created') {
-          const exists = old.appointments.some((a) => a.id === payload.appointment.id);
-          if (exists) return old;
-          return { ...old, appointments: [...old.appointments, payload.appointment as CalendarAppointment] };
-        }
-
-        if (payload.action === 'updated') {
-          return {
-            ...old,
-            appointments: old.appointments.map((a) =>
-              a.id === payload.appointment.id ? (payload.appointment as CalendarAppointment) : a
-            ),
-          };
-        }
-
-        if (payload.action === 'deleted') {
-          return {
-            ...old,
-            appointments: old.appointments.filter((a) => a.id !== payload.id),
-          };
-        }
-
-        return old;
-      });
-    });
-
-    return () => {
-      echo.leave(channelName);
-    };
-  }, [user?.company_id, queryClient]);
-
-  // Helper to parse dates correctly (handles date-only strings without timezone shift)
-  const parseDateSafe = (dateString: string): Date => {
-    if (!dateString) return new Date();
-
-    // If it's a date-only string (YYYY-MM-DD), parse it as local date at noon to avoid any DST issues
-    if (dateString.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      const [year, month, day] = dateString.split('-').map(Number);
-      return new Date(year, month - 1, day, 12, 0, 0);
-    }
-
-    // For datetime strings, check if it has timezone info
-    // If it's a datetime without timezone (e.g., "2025-01-14 10:00:00"), parse as local
-    if (dateString.includes(' ') && !dateString.includes('T') && !dateString.includes('Z')) {
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hours = 0, minutes = 0, seconds = 0] = (timePart || '').split(':').map(Number);
-      return new Date(year, month - 1, day, hours, minutes, seconds);
-    }
-
-    // Otherwise use parseISO for full ISO datetime strings
-    return parseISO(dateString);
-  };
-
-  // Transform API data to unified calendar items
-  const calendarItems = useMemo<CalendarItem[]>(() => {
-    if (!data) return [];
-
-    const items: CalendarItem[] = [];
-
-    // Transform tasks
-    data.tasks.forEach((task: CalendarTask) => {
-      items.push({
-        id: `task-${task.id}`,
-        originalId: task.id,
-        title: task.title,
-        description: task.description || '',
-        date: parseDateSafe(task.due_date),
-        type: 'task',
-        subType: task.priority,
-        priority: task.priority,
-        status: task.status,
-        hasReminder: task.reminder === 1,
-        attendee: task.assignee?.name,
-        leadName: task.lead ? `${task.lead.first_name} ${task.lead.last_name || ''}`.trim() : undefined,
-        leadId: task.lead?.id,
-        funnelId: task.lead?.funnel_id,
-      });
-    });
-
-    // Transform events
-    data.events.forEach((event: CalendarEvent) => {
-      items.push({
-        id: `event-${event.id}`,
-        originalId: event.id,
-        title: event.title,
-        description: event.description || '',
-        date: parseISO(event.start_at),
-        endDate: event.end_at ? parseISO(event.end_at) : undefined,
-        type: 'event',
-        subType: event.type,
-        allDay: event.all_day,
-        hasReminder: event.reminder === 1,
-        originalEvent: event,
-      });
-    });
-
-    // Transform appointments
-    data.appointments?.forEach((appt: CalendarAppointment) => {
-      items.push({
-        id: `appointment-${appt.id}`,
-        originalId: appt.id,
-        title: appt.title,
-        description: appt.notes || '',
-        date: parseDateSafe(appt.scheduled_at),
-        endDate: appt.end_at ? parseDateSafe(appt.end_at) : undefined,
-        type: 'appointment',
-        subType: appt.status,
-        status: appt.status,
-        hasReminder: false,
-        attendee: appt.user?.name,
-        leadName: appt.lead ? `${appt.lead.first_name} ${appt.lead.last_name || ''}`.trim() : undefined,
-        leadId: appt.lead?.id,
-        funnelId: appt.lead?.funnel_id,
-        appointmentTypeColor: appt.appointment_type?.color,
-        timezone: appt.timezone,
-      });
-    });
-
-    return items;
-  }, [data]);
-
-  // Event handlers for CRUD
-  const handleCreateEvent = () => {
-    setSelectedEventForEdit(null);
-    setIsEventModalOpen(true);
-  };
-
-  const handleEditEvent = (item: CalendarItem) => {
-    if (item.type === 'event' && item.originalEvent) {
-      setSelectedEventForEdit(item.originalEvent);
-      setIsEventModalOpen(true);
-    }
-  };
-
-  const handleDeleteEvent = (item: CalendarItem) => {
-    setSelectedEventForDelete(item);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleAppointmentStatusChange = async (item: CalendarItem, status: Appointment['status']) => {
-    setUpdatingAppointmentId(item.originalId);
+  const load = useCallback(async () => {
     try {
-      await updateAppointment(item.originalId, { status });
-      // No manual cache update needed — AppointmentController::update()
-      // broadcasts AppointmentLiveUpdate, already handled by the listener above.
+      setLoading(true);
+      const [list, typeList] = await Promise.all([
+        getCompanyAppointments(),
+        getAppointmentTypes().catch(() => [] as AppointmentType[]),
+      ]);
+      setAppointments(list);
+      setTypes(typeList);
     } catch {
-      // Toast pattern matches the rest of this component's quiet failure handling.
+      toast.error(t('calendar.load-failed'));
     } finally {
-      setUpdatingAppointmentId(null);
+      setLoading(false);
     }
-  };
+  }, [t]);
 
-  const handleEventFormSubmit = async (formData: EventFormData) => {
-    const payload = {
-      title: formData.title,
-      description: formData.description || '',
-      type: formData.type,
-      start_at: formData.start_at,
-      end_at: formData.end_at || undefined,
-      all_day: formData.all_day,
-      reminder: formData.reminder,
-    };
+  useEffect(() => { load(); }, [load]);
 
-    if (selectedEventForEdit) {
-      await updateEventMutation.mutateAsync({
-        eventId: selectedEventForEdit.id,
-        payload,
-      });
-    } else {
-      await createEventMutation.mutateAsync(payload);
+  /* ---------- visible range ---------- */
+
+  const days = useMemo(() => {
+    if (view === 'day') return [cursor];
+    if (view === 'week') return Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(cursor), i));
+    // Month is padded to whole weeks so the grid is always rectangular.
+    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+    const gridStart = startOfWeek(first);
+    return Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
+  }, [view, cursor]);
+
+  const byDay = useMemo(() => {
+    const map = new Map<string, Appointment[]>();
+    for (const a of appointments) {
+      const d = parseWallClock(a.scheduled_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const list = map.get(key);
+      if (list) list.push(a); else map.set(key, [a]);
     }
-    setIsEventModalOpen(false);
-    setSelectedEventForEdit(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (selectedEventForDelete && selectedEventForDelete.type === 'event') {
-      await deleteEventMutation.mutateAsync(selectedEventForDelete.originalId);
-      setIsDeleteDialogOpen(false);
-      setSelectedEventForDelete(null);
+    for (const list of map.values()) {
+      list.sort((x, y) => parseWallClock(x.scheduled_at).getTime() - parseWallClock(y.scheduled_at).getTime());
     }
-  };
+    return map;
+  }, [appointments]);
 
-  // Compute days to render based on view mode
-  const calendarDays = useMemo(() => {
-    if (viewMode === 'day') {
-      return [currentDate];
+  const dayAppointments = useCallback(
+    (d: Date) => byDay.get(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`) ?? [],
+    [byDay]
+  );
+
+  /* ---------- tasks overlaid on the same grid ---------- */
+
+  // Keyed to the visible range rather than fetching everything, and padded a
+  // week either side so the days bleeding in from adjacent months are filled.
+  useEffect(() => {
+    if (!showTasks) { setTasks([]); return; }
+
+    const first = days[0];
+    const last = days[days.length - 1];
+    if (!first || !last) return;
+
+    let cancelled = false;
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    fetchTaskCalendar(iso(addDays(first, -1)), iso(addDays(last, 1)))
+      .then(list => { if (!cancelled) setTasks(list); })
+      .catch(() => { if (!cancelled) setTasks([]); });
+
+    return () => { cancelled = true; };
+  }, [showTasks, days, taskReloadKey]);
+
+  const tasksByDay = useMemo(() => {
+    const map = new Map<string, WorkspaceTask[]>();
+
+    for (const task of tasks) {
+      if (!task.due_date) continue;
+      const d = parseWallClock(task.due_date);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      const list = map.get(key);
+      if (list) list.push(task); else map.set(key, [task]);
     }
-    if (viewMode === 'week') {
-      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return eachDayOfInterval({ start: wStart, end: wEnd });
-    }
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [currentDate, viewMode]);
 
-  const goToPrevious = () => {
-    if (viewMode === 'day') setCurrentDate(addDays(currentDate, -1));
-    else if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
-    else setCurrentDate(subMonths(currentDate, 1));
-  };
-  const goToNext = () => {
-    if (viewMode === 'day') setCurrentDate(addDays(currentDate, 1));
-    else if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
-    else setCurrentDate(addMonths(currentDate, 1));
-  };
-  const goToToday = () => {
-    setCurrentDate(new Date());
-    setSelectedDate(new Date());
-  };
+    // Urgent first, so what surfaces above the "+n more" cut is the work that
+    // actually matters.
+    const rank = { urgent: 0, high: 1, medium: 2, low: 3 } as const;
+    for (const list of map.values()) list.sort((a, b) => rank[a.priority] - rank[b.priority]);
 
-  const headerLabel = useMemo(() => {
-    if (viewMode === 'day') return format(currentDate, 'EEEE, MMMM d, yyyy', { locale: dateLocale });
-    if (viewMode === 'week') {
-      const wStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const wEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return `${format(wStart, 'MMM d', { locale: dateLocale })} - ${format(wEnd, 'MMM d, yyyy', { locale: dateLocale })}`;
-    }
-    return format(currentDate, 'MMMM yyyy', { locale: dateLocale });
-  }, [currentDate, viewMode, dateLocale]);
+    return map;
+  }, [tasks]);
 
-  const getItemsForDate = (date: Date): CalendarItem[] => {
-    return calendarItems.filter(item => isSameDay(item.date, date));
-  };
+  const dayTasks = useCallback(
+    (d: Date) => tasksByDay.get(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`) ?? [],
+    [tasksByDay]
+  );
 
-  // Get upcoming items (next 7 days)
-  const upcomingItems = useMemo(() => {
-    const now = new Date();
+  /* ---------- navigation ---------- */
 
-    return calendarItems
-      .filter(item => {
-        const itemDate = item.date;
-        return (isAfter(itemDate, now) || isSameDay(itemDate, now));
-      })
-      .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .slice(0, 4);
-  }, [calendarItems]);
-
-  const selectedDateItems = selectedDate ? getItemsForDate(selectedDate) : [];
-  const dayDetailsItems = dayDetailsDate ? getItemsForDate(dayDetailsDate) : [];
-
-  const weekDays = useMemo(() => {
-    const refSunday = startOfWeek(new Date(), { weekStartsOn: 0 });
-    return eachDayOfInterval({ start: refSunday, end: addDays(refSunday, 6) })
-      .map((d) => format(d, 'EEE', { locale: dateLocale }));
-  }, [dateLocale]);
-
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <p className="text-muted-foreground">Failed to load calendar events</p>
-        </div>
-      </div>
+  const step = (dir: -1 | 1) => {
+    setCursor(prev =>
+      view === 'month' ? addMonths(prev, dir)
+        : view === 'week' ? addDays(prev, 7 * dir)
+          : addDays(prev, dir)
     );
-  }
+  };
+
+  const rangeLabel = useMemo(() => {
+    if (view === 'day') {
+      return cursor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    if (view === 'week') {
+      const s = startOfWeek(cursor);
+      const e = addDays(s, 6);
+      const sameMonth = s.getMonth() === e.getMonth();
+      return `${s.toLocaleDateString(locale, { day: 'numeric', month: sameMonth ? undefined : 'short' })} – ${e.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    }
+    return cursor.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+  }, [view, cursor, locale]);
+
+  /* ---------- modal plumbing ---------- */
+
+  const openNew = (start?: Date) => {
+    setEditing(null);
+    setSlotStart(start ? toInputValue(start) : null);
+    setModalOpen(true);
+  };
+
+  const openExisting = (a: Appointment) => {
+    setEditing(a);
+    setSlotStart(null);
+    setModalOpen(true);
+  };
+
+  const handleSaved = (saved: Appointment) => {
+    setAppointments(prev =>
+      prev.some(a => a.id === saved.id)
+        ? prev.map(a => (a.id === saved.id ? saved : a))
+        : [...prev, saved]
+    );
+  };
+
+  const handleDeleted = (id: number) => setAppointments(prev => prev.filter(a => a.id !== id));
+
+  /* ---------- rendering ---------- */
+
+  const weekdayNames = useMemo(() => {
+    const base = startOfWeek(new Date());
+    return Array.from({ length: 7 }, (_, i) => addDays(base, i).toLocaleDateString(locale, { weekday: 'short' }));
+  }, [locale]);
+
+  const statusTone = (a: Appointment) => {
+    switch (a.status) {
+      case 'completed': return 'border-l-success bg-success-soft/60 text-foreground';
+      case 'cancelled':
+      case 'no_show': return 'border-l-destructive bg-destructive-soft/50 text-muted-foreground line-through';
+      case 'draft': return 'border-l-border-strong bg-surface-2 text-muted-foreground';
+      default: return 'border-l-primary bg-surface-2 text-foreground';
+    }
+  };
+
+  const timeLabel = (a: Appointment) =>
+    parseWallClock(a.scheduled_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+
+  const today = startOfDay(new Date());
 
   return (
-    <div className="space-y-6 overflow-x-hidden">
-      {/* Header */}
-      <motion.div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-3">
-            <Calendar className="h-7 w-7 sm:h-8 sm:w-8 text-primary shrink-0" />
-            {t('calendar.optomyze.title')}
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            {t('calendar.optomyze.description')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} title="Refresh">
-            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Toolbar — the only chrome; there is deliberately no page header. */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+        <Button variant="outline" size="sm" onClick={() => setCursor(startOfDay(new Date()))}>
+          {t('calendar.today')}
+        </Button>
+        <div className="flex items-center">
+          <Button variant="ghost" size="icon-sm" aria-label={t('calendar.previous')} onClick={() => step(-1)}>
+            <ChevronLeft />
           </Button>
-          <Button className="bg-primary hover:bg-primary/80" onClick={handleCreateEvent}>
-            <Plus className="h-4 w-4" />
-            {t('calendar.new-event')}
+          <Button variant="ghost" size="icon-sm" aria-label={t('calendar.next')} onClick={() => step(1)}>
+            <ChevronRight />
           </Button>
         </div>
-      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Grid */}
-        <motion.div
-          className="lg:col-span-2 glass-card p-3 sm:p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          {/* Navigation */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <h2 className="text-xl font-semibold text-foreground">
-              {headerLabel}
-            </h2>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* View mode switcher */}
-              <div className="inline-flex rounded-md border border-border bg-muted/30 p-0.5">
-                {(['month', 'week', 'day'] as CalendarViewMode[]).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      viewMode === mode
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {t(VIEW_MODE_LABEL_KEYS[mode])}
-                  </button>
-                ))}
+        <h2 className="min-w-0 truncate text-sm font-semibold capitalize text-foreground sm:text-base">
+          {rangeLabel}
+        </h2>
+
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant={showTasks ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setShowTasks(v => !v)}
+            aria-pressed={showTasks}
+          >
+            <CheckSquare />
+            <span className="hidden sm:inline">{t('calendar.show-tasks')}</span>
+          </Button>
+
+          <div className="flex overflow-hidden rounded-md border border-input-border">
+            {(['day', 'week', 'month'] as View[]).map(v => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={cn(
+                  'px-3 py-1.5 text-xs font-medium transition-colors duration-fast ease-standard',
+                  view === v
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground'
+                )}
+              >
+                {t(`calendar.view.${v}`)}
+              </button>
+            ))}
+          </div>
+          <Button size="sm" onClick={() => openNew()}>
+            <Plus />
+            <span className="hidden sm:inline">{t('calendar.new-appointment')}</span>
+          </Button>
+        </div>
+      </div>
+
+      {view === 'month' ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="grid grid-cols-7 border-b border-border bg-table-header">
+            {weekdayNames.map(name => (
+              <div key={name} className="px-2 py-1.5 text-center text-[11px] font-medium uppercase tracking-wide text-table-header-foreground">
+                {name}
               </div>
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                {t('calendar.today')}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={goToPrevious}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={goToNext}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            ))}
+          </div>
+          <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 overflow-auto">
+            {days.map((d, i) => {
+              const inMonth = d.getMonth() === cursor.getMonth();
+              const list = dayAppointments(d);
+              const openSlot = () => openNew(new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 0));
+              return (
+                <div
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  onClick={openSlot}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSlot(); }
+                  }}
+                  className={cn(
+                    'flex min-h-[92px] cursor-pointer flex-col gap-0.5 border-b border-r border-border p-1 transition-colors duration-fast ease-standard hover:bg-surface-2',
+                    !inMonth && 'bg-surface-1/40'
+                  )}
+                >
+                  <span className={cn(
+                    'mb-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center self-start rounded-full text-[11px] tabular-nums',
+                    isSameDay(d, today)
+                      ? 'bg-primary font-semibold text-primary-foreground'
+                      : inMonth ? 'text-muted-foreground' : 'text-muted-foreground/50'
+                  )}>
+                    {d.getDate()}
+                  </span>
+                  {list.slice(0, 3).map(a => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); openExisting(a); }}
+                      title={a.title}
+                      className={cn(
+                        'w-full truncate rounded-sm border-l-2 px-1.5 py-0.5 text-left text-[11px] leading-tight transition-colors duration-fast ease-standard hover:bg-surface-3',
+                        statusTone(a)
+                      )}
+                    >
+                      <span className="mr-1 tabular-nums opacity-70">{timeLabel(a)}</span>
+                      {a.title}
+                    </button>
+                  ))}
+                  {/* Tasks share the cell, visually distinct from bookings:
+                      a dashed left edge rather than a solid status bar. */}
+                  {dayTasks(d).slice(0, Math.max(0, 3 - Math.min(list.length, 3))).map(task => (
+                    <button
+                      key={`task-${task.id}`}
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setOpenTaskId(task.id); }}
+                      title={task.title}
+                      className={cn(
+                        'flex w-full items-center gap-1 truncate rounded-sm border-l-2 border-dashed px-1.5 py-0.5 text-left text-[11px] leading-tight transition-colors duration-fast ease-standard hover:bg-surface-3',
+                        isTaskOverdue(task)
+                          ? 'border-l-destructive bg-destructive-soft/40 text-destructive'
+                          : 'border-l-info bg-surface-2 text-foreground',
+                        isTaskDone(task) && 'text-muted-foreground line-through'
+                      )}
+                    >
+                      <CheckSquare className="h-3 w-3 shrink-0 opacity-70" />
+                      <span className="truncate">{task.title}</span>
+                    </button>
+                  ))}
+
+                  {(() => {
+                    const hidden = Math.max(0, list.length + dayTasks(d).length - 3);
+                    return hidden > 0 ? (
+                      <span className="px-1 text-[10px] text-muted-foreground">
+                        +{hidden} {t('calendar.more')}
+                      </span>
+                    ) : null;
+                  })()}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex border-b border-border bg-table-header">
+            <div className="w-14 shrink-0 border-r border-border" />
+            {days.map((d, i) => (
+              <div key={i} className="flex-1 px-2 py-1.5 text-center">
+                <div className="text-[11px] uppercase tracking-wide text-table-header-foreground">
+                  {d.toLocaleDateString(locale, { weekday: 'short' })}
+                </div>
+                <div className={cn(
+                  'mx-auto mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs tabular-nums',
+                  isSameDay(d, today) ? 'bg-primary font-semibold text-primary-foreground' : 'text-foreground'
+                )}>
+                  {d.getDate()}
+                </div>
+
+                {/* Tasks sit above the hour grid rather than inside it: a due
+                    date is a deadline for the day, not a booking at 00:00. */}
+                {dayTasks(d).length > 0 && (
+                  <div className="mt-1 space-y-0.5">
+                    {dayTasks(d).slice(0, 2).map(task => (
+                      <button
+                        key={`task-${task.id}`}
+                        type="button"
+                        onClick={() => setOpenTaskId(task.id)}
+                        title={task.title}
+                        className={cn(
+                          'flex w-full items-center gap-1 truncate rounded-sm border-l-2 border-dashed px-1 py-0.5 text-left text-[10px] leading-tight transition-colors duration-fast ease-standard hover:bg-surface-3',
+                          isTaskOverdue(task)
+                            ? 'border-l-destructive bg-destructive-soft/40 text-destructive'
+                            : 'border-l-info bg-surface-2 text-foreground',
+                          isTaskDone(task) && 'text-muted-foreground line-through'
+                        )}
+                      >
+                        <CheckSquare className="h-2.5 w-2.5 shrink-0 opacity-70" />
+                        <span className="truncate">{task.title}</span>
+                      </button>
+                    ))}
+                    {dayTasks(d).length > 2 && (
+                      <span className="block text-[10px] text-muted-foreground">
+                        +{dayTasks(d).length - 2} {t('calendar.more')}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* Week Days Header (only for month/week) */}
-          {viewMode !== 'day' && (
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {weekDays.map(day => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                  {day}
+          <div className="flex min-h-0 flex-1 overflow-auto">
+            <div className="w-14 shrink-0 border-r border-border">
+              {Array.from({ length: DAY_END - DAY_START }, (_, h) => (
+                <div key={h} style={{ height: HOUR_HEIGHT }} className="relative">
+                  <span className="absolute -top-2 right-1 text-[10px] tabular-nums text-muted-foreground">
+                    {String(DAY_START + h).padStart(2, '0')}:00
+                  </span>
                 </div>
               ))}
             </div>
-          )}
 
-          {/* Calendar Days */}
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : viewMode === 'day' ? (
-            // Day view: single full-width column
-            <div>
-              {(() => {
-                const day = calendarDays[0];
-                const dayItems = getItemsForDate(day);
-                const isToday = isSameDay(day, new Date());
-                return (
-                  <div className={`rounded-lg border ${isToday ? 'border-primary/50' : 'border-border'} bg-muted/30 p-4 min-h-[400px]`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`text-lg font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
-                        {format(day, 'EEEE, MMMM d', { locale: dateLocale })}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {dayItems.length} {dayItems.length === 1 ? 'item' : 'items'}
-                      </span>
-                    </div>
-                    {dayItems.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground text-sm">
-                        {t('calendar.no-events')}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {dayItems.map(item => (
-                          <EventChip key={item.id} item={item} variant="day" onSelect={() => setSelectedDate(day)} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((day, index) => {
-                const dayItems = getItemsForDate(day);
-                const isCurrentMonth = viewMode === 'week' ? true : isSameMonth(day, currentDate);
-                const isSelected = !!(selectedDate && isSameDay(day, selectedDate));
-                const isToday = isSameDay(day, new Date());
-                const itemLimit = viewMode === 'week' ? 6 : 3;
-
-                return (
-                  <CalendarDayCell
-                    key={index}
-                    day={day}
-                    items={dayItems}
-                    isCurrentMonth={isCurrentMonth}
-                    isSelected={isSelected}
-                    isToday={isToday}
-                    variant={viewMode === 'week' ? 'week' : 'month'}
-                    itemLimit={itemLimit}
-                    onSelectDate={setSelectedDate}
-                    onShowMore={setDayDetailsDate}
+            {days.map((d, di) => (
+              <div key={di} className="relative flex-1 border-r border-border">
+                {Array.from({ length: DAY_END - DAY_START }, (_, h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => openNew(new Date(d.getFullYear(), d.getMonth(), d.getDate(), DAY_START + h, 0))}
+                    style={{ height: HOUR_HEIGHT }}
+                    className="block w-full border-b border-border/60 transition-colors duration-fast ease-standard hover:bg-surface-2"
+                    aria-label={`${d.toLocaleDateString(locale)} ${DAY_START + h}:00`}
                   />
-                );
-              })}
-            </div>
-          )}
-        </motion.div>
+                ))}
 
-        {/* Selected Day Events */}
-        <motion.div
-          className="glass-card p-6 lg:self-start flex flex-col max-h-[calc(100vh-220px)]"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h3 className="text-lg font-semibold text-foreground mb-4 shrink-0">
-            {selectedDate ? format(selectedDate, 'EEEE, MMMM d', { locale: dateLocale }) : t('calendar.select-date')}
-          </h3>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : selectedDateItems.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">{t('calendar.no-events')}</p>
-              <p className="text-muted-foreground/70 text-xs mt-1">{t('calendar.no-events-description')}</p>
-            </div>
-          ) : (
-            <div className="space-y-4 overflow-y-auto pr-1 -mr-1">
-              {selectedDateItems.map(item => (
-                <AgendaEventCard
-                  key={item.id}
-                  item={item}
-                  variant="full"
-                  isUpdating={updatingAppointmentId === item.originalId}
-                  onEdit={handleEditEvent}
-                  onDelete={handleDeleteEvent}
-                  onStatusChange={handleAppointmentStatusChange}
-                  onPreviewLead={(leadId) => setPreviewLeadId(leadId)}
-                />
-              ))}
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Upcoming Events Summary */}
-      <motion.div
-        className="glass-card p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <h3 className="text-lg font-semibold text-foreground mb-4">{t('calendar.upcoming-events')}</h3>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : upcomingItems.length === 0 ? (
-          <div className="text-center py-8">
-            <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground text-sm">No upcoming events or tasks</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {upcomingItems.map(item => (
-              <AgendaEventCard
-                key={item.id}
-                item={item}
-                variant="compact"
-                dateLocale={dateLocale}
-                onClick={(it) => {
-                  setCurrentDate(it.date);
-                  setSelectedDate(it.date);
-                }}
-                onPreviewLead={(leadId) => setPreviewLeadId(leadId)}
-              />
+                {dayAppointments(d).map(a => {
+                  const s = parseWallClock(a.scheduled_at);
+                  const e = a.end_at ? parseWallClock(a.end_at) : new Date(s.getTime() + 60 * 60 * 1000);
+                  const top = (minutesInto(s) / 60) * HOUR_HEIGHT;
+                  const height = Math.max(18, ((minutesInto(e) - minutesInto(s)) / 60) * HOUR_HEIGHT);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={(ev) => { ev.stopPropagation(); openExisting(a); }}
+                      style={{ top, height }}
+                      title={a.title}
+                      className={cn(
+                        'absolute inset-x-1 overflow-hidden rounded-sm border-l-2 px-1.5 py-0.5 text-left text-[11px] leading-tight shadow-elevation-sm transition-colors duration-fast ease-standard hover:bg-surface-3',
+                        statusTone(a)
+                      )}
+                    >
+                      <div className="truncate font-medium">{a.title}</div>
+                      <div className="truncate tabular-nums opacity-70">{timeLabel(a)}</div>
+                    </button>
+                  );
+                })}
+              </div>
             ))}
           </div>
-        )}
-      </motion.div>
+        </div>
+      )}
 
-      {/* Event Form Modal */}
-      <EventFormModal
-        open={isEventModalOpen}
-        onOpenChange={setIsEventModalOpen}
-        onSubmit={handleEventFormSubmit}
-        event={selectedEventForEdit}
-        isLoading={createEventMutation.isPending || updateEventMutation.isPending}
-        defaultDate={selectedDate || undefined}
+      <AppointmentModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        appointment={editing}
+        initialStart={slotStart}
+        appointmentTypes={types}
+        onSaved={handleSaved}
+        onDeleted={handleDeleted}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <DeleteEventDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-        eventTitle={selectedEventForDelete?.title || ''}
-        isLoading={deleteEventMutation.isPending}
-      />
-
-      {/* Expanded Day View (triggered by "+N more") */}
-      <DayDetailsDialog
-        open={dayDetailsDate !== null}
-        onOpenChange={(open) => { if (!open) setDayDetailsDate(null); }}
-        date={dayDetailsDate}
-        items={dayDetailsItems}
-        dateLocale={dateLocale}
-        updatingItemId={updatingAppointmentId}
-        onEdit={handleEditEvent}
-        onDelete={handleDeleteEvent}
-        onStatusChange={handleAppointmentStatusChange}
-        onPreviewLead={(leadId) => setPreviewLeadId(leadId)}
-      />
-
-      {/* Lead Preview Modal */}
-      <LeadPreviewModal
-        isOpen={previewLeadId !== null}
-        onClose={() => setPreviewLeadId(null)}
-        leadId={previewLeadId}
+      {/* Opening a task from the calendar gives the full task view rather than
+          navigating away to the Tasks module. */}
+      <TaskDetailModal
+        open={openTaskId !== null}
+        taskId={openTaskId}
+        onClose={() => setOpenTaskId(null)}
+        onSaved={() => setTaskReloadKey(k => k + 1)}
+        onDeleted={id => setTasks(prev => prev.filter(task => task.id !== id))}
       />
     </div>
   );

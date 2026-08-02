@@ -29,7 +29,7 @@ export const useFunnelSettings = () => {
       const mappedFunnels: Funnel[] = funnelsFromApi.map((f: any) => ({
         id: String(f.id),
         name: f.name,
-        type: f.type || 'sale',
+        type: f.type || 'contact',
         isDefault: f.is_default || false,
         appliesTo: f.applies_to || 'both',
         stages: (f.stages || []).map((s: any) => ({
@@ -130,7 +130,7 @@ export const useFunnelSettings = () => {
       const response = await api.post('/api/funnels', {
         name: funnel.name,
         description: funnel.name,
-        type: funnel.type ?? 'sale',
+        type: funnel.type ?? 'contact',
         applies_to: funnel.appliesTo,
         is_default: funnel.isDefault,
       });
@@ -138,7 +138,7 @@ export const useFunnelSettings = () => {
       const createdFunnel: Funnel = {
         id: String(response.data.id),
         name: response.data.name,
-        type: response.data.type ?? 'sale',
+        type: response.data.type ?? 'contact',
         isDefault: response.data.is_default || false,
         appliesTo: response.data.applies_to || 'both',
         stages: [],
@@ -409,7 +409,7 @@ export const useFunnelSettings = () => {
   }, []);
 
   // Create funnel from template via API
-  const createFunnelFromTemplate = useCallback(async (templateId: string, newFunnelName?: string, funnelType: 'sale' | 'deal' = 'sale') => {
+  const createFunnelFromTemplate = useCallback(async (templateId: string, newFunnelName?: string, funnelType: 'contact' | 'deal' = 'contact') => {
     const template = settings.funnels.find(f => f.id === templateId && f.type === 'model');
     if (!template) return;
 

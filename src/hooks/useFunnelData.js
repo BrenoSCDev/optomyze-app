@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { funnelService } from '@/services/funnelApi';
 import { getEcho } from '@/services/echo';
+import { tagAppliesTo } from '@/components/tags/TagScopeSelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -19,7 +20,9 @@ export const useFunnelData = (funnelId) => {
       setError(null);
       const data = await funnelService.getFunnelData(id);
 
-      const tags = data?.tags || [];
+      // Tags arrive embedded in the funnel payload, so they cannot be narrowed
+      // with `?scope=` and are filtered here instead.
+      const tags = (data?.tags || []).filter(tag => tagAppliesTo(tag, 'lead'));
       setAvailableTags(tags);
       setFunnelData(data);
     } catch (err) {

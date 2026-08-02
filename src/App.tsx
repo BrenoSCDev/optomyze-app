@@ -1,12 +1,14 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { OptusProvider } from "@/contexts/OptusContext";
+import OptusBubble from "@/components/support/OptusBubble";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import { MenuOrderProvider } from "./contexts/MenuOrderContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { UserPreferencesProvider } from "./contexts/UserPreferencesContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { PresenceProvider } from "./contexts/PresenceContext";
 import { UserProfileModalProvider } from "./contexts/UserProfileModalContext";
@@ -27,15 +29,16 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <UserPreferencesProvider>
       <LanguageProvider>
         <ThemeProvider>
-        <MenuOrderProvider>
         <BrowserRouter>
           <NotificationProvider>
             <PresenceProvider>
             <TooltipProvider>
             <UserProfileModalProvider>
             <InboxProvider>
+            <OptusProvider>
               <Toaster />
               <Sonner position="top-right" richColors />
               <Routes>
@@ -102,15 +105,19 @@ const App = () => (
                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              {/* Renders itself only when enabled in Preferences and the
+                  user is signed in. */}
+              <OptusBubble />
+            </OptusProvider>
             </InboxProvider>
             </UserProfileModalProvider>
             </TooltipProvider>
             </PresenceProvider>
           </NotificationProvider>
         </BrowserRouter>
-        </MenuOrderProvider>
         </ThemeProvider>
       </LanguageProvider>
+      </UserPreferencesProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

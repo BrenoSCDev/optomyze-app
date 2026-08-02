@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import OptoIcon from '@/assets/opto-icon.png';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +17,24 @@ import { useConversationSettings } from '@/hooks/useConversationSettings';
 import { useCustomProductFields } from '@/hooks/useCustomProductFields';
 import { useLeadCustomFields } from '@/hooks/useLeadCustomFields';
 import { FunnelStage } from '@/services/funnelSettingsApi';
+
+/*
+ * Management screens that used to be their own menu destinations and now live
+ * inside this panel. Lazy so the panel does not pull three large screens into
+ * its chunk when most visits only touch a settings toggle.
+ */
+const FunnelsDashboard        = lazy(() => import('@/components/dashboards/FunnelsDashboard'));
+const TagsDashboard           = lazy(() => import('@/components/dashboards/TagsDashboard'));
+const ManageProductCategories = lazy(() => import('@/components/products/ManageProductCategories'));
+
+/** Guards the `?tab=` deep link against a stale or hand-typed value. */
+const VALID_TABS = ['notifications', 'conversations', 'funnels', 'products', 'sales', 'appointments', 'tags'];
+
+const PanelFallback = () => (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
 
 // Product Settings
 import ProductBehaviorSection from './products/ProductBehaviorSection';
@@ -57,7 +77,17 @@ import {
 
 const CrmPanel = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('notifications');
+  /*
+   * Deep-linkable: `?section=crm-panel&tab=funnels` opens straight onto a tab.
+   * Screens that used to be their own destinations (funnel management, tags,
+   * product categories) live in here now, so links to them need a way to land
+   * on the right tab rather than the default one.
+   */
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    const requested = new URLSearchParams(location.search).get('tab');
+    return requested && VALID_TABS.includes(requested) ? requested : 'notifications';
+  });
   const [editingStage, setEditingStage] = useState<FunnelStage | null>(null);
   const [stageDialogOpen, setStageDialogOpen] = useState(false);
 
@@ -203,7 +233,7 @@ const CrmPanel = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6 mb-6">
+        <TabsList className="grid w-full grid-cols-7 mb-6">
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
             <span className="hidden sm:inline">{t('settings.crm-panel.tabs.notifications')}</span>
@@ -227,6 +257,10 @@ const CrmPanel = () => {
           <TabsTrigger value="appointments" className="gap-2">
             <CalendarDays className="w-4 h-4" />
             <span className="hidden sm:inline">{t('settings.crm-panel.tabs.appointments')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="gap-2">
+            <Tag className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('settings.crm-panel.tabs.tags')}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -511,6 +545,29 @@ const CrmPanel = () => {
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
+              {/* Funnel management — first, because it is where funnels are
+                  actually created and edited; everything below it configures
+                  how funnels behave. */}
+              <AccordionItem value="funnel-management" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <IoFunnelOutline className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.crm-panel.funnel-management')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 border-t">
+                    <Suspense fallback={<PanelFallback />}>
+                      <FunnelsDashboard embedded />
+                    </Suspense>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
               {/* Funnel Templates */}
               <AccordionItem value="funnel-templates" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
@@ -681,6 +738,29 @@ const CrmPanel = () => {
             </div>
 
             <Accordion type="single" collapsible className="w-full space-y-4">
+              {/* Categories, moved out of the Products menu — they are set up
+                  once and then referenced, which is configuration, not a
+                  destination people navigate to. */}
+              <AccordionItem value="product-categories" className="border rounded-lg px-4 bg-background/50">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-foreground">
+                      {t('settings.crm-panel.product-categories')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="py-4 border-t">
+                    <Suspense fallback={<PanelFallback />}>
+                      <ManageProductCategories embedded />
+                    </Suspense>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
               <AccordionItem value="default-behavior" className="border rounded-lg px-4 bg-background/50">
                 <AccordionTrigger className="hover:no-underline py-4">
                   <div className="flex items-center gap-3">
@@ -845,6 +925,30 @@ const CrmPanel = () => {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          </div>
+        </TabsContent>
+
+        {/* Tags Tab — tags span leads, deals and tasks, so they sit on their
+            own rather than under any one of the entity tabs. */}
+        <TabsContent value="tags" className="mt-0">
+          <div className="glass-card p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {t('settings.crm-panel.tabs.tags')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('settings.crm-panel.tags-description')}
+                </p>
+              </div>
+            </div>
+
+            <Suspense fallback={<PanelFallback />}>
+              <TagsDashboard embedded />
+            </Suspense>
           </div>
         </TabsContent>
       </Tabs>

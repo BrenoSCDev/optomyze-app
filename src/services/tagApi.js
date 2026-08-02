@@ -1,13 +1,15 @@
 import api from './api';
 
 export const tagService = {
-  // Create a new tag
-  async createTag(name, companyId, color) {
+  // Create a new tag. `scopes` is a subset of ['lead','deal','task'] deciding
+  // which pickers offer it; omitted means the API defaults it to all three.
+  async createTag(name, companyId, color, scopes) {
     try {
       const response = await api.post('/api/tags', {
         name,
         company_id: companyId,
         ...(color ? { color } : {}),
+        ...(scopes ? { scopes } : {}),
       });
       return response.data;
     } catch (error) {
@@ -17,9 +19,13 @@ export const tagService = {
   },
 
   // Update an existing tag's name and/or color
-  async updateTag(tagId, { name, color } = {}) {
+  async updateTag(tagId, { name, color, scopes } = {}) {
     try {
-      const response = await api.put(`/api/tags/${tagId}`, { name, color });
+      const response = await api.put(`/api/tags/${tagId}`, {
+        name,
+        color,
+        ...(scopes ? { scopes } : {}),
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating tag:', error);
@@ -49,10 +55,22 @@ export const tagService = {
     }
   },
 
-  // Get all tags for the current company (without requiring companyId parameter)
-  async getAllTags() {
+  /**
+   * Tags for the current company.
+   *
+   * `scope` ('lead' | 'deal' | 'task') asks the API for only the tags usable
+   * on that entity, so pickers request what they can attach instead of
+   * filtering a flat list. `withCounts` adds usage counts for the management
+   * screen.
+   */
+  async getAllTags({ scope, withCounts } = {}) {
     try {
-      const response = await api.get('/api/tags');
+      const params = new URLSearchParams();
+      if (scope) params.set('scope', scope);
+      if (withCounts) params.set('with_counts', '1');
+
+      const query = params.toString();
+      const response = await api.get(`/api/tags${query ? `?${query}` : ''}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching all tags:', error);

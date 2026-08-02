@@ -29,6 +29,7 @@ import { MdCurrencyExchange } from 'react-icons/md';
 import { IoFunnelOutline } from 'react-icons/io5';
 import FunnelStagesModal from '@/components/stages/FunnelStagesModal';
 import { cn } from '@/lib/utils';
+import { fetchBusinessProfile, updateBusinessProfile } from '@/services/businessProfileApi';
 
 interface Funnel {
   id: number;
@@ -38,7 +39,7 @@ interface Funnel {
   is_active: boolean;
   created_by: number;
   settings: any;
-  type: 'sale' | 'deal';
+  type: 'contact' | 'deal';
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -239,11 +240,16 @@ const EmptyState = ({ onCreateClick, t }: { onCreateClick: () => void; t: (key: 
   </div>
 );
 
-const FunnelsDashboard = () => {
+interface FunnelsDashboardProps {
+  /** Rendered inside the CRM Panel, which supplies its own heading and padding. */
+  embedded?: boolean;
+}
+
+const FunnelsDashboard = ({ embedded = false }: FunnelsDashboardProps) => {
   const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [templates, setTemplates] = useState<TemplateFunnel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'sale' | 'deal'>('sale');
+  const [activeTab, setActiveTab] = useState<'contact' | 'deal'>('contact');
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
   const [showEditFunnelModal, setShowEditFunnelModal] = useState(false);
@@ -252,7 +258,7 @@ const FunnelsDashboard = () => {
   const [togglingFunnelId, setTogglingFunnelId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', type: 'sale' as 'sale' | 'deal' });
+  const [formData, setFormData] = useState({ name: '', description: '', type: 'contact' as 'contact' | 'deal' });
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [editFormData, setEditFormData] = useState({ name: '', description: '' });
   const [formErrors, setFormErrors] = useState({ name: '', description: '' });
@@ -260,7 +266,7 @@ const FunnelsDashboard = () => {
   const [stagesModalFunnelId, setStagesModalFunnelId] = useState<string | null>(null);
 
   const { toast } = useToast();
-  const { funnels: authFunnels, updateFunnels, updateFunnel: updateFunnelInContext } = useAuth();
+  const { funnels: authFunnels, updateFunnels, updateFunnel: updateFunnelInContext, refreshFunnels } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -513,7 +519,9 @@ const FunnelsDashboard = () => {
 
     try {
       const updatedFunnel = await funnelService.toggleFunnelStatus(funnel.id);
-      updateFunnelInContext({ ...funnel, ...updatedFunnel, is_active: updatedFunnel?.is_active ?? nextActive });
+      // Re-read rather than patch: activating a funnel that wasn't in the
+      // cached list can't be handled by a map-and-replace.
+      await refreshFunnels();
     } catch (error) {
       console.error('Error toggling funnel status:', error);
       setFunnels(prev => prev.map(f => f.id === funnel.id ? { ...f, is_active: funnel.is_active } : f));
@@ -527,37 +535,104 @@ const FunnelsDashboard = () => {
     }
   };
 
+  /**
+   * Contact-pipeline management is a company-level switch. It lives here
+   * rather than in Preferences because this is the screen where the pipelines
+   * it governs are actually built.
+   */
+  const [pipelineEnabled, setPipelineEnabled] = useState(false);
+  const [pipelineSaving, setPipelineSaving] = useState(false);
+
+  useEffect(() => {
+    fetchBusinessProfile()
+      .then(p => setPipelineEnabled(!!p.contact_pipeline_enabled))
+      .catch(() => { /* leave off; the toggle just shows its default */ });
+  }, []);
+
+  // Turning pipelines off while sitting on the contact tab would leave the
+  // user on a tab that's no longer rendered.
+  useEffect(() => {
+    if (!pipelineEnabled && activeTab === 'contact') setActiveTab('deal');
+  }, [pipelineEnabled, activeTab]);
+
+  const handlePipelineToggle = async (enabled: boolean) => {
+    const previous = pipelineEnabled;
+    setPipelineEnabled(enabled);           // optimistic
+    setPipelineSaving(true);
+    try {
+      await updateBusinessProfile({ contact_pipeline_enabled: enabled });
+      await refreshFunnels();   // contact funnels appear/disappear with this
+      toast({
+        title: enabled
+          ? t('funnels.contact-pipeline-on')
+          : t('funnels.contact-pipeline-off'),
+      });
+    } catch {
+      setPipelineEnabled(previous);        // roll back on failure
+      toast({ title: t('funnels.contact-pipeline-failed'), variant: 'destructive' });
+    } finally {
+      setPipelineSaving(false);
+    }
+  };
+
   const selectedTemplate = templates.find(tpl => tpl.id === parseInt(selectedTemplateId, 10)) ?? null;
   const visibleFunnels = funnels.filter(f => f.type === activeTab);
 
-  const tabOptions: { id: 'sale' | 'deal'; label: string; icon: ReactNode }[] = [
-    { id: 'sale', label: t('funnels.sales-funnels'), icon: <Users className="w-4 h-4" /> },
+  // The contact tab only exists when the company runs contact pipelines.
+  const tabOptions: { id: 'contact' | 'deal'; label: string; icon: ReactNode }[] = [
+    ...(pipelineEnabled
+      ? [{ id: 'contact' as const, label: t('funnels.sales-funnels'), icon: <Users className="w-4 h-4" /> }]
+      : []),
     { id: 'deal', label: t('funnels.deal-funnels'), icon: <MdCurrencyExchange className="w-4 h-4" /> },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="px-4 sm:px-6 py-6">
-        {/* Page Header */}
+    <div className={embedded ? '' : 'min-h-screen bg-background'}>
+      <div className={embedded ? '' : 'px-4 sm:px-6 py-6'}>
+        {/* Page Header. Suppressed when embedded — the CRM Panel already
+            labels the section — but the create action stays. */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
-              <IoFunnelOutline className="w-5 h-5" />
+          {embedded ? <div /> : (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+                <IoFunnelOutline className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">{t('funnels.title')}</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">{t('funnels.subtitle')}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{t('funnels.title')}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{t('funnels.subtitle')}</p>
-            </div>
-          </div>
+          )}
 
           <Button onClick={openNewFunnelModal} className="w-full sm:w-auto">
             <Plus className="h-4 w-4" />
-            {activeTab === 'sale' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
+            {activeTab === 'contact' ? t('funnels.new-sale-funnel') : t('funnels.new-deal-funnel')}
           </Button>
         </div>
 
         {/* Divider */}
         <div className="border-b border-border mb-4" />
+
+        {/* Contact-pipeline switch */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+          <div className="flex items-start gap-3">
+            <Users className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {t('settings.preferences.contact-pipeline')}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t('settings.preferences.contact-pipeline-desc')}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={pipelineEnabled}
+            disabled={pipelineSaving}
+            onCheckedChange={handlePipelineToggle}
+            aria-label={t('settings.preferences.contact-pipeline')}
+          />
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] border-b border-border mb-6">

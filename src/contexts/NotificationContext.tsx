@@ -167,7 +167,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Play notification sound - reads preference from localStorage
+  // Play notification sound — the chosen sound comes from user preferences
   const playSound = useCallback(() => {
     playNotificationSound();
   }, []);

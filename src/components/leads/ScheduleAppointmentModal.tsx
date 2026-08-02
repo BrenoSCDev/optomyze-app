@@ -13,17 +13,7 @@ import { Appointment, AppointmentProduct, CreateAppointmentPayload, createAppoin
 import { Product, getProducts } from '@/services/productApi';
 import { useCompanyTimezone } from '@/hooks/useCompanyTimezone';
 import { format, addMinutes, parseISO } from 'date-fns';
-
-const TIMEZONES = [
-  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-  'America/Phoenix', 'America/Anchorage', 'Pacific/Honolulu',
-  'America/Toronto', 'America/Vancouver', 'America/Sao_Paulo', 'America/Buenos_Aires',
-  'America/Mexico_City', 'America/Bogota', 'America/Lima',
-  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Rome',
-  'Europe/Amsterdam', 'Europe/Stockholm', 'Europe/Warsaw', 'Europe/Istanbul',
-  'Europe/Moscow', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Singapore',
-  'Asia/Tokyo', 'Asia/Seoul', 'Asia/Shanghai', 'Australia/Sydney', 'Pacific/Auckland', 'UTC',
-];
+import { TIMEZONES } from '@/lib/timezones';
 
 interface Props {
   isOpen: boolean;
@@ -57,6 +47,12 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
   const [endAt, setEndAt] = useState('');
   const [timezone, setTimezone] = useState(defaultTimezone);
   const [timezoneSearch, setTimezoneSearch] = useState('');
+
+  // TIMEZONES is the full IANA set, so filter once per render and cap the
+  // rendered rows — the container scrolls anyway.
+  const matchingTimezones = TIMEZONES
+    .filter(tz => tz.toLowerCase().includes(timezoneSearch.toLowerCase()))
+    .slice(0, 200);
   const [showTimezoneResults, setShowTimezoneResults] = useState(false);
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'draft' | 'scheduled' | 'completed' | 'cancelled' | 'no_show'>('draft');
@@ -260,17 +256,17 @@ const ScheduleAppointmentModal = ({ isOpen, onClose, leadId, leadTimezone, appoi
               />
               {showTimezoneResults && (
                 <div className="absolute z-50 top-full mt-1 w-full rounded-md border bg-popover shadow-md max-h-48 overflow-y-auto">
-                  {TIMEZONES.filter(tz => tz.toLowerCase().includes(timezoneSearch.toLowerCase())).map(tz => (
+                  {matchingTimezones.map(tz => (
                     <button
                       key={tz}
                       type="button"
                       onMouseDown={() => { setTimezone(tz); setShowTimezoneResults(false); }}
-                      className="w-full px-3 py-2 text-sm text-left hover:bg-accent"
+                      className="w-full px-3 py-2 text-sm text-left hover:bg-surface-3"
                     >
                       {tz}
                     </button>
                   ))}
-                  {TIMEZONES.filter(tz => tz.toLowerCase().includes(timezoneSearch.toLowerCase())).length === 0 && (
+                  {matchingTimezones.length === 0 && (
                     <div className="px-3 py-2 text-sm text-muted-foreground">{t('appointments.no-timezone-match')}</div>
                   )}
                 </div>

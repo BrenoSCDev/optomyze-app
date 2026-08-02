@@ -26,7 +26,7 @@ export const getFunnelsEndpoints = (t: (key: string) => string): EndpointCategor
                 id: 1,
                 name: "Main Lead Funnel",
                 description: "Primary inbound funnel.",
-                type: "sale",
+                type: "contact",
                 is_active: true,
                 created_at: "2026-01-01T00:00:00.000Z",
                 stages: [
@@ -58,7 +58,7 @@ export const getFunnelsEndpoints = (t: (key: string) => string): EndpointCategor
       exampleBody: {
         name: "Partner Referral Funnel",
         description: "Leads from partner referrals.",
-        type: "sale",
+        type: "contact",
         is_active: true
       },
       exampleResponses: [
@@ -67,7 +67,7 @@ export const getFunnelsEndpoints = (t: (key: string) => string): EndpointCategor
           label: '201 Created',
           body: {
             message: "Funnel created successfully",
-            data: { id: 5, name: "Partner Referral Funnel", type: "sale", is_active: true }
+            data: { id: 5, name: "Partner Referral Funnel", type: "contact", is_active: true }
           }
         }
       ]
@@ -89,7 +89,7 @@ export const getFunnelsEndpoints = (t: (key: string) => string): EndpointCategor
             data: {
               id: 1,
               name: "Main Lead Funnel",
-              type: "sale",
+              type: "contact",
               is_active: true,
               stages: [
                 { id: 3, name: "New", order: 1, type: "entry", color: "#10B981", is_active: true },

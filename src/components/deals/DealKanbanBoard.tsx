@@ -27,16 +27,17 @@ import {
   Plus, Filter, Download, Loader2, RefreshCw,
 } from 'lucide-react';
 import {
-  DndContext, DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor,
-  DragStartEvent, DragEndEvent, CollisionDetection, pointerWithin, rectIntersection,
+  DndContext, DragOverlay, DragStartEvent, DragEndEvent,
 } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { dealFunnelService } from '@/services/dealFunnelApi';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  KANBAN_DROP_ANIMATION, KanbanDragPreview, kanbanCollisionDetection, useKanbanSensors,
+} from '@/components/dnd/kanbanDnd';
 import { useCurrency } from '@/hooks/useCurrency';
 import { MdCurrencyExchange } from 'react-icons/md';
 
@@ -76,10 +77,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     localStorage.setItem('deal_funnel_view_mode', mode);
   }, []);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 10 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
+  const sensors = useKanbanSensors();
 
   // Transform API data to column format (deals, not leads)
   const kanbanColumns = useMemo(() => {
@@ -161,18 +159,6 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
   }, [funnel]);
 
   // Collision detection (same strategy as sales kanban)
-  const customCollisionDetection: CollisionDetection = useCallback((args) => {
-    const columnIds = columnIdsRef.current;
-    const filterToColumns = (collisions: any[]) => collisions.filter(c => columnIds.has(c.id as string));
-
-    const pointerCollisions = filterToColumns(pointerWithin(args));
-    if (pointerCollisions.length > 0) return [pointerCollisions[0]];
-
-    const rectCollisions = filterToColumns(rectIntersection(args));
-    if (rectCollisions.length > 0) return [rectCollisions[0]];
-
-    return [];
-  }, []);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const dragId = event.active.id as string;
@@ -307,18 +293,24 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {/* View Switcher */}
-          <div className="flex items-center rounded-md border border-deal/30 overflow-hidden">
+          {/*
+            View switcher. Height-matched to the size="sm" buttons beside it
+            (h-8 = 32px): the border sits inside that height and the buttons
+            fill it, so the outer box lines up exactly. It previously forced
+            h-9 on each button, which with the wrapper border came to 38px
+            against the neighbours' 32px. Mirrors the contact funnel.
+          */}
+          <div className="flex h-8 items-center overflow-hidden rounded-md border border-deal/30">
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
+              className={`h-full rounded-none px-2.5 ${viewMode === 'kanban' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
               onClick={() => handleViewModeChange('kanban')}
             >
               <TbLayoutKanbanFilled className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost" size="sm"
-              className={`rounded-none h-9 px-2.5 border-l border-deal/30 ${viewMode === 'table' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
+              className={`h-full rounded-none border-l border-deal/30 px-2.5 ${viewMode === 'table' ? 'bg-deal/20 text-deal hover:bg-deal/20 hover:text-deal' : 'text-muted-foreground hover:bg-deal/10 hover:text-deal'}`}
               onClick={() => handleViewModeChange('table')}
             >
               <List className="h-4 w-4" />
@@ -418,7 +410,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
 
           <DndContext
             sensors={sensors}
-            collisionDetection={customCollisionDetection}
+            collisionDetection={kanbanCollisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
@@ -441,14 +433,17 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
               ))}
             </div>
 
-            <DragOverlay dropAnimation={{ duration: 200, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+            <DragOverlay dropAnimation={KANBAN_DROP_ANIMATION}>
               {activeId && draggedDeal ? (
-                <div className="relative transform rotate-2 scale-105 transition-colors duration-fast ease-standard pointer-events-none">
-                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
-                  <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
-                    <DealCard deal={draggedDeal} isDragging={false} onDealClick={handleDealClick} showProducts={displaySettings.showProducts} showCharges={displaySettings.showCharges} />
-                  </div>
-                </div>
+                <KanbanDragPreview className="w-80">
+                  <DealCard
+                    deal={draggedDeal}
+                    isDragging={false}
+                    onDealClick={handleDealClick}
+                    showProducts={displaySettings.showProducts}
+                    showCharges={displaySettings.showCharges}
+                  />
+                </KanbanDragPreview>
               ) : null}
             </DragOverlay>
           </DndContext>

@@ -11,7 +11,6 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import DealsManagement from '@/components/deals/DealsManagement';
-import { useMenuOrder } from '@/contexts/MenuOrderContext';
 
 const DealFunnel = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -20,7 +19,6 @@ const DealFunnel = () => {
   const [activeSection, setActiveSection] = useState('deals');
   const { funnelId } = useParams();
   const navigate = useNavigate();
-  const { navLayout } = useMenuOrder();
 
   const handleSectionChange = useCallback((section: string) => {
     setMobileSidebarOpen(false);
@@ -38,7 +36,6 @@ const DealFunnel = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const useHeaderLayout = navLayout === 'header' && !isMobile;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -50,16 +47,14 @@ const DealFunnel = () => {
       </div>
 
       <TopHeader
-        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        sidebarCollapsed={sidebarCollapsed}
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
-        headerNavMode={useHeaderLayout}
       />
 
       <div className="relative z-10 flex pt-16">
-        {!useHeaderLayout && (
-          <Sidebar
+                  <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             activeSection={activeSection}
@@ -67,26 +62,12 @@ const DealFunnel = () => {
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
-        )}
-
-        {useHeaderLayout && isMobile && (
-          <Sidebar
-            isCollapsed={false}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            activeSection={activeSection}
-            onSectionChange={handleSectionChange}
-            mobileOpen={mobileSidebarOpen}
-            onMobileClose={() => setMobileSidebarOpen(false)}
-          />
-        )}
 
         <motion.main
           className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-base ease-standard"
           initial={false}
           animate={{
-            marginLeft: useHeaderLayout
-              ? 0
-              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+            marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)
           }}
         >
           <div className="p-4 sm:p-8">

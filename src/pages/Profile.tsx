@@ -18,7 +18,6 @@ import { Camera, Edit, Save, X, Eye, EyeOff, AlertCircle, Upload, Trash2 } from 
 import Sidebar from '@/components/Sidebar';
 import TopHeader from '@/components/layout/TopHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useMenuOrder } from '@/contexts/MenuOrderContext';
 import { formatPhoneNumber } from '@/lib/phone';
 import { profileService } from '@/services/profileApi';
 import optomyzeLogo from '@/assets/user-banner.jpeg';
@@ -26,7 +25,6 @@ import optomyzeLogo from '@/assets/user-banner.jpeg';
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const { t } = useLanguage();
-  const { navLayout } = useMenuOrder();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -38,7 +36,6 @@ const Profile = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const useHeaderLayout = navLayout === 'header' && !isMobile;
 
   const handleSectionChange = (section: string) => {
     setMobileSidebarOpen(false);
@@ -342,16 +339,14 @@ const Profile = () => {
       </div>
 
       <TopHeader
-        sidebarCollapsed={useHeaderLayout ? true : sidebarCollapsed}
+        sidebarCollapsed={sidebarCollapsed}
         onMobileMenuToggle={() => setMobileSidebarOpen(true)}
         activeSection="profile"
         onSectionChange={handleSectionChange}
-        headerNavMode={useHeaderLayout}
       />
 
       <div className="relative z-10 flex pt-16">
-        {!useHeaderLayout && (
-          <Sidebar
+                  <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
             activeSection="profile"
@@ -359,26 +354,12 @@ const Profile = () => {
             mobileOpen={mobileSidebarOpen}
             onMobileClose={() => setMobileSidebarOpen(false)}
           />
-        )}
-
-        {useHeaderLayout && isMobile && (
-          <Sidebar
-            isCollapsed={false}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-            activeSection="profile"
-            onSectionChange={handleSectionChange}
-            mobileOpen={mobileSidebarOpen}
-            onMobileClose={() => setMobileSidebarOpen(false)}
-          />
-        )}
 
         <motion.main
           className="flex-1 transition-colors duration-base ease-standard"
           initial={false}
           animate={{
-            marginLeft: useHeaderLayout
-              ? 0
-              : (isMobile ? 0 : (sidebarCollapsed ? 64 : 256))
+            marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)
           }}
         >
           <div>

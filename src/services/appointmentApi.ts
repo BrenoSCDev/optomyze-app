@@ -12,7 +12,8 @@ export interface AppointmentProduct {
 export interface Appointment {
   id: number;
   company_id: number;
-  lead_id: number;
+  /** Optional: appointments can exist without a lead. */
+  lead_id: number | null;
   appointment_type_id: number | null;
   user_id: number | null;
   title: string;
@@ -30,7 +31,8 @@ export interface Appointment {
 }
 
 export interface CreateAppointmentPayload {
-  lead_id: number;
+  /** Optional: omit for internal meetings, focus blocks, etc. */
+  lead_id?: number | null;
   appointment_type_id?: number | null;
   title: string;
   scheduled_at: string;

@@ -27,23 +27,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import {
-  DndContext,
-  DragOverlay,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  KeyboardSensor,
-  DragStartEvent,
-  DragEndEvent,
-  CollisionDetection,
-  pointerWithin,
-  rectIntersection,
-  getFirstCollision,
-  UniqueIdentifier,
+  DndContext, DragOverlay, DragStartEvent, DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
 import LeadCard from './LeadCard';
 import {
   Breadcrumb,
@@ -64,6 +49,9 @@ import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  KANBAN_DROP_ANIMATION, KanbanDragPreview, kanbanCollisionDetection, useKanbanSensors,
+} from '@/components/dnd/kanbanDnd';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
@@ -72,6 +60,7 @@ import LostReasonModal from './LostReasonModal';
 import AssignUserModal, { CompanyUser } from './AssignUserModal';
 import MoveFunnelModal from './MoveFunnelModal';
 import { userApi } from '@/services/userApi';
+import { setContactArchived } from '@/services/contactApi';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -176,18 +165,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     }
   }, [funnel]);
 
-  // DnD sensors with optimized settings for reliability
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        // Require 10px movement to start drag - prevents accidental drags
-        distance: 10,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const sensors = useKanbanSensors();
   
   // Transform API data to kanban format
   const kanbanColumns = useMemo(() => {
@@ -317,47 +295,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     setLeadDialogOpen(true);
   }, []);
 
-  /**
-   * COLLISION DETECTION STRATEGY
-   * 
-   * This is the critical function that determines which column a dragged card is over.
-   * 
-   * Strategy:
-   * 1. Use pointerWithin for precise detection when pointer is clearly inside a column
-   * 2. Fall back to rectIntersection for edge cases
-   * 3. NEVER use closestCenter - it can pick wrong targets across screen sizes
-   * 4. ONLY return collisions with valid column IDs - filter out lead card IDs
-   * 5. If no valid column detected, return empty array (abort drop)
-   */
-  const customCollisionDetection: CollisionDetection = useCallback((args) => {
-    const columnIds = columnIdsRef.current;
-    
-    // Helper to filter collisions to only valid columns
-    const filterToColumns = (collisions: ReturnType<CollisionDetection>) => {
-      return collisions.filter(collision => columnIds.has(collision.id as string));
-    };
-    
-    // Strategy 1: pointerWithin - most accurate when pointer is inside a column
-    const pointerCollisions = pointerWithin(args);
-    const pointerColumnCollisions = filterToColumns(pointerCollisions);
-    
-    if (pointerColumnCollisions.length > 0) {
-      // Return the first (highest priority) column collision
-      return [pointerColumnCollisions[0]];
-    }
-    
-    // Strategy 2: rectIntersection - for when dragging near edges
-    const rectCollisions = rectIntersection(args);
-    const rectColumnCollisions = filterToColumns(rectCollisions);
-    
-    if (rectColumnCollisions.length > 0) {
-      // Sort by intersection ratio and return the best match
-      return [rectColumnCollisions[0]];
-    }
-    
-    // No valid column detected - return empty to prevent incorrect drops
-    return [];
-  }, []);
 
   // Handle drag start
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -443,39 +380,78 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     const targetColumn = columns.find(col => col.id === newStageId);
     const targetStageName = targetColumn?.title || 'this stage';
 
-    console.log('[DnD] Moving lead', { leadId, from: oldStageId, to: newStageId, value: leadValue });
+    /*
+     * Optimistic move, then reconcile.
+     *
+     * This used to await the API before touching the columns, so the card sat
+     * frozen in its old stage for the whole round trip and only jumped once the
+     * server replied — the single biggest reason this board felt heavier than
+     * the Tasks board. The move is applied immediately and rolled back if the
+     * server refuses (entry requirements return 422).
+     */
+    const applyMove = (target: string) =>
+      setColumns(prevColumns => prevColumns.map(col => {
+        if (col.id === oldStageId) {
+          return {
+            ...col,
+            leads: col.leads.filter(lead => lead.id !== leadId),
+            valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue),
+          };
+        }
+        if (col.id === target) {
+          return {
+            ...col,
+            leads: [{ ...leadToMove, stage: target }, ...col.leads],
+            valueEstimated: (col.valueEstimated || 0) + leadValue,
+          };
+        }
+        return col;
+      }));
+
+    const revertMove = () =>
+      setColumns(prevColumns => prevColumns.map(col => {
+        if (col.id === newStageId) {
+          return {
+            ...col,
+            leads: col.leads.filter(lead => lead.id !== leadId),
+            valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue),
+          };
+        }
+        if (col.id === oldStageId) {
+          return {
+            ...col,
+            leads: [leadToMove, ...col.leads],
+            valueEstimated: (col.valueEstimated || 0) + leadValue,
+          };
+        }
+        return col;
+      }));
+
+    applyMove(newStageId);
 
     try {
-      // Call API first — NO optimistic update
       const response = await leadService.moveLeadToStage(leadId, newStageId);
-      
-      // Success — now update columns
-      setColumns(prevColumns => {
-        return prevColumns.map(col => {
-          if (col.id === oldStageId) {
-            return {
+
+      // Patch in the server's version of the row — the optimistic copy carried
+      // the old name/stage fields.
+      setColumns(prevColumns => prevColumns.map(col => (
+        col.id === newStageId
+          ? {
               ...col,
-              leads: col.leads.filter(lead => lead.id !== leadId),
-              valueEstimated: Math.max(0, (col.valueEstimated || 0) - leadValue)
-            };
-          }
-          if (col.id === newStageId) {
-            const updatedLead = {
-              ...leadToMove,
-              ...response.data,
-              id: response.data.id.toString(),
-              name: `${response.data.first_name} ${response.data.last_name || ''}`,
-              stage: response.data.stage_id.toString()
-            };
-            return {
-              ...col,
-              leads: [updatedLead, ...col.leads],
-              valueEstimated: (col.valueEstimated || 0) + leadValue
-            };
-          }
-          return col;
-        });
-      });
+              leads: col.leads.map(lead => (
+                lead.id === leadId
+                  ? {
+                      ...lead,
+                      ...response.data,
+                      id: response.data.id.toString(),
+                      name: `${response.data.first_name} ${response.data.last_name || ''}`,
+                      stage: response.data.stage_id.toString(),
+                    }
+                  : lead
+              )),
+            }
+          : col
+      )));
 
       toast.success('Lead moved successfully');
 
@@ -483,14 +459,15 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       if (response.prompt_lost_reason) {
         setLostReasonLeadId(leadId);
       }
-      
+
       // Notify parent component
       if (onUpdateLeadStage) {
         onUpdateLeadStage(leadId, newStageId, oldStageId);
       }
     } catch (error: any) {
       console.error('[DnD] Error moving lead:', error);
-      
+      revertMove();
+
       // Check for 422 entry requirement errors
       const responseData = error?.response?.data;
       if (error?.response?.status === 422 && responseData?.entry_requirement_errors?.length > 0) {
@@ -563,6 +540,17 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   };
 
   // Handle delete lead click - open confirmation dialog
+  /** Archive/unarchive from the board; the lead leaves the default view. */
+  const handleArchiveLead = useCallback(async (lead: any) => {
+    const next = lead.is_active !== false;
+    try {
+      await setContactArchived(Number(lead.id), next);
+      onRefresh?.();
+    } catch {
+      // surfaced by the caller's own error handling on refresh
+    }
+  }, [onRefresh]);
+
   const handleDeleteLeadClick = useCallback((lead: any) => {
     setDeleteLeadTarget(lead);
   }, []);
@@ -650,12 +638,18 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {/* View Switcher */}
-          <div className="flex items-center rounded-md border overflow-hidden">
+          {/*
+            View switcher. The group is height-matched to the size="sm" buttons
+            beside it (h-8 = 32px): the border sits inside that height, and the
+            buttons fill it, so the outer box lines up exactly. It previously
+            forced h-9 on each button, which with the wrapper border came to
+            38px against the neighbours' 32px.
+          */}
+          <div className="flex h-8 items-center overflow-hidden rounded-md border">
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
+              className={`h-full rounded-none px-2.5 ${viewMode === 'kanban' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
               onClick={() => handleViewModeChange('kanban')}
               title={t('funnel.page.view-kanban') || 'Kanban'}
             >
@@ -664,7 +658,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             <Button
               variant="ghost"
               size="sm"
-              className={`rounded-none h-9 px-2.5 border-l  ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
+              className={`h-full rounded-none border-l px-2.5 ${viewMode === 'table' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
               onClick={() => handleViewModeChange('table')}
               title={t('funnel.page.view-table') || 'Table'}
             >
@@ -765,7 +759,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         <>
           <DndContext
             sensors={sensors}
-            collisionDetection={customCollisionDetection}
+            collisionDetection={kanbanCollisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
@@ -782,6 +776,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
                   onTagClick={handleTagClick}
                   onLeadClick={handleLeadClick}
                   onDeleteLead={handleDeleteLeadClick}
+                  onArchiveLead={handleArchiveLead}
                   onAssignUser={handleAssignUserClick}
                   onMoveFunnel={handleMoveFunnelClick}
                   activeId={activeId}
@@ -795,24 +790,16 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             </div>
             </div>
 
-            <DragOverlay
-              dropAnimation={{
-                duration: 200,
-                easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-              }}
-            >
+            <DragOverlay dropAnimation={KANBAN_DROP_ANIMATION}>
               {activeId && draggedLead ? (
-                <div className="relative transform rotate-2 scale-105 transition-colors duration-fast ease-standard pointer-events-none">
-                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-lg transform scale-110" />
-                  <div className="relative glass-card border-2 border-primary/50 shadow-2xl">
-                    <LeadCard
-                      lead={draggedLead}
-                      isDragging={false}
-                      onTagClick={handleTagClick}
-                      onLeadClick={handleLeadClick}
-                    />
-                  </div>
-                </div>
+                <KanbanDragPreview className="w-80">
+                  <LeadCard
+                    lead={draggedLead}
+                    isDragging={false}
+                    onTagClick={handleTagClick}
+                    onLeadClick={handleLeadClick}
+                  />
+                </KanbanDragPreview>
               ) : null}
             </DragOverlay>
           </DndContext>

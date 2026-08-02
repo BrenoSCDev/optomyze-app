@@ -7,7 +7,7 @@
 import { useState, useMemo , memo} from 'react';
 import { Button } from '@/components/ui/button';
 import DealCard from './DealCard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Plus, MoreVertical, Package, ArrowDownNarrowWide, ArrowUpNarrowWide, Check } from 'lucide-react';
 import {
   DropdownMenu,
@@ -56,7 +56,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   return (
     <motion.div
       ref={setNodeRef}
-      className={`deal-glass-card p-4 w-80 flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
+      className={`deal-glass-card p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
         isOver || isDropTarget ? 'ring-2 ring-deal/50 bg-deal/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -129,27 +129,25 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
           </motion.div>
         )}
 
-        <AnimatePresence>
-          {sortedDeals.map((deal: any) => (
-            <motion.div
-              key={deal.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              style={{ opacity: activeId === deal.id ? 0.3 : 1 }}
-            >
-              <DealCard
-                deal={deal}
-                isDragging={activeId === deal.id}
-                onDealClick={onDealClick}
-                onTagClick={onTagClick}
-                showProducts={showProducts}
-                showCharges={showCharges}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {/*
+          No AnimatePresence around the cards — see KanbanColumn for the full
+          reasoning: the optimistic move deletes and re-inserts a card in one
+          commit, and an exit animation left it visible in both columns at
+          once. The dragged card is hidden rather than faded, because the
+          DragOverlay copy is the one the user is following.
+        */}
+        {sortedDeals.map((deal: any) => (
+          <div key={deal.id} className={activeId === deal.id ? 'invisible' : undefined}>
+            <DealCard
+              deal={deal}
+              isDragging={activeId === deal.id}
+              onDealClick={onDealClick}
+              onTagClick={onTagClick}
+              showProducts={showProducts}
+              showCharges={showCharges}
+            />
+          </div>
+        ))}
 
         {/* Empty State */}
         {column.deals.length === 0 && !activeId && (

@@ -9,7 +9,6 @@ import { memo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { motion } from 'framer-motion';
 import { formatPhoneNumber } from '@/lib/phone';
 import { 
   GripVertical,
@@ -47,12 +46,13 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
     attributes,
     listeners,
     setNodeRef,
-    transform,
   } = useDraggable({ id: deal.id });
 
-  const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-  };
+  /*
+   * No transform here on purpose — the board renders a DragOverlay copy that
+   * follows the cursor. Translating this element too would drag the original
+   * along underneath it, showing two cards at once.
+   */
 
   const getInitials = (name: string) => {
     const parts = name.split(' ').filter(n => n.length > 0);
@@ -83,21 +83,19 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
 
   return (
     <div className="relative">
-      <motion.div
+      {/* Plain div, not motion.div — see LeadCard for the reasoning. */}
+      <div
         ref={setNodeRef}
-        style={style}
         {...attributes}
-        className={`deal-glass-card p-3 cursor-pointer transition-colors duration-base ease-standard relative border-t-2 border-t-deal ${
-          isDragging ? 'opacity-20 scale-95' : ''
+        {...listeners}
+        className={`deal-glass-card p-3 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative border-t-2 border-t-deal touch-none ${
+          isDragging ? 'invisible' : ''
         }`}
-        whileHover={{ y: isDragging ? 0 : -2 }}
-        layout
       >
         {/* Deal Header - Compact row */}
         <div className="flex items-center gap-2.5 mb-2">
-          <div {...listeners} className="cursor-grab active:cursor-grabbing shrink-0">
-            <GripVertical className="h-3.5 w-3.5 text-muted-foreground hover:text-deal transition-colors" />
-          </div>
+          {/* Visual affordance only — the whole card is draggable. */}
+          <GripVertical className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors" />
           <Avatar className="h-8 w-8 shrink-0 rounded-full">
             <AvatarFallback className="bg-deal/20 text-deal text-xs font-semibold rounded-full">
               {getInitials(deal.name || leadName)}
@@ -279,7 +277,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

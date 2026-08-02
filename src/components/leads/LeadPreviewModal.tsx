@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Edit, Loader2, User, Mail, Phone, Calendar,
-  AlertCircle, ArrowRightLeft, UserCheck, Trash2,
+  AlertCircle, Archive, ArrowRightLeft, UserCheck, Trash2,
   MoreVertical, Building2, ShoppingBag, Activity,
   ArrowLeft, ChevronRight, Tags, GitBranch, Hash,
 } from 'lucide-react';
@@ -47,8 +47,6 @@ import FunnelProgress from './FunnelProgress';
 import ProductsSection, { LeadProduct } from './ProductsSection';
 import BudgetSection from './BudgetSection';
 import PurchaseHistorySection, { Sale } from './PurchaseHistorySection';
-import TaskCreationModal from './TaskCreationModal';
-import TaskDeleteDialog from './TaskDeleteDialog';
 import DocumentUploadModal from './DocumentUploadModal';
 import AssignUserModal, { CompanyUser } from './AssignUserModal';
 import TagManagementModal from './TagManagementModal';
@@ -57,18 +55,20 @@ import LostReasonModal from './LostReasonModal';
 
 import StartPurchaseModal from './StartPurchaseModal';
 import LeadEditModal from './LeadEditModal';
-import { Task } from '@/services/taskApi';
 import { LeadDocument } from '@/services/documentApi';
 import { Observation } from '@/services/observationApi';
+import { setContactArchived } from '@/services/contactApi';
 
 interface LeadPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   leadId: string | null;
   onLeadDeleted?: () => void;
+  /** Opens the detail view on a specific tab, e.g. 'chat' from a quick action. */
+  initialTab?: string;
 }
 
-const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, leadId, onLeadDeleted }) => {
+const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, leadId, onLeadDeleted, initialTab }) => {
   const { t } = useLanguage();
   const { user, funnels: allFunnels } = useAuth() as { user: UserType | null; token: string; funnels: any[] };
 
@@ -78,9 +78,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
   // Sub-modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [assignUserModalOpen, setAssignUserModalOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
@@ -109,7 +106,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
 
   useEffect(() => {
     if (isOpen) {
-      tagService.getAllTags()
+      tagService.getAllTags({ scope: 'lead' })
         .then((res: any) => setAvailableTags(res?.data || []))
         .catch(() => setAvailableTags([]));
     }
@@ -125,7 +122,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
       setLeadData({
         lead,
         records: data.records || lead.records || [],
-        tasks: data.tasks || lead.tasks || [],
         docs: lead.docs || [],
         users: data.users || [],
         products: data.products || [],
@@ -148,21 +144,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
   };
 
   // Handlers mirroring LeadDetail page
-  const handleTaskCreated = (newTask: Task, transaction?: any) => {
-    setLeadData((prev: any) => prev ? {
-      ...prev,
-      tasks: [newTask, ...prev.tasks],
-      records: transaction ? [transaction, ...prev.records] : prev.records,
-    } : prev);
-  };
-  const handleTaskUpdated = (updatedTask: Task) => {
-    setLeadData((prev: any) => prev ? { ...prev, tasks: prev.tasks.map((t: Task) => t.id === updatedTask.id ? updatedTask : t) } : prev);
-    setEditingTask(null);
-  };
-  const handleTaskDeleted = (taskId: number) => {
-    setLeadData((prev: any) => prev ? { ...prev, tasks: prev.tasks.filter((t: Task) => t.id !== taskId) } : prev);
-    setDeletingTask(null);
-  };
   const handleDocumentUploaded = (newDoc: LeadDocument) => {
     setLeadData((prev: any) => prev ? { ...prev, docs: [newDoc, ...prev.docs] } : prev);
   };
@@ -227,6 +208,20 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
       setMovingStageId(null);
     }
   };
+  /** Archive hides the lead everywhere; unlike delete it is reversible. */
+  const handleToggleArchive = async () => {
+    if (!leadId) return;
+    const next = (lead as any)?.is_active !== false;
+    try {
+      await setContactArchived(Number(leadId), next);
+      toast.success(next ? t('contacts.archived-done') : t('contacts.unarchived-done'));
+      onClose();
+      onLeadDeleted?.();   // same refresh hook the parent already listens on
+    } catch {
+      toast.error(t('contacts.archive-failed'));
+    }
+  };
+
   const handleDeleteLead = async () => {
     if (!leadId) return;
     try {
@@ -437,6 +432,13 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                             {t('lead-details.assign-user')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={handleToggleArchive} className="cursor-pointer">
+                            <Archive className="w-4 h-4" />
+                            {lead?.is_active === false
+                              ? t('contacts.action-unarchive')
+                              : t('contacts.action-archive')}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-destructive cursor-pointer">
                             <Trash2 className="w-4 h-4" />
                             {t('lead-details.delete-lead')}
@@ -467,13 +469,10 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                       {/* Left Column */}
                       <div className="lg:col-span-2 space-y-6 min-w-0">
                         <LeadDetailTabs
+                          initialTab={initialTab}
                           lead={lead}
-                          tasks={leadData.tasks || []}
                           documents={leadData.docs || []}
                           observations={lead.observations || []}
-                          onCreateTask={() => setTaskModalOpen(true)}
-                          onEditTask={(task: Task) => { setEditingTask(task); setTaskModalOpen(true); }}
-                          onDeleteTask={(task: Task) => setDeletingTask(task)}
                           onUploadDocument={() => setDocumentModalOpen(true)}
                           onDocumentDeleted={handleDocumentDeleted}
                           onObservationCreated={handleObservationCreated}
@@ -561,20 +560,6 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
             lead={lead}
             companies={leadData?.companies || []}
             onUpdate={() => leadId && fetchLeadData(leadId)}
-          />
-          <TaskCreationModal
-            isOpen={taskModalOpen}
-            onClose={() => { setTaskModalOpen(false); setEditingTask(null); }}
-            leadId={lead.id}
-            onTaskCreated={handleTaskCreated}
-            editTask={editingTask}
-            onTaskUpdated={handleTaskUpdated}
-          />
-          <TaskDeleteDialog
-            isOpen={!!deletingTask}
-            onClose={() => setDeletingTask(null)}
-            task={deletingTask}
-            onTaskDeleted={handleTaskDeleted}
           />
           <DocumentUploadModal
             isOpen={documentModalOpen}

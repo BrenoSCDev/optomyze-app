@@ -50,7 +50,12 @@ interface FormData {
 
 const defaultForm: FormData = { name: '', description: '', color: '#6366f1' };
 
-const ManageProductCategories = () => {
+interface ManageProductCategoriesProps {
+  /** Rendered inside the CRM Panel, which supplies its own heading. */
+  embedded?: boolean;
+}
+
+const ManageProductCategories = ({ embedded = false }: ManageProductCategoriesProps) => {
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -137,13 +142,15 @@ const ManageProductCategories = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">{t('product-categories.breadcrumb')}</p>
-          <h1 className="text-2xl font-bold text-foreground">{t('product-categories.title')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t('product-categories.description')}
-          </p>
-        </div>
+        {embedded ? <div /> : (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">{t('product-categories.breadcrumb')}</p>
+            <h1 className="text-2xl font-bold text-foreground">{t('product-categories.title')}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('product-categories.description')}
+            </p>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={fetchCategories} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
