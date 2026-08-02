@@ -7,16 +7,38 @@
 
 import api from './api';
 
+/** Deals loaded per stage, matching the API's own page size. */
+export const DEALS_PER_STAGE = 10;
+
 export const dealFunnelService = {
   /**
-   * Get deal funnel data with stages and deals
+   * Get deal funnel data with stages and the first page of deals for each
+   * stage. `params` carries the board filters plus per_page ('all' to skip
+   * pagination, which is what the export path needs).
    */
-  async getDealFunnelData(funnelId: string | number) {
+  async getDealFunnelData(funnelId: string | number, params: Record<string, unknown> = {}) {
     try {
-      const response = await api.get(`/api/funnels/${funnelId}/deals`);
+      const response = await api.get(`/api/funnels/${funnelId}/deals`, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching deal funnel data:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * One page of deals for a single stage — the board's infinite scroll.
+   */
+  async getStageDeals(
+    funnelId: string | number,
+    stageId: string | number,
+    params: Record<string, unknown> = {}
+  ) {
+    try {
+      const response = await api.get(`/api/funnels/${funnelId}/stages/${stageId}/deals`, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching stage deals:', error);
       throw error;
     }
   },

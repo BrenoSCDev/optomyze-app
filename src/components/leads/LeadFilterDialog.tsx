@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Filter, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Filter, RotateCcw, Globe } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -7,35 +7,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import InputMask from 'react-input-mask';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { LeadFilters } from '@/lib/leadFilters';
 import { ddiOptions as baseDdiOptions, phoneMasks } from '@/lib/phone';
+import SourcePlatformIcon from './SourcePlatformIcon';
 
 interface LeadFilterDialogProps {
   isOpen: boolean;
   onClose: () => void;
   funnelData: any;
   availableTags: any[];
-  onFilterApply: (filters: LeadFilter) => void;
+  /** Currently applied filters — the dialog reopens showing these. */
+  filters?: LeadFilters;
+  onFilterApply: (filters: LeadFilters) => void;
   onFilterClear: () => void;
-}
-
-interface LeadFilter {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  ddi?: string;
-  sourcePlatform?: string;
-  stageId?: string;
-  tags?: string[];
-  assignedTo?: string;
-  scoreRange?: [number, number];
-  valueRange?: [number, number];
 }
 
 const ddiOptions = [
@@ -43,15 +40,41 @@ const ddiOptions = [
   ...baseDdiOptions
 ];
 
+/**
+ * Source platforms, matching the create-lead dialog: same canonical values the
+ * API stores, same icons, no emoji. The filter used to send capitalised labels
+ * ("WhatsApp") that never matched the stored value.
+ *
+ * "All Platforms" is the only entry without an icon of its own.
+ */
+const ALL_PLATFORMS = '__all__';
+
 const platformOptions = [
-  { value: "", label: "All Platforms", icon: "🌐" },
-  { value: "WhatsApp", label: "WhatsApp", icon: "📱" },
-  { value: "Facebook", label: "Facebook", icon: "📘" },
-  { value: "Instagram", label: "Instagram", icon: "📷" },
-  { value: "Telegram", label: "Telegram", icon: "✈️" },
-  { value: "SMS", label: "SMS", icon: "💬" },
-  { value: "Direct", label: "Direct", icon: "🔗" }
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "facebook", label: "Facebook" },
+  { value: "instagram", label: "Instagram" },
+  { value: "telegram", label: "Telegram" },
+  { value: "phone", label: "Phone" },
+  { value: "sms", label: "SMS" },
+  { value: "email", label: "Email" },
+  { value: "website", label: "Website" },
+  { value: "api", label: "API" },
+  { value: "other", label: "Other" }
 ];
+
+const emptyFilters: LeadFilters = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  ddi: '',
+  sourcePlatform: '',
+  stageId: '',
+  tags: [],
+  assignedTo: '',
+  scoreRange: [0, 100],
+  valueRange: [0, 10000]
+};
 
 const selectClasses = "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors";
 
@@ -60,24 +83,21 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
   onClose,
   funnelData,
   availableTags,
+  filters: appliedFilters,
   onFilterApply,
   onFilterClear
 }) => {
   const { t } = useLanguage();
 
-  const [filters, setFilters] = useState<LeadFilter>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    ddi: '',
-    sourcePlatform: '',
-    stageId: '',
-    tags: [],
-    assignedTo: '',
-    scoreRange: [0, 100],
-    valueRange: [0, 10000]
-  });
+  const [filters, setFilters] = useState<LeadFilters>(emptyFilters);
+
+  // Reopen showing what is actually applied, so the form never drifts from the
+  // board it is filtering.
+  useEffect(() => {
+    if (isOpen) {
+      setFilters({ ...emptyFilters, ...(appliedFilters || {}) });
+    }
+  }, [isOpen, appliedFilters]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -119,26 +139,14 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
         acc[key] = value;
       }
       return acc;
-    }, {} as LeadFilter);
+    }, {} as LeadFilters);
 
     onFilterApply(cleanFilters);
     onClose();
   };
 
   const handleClearFilters = () => {
-    setFilters({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      ddi: '',
-      sourcePlatform: '',
-      stageId: '',
-      tags: [],
-      assignedTo: '',
-      scoreRange: [0, 100],
-      valueRange: [0, 10000]
-    });
+    setFilters(emptyFilters);
     onFilterClear();
   };
 
@@ -263,19 +271,35 @@ export const LeadFilterDialog: React.FC<LeadFilterDialogProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="filter-source-platform">Source Platform</Label>
-                  <select
-                    id="filter-source-platform"
-                    name="sourcePlatform"
-                    value={filters.sourcePlatform}
-                    onChange={handleInputChange}
-                    className={selectClasses}
+                  <Select
+                    value={filters.sourcePlatform || ALL_PLATFORMS}
+                    onValueChange={(value) =>
+                      setFilters(prev => ({
+                        ...prev,
+                        sourcePlatform: value === ALL_PLATFORMS ? '' : value,
+                      }))
+                    }
                   >
-                    {platformOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.icon} {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id="filter-source-platform">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ALL_PLATFORMS}>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-muted-foreground" />
+                          All Platforms
+                        </div>
+                      </SelectItem>
+                      {platformOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <SourcePlatformIcon source={option.value} className="w-4 h-4" />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

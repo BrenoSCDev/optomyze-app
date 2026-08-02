@@ -11,9 +11,9 @@
 
 import { memo } from 'react';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCurrency } from '@/hooks/useCurrency';
-import { KanbanColumn as ColumnType } from '@/types/leads';
+import { KanbanColumn as ColumnType, StageSort } from '@/types/leads';
 import { Button } from '@/components/ui/button';
 import LeadCard from './LeadCard';
 import { motion } from 'framer-motion';
@@ -24,6 +24,7 @@ import {
   ArrowDownNarrowWide,
   ArrowUpNarrowWide,
   Check,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -52,25 +53,50 @@ interface KanbanColumnProps {
   stageCurrency?: string;
   showEstimatedValues?: boolean;
   showAssignedUser?: boolean;
+  /** Pulls the next page of leads into this column. */
+  onLoadMore?: (columnId: string) => void;
+  isLoadingMore?: boolean;
+  sortOrder?: StageSort;
+  onSortChange?: (columnId: string, sort: StageSort) => void;
 }
 
-const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onArchiveLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDeleteLead, onArchiveLead, onAssignUser, onMoveFunnel, activeId, overId, stageValueEstimated, stageCurrency, showEstimatedValues = true, showAssignedUser = true, onLoadMore, isLoadingMore = false, sortOrder = 'newest', onSortChange }: KanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'default' | 'oldest' | 'newest'>('default');
   const { currencyCode: companyCurrency } = useCurrency();
 
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
   });
 
-  const sortedLeads = useMemo(() => {
-    if (sortOrder === 'default') return column.leads;
-    return [...column.leads].sort((a: any, b: any) => {
-      const aTime = new Date(a.createdAt || 0).getTime();
-      const bTime = new Date(b.createdAt || 0).getTime();
-      return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime;
-    });
-  }, [column.leads, sortOrder]);
+  const total = column.total ?? column.leads.length;
+  const hasMore = !!column.hasMore;
+
+  /*
+   * Infinite scroll. Leads arrive ten at a time, so the column watches a
+   * sentinel pinned below the last card and asks for the next page as it comes
+   * into view. The observer is rooted on the column's own scroller, not the
+   * viewport, since each column scrolls independently.
+   *
+   * Sorting is not done here: it would only reorder the pages already loaded.
+   * The order is a server-side concern, handled through onSortChange.
+   */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore(column.id);
+      },
+      { root: scrollRef.current, rootMargin: '150px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore, column.id, column.leads.length]);
 
   const getColumnColor = () => {
     if (column.color === 'green') return 'border-green-500/30 bg-green-500/5';
@@ -106,7 +132,8 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground">{column.title}</h3>
-            <span className="text-sm font-medium text-muted-foreground">{column.leads.length}</span>
+            {/* The stage's full size, not the number of cards loaded. */}
+            <span className="text-sm font-medium text-muted-foreground">{total}</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -130,12 +157,12 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border">
-                <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => onSortChange?.(column.id, 'newest')} className="cursor-pointer">
                   <ArrowDownNarrowWide className="h-4 w-4" />
                   Newest first
                   {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => onSortChange?.(column.id, 'oldest')} className="cursor-pointer">
                   <ArrowUpNarrowWide className="h-4 w-4" />
                   Oldest first
                   {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
@@ -154,7 +181,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
       </div>
 
       {/* Column Body */}
-      <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+      <div ref={scrollRef} className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
         {/* Drag Placeholder - shown only when this column is the drop target */}
         {activeId && isDropTarget && (
           <motion.div
@@ -181,7 +208,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
           is the one the user is following, and a 30%-opacity twin left behind
           reads as a rendering fault.
         */}
-        {sortedLeads.map((lead) => (
+        {column.leads.map((lead) => (
             <div key={lead.id} className={activeId === lead.id ? 'invisible' : undefined}>
               <LeadCard
                 lead={lead}
@@ -198,7 +225,19 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
               />
             </div>
           ))}
-        
+
+        {/* Infinite scroll trigger — also the "loading" affordance. */}
+        {hasMore && (
+          <div ref={sentinelRef} className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
+            <Loader2 className={`h-3.5 w-3.5 ${isLoadingMore ? 'animate-spin' : 'opacity-40'}`} />
+            <span>
+              {isLoadingMore
+                ? 'Loading more leads…'
+                : `Showing ${column.leads.length} of ${total}`}
+            </span>
+          </div>
+        )}
+
         {/* Empty State */}
         {column.leads.length === 0 && !activeId && (
           <motion.div

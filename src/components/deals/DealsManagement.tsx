@@ -5,7 +5,9 @@
  * Uses its own data hook and board, fully isolated from sales funnels.
  */
 
+import { useState } from 'react';
 import { useDealFunnelData } from '@/hooks/useDealFunnelData';
+import { DealFilters } from '@/lib/dealFilters';
 import DealKanbanBoard from './DealKanbanBoard';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,9 +17,27 @@ interface DealsManagementProps {
 }
 
 const DealsManagement = ({ funnelId }: DealsManagementProps) => {
-  const { funnelData, availableTags, loading, error, refetch } = useDealFunnelData(funnelId);
+  // Filters live here rather than in the board: deals are paginated per stage,
+  // so they have to reach the API, which is what feeds the board back.
+  const [filters, setFilters] = useState<DealFilters>({});
 
-  if (loading) {
+  const {
+    funnelData,
+    availableTags,
+    loading,
+    error,
+    refetch,
+    syncDealStage,
+    loadMoreStage,
+    setStageSort,
+    stageSorts,
+    stageLoading,
+  } = useDealFunnelData(funnelId, filters);
+
+  // Only the very first load blanks the page — a filter change refetches the
+  // board, and swapping it for a skeleton every time would tear the toolbar
+  // (and the open filter dialog) out from under the user.
+  if (loading && !funnelData?.funnel) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
         <div className="space-y-4">
@@ -68,7 +88,19 @@ const DealsManagement = ({ funnelId }: DealsManagementProps) => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
-      <DealKanbanBoard funnel={funnelData.funnel} availableTags={availableTags} onRefresh={refetch} />
+      <DealKanbanBoard
+        funnel={funnelData.funnel}
+        availableTags={availableTags}
+        onRefresh={refetch}
+        filters={filters}
+        onFiltersChange={setFilters}
+        isFiltering={loading}
+        onDealStageChanged={syncDealStage}
+        onLoadMoreStage={loadMoreStage}
+        onStageSortChange={setStageSort}
+        stageSorts={stageSorts}
+        stageLoading={stageLoading}
+      />
     </motion.div>
   );
 };

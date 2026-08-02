@@ -38,13 +38,17 @@ interface SourcePlatformIconProps {
   className?: string;
 }
 
+/**
+ * `className` lands on the icon, not the wrapper — callers pass it to resize
+ * (e.g. `w-4 h-4` inside a select), and on the wrapper it had no effect.
+ */
 const SourcePlatformIcon = ({ source, className }: SourcePlatformIconProps) => {
   const platform = normalizeSourcePlatform(source);
   const { icon: Icon, color, label } = PLATFORM_META[platform];
 
   return (
-    <span title={label} className={cn('inline-flex items-center justify-center', className)}>
-      <Icon className={cn('w-5 h-5', color)} />
+    <span title={label} className="inline-flex items-center justify-center">
+      <Icon className={cn('w-5 h-5', color, className)} />
     </span>
   );
 };

@@ -5,7 +5,7 @@
  * LeadFilterDialog for a consistent experience across the CRM.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, RotateCcw } from 'lucide-react';
 import {
   Dialog,
@@ -23,6 +23,8 @@ interface DealFilterDialogProps {
   isOpen: boolean;
   onClose: () => void;
   stages: any[];
+  /** Currently applied filters — the dialog reopens showing these. */
+  filters?: Partial<DealFilter>;
   onFilterApply: (filters: any) => void;
   onFilterClear: () => void;
 }
@@ -49,10 +51,19 @@ export const DealFilterDialog: React.FC<DealFilterDialogProps> = ({
   isOpen,
   onClose,
   stages,
+  filters: appliedFilters,
   onFilterApply,
   onFilterClear,
 }) => {
   const [filters, setFilters] = useState<DealFilter>(emptyFilters);
+
+  // Reopen showing what is actually applied, so the form never drifts from the
+  // board it is filtering.
+  useEffect(() => {
+    if (isOpen) {
+      setFilters({ ...emptyFilters, ...(appliedFilters || {}) });
+    }
+  }, [isOpen, appliedFilters]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,15 +71,17 @@ export const DealFilterDialog: React.FC<DealFilterDialogProps> = ({
   };
 
   const handleApplyFilters = () => {
-    const cleanFilters: Record<string, string | number> = {};
+    // Values stay as typed; dealFiltersToParams does the numeric coercion when
+    // it builds the query string.
+    const cleanFilters: DealFilter = { ...emptyFilters };
 
-    if (filters.dealName) cleanFilters.dealName = filters.dealName;
-    if (filters.leadName) cleanFilters.leadName = filters.leadName;
-    if (filters.stageId) cleanFilters.stageId = filters.stageId;
-    if (filters.minValue) cleanFilters.minValue = parseFloat(filters.minValue);
-    if (filters.maxValue) cleanFilters.maxValue = parseFloat(filters.maxValue);
+    (Object.keys(emptyFilters) as Array<keyof DealFilter>).forEach((key) => {
+      if (filters[key]) cleanFilters[key] = filters[key];
+    });
 
-    onFilterApply(cleanFilters);
+    onFilterApply(
+      Object.fromEntries(Object.entries(cleanFilters).filter(([, value]) => value !== ''))
+    );
     onClose();
   };
 

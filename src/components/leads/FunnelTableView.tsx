@@ -5,7 +5,7 @@
  * Shares the same data and actions as KanbanBoard.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPhoneNumber } from '@/lib/phone';
 import { Badge } from '@/components/ui/badge';
@@ -37,9 +37,10 @@ import {
   Mail, 
   Phone, 
   Clock, 
-  Tag, 
+  Tag,
   User,
   ArrowRightLeft,
+  Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -51,6 +52,70 @@ import ClickableUser from '@/components/users/ClickableUser';
 
 const ACCORDION_STORAGE_KEY = 'funnel_table_open_stages';
 
+/**
+ * Each stage's rows scroll in their own box, capped at roughly ten leads —
+ * the page size — so a stage with hundreds of leads doesn't push the ones
+ * below it off the screen, and paging through one stage never moves the
+ * others. 44rem is ten rows plus the header; the vh term keeps it sane on
+ * short viewports.
+ */
+/*
+ * `[&>div]:overflow-visible` unsets the `overflow-auto` that <Table> puts on
+ * its own wrapper. Left alone, that wrapper is the nearest scrollport, so the
+ * sticky header would anchor to it — an element that never scrolls — and the
+ * header would slide away with the rows. Neutralising it makes this box the
+ * scrollport for both the sticky header and the sentinel below.
+ */
+const STAGE_SCROLL_CLASSES =
+  'max-h-[min(70vh,44rem)] overflow-auto [&>div]:overflow-visible scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20';
+
+/**
+ * Bottom-of-stage sentinel: asks for the next page of leads once it scrolls
+ * into view. Rooted on the enclosing stage scroller (see above) so it fires on
+ * that stage's own scrolling, falling back to the viewport if the markup ever
+ * changes.
+ */
+const LoadMoreRow = ({
+  stageId,
+  loaded,
+  total,
+  isLoading,
+  onLoadMore,
+}: {
+  stageId: string;
+  loaded: number;
+  total: number;
+  isLoading: boolean;
+  onLoadMore?: (stageId: string) => void;
+}) => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore(stageId);
+      },
+      { root: sentinel.closest<HTMLElement>('[data-stage-scroll]'), rootMargin: '150px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [stageId, onLoadMore, loaded]);
+
+  return (
+    <div
+      ref={sentinelRef}
+      className="flex items-center justify-center gap-2 border-t border-border py-3 text-xs text-muted-foreground"
+    >
+      <Loader2 className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : 'opacity-40'}`} />
+      <span>{isLoading ? 'Loading more leads…' : `Showing ${loaded} of ${total}`}</span>
+    </div>
+  );
+};
+
 interface FunnelTableViewProps {
   columns: any[];
   funnel: any;
@@ -61,6 +126,9 @@ interface FunnelTableViewProps {
   showEstimatedValues?: boolean;
   showAssignedUser?: boolean;
   setColumns: React.Dispatch<React.SetStateAction<any[]>>;
+  /** Pulls the next page of leads into a stage — see KanbanColumn. */
+  onLoadMore?: (stageId: string) => void;
+  stageLoading?: Record<string, boolean>;
 }
 
 const FunnelTableView = ({
@@ -73,6 +141,8 @@ const FunnelTableView = ({
   showEstimatedValues = true,
   showAssignedUser = true,
   setColumns,
+  onLoadMore,
+  stageLoading,
 }: FunnelTableViewProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -222,8 +292,9 @@ const FunnelTableView = ({
                   style={{ backgroundColor: column.stageColor || '#FFFFFF' }}
                 />
                 <span className="font-semibold text-foreground">{column.title}</span>
+                {/* The stage's full size, not the number of rows loaded. */}
                 <Badge variant="secondary" className="bg-muted/50 text-muted-foreground">
-                  {column.leads.length}
+                  {column.total ?? column.leads.length}
                 </Badge>
                 {showEstimatedValues && column.valueEstimated > 0 && (
                   <Badge className="text-xs font-medium">
@@ -243,9 +314,12 @@ const FunnelTableView = ({
                   </Button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div data-stage-scroll={column.id} className={STAGE_SCROLL_CLASSES}>
                   <Table>
-                    <TableHeader>
+                    {/* Sticky so the columns stay labelled while a long stage
+                        scrolls. The component's own bg-table-header is opaque
+                        in both themes, so rows don't show through. */}
+                    <TableHeader className="sticky top-0 z-10">
                       <TableRow className="border-border hover:bg-transparent">
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-name') || 'Name'}</TableHead>
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-contact') || 'Contact'}</TableHead>
@@ -413,6 +487,16 @@ const FunnelTableView = ({
                       ))}
                     </TableBody>
                   </Table>
+
+                  {column.hasMore && (
+                    <LoadMoreRow
+                      stageId={column.id}
+                      loaded={column.leads.length}
+                      total={column.total ?? column.leads.length}
+                      isLoading={!!stageLoading?.[column.id]}
+                      onLoadMore={onLoadMore}
+                    />
+                  )}
                 </div>
               )}
             </AccordionContent>

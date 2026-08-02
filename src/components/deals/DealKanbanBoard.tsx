@@ -33,6 +33,8 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { dealFunnelService } from '@/services/dealFunnelApi';
+import { DealFilters, countActiveDealFilters, dealFiltersToParams } from '@/lib/dealFilters';
+import { StageSort } from '@/types/leads';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -45,9 +47,18 @@ interface DealKanbanBoardProps {
   funnel: any;
   availableTags: any[];
   onRefresh?: () => void;
+  /** Filters are owned by the page and resolved by the API — see useDealFunnelData. */
+  filters: DealFilters;
+  onFiltersChange: (filters: DealFilters) => void;
+  isFiltering?: boolean;
+  onDealStageChanged?: (dealId: string, newStageId: string, oldStageId: string) => void;
+  onLoadMoreStage?: (stageId: string) => void;
+  onStageSortChange?: (stageId: string, sort: StageSort) => void;
+  stageSorts?: Record<string, StageSort>;
+  stageLoading?: Record<string, boolean>;
 }
 
-const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardProps) => {
+const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersChange, isFiltering, onDealStageChanged, onLoadMoreStage, onStageSortChange, stageSorts, stageLoading }: DealKanbanBoardProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
@@ -59,7 +70,6 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
   const [draggedDeal, setDraggedDeal] = useState<any>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>({});
   const [isExporting, setIsExporting] = useState(false);
   const { settings: displaySettings, setShowProducts, setShowCharges } = useDealDisplaySettings();
   const [previewDealId, setPreviewDealId] = useState<string | null>(null);
@@ -79,7 +89,9 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
 
   const sensors = useKanbanSensors();
 
-  // Transform API data to column format (deals, not leads)
+  // Transform API data to column format (deals, not leads). `total` and
+  // `totalValue` are the stage's server-side figures — `deals` only holds the
+  // pages fetched so far.
   const kanbanColumns = useMemo(() => {
     return funnel.stages
       ?.sort((a: any, b: any) => a.order - b.order)
@@ -90,7 +102,9 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         type: stage.type,
         stageColor: stage.color || '#FFFFFF',
         currency: funnel.currency || companyCurrency,
-        totalValue: (stage.deals || []).reduce((sum: number, d: any) => sum + (d.final_total || 0), 0),
+        totalValue: Number(stage.deals_value_total || 0),
+        total: stage.deals_total ?? (stage.deals?.length || 0),
+        hasMore: !!stage.deals_has_more,
         deals: (stage.deals || []).map((deal: any) => ({
           ...deal,
           id: deal.id.toString(),
@@ -99,7 +113,6 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
   }, [funnel]);
 
   const [columns, setColumns] = useState(kanbanColumns);
-  const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
 
   const columnIdsRef = useRef<Set<string>>(new Set());
 
@@ -111,43 +124,28 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     setColumns(kanbanColumns);
   }, [kanbanColumns]);
 
-  // Filter deals
-  const filterDeals = useCallback((deals: any[], filters: any) => {
-    return deals.filter(deal => {
-      if (filters.dealName && !deal.name?.toLowerCase().includes(filters.dealName.toLowerCase())) return false;
-      if (filters.leadName) {
-        const leadName = deal.lead ? `${deal.lead.first_name} ${deal.lead.last_name || ''}` : '';
-        if (!leadName.toLowerCase().includes(filters.leadName.toLowerCase())) return false;
-      }
-      if (filters.minValue && (deal.final_total || 0) < filters.minValue) return false;
-      if (filters.maxValue && (deal.final_total || 0) > filters.maxValue) return false;
-      return true;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (Object.keys(activeFilters).length === 0) {
-      setFilteredColumns(columns);
-    } else {
-      // Stage filter
-      let cols = columns;
-      if (activeFilters.stageId) {
-        cols = cols.filter(c => c.id === activeFilters.stageId);
-      }
-      setFilteredColumns(cols.map(col => ({ ...col, deals: filterDeals(col.deals, activeFilters) })));
-    }
-  }, [columns, activeFilters, filterDeals]);
+  const activeFilterCount = useMemo(() => countActiveDealFilters(filters), [filters]);
 
   const handleAddDeal = useCallback((columnId: string) => {
     setSelectedStageId(columnId);
     setDealDialogOpen(true);
   }, []);
 
+  /**
+   * Export to Excel.
+   *
+   * The board only holds the pages that have been scrolled into view, so the
+   * export refetches the funnel unpaginated (`per_page=all`) under the same
+   * filters — otherwise it would quietly ship the first ten deals per stage.
+   */
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const exportData = prepareDealFunnelExportData(funnel);
+      const full = await dealFunnelService.getDealFunnelData(funnel.id, {
+        ...dealFiltersToParams(filters),
+        per_page: 'all',
+      });
+      const exportData = prepareDealFunnelExportData(full?.funnel || funnel);
       exportDealFunnelToExcel(exportData);
       toast.success(`Exported ${exportData.deals.length} deals to Excel`);
     } catch (error) {
@@ -156,7 +154,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     } finally {
       setIsExporting(false);
     }
-  }, [funnel]);
+  }, [funnel, filters]);
 
   // Collision detection (same strategy as sales kanban)
 
@@ -220,6 +218,10 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     try {
       await dealFunnelService.moveDealToStage(dealId, targetId);
       toast.success('Deal moved successfully');
+
+      // Keeps the shared payload's stage counts and values in step; without
+      // this the column headers would still show the pre-move totals.
+      onDealStageChanged?.(dealId, targetId, oldStageId);
     } catch {
       // Revert
       setColumns(prev => prev.map(col => {
@@ -241,7 +243,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
       }));
       toast.error('Failed to move deal');
     }
-  }, [columns]);
+  }, [columns, onDealStageChanged]);
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
@@ -261,12 +263,15 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
     setTagModalOpen(true);
   }, []);
 
-  const totalDeals = funnel.stages?.reduce((sum: number, s: any) => sum + (s.deals?.length || 0), 0) || 0;
-  const totalSalesValue = useMemo(() => {
-    return (funnel.stages || []).reduce((sum: number, s: any) => {
-      return sum + (s.deals || []).reduce((dSum: number, d: any) => dSum + (d.final_total || 0), 0);
-    }, 0);
-  }, [funnel]);
+  // Server-side totals — the columns hold only the loaded pages.
+  const totalDeals = useMemo(
+    () => columns.reduce((sum: number, col: any) => sum + (col.total || 0), 0),
+    [columns]
+  );
+  const totalSalesValue = useMemo(
+    () => columns.reduce((sum: number, col: any) => sum + (col.totalValue || 0), 0),
+    [columns]
+  );
   const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: companyCurrency }).format(value);
 
   return (
@@ -369,15 +374,19 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
           <Button
             variant="outline" size="sm"
             className={`deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground ${
-              Object.keys(activeFilters).length > 0 ? 'ring-2 ring-deal/50 bg-deal/10' : ''
+              activeFilterCount > 0 ? 'ring-2 ring-deal/50 bg-deal/10' : ''
             }`}
             onClick={() => setFilterDialogOpen(true)}
           >
-            <Filter className="h-4 w-4 sm:mr-1" />
+            {isFiltering ? (
+              <ExportLoader className="h-4 w-4 sm:mr-1 animate-spin" />
+            ) : (
+              <Filter className="h-4 w-4 sm:mr-1" />
+            )}
             <span className="hidden sm:inline">{t('funnel.page.filters')}</span>
-            {Object.keys(activeFilters).length > 0 && (
+            {activeFilterCount > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-deal text-deal-foreground rounded-full">
-                {Object.keys(activeFilters).length}
+                {activeFilterCount}
               </span>
             )}
           </Button>
@@ -417,7 +426,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
             onDragCancel={handleDragCancel}
           >
             <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 deal-kanban-board">
-              {filteredColumns.map((column, index) => (
+              {columns.map((column, index) => (
               <DealKanbanColumn
                   key={column.id}
                   column={column}
@@ -429,6 +438,10 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
                   overId={overId}
                   showProducts={displaySettings.showProducts}
                   showCharges={displaySettings.showCharges}
+                  onLoadMore={onLoadMoreStage}
+                  isLoadingMore={!!stageLoading?.[column.id]}
+                  sortOrder={stageSorts?.[column.id] || 'newest'}
+                  onSortChange={onStageSortChange}
                 />
               ))}
             </div>
@@ -450,13 +463,16 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         </>
       ) : (
         <DealTableView
-          columns={filteredColumns}
+          columns={columns}
           funnel={funnel}
           onAddDeal={handleAddDeal}
           onDealClick={handleDealClick}
           setColumns={setColumns}
           showProducts={displaySettings.showProducts}
           showCharges={displaySettings.showCharges}
+          onDealStageChanged={onDealStageChanged}
+          onLoadMore={onLoadMoreStage}
+          stageLoading={stageLoading}
         />
       )}
 
@@ -479,8 +495,9 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh }: DealKanbanBoardPr
         isOpen={filterDialogOpen}
         onClose={() => setFilterDialogOpen(false)}
         stages={funnel.stages || []}
-        onFilterApply={setActiveFilters}
-        onFilterClear={() => setActiveFilters({})}
+        filters={filters}
+        onFilterApply={onFiltersChange}
+        onFilterClear={() => onFiltersChange({})}
       />
 
       {/* Deal Preview Modal */}

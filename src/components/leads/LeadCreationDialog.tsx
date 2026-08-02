@@ -39,8 +39,6 @@ const platformOptions = [
   { value: "whatsapp", label: "WhatsApp" },
   { value: "facebook", label: "Facebook" },
   { value: "instagram", label: "Instagram" },
-  { value: "meta_ads", label: "Meta Ads" },
-  { value: "google_ads", label: "Google Ads" },
   { value: "telegram", label: "Telegram" },
   { value: "phone", label: "Phone" },
   { value: "sms", label: "SMS" },

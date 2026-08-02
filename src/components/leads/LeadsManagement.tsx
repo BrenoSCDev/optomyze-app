@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useFunnelData } from '@/hooks/useFunnelData';
+import { LeadFilters } from '@/lib/leadFilters';
 import KanbanBoard from './KanbanBoard';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -20,10 +21,27 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const { funnelData, availableTags, loading, error, updateLeadStage, refetch } = useFunnelData(funnelId);
+  // Filters live here rather than in the board: leads are paginated per stage,
+  // so they have to reach the API, which is what feeds the board back.
+  const [filters, setFilters] = useState<LeadFilters>({});
 
-  // Loading state
-  if (loading) {
+  const {
+    funnelData,
+    availableTags,
+    loading,
+    error,
+    syncLeadStage,
+    refetch,
+    loadMoreStage,
+    setStageSort,
+    stageSorts,
+    stageLoading,
+  } = useFunnelData(funnelId, filters);
+
+  // Loading state. Only the very first load blanks the page — a filter change
+  // refetches the board, and swapping it for a skeleton every time would tear
+  // the toolbar (and the open filter dialog) out from under the user.
+  if (loading && !funnelData?.funnel) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -93,7 +111,8 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
   };
 
   const handleOpenFilters = () => {
-    // Filters are now handled directly in the KanbanBoard component
+    // The filter dialog lives in the KanbanBoard; the values it produces are
+    // held here so they can be sent to the API.
   };
 
   const handleTagCreated = (newTag: any) => {
@@ -120,11 +139,18 @@ const LeadsManagement = ({ funnelId }: LeadsManagementProps) => {
         onCreateLead={handleCreateLead}
         onCreateTag={handleCreateTag}
         onOpenFilters={handleOpenFilters}
-        onUpdateLeadStage={updateLeadStage}
+        onUpdateLeadStage={syncLeadStage}
         onLeadCreated={refetch}
         onTagCreated={handleTagCreated}
         onTagsUpdated={handleTagsUpdated}
         onRefresh={refetch}
+        filters={filters}
+        onFiltersChange={setFilters}
+        isFiltering={loading}
+        onLoadMoreStage={loadMoreStage}
+        onStageSortChange={setStageSort}
+        stageSorts={stageSorts}
+        stageLoading={stageLoading}
       />
     </motion.div>
   );

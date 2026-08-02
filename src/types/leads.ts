@@ -40,11 +40,17 @@ export interface Lead {
   createdAt: string;
 }
 
+/** Order a single board column is loaded in — resolved server-side. */
+export type StageSort = 'newest' | 'oldest';
+
 export interface KanbanColumn {
   id: string;
   title: string;
+  /** Only the pages fetched so far; `total` is the stage's real size. */
   leads: Lead[];
   color?: string;
+  total?: number;
+  hasMore?: boolean;
 }
 
 export interface LeadFilter {

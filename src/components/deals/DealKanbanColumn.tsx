@@ -4,11 +4,12 @@
  * Teal-accented drop target column for the Deal Kanban board.
  */
 
-import { useState, useMemo , memo} from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import DealCard from './DealCard';
+import { StageSort } from '@/types/leads';
 import { motion } from 'framer-motion';
-import { Plus, MoreVertical, Package, ArrowDownNarrowWide, ArrowUpNarrowWide, Check } from 'lucide-react';
+import { Plus, MoreVertical, Package, ArrowDownNarrowWide, ArrowUpNarrowWide, Check, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,11 +29,15 @@ interface DealKanbanColumnProps {
   overId?: string | null;
   showProducts?: boolean;
   showCharges?: boolean;
+  /** Pulls the next page of deals into this column. */
+  onLoadMore?: (columnId: string) => void;
+  isLoadingMore?: boolean;
+  sortOrder?: StageSort;
+  onSortChange?: (columnId: string, sort: StageSort) => void;
 }
 
-const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true }: DealKanbanColumnProps) => {
+const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true, onLoadMore, isLoadingMore = false, sortOrder = 'newest', onSortChange }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [sortOrder, setSortOrder] = useState<'default' | 'oldest' | 'newest'>('default');
   const { currencyCode: companyCurrency } = useCurrency();
 
   const { isOver, setNodeRef } = useDroppable({ id: column.id });
@@ -44,14 +49,35 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
     }).format(amount);
   };
 
-  const sortedDeals = useMemo(() => {
-    if (sortOrder === 'default') return column.deals;
-    return [...column.deals].sort((a: any, b: any) => {
-      const aTime = new Date(a.created_at || 0).getTime();
-      const bTime = new Date(b.created_at || 0).getTime();
-      return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime;
-    });
-  }, [column.deals, sortOrder]);
+  const total = column.total ?? column.deals.length;
+  const hasMore = !!column.hasMore;
+
+  /*
+   * Infinite scroll. Deals arrive ten at a time, so the column watches a
+   * sentinel pinned below the last card and asks for the next page as it comes
+   * into view. The observer is rooted on the column's own scroller, not the
+   * viewport, since each column scrolls independently.
+   *
+   * Sorting is not done here: it would only reorder the pages already loaded.
+   * The order is a server-side concern, handled through onSortChange.
+   */
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore(column.id);
+      },
+      { root: scrollRef.current, rootMargin: '150px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore, column.id, column.deals.length]);
 
   return (
     <motion.div
@@ -78,7 +104,8 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
-            <span className="text-xs font-medium text-muted-foreground">{column.deals.length}</span>
+            {/* The stage's full size, not the number of cards loaded. */}
+            <span className="text-xs font-medium text-muted-foreground">{total}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-deal/10 text-muted-foreground hover:text-deal" onClick={() => onAddDeal(column.id)}>
@@ -91,12 +118,12 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background border-border">
-                <DropdownMenuItem onClick={() => setSortOrder('newest')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => onSortChange?.(column.id, 'newest')} className="cursor-pointer">
                   <ArrowDownNarrowWide className="h-4 w-4" />
                   Newest first
                   {sortOrder === 'newest' && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder('oldest')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => onSortChange?.(column.id, 'oldest')} className="cursor-pointer">
                   <ArrowUpNarrowWide className="h-4 w-4" />
                   Oldest first
                   {sortOrder === 'oldest' && <Check className="h-4 w-4 ml-auto" />}
@@ -115,7 +142,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
       </div>
 
       {/* Column Body */}
-      <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-deal">
+      <div ref={scrollRef} className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollbar-deal">
         {/* Drop placeholder */}
         {activeId && isDropTarget && (
           <motion.div
@@ -136,7 +163,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
           once. The dragged card is hidden rather than faded, because the
           DragOverlay copy is the one the user is following.
         */}
-        {sortedDeals.map((deal: any) => (
+        {column.deals.map((deal: any) => (
           <div key={deal.id} className={activeId === deal.id ? 'invisible' : undefined}>
             <DealCard
               deal={deal}
@@ -148,6 +175,16 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
             />
           </div>
         ))}
+
+        {/* Infinite scroll trigger — also the "loading" affordance. */}
+        {hasMore && (
+          <div ref={sentinelRef} className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
+            <Loader2 className={`h-3.5 w-3.5 ${isLoadingMore ? 'animate-spin' : 'opacity-40'}`} />
+            <span>
+              {isLoadingMore ? 'Loading more deals…' : `Showing ${column.deals.length} of ${total}`}
+            </span>
+          </div>
+        )}
 
         {/* Empty State */}
         {column.deals.length === 0 && !activeId && (

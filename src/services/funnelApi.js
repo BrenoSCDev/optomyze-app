@@ -1,10 +1,15 @@
 import api from './api';
 
+/** Leads loaded per stage, matching the API's own page size. */
+export const LEADS_PER_STAGE = 10;
+
 export const funnelService = {
-  // Get funnel data with stages and leads
-  async getFunnelData(funnelId) {
+  // Get funnel data with stages and the first page of leads for each stage.
+  // `params` carries the board filters plus per_page ('all' to skip
+  // pagination, which is what the export path needs).
+  async getFunnelData(funnelId, params = {}) {
     try {
-      const response = await api.get(`/api/funnels/${funnelId}`);
+      const response = await api.get(`/api/funnels/${funnelId}`, { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching funnel data:', error);
@@ -12,18 +17,19 @@ export const funnelService = {
     }
   },
 
-  // Update lead stage (for drag and drop)
-  async updateLeadStage(leadId, stageId) {
+  // One page of leads for a single stage — the board's infinite scroll.
+  async getStageLeads(funnelId, stageId, params = {}) {
     try {
-      const response = await api.put(`/api/leads/${leadId}`, {
-        stage_id: stageId
-      });
+      const response = await api.get(`/api/funnels/${funnelId}/stages/${stageId}/leads`, { params });
       return response.data;
     } catch (error) {
-      console.error('Error updating lead stage:', error);
+      console.error('Error fetching stage leads:', error);
       throw error;
     }
   },
+
+  // Drag and drop goes through leadService.moveLeadToStage, which enforces
+  // stage entry requirements; the board only mirrors the result afterwards.
 
   // Get all funnels for sidebar
   async getAllFunnels() {

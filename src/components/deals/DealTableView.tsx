@@ -4,7 +4,7 @@
  * Teal-accented table view for deal funnels with accordion stages.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -18,7 +18,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown } from 'lucide-react';
+import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import { formatPhoneNumber } from '@/lib/phone';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,6 +28,65 @@ import { toast } from 'sonner';
 
 const DEAL_ACCORDION_KEY = 'deal_table_open_stages';
 
+/**
+ * Each stage's rows scroll in their own box, capped at roughly ten deals —
+ * the page size — so a stage with hundreds of deals doesn't push the ones
+ * below it off the screen, and paging through one stage never moves the
+ * others. Mirrors FunnelTableView on the contact side.
+ *
+ * `[&>div]:overflow-visible` unsets the `overflow-auto` that <Table> puts on
+ * its own wrapper. Left alone, that wrapper is the nearest scrollport, so the
+ * sticky header would anchor to an element that never scrolls and slide away
+ * with the rows.
+ */
+const STAGE_SCROLL_CLASSES =
+  'max-h-[min(70vh,44rem)] overflow-auto [&>div]:overflow-visible scrollbar-deal';
+
+/**
+ * Bottom-of-stage sentinel: asks for the next page of deals once it scrolls
+ * into view, rooted on the enclosing stage scroller.
+ */
+const LoadMoreRow = ({
+  stageId,
+  loaded,
+  total,
+  isLoading,
+  onLoadMore,
+}: {
+  stageId: string;
+  loaded: number;
+  total: number;
+  isLoading: boolean;
+  onLoadMore?: (stageId: string) => void;
+}) => {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !onLoadMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore(stageId);
+      },
+      { root: sentinel.closest<HTMLElement>('[data-stage-scroll]'), rootMargin: '150px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [stageId, onLoadMore, loaded]);
+
+  return (
+    <div
+      ref={sentinelRef}
+      className="flex items-center justify-center gap-2 border-t border-deal/10 py-3 text-xs text-muted-foreground"
+    >
+      <Loader2 className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : 'opacity-40'}`} />
+      <span>{isLoading ? 'Loading more deals…' : `Showing ${loaded} of ${total}`}</span>
+    </div>
+  );
+};
+
 interface DealTableViewProps {
   columns: any[];
   funnel: any;
@@ -36,9 +95,14 @@ interface DealTableViewProps {
   setColumns: React.Dispatch<React.SetStateAction<any[]>>;
   showProducts?: boolean;
   showCharges?: boolean;
+  /** Mirrors a persisted move into the shared payload's stage totals. */
+  onDealStageChanged?: (dealId: string, newStageId: string, oldStageId: string) => void;
+  /** Pulls the next page of deals into a stage — see DealKanbanColumn. */
+  onLoadMore?: (stageId: string) => void;
+  stageLoading?: Record<string, boolean>;
 }
 
-const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, showProducts = true, showCharges = true }: DealTableViewProps) => {
+const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, showProducts = true, showCharges = true, onDealStageChanged, onLoadMore, stageLoading }: DealTableViewProps) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
 
@@ -90,6 +154,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
     try {
       await dealFunnelService.moveDealToStage(dealId, newStageId);
       toast.success('Deal moved successfully');
+      onDealStageChanged?.(dealId, newStageId, currentStageId);
     } catch {
       setColumns(prev =>
         prev.map(col => {
@@ -120,8 +185,9 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-deal/20" style={{ backgroundColor: column.stageColor || '#14b8a6' }} />
                 <span className="font-semibold text-foreground">{column.title}</span>
+                {/* The stage's full size, not the number of rows loaded. */}
                 <Badge variant="secondary" className="bg-deal/15 text-deal border-deal/30 text-xs">
-                  {column.deals.length}
+                  {column.total ?? column.deals.length}
                 </Badge>
                 {column.totalValue > 0 && (
                   <Badge className="text-xs font-medium bg-deal/15 text-deal border-deal/30">
@@ -140,9 +206,12 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                   </Button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div data-stage-scroll={column.id} className={STAGE_SCROLL_CLASSES}>
                   <Table>
-                    <TableHeader>
+                    {/* Sticky so the columns stay labelled while a long stage
+                        scrolls. The component's own bg-table-header is opaque
+                        in both themes, so rows don't show through. */}
+                    <TableHeader className="sticky top-0 z-10">
                       <TableRow className="border-deal/10 hover:bg-transparent">
                         <TableHead className="text-deal/70">Deal</TableHead>
                         <TableHead className="text-deal/70">Lead</TableHead>
@@ -272,6 +341,16 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                       })}
                     </TableBody>
                   </Table>
+
+                  {column.hasMore && (
+                    <LoadMoreRow
+                      stageId={column.id}
+                      loaded={column.deals.length}
+                      total={column.total ?? column.deals.length}
+                      isLoading={!!stageLoading?.[column.id]}
+                      onLoadMore={onLoadMore}
+                    />
+                  )}
                 </div>
               )}
             </AccordionContent>

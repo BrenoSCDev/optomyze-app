@@ -54,6 +54,9 @@ import {
 } from '@/components/dnd/kanbanDnd';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useFunnelDisplaySettings } from '@/hooks/useFunnelDisplaySettings';
+import { funnelService } from '@/services/funnelApi';
+import { LeadFilters, countActiveFilters, leadFiltersToParams } from '@/lib/leadFilters';
+import { StageSort } from '@/types/leads';
 import { exportFunnelToExcel, prepareFunnelExportData } from '@/utils/funnelExport';
 import LeadPreviewModal from './LeadPreviewModal';
 import LostReasonModal from './LostReasonModal';
@@ -77,9 +80,17 @@ interface KanbanBoardProps {
   onTagCreated?: (newTag: any) => void;
   onTagsUpdated?: (leadId: string, updatedLead: any) => void;
   onRefresh?: () => void;
+  /** Filters are owned by the page and resolved by the API — see useFunnelData. */
+  filters: LeadFilters;
+  onFiltersChange: (filters: LeadFilters) => void;
+  isFiltering?: boolean;
+  onLoadMoreStage?: (stageId: string) => void;
+  onStageSortChange?: (stageId: string, sort: StageSort) => void;
+  stageSorts?: Record<string, StageSort>;
+  stageLoading?: Record<string, boolean>;
 }
 
-const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated, onRefresh }: KanbanBoardProps) => {
+const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenFilters, onUpdateLeadStage, onLeadCreated, onTagCreated, onTagsUpdated, onRefresh, filters, onFiltersChange, isFiltering, onLoadMoreStage, onStageSortChange, stageSorts, stageLoading }: KanbanBoardProps) => {
   const navigate = useNavigate();
   const { user, funnels: allFunnels } = useAuth();
   const { t } = useLanguage();
@@ -106,10 +117,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   
   // Funnel display settings
   const { settings: displaySettings, setShowEstimatedValues, setShowAssignedUser } = useFunnelDisplaySettings();
-  
-  // Filter state
-  const [activeFilters, setActiveFilters] = useState<any>({});
-  
+
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
+
   // Export state
   const [isExporting, setIsExporting] = useState(false);
   
@@ -149,12 +159,21 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
       .map((f: any) => ({ id: f.id, name: f.name }));
   }, [allFunnels, funnel.id, funnel.type]);
 
-  // Handle export to Excel
+  /**
+   * Export to Excel.
+   *
+   * The board only holds the pages that have been scrolled into view, so the
+   * export refetches the funnel unpaginated (`per_page=all`) under the same
+   * filters — otherwise it would quietly ship the first ten leads per stage.
+   */
   const handleExport = useCallback(async () => {
     setIsExporting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const exportData = prepareFunnelExportData(funnel);
+      const full = await funnelService.getFunnelData(funnel.id, {
+        ...leadFiltersToParams(filters),
+        per_page: 'all',
+      });
+      const exportData = prepareFunnelExportData(full?.funnel || funnel);
       exportFunnelToExcel(exportData);
       toast.success(`Exported ${exportData.leads.length} leads to Excel`);
     } catch (error) {
@@ -163,11 +182,13 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     } finally {
       setIsExporting(false);
     }
-  }, [funnel]);
+  }, [funnel, filters]);
 
   const sensors = useKanbanSensors();
   
-  // Transform API data to kanban format
+  // Transform API data to kanban format. `total` is the stage's server-side
+  // count, which is what the column header and the "load more" check go by —
+  // `leads` only holds the pages fetched so far.
   const kanbanColumns = useMemo(() => {
     return funnel.stages
       ?.sort((a: any, b: any) => a.order - b.order)
@@ -179,7 +200,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         stageColor: stage.color || '#FFFFFF',
         valueEstimated: stage.value_estimated || 0,
         currency: stage.currency || funnel.currency || companyCurrency,
-        leads: stage.active_leads.map((lead: any) => ({
+        total: stage.leads_total ?? (stage.active_leads?.length || 0),
+        hasMore: !!stage.leads_has_more,
+        leads: (stage.active_leads || []).map((lead: any) => ({
           id: lead.id.toString(),
           name: `${lead.first_name} ${lead.last_name ? lead.last_name : ""}`,
           email: lead.email,
@@ -207,8 +230,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
   }, [funnel]);
 
   const [columns, setColumns] = useState(kanbanColumns);
-  const [filteredColumns, setFilteredColumns] = useState(kanbanColumns);
-  
+
   // Keep a ref to column IDs for collision detection (avoids stale closure)
   const columnIdsRef = useRef<Set<string>>(new Set());
   
@@ -222,74 +244,6 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
     setColumns(kanbanColumns);
   }, [kanbanColumns]);
 
-  // Filter leads based on active filters
-  const filterLeads = useCallback((leads: any[], filters: any) => {
-    return leads.filter(lead => {
-      if (filters.firstName && !lead.name.toLowerCase().includes(filters.firstName.toLowerCase())) {
-        return false;
-      }
-      if (filters.lastName && !lead.name.toLowerCase().includes(filters.lastName.toLowerCase())) {
-        return false;
-      }
-      if (filters.email && !lead.email?.toLowerCase().includes(filters.email.toLowerCase())) {
-        return false;
-      }
-      if (filters.phone && !lead.phone?.includes(filters.phone.replace(/\D/g, ''))) {
-        return false;
-      }
-      if (filters.ddi && !lead.phone?.startsWith(filters.ddi)) {
-        return false;
-      }
-      if (filters.sourcePlatform && lead.source !== filters.sourcePlatform) {
-        return false;
-      }
-      if (filters.stageId && lead.stage !== filters.stageId) {
-        return false;
-      }
-      if (filters.scoreRange) {
-        const [min, max] = filters.scoreRange;
-        if (lead.score < min || lead.score > max) {
-          return false;
-        }
-      }
-      if (filters.valueRange) {
-        const [min, max] = filters.valueRange;
-        if (lead.value < min || lead.value > max) {
-          return false;
-        }
-      }
-      if (filters.tags && filters.tags.length > 0) {
-        const leadTags = lead.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name);
-        const hasMatchingTag = filters.tags.some((filterTag: string) => leadTags.includes(filterTag));
-        if (!hasMatchingTag) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, []);
-
-  // Apply filters to columns
-  useEffect(() => {
-    if (Object.keys(activeFilters).length === 0) {
-      setFilteredColumns(columns);
-    } else {
-      const filtered = columns.map(column => ({
-        ...column,
-        leads: filterLeads(column.leads, activeFilters)
-      }));
-      setFilteredColumns(filtered);
-    }
-  }, [columns, activeFilters, filterLeads]);
-
-  const handleFilterApply = (filters: any) => {
-    setActiveFilters(filters);
-  };
-
-  const handleFilterClear = () => {
-    setActiveFilters({});
-  };
-  
   const handleAddLead = useCallback((columnId: string) => {
     setSelectedStageId(columnId);
     setLeadDialogOpen(true);
@@ -617,8 +571,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           <div className="flex items-center gap-4 flex-wrap text-sm">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Users className="h-4 w-4" />
+              {/* Server-side totals — the columns hold only the loaded pages. */}
               <span className="font-semibold text-foreground">
-                {funnel.stages?.reduce((total: number, stage: any) => total + (stage.active_leads?.length || 0), 0) || 0}
+                {columns.reduce((total: number, column: any) => total + (column.total || 0), 0)}
               </span>
               <span>{t('funnel.page.total-leads')}</span>
             </div>
@@ -729,14 +684,18 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
             size="sm"
             onClick={() => setFilterDialogOpen(true)}
             className={`glass-card  hover:bg-muted  hover:text-foreground ${
-              Object.keys(activeFilters).length > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
+              activeFilterCount > 0 ? 'ring-2 ring-blue-400/50 bg-blue-500/10' : ''
             }`}
           >
-            <Filter className="h-4 w-4 sm:mr-1" />
+            {isFiltering ? (
+              <Loader2 className="h-4 w-4 sm:mr-1 animate-spin" />
+            ) : (
+              <Filter className="h-4 w-4 sm:mr-1" />
+            )}
             <span className="hidden sm:inline">{t('funnel.page.filters')}</span>
-            {Object.keys(activeFilters).length > 0 && (
+            {activeFilterCount > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-full">
-                {Object.keys(activeFilters).length}
+                {activeFilterCount}
               </span>
             )}
           </Button>
@@ -767,7 +726,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           >
             <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
             <div className="flex gap-4 pb-4 min-w-max">
-              {filteredColumns.map((column, index) => (
+              {columns.map((column, index) => (
                 <KanbanColumn
                   key={column.id}
                   column={column}
@@ -785,6 +744,10 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
                   stageCurrency={(column as any).currency}
                   showEstimatedValues={displaySettings.showEstimatedValues}
                   showAssignedUser={displaySettings.showAssignedUser}
+                  onLoadMore={onLoadMoreStage}
+                  isLoadingMore={!!stageLoading?.[column.id]}
+                  sortOrder={stageSorts?.[column.id] || 'newest'}
+                  onSortChange={onStageSortChange}
                 />
               ))}
             </div>
@@ -806,7 +769,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         </>
       ) : (
         <FunnelTableView
-          columns={filteredColumns}
+          columns={columns}
           funnel={funnel}
           onAddLead={handleAddLead}
           onTagClick={handleTagClick}
@@ -815,6 +778,8 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           showEstimatedValues={displaySettings.showEstimatedValues}
           showAssignedUser={displaySettings.showAssignedUser}
           setColumns={setColumns}
+          onLoadMore={onLoadMoreStage}
+          stageLoading={stageLoading}
         />
       )}
 
@@ -858,8 +823,9 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
         onClose={() => setFilterDialogOpen(false)}
         funnelData={{ funnel }}
         availableTags={availableTags}
-        onFilterApply={handleFilterApply}
-        onFilterClear={handleFilterClear}
+        filters={filters}
+        onFilterApply={onFiltersChange}
+        onFilterClear={() => onFiltersChange({})}
       />
 
       {/* Lead Preview Modal */}
