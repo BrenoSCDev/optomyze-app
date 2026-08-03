@@ -1,13 +1,15 @@
 /**
  * MOVE FUNNEL MODAL
  *
- * Modal for moving a lead to a different funnel. The lead is placed
- * in the target funnel's entry stage.
+ * Modal for moving a lead — or a deal — to a different funnel of the same
+ * type. The record is placed in the target funnel's entry stage. `entity`
+ * only picks which endpoint is called; the picker is identical either way.
  */
 
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { leadService } from '@/services/leadApi';
+import { saleService } from '@/services/saleApi';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import {
@@ -35,12 +37,15 @@ interface FunnelOption {
 interface MoveFunnelModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Defaults to 'lead' so existing lead call sites are unchanged. */
+  entity?: 'lead' | 'deal';
+  /** Id of the lead or deal being moved. */
   leadId: string;
   funnels: FunnelOption[];
   onMoved: (leadId: string, funnelId: number) => void;
 }
 
-const MoveFunnelModal = ({ isOpen, onClose, leadId, funnels, onMoved }: MoveFunnelModalProps) => {
+const MoveFunnelModal = ({ isOpen, onClose, entity = 'lead', leadId, funnels, onMoved }: MoveFunnelModalProps) => {
   const { t } = useLanguage();
   const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
@@ -55,7 +60,11 @@ const MoveFunnelModal = ({ isOpen, onClose, leadId, funnels, onMoved }: MoveFunn
     if (!selectedFunnelId) return;
     try {
       setSubmitting(true);
-      await leadService.moveLeadToFunnel(leadId, Number(selectedFunnelId));
+      if (entity === 'deal') {
+        await saleService.moveSaleToFunnel(Number(leadId), Number(selectedFunnelId));
+      } else {
+        await leadService.moveLeadToFunnel(leadId, Number(selectedFunnelId));
+      }
       toast.success(t('lead-card.move-funnel-success'));
       onMoved(leadId, Number(selectedFunnelId));
       onClose();

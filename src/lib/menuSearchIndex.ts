@@ -35,6 +35,12 @@ export interface MenuEntry {
  * buried inside the CRM Panel.
  */
 export const MENU_ENTRIES: MenuEntry[] = [
+  // ── Onboarding ──
+  // Listed even after the checklist is dismissed: search is the way back to a
+  // screen that is no longer in the menu, and the panel itself offers to
+  // restore it from there.
+  { id: 'quickstart', labelKey: 'quickstart.title', trailKeys: [], keywords: ['onboarding', 'setup', 'checklist'] },
+
   // ── Dashboards ──
   { id: 'optomyze-metrics', labelKey: 'dashboard.optomyze-metrics', trailKeys: ['nav.dashboard'] },
   { id: 'plan-usage',       labelKey: 'dashboard.plan-usage',       trailKeys: ['nav.dashboard'] },

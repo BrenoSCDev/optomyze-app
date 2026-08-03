@@ -11,7 +11,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Key, Plus, Trash2, Calendar, Copy, Shield, AlertTriangle, ChevronDown, ChevronRight, Info, Lock, Eye, RotateCcw, Ban, FileText, Building2, Globe, Pencil } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -368,16 +368,10 @@ const ApiTokens = () => {
         transition={{ delay: 0.1 }}
       >
         <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5 text-primary" />
-                {t('api.tokens.title')}
-              </CardTitle>
-              <CardDescription>
-                {t('api.tokens.card-description')}
-              </CardDescription>
-            </div>
+          {/* Neither a title nor a subtitle here: the page header above carries
+              both, and repeating them read as the same section twice. What is
+              left is the card's action bar. */}
+          <CardHeader className="flex flex-row items-center justify-end">
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button>

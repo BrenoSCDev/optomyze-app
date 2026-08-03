@@ -113,5 +113,26 @@ export const saleService = {
       console.error('Error updating sale status:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Archive or restore a deal. Archived deals keep every relation and stay in
+   * their stage; they are only hidden from the board — unlike deleteSale,
+   * which cascades to items, charges and documents.
+   */
+  async setSaleArchived(saleId: number, archived: boolean): Promise<void> {
+    await api.patch(`/api/sales/${saleId}/archive`, { archived });
+  },
+
+  /** Reassign the deal's owner. */
+  async assignSaleUser(saleId: number, userId: number): Promise<SaleResponse> {
+    const response = await api.post(`/api/sales/${saleId}/assign`, { user_id: userId });
+    return response.data.sale || response.data;
+  },
+
+  /** Move the deal to another deal funnel, landing on its entry stage. */
+  async moveSaleToFunnel(saleId: number, funnelId: number): Promise<SaleResponse> {
+    const response = await api.post(`/api/sales/${saleId}/move-funnel`, { funnel_id: funnelId });
+    return response.data.sale || response.data;
+  },
 };

@@ -22,6 +22,10 @@ import {
   CircleDot,
   GitBranch,
   Tag,
+  MoreVertical,
+  UserCheck,
+  Archive,
+  Trash2,
 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -29,17 +33,40 @@ import { useCurrency } from '@/hooks/useCurrency';
 import UserAvatar from '@/components/ui/user-avatar';
 import ClickableUser from '@/components/users/ClickableUser';
 import TagBadge from '@/components/tags/TagBadge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DealCardProps {
   deal: any;
   isDragging?: boolean;
   onDealClick?: (dealId: string) => void;
   onTagClick?: (deal: any) => void;
+  onDeleteDeal?: (deal: any) => void;
+  /** Archiving hides the deal from the board without deleting it. */
+  onArchiveDeal?: (deal: any) => void;
+  onAssignUser?: (deal: any) => void;
+  onMoveFunnel?: (deal: any) => void;
   showProducts?: boolean;
   showCharges?: boolean;
 }
 
-const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = true, showCharges = true }: DealCardProps) => {
+const DealCard = ({
+  deal,
+  isDragging,
+  onDealClick,
+  onTagClick,
+  onDeleteDeal,
+  onArchiveDeal,
+  onAssignUser,
+  onMoveFunnel,
+  showProducts = true,
+  showCharges = true,
+}: DealCardProps) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
   const {
@@ -88,7 +115,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`rounded-xl border border-border bg-card text-card-foreground shadow-sm p-3 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative border-t-2 border-t-deal touch-none ${
+        className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm p-3 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative border-t-2 border-t-deal touch-none ${
           isDragging ? 'invisible' : ''
         }`}
       >
@@ -122,6 +149,64 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             <Badge className="bg-deal/15 text-deal border-deal/30 text-xs font-semibold shrink-0 px-2 py-0.5">
               {formatCurrency(finalTotal, currency)}
             </Badge>
+          )}
+
+          {/* More Actions Menu — same set the lead card offers. */}
+          {(onAssignUser || onMoveFunnel || onArchiveDeal || onDeleteDeal) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-1 rounded-md bg-surface-2 hover:bg-surface-3 border border-border hover:border-deal/50 transition-colors duration-fast ease-standard group shrink-0"
+                  title={t('deal-card.more-actions')}
+                >
+                  <MoreVertical className="w-3 h-3 text-muted-foreground group-hover:text-deal" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background border-border z-[80]">
+                {onAssignUser && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onAssignUser(deal); }}
+                    className="cursor-pointer"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    {t('deal-card.assign-user')}
+                  </DropdownMenuItem>
+                )}
+                {onMoveFunnel && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onMoveFunnel(deal); }}
+                    className="cursor-pointer"
+                  >
+                    <GitBranch className="w-4 h-4" />
+                    {t('deal-card.move-funnel')}
+                  </DropdownMenuItem>
+                )}
+                {onArchiveDeal && (
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); onArchiveDeal(deal); }}
+                    className="cursor-pointer"
+                  >
+                    <Archive className="w-4 h-4" />
+                    {deal.is_active === false
+                      ? t('deal-card.unarchive')
+                      : t('deal-card.archive')}
+                  </DropdownMenuItem>
+                )}
+                {onDeleteDeal && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => { e.stopPropagation(); onDeleteDeal(deal); }}
+                      className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {t('deal-card.delete')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 

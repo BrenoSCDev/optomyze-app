@@ -755,7 +755,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
 
             <DragOverlay dropAnimation={KANBAN_DROP_ANIMATION}>
               {activeId && draggedLead ? (
-                <KanbanDragPreview className="w-80">
+                <KanbanDragPreview className="w-[23rem]">
                   <LeadCard
                     lead={draggedLead}
                     isDragging={false}

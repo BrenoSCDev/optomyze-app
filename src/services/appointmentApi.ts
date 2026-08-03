@@ -12,6 +12,8 @@ export interface AppointmentProduct {
 export interface Appointment {
   id: number;
   company_id: number;
+  /** The calendar this appointment sits on. Always set by the server. */
+  calendar_id: number | null;
   /** Optional: appointments can exist without a lead. */
   lead_id: number | null;
   appointment_type_id: number | null;
@@ -33,6 +35,8 @@ export interface Appointment {
 export interface CreateAppointmentPayload {
   /** Optional: omit for internal meetings, focus blocks, etc. */
   lead_id?: number | null;
+  /** Defaults to the company's default calendar when omitted. */
+  calendar_id?: number | null;
   appointment_type_id?: number | null;
   title: string;
   scheduled_at: string;
@@ -49,8 +53,16 @@ export const getLeadAppointments = async (leadId: number): Promise<Appointment[]
   return res.data;
 };
 
-export const getCompanyAppointments = async (): Promise<Appointment[]> => {
-  const res = await api.get('/api/appointments');
+/**
+ * Company appointments, optionally narrowed to one calendar.
+ *
+ * The parameter is an array so the same endpoint serves a future overlay view
+ * showing several calendars at once; passing none returns the whole company.
+ */
+export const getCompanyAppointments = async (calendarIds?: number[]): Promise<Appointment[]> => {
+  const res = await api.get('/api/appointments', {
+    params: calendarIds?.length ? { calendar_id: calendarIds } : undefined,
+  });
   return res.data;
 };
 

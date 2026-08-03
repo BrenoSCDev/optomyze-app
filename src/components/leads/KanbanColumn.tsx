@@ -110,7 +110,7 @@ const KanbanColumn = ({ column, index, onAddLead, onTagClick, onLeadClick, onDel
   return (
     <motion.div
       ref={setNodeRef}
-      className={`glass-card p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
+      className={`glass-card rounded-lg p-4 w-[25rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${getColumnColor()} ${
         isOver || isDropTarget ? 'ring-2 ring-primary/50 bg-primary/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}

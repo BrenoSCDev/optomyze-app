@@ -1,7 +1,7 @@
 /**
  * LEAD CARD COMPONENT
  * 
- * Individual lead card with glassmorphism design for the Kanban board
+ * Individual lead card for the Kanban board
  */
 
 import { memo } from 'react';
@@ -67,16 +67,6 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
    * copy that follows the cursor; translating this element as well would drag
    * the original along underneath it, showing two cards at once.
    */
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'border-l-red-500';
-      case 'high': return 'border-l-orange-500';
-      case 'medium': return 'border-l-yellow-500';
-      case 'low': return 'border-l-green-500';
-      default: return 'border-l-gray-500';
-    }
-  };
-
   const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -101,7 +91,16 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard border-l-4 relative touch-none ${getPriorityColor(lead.priority)} ${
+        // Solid surface, not `glass-card`: the translucent fill and backdrop
+        // blur only ever showed in dark mode (the light-mode glass tokens are
+        // opaque), so the board rendered differently per theme for no gain,
+        // and blurring one node per card is the expensive way to draw a panel.
+        // Same recipe as DealCard, minus its coloured top border.
+        //
+        // No priority stripe either: a coloured left border on every card
+        // turned the board into a wall of colour. Priority still reads from
+        // the table view's badge and the lead's own screens.
+        className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm p-4 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative touch-none ${
           isDragging ? 'invisible' : 'hover:border-border-strong'
         } ${isMoving ? 'opacity-60' : ''}`}
       >

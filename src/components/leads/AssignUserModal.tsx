@@ -1,7 +1,9 @@
 /**
  * ASSIGN USER MODAL
- * 
- * Modal for assigning a user to a lead
+ *
+ * Modal for assigning a user to a lead or a deal. Both entities expose the
+ * same `POST /{entity}/{id}/assign` shape, so `entity` only picks the path —
+ * the picker itself is identical either way.
  */
 
 import React, { useState } from 'react';
@@ -36,6 +38,9 @@ export interface CompanyUser {
 interface AssignUserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Defaults to 'lead' so existing lead call sites are unchanged. */
+  entity?: 'lead' | 'deal';
+  /** Id of the lead or deal being reassigned. */
   leadId: number;
   users: CompanyUser[];
   currentAssignedUserId?: number | null;
@@ -45,6 +50,7 @@ interface AssignUserModalProps {
 const AssignUserModal: React.FC<AssignUserModalProps> = ({
   isOpen,
   onClose,
+  entity = 'lead',
   leadId,
   users,
   currentAssignedUserId,
@@ -64,7 +70,8 @@ const AssignUserModal: React.FC<AssignUserModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      await api.post(`/api/leads/${leadId}/assign`, {
+      const path = entity === 'deal' ? 'sales' : 'leads';
+      await api.post(`/api/${path}/${leadId}/assign`, {
         user_id: parseInt(selectedUserId, 10),
       });
 

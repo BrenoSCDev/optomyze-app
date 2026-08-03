@@ -26,6 +26,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCalendars } from '@/contexts/CalendarsContext';
 import {
   Appointment, createAppointment, deleteAppointment, updateAppointment,
 } from '@/services/appointmentApi';
@@ -58,6 +59,7 @@ const AppointmentModal: React.FC<Props> = ({
   open, onClose, appointment, initialStart, appointmentTypes, onSaved, onDeleted,
 }) => {
   const { t } = useLanguage();
+  const { selected: activeCalendar } = useCalendars();
   const isEditing = !!appointment;
 
   const [title, setTitle] = useState('');
@@ -107,6 +109,10 @@ const AppointmentModal: React.FC<Props> = ({
       appointment_type_id: typeId === 'none' ? null : Number(typeId),
       status,
       notes: notes.trim() || undefined,
+      // New bookings land on the calendar being viewed — booking into the
+      // calendar you are looking at is the only behaviour that isn't a
+      // surprise. Editing leaves the existing calendar alone.
+      ...(isEditing ? {} : { calendar_id: activeCalendar?.id ?? null }),
     };
 
     try {

@@ -37,7 +37,7 @@ interface PlanUsageResponse {
   leads: MetricData;
   users: MetricData;
   products: MetricData;
-  storage: MetricData;
+  storage: StorageMetricData;
   active_deals: MetricData;
   tasks: MetricData;
   integrations: MetricData;
@@ -54,6 +54,25 @@ interface MetricData {
   percentage: number;
   is_unlimited: boolean;
 }
+
+/**
+ * Storage reports more than a number: the limit is in GB but real usage is
+ * often megabytes, and "you are near your limit" is only actionable next to
+ * "and it is mostly WhatsApp media".
+ */
+interface StorageMetricData extends MetricData {
+  used_bytes: number;
+  files: number;
+  by_category: { category: string; bytes: number; files: number }[];
+}
+
+/** Bytes at human scale — GB alone renders every real company as "0 GB". */
+const formatBytes = (bytes: number): string => {
+  if (!bytes) return '0 MB';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / 1024 ** power).toFixed(power >= 3 ? 2 : 1)} ${units[power]}`;
+};
 
 interface UsageMetric {
   id: string;
@@ -451,6 +470,48 @@ const PlanUsage = ({ demoMode = false, demoData }: PlanUsageProps) => {
           ))}
         </div>
       </div>
+
+      {/* Storage breakdown — which kinds of file are actually consuming the
+          plan's allowance. Hidden until something has been stored. */}
+      {planData.storage.by_category?.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.45 }}
+        >
+          <Card className="glass-card border-border">
+            <CardHeader>
+              <CardTitle className="text-lg">{t('planUsage.storageBreakdown')}</CardTitle>
+              <CardDescription>
+                {t('planUsage.storageBreakdownDescription')
+                  .replace('{total}', formatBytes(planData.storage.used_bytes))
+                  .replace('{files}', String(planData.storage.files ?? 0))}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {planData.storage.by_category.map(row => {
+                const share = planData.storage.used_bytes > 0
+                  ? Math.round((row.bytes / planData.storage.used_bytes) * 100)
+                  : 0;
+
+                return (
+                  <div key={row.category} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="truncate text-foreground">
+                        {t(`planUsage.storageCategory.${row.category}`)}
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {formatBytes(row.bytes)} · {row.files}
+                      </span>
+                    </div>
+                    <Progress value={share} className="h-1.5" />
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Usage Summary */}
       <motion.div

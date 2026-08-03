@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings, Star, Archive, ArchiveRestore } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings, Star, Archive, ArchiveRestore, EyeOff } from 'lucide-react';
 import { HiOutlineDevicePhoneMobile } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -893,6 +893,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       case 'location': return t('chat.inbox.reply-location');
       case 'contact': return t('chat.inbox.reply-contact');
       case 'story_reply': return t('chat.inbox.reply-story');
+      case 'ephemeral': return t('chat.inbox.reply-ephemeral');
       default: return t('chat.inbox.reply-message');
     }
   };
@@ -1280,6 +1281,21 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           status={message.status}
                           sentAt={message.sent_at}
                         />
+                      ) : message.type === 'ephemeral' ? (
+                        /* Meta never provides a URL for view-once media, so
+                           there is nothing to fetch — say what arrived. */
+                        <div className="flex items-center gap-2 py-0.5">
+                          <EyeOff className="h-4 w-4 shrink-0 opacity-70" />
+                          <span className="text-sm italic opacity-90">
+                            {t('chat.inbox.ephemeral-media')}
+                          </span>
+                          <span className={cn(
+                            "text-xs",
+                            message.direction === 'outgoing' ? "text-blue-100" : "text-muted-foreground"
+                          )}>
+                            {formatMessageTime(message.sent_at)}
+                          </span>
+                        </div>
                       ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">
                           <ContactMessage

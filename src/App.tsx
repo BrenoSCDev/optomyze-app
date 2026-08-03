@@ -2,6 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OptusProvider } from "@/contexts/OptusContext";
+import { QuickstartProvider } from "@/contexts/QuickstartContext";
+import { CalendarsProvider } from "@/contexts/CalendarsContext";
 import OptusBubble from "@/components/support/OptusBubble";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -39,6 +41,8 @@ const App = () => (
             <UserProfileModalProvider>
             <InboxProvider>
             <OptusProvider>
+            <QuickstartProvider>
+            <CalendarsProvider>
               <Toaster />
               <Sonner position="top-right" richColors />
               <Routes>
@@ -108,6 +112,8 @@ const App = () => (
               {/* Renders itself only when enabled in Preferences and the
                   user is signed in. */}
               <OptusBubble />
+            </CalendarsProvider>
+            </QuickstartProvider>
             </OptusProvider>
             </InboxProvider>
             </UserProfileModalProvider>

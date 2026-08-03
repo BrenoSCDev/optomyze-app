@@ -33,6 +33,15 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { dealFunnelService } from '@/services/dealFunnelApi';
+import { saleService } from '@/services/saleApi';
+import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
+import MoveFunnelModal from '@/components/leads/MoveFunnelModal';
+import { userApi } from '@/services/userApi';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { DealFilters, countActiveDealFilters, dealFiltersToParams } from '@/lib/dealFilters';
 import { StageSort } from '@/types/leads';
 import { toast } from 'sonner';
@@ -62,6 +71,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
+  const { funnels: allFunnels } = useAuth();
 
   const [dealDialogOpen, setDealDialogOpen] = useState(false);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
@@ -77,6 +87,15 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [selectedDealForTag, setSelectedDealForTag] = useState<any>(null);
+
+  // Company users for the Assign User action, fetched once for the board.
+  const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
+
+  // Deal card "more actions" state
+  const [assignUserTarget, setAssignUserTarget] = useState<any | null>(null);
+  const [moveFunnelTarget, setMoveFunnelTarget] = useState<any | null>(null);
+  const [deleteDealTarget, setDeleteDealTarget] = useState<any | null>(null);
+  const [isDeletingDeal, setIsDeletingDeal] = useState(false);
 
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>(() => {
     return (localStorage.getItem('deal_funnel_view_mode') as 'kanban' | 'table') || 'kanban';
@@ -263,6 +282,91 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
     setTagModalOpen(true);
   }, []);
 
+  // Fetch company users once for the Assign User modal.
+  useEffect(() => {
+    userApi.getUsers()
+      .then(users => setCompanyUsers(users as unknown as CompanyUser[]))
+      .catch(() => setCompanyUsers([]));
+  }, []);
+
+  // Deal funnels this deal could move to — the current one excluded.
+  const moveFunnelOptions = useMemo(() => {
+    return (allFunnels || [])
+      .filter((f: any) => f.is_active && f.type === funnel.type && Number(f.id) !== Number(funnel.id))
+      .map((f: any) => ({ id: f.id, name: f.name }));
+  }, [allFunnels, funnel.id, funnel.type]);
+
+  /** Drops a deal from the board without waiting for a refetch. */
+  const removeDealFromColumns = useCallback((dealId: string) => {
+    setColumns((prev: any[]) => prev.map(col => ({
+      ...col,
+      deals: col.deals.filter((deal: any) => deal.id !== dealId),
+      total: Math.max(0, (col.total || 0) - (col.deals.some((d: any) => d.id === dealId) ? 1 : 0)),
+    })));
+  }, []);
+
+  /** Archive/unarchive from the board; the deal leaves the default view. */
+  const handleArchiveDeal = useCallback(async (deal: any) => {
+    const archiving = deal.is_active !== false;
+    try {
+      await saleService.setSaleArchived(Number(deal.id), archiving);
+      toast.success(archiving ? t('deal-card.archive-success') : t('deal-card.unarchive-success'));
+      removeDealFromColumns(deal.id);
+      onRefresh?.();
+    } catch {
+      toast.error(t('deal-card.archive-error'));
+    }
+  }, [onRefresh, removeDealFromColumns, t]);
+
+  const handleDeleteDealClick = useCallback((deal: any) => {
+    setDeleteDealTarget(deal);
+  }, []);
+
+  const handleConfirmDeleteDeal = async () => {
+    if (!deleteDealTarget) return;
+    try {
+      setIsDeletingDeal(true);
+      await saleService.deleteSale(Number(deleteDealTarget.id));
+      toast.success(t('deal-card.delete-success'));
+      removeDealFromColumns(deleteDealTarget.id);
+      setDeleteDealTarget(null);
+      onRefresh?.();
+    } catch {
+      toast.error(t('deal-card.delete-error'));
+    } finally {
+      setIsDeletingDeal(false);
+    }
+  };
+
+  const handleAssignUserClick = useCallback((deal: any) => {
+    setAssignUserTarget(deal);
+  }, []);
+
+  // Merge the newly assigned user into the deal card in place.
+  const handleUserAssigned = (userId: number, userName: string, userEmail: string) => {
+    if (!assignUserTarget) return;
+    const dealId = assignUserTarget.id;
+    setColumns((prev: any[]) => prev.map(col => ({
+      ...col,
+      deals: col.deals.map((deal: any) =>
+        deal.id === dealId
+          ? { ...deal, user_id: userId, user: { id: userId, name: userName, email: userEmail } }
+          : deal
+      ),
+    })));
+  };
+
+  const handleMoveFunnelClick = useCallback((deal: any) => {
+    setMoveFunnelTarget(deal);
+  }, []);
+
+  // Once moved, the deal belongs to another board — drop it from this one.
+  const handleDealMovedToFunnel = (dealId: string) => {
+    removeDealFromColumns(dealId);
+    setMoveFunnelTarget(null);
+    onRefresh?.();
+  };
+
   // Server-side totals — the columns hold only the loaded pages.
   const totalDeals = useMemo(
     () => columns.reduce((sum: number, col: any) => sum + (col.total || 0), 0),
@@ -434,6 +538,10 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
                   onAddDeal={handleAddDeal}
                   onDealClick={handleDealClick}
                   onTagClick={handleTagClick}
+                  onDeleteDeal={handleDeleteDealClick}
+                  onArchiveDeal={handleArchiveDeal}
+                  onAssignUser={handleAssignUserClick}
+                  onMoveFunnel={handleMoveFunnelClick}
                   activeId={activeId}
                   overId={overId}
                   showProducts={displaySettings.showProducts}
@@ -448,7 +556,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
 
             <DragOverlay dropAnimation={KANBAN_DROP_ANIMATION}>
               {activeId && draggedDeal ? (
-                <KanbanDragPreview className="w-80">
+                <KanbanDragPreview className="w-[23rem]">
                   <DealCard
                     deal={draggedDeal}
                     isDragging={false}
@@ -508,7 +616,52 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
         // Moving a deal through the journey inside the modal changes which
         // column it belongs to, so the board behind has to reload.
         onDealUpdated={onRefresh}
+        // The modal's own actions can remove the deal from this board.
+        onDealRemoved={(dealId) => { removeDealFromColumns(dealId); onRefresh?.(); }}
       />
+
+      {/* Assign User Modal */}
+      <AssignUserModal
+        isOpen={!!assignUserTarget}
+        onClose={() => setAssignUserTarget(null)}
+        entity="deal"
+        leadId={assignUserTarget ? Number(assignUserTarget.id) : 0}
+        users={companyUsers}
+        currentAssignedUserId={assignUserTarget?.user?.id}
+        onUserAssigned={handleUserAssigned}
+      />
+
+      {/* Move Funnel Modal */}
+      <MoveFunnelModal
+        isOpen={!!moveFunnelTarget}
+        onClose={() => setMoveFunnelTarget(null)}
+        entity="deal"
+        leadId={moveFunnelTarget?.id || ''}
+        funnels={moveFunnelOptions}
+        onMoved={handleDealMovedToFunnel}
+      />
+
+      {/* Delete Deal Confirmation */}
+      <AlertDialog open={!!deleteDealTarget} onOpenChange={(open) => !open && setDeleteDealTarget(null)}>
+        <AlertDialogContent className="bg-background border-border z-[80]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deal-card.delete-title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deal-card.delete-confirmation')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingDeal}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteDeal}
+              disabled={isDeletingDeal}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingDeal
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('common.deleting')}</>
+                : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Tag Dialog */}
       <TagCreationDialog

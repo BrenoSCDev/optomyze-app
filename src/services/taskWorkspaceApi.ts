@@ -331,8 +331,12 @@ export const fetchTaskCalendar = async (
   start: string,
   end: string,
   filters: TaskFilters = {},
+  calendarId?: number | null,
 ): Promise<WorkspaceTask[]> => {
   const params = toParams({ ...filters, start, end });
+  // Tasks share the calendar grid with appointments, so they narrow to the
+  // selected calendar the same way.
+  if (calendarId) params.set('calendar_id', String(calendarId));
   const res = await api.get(`/api/tasks/calendar?${params.toString()}`);
   return (res.data?.data ?? []).map(normalise);
 };

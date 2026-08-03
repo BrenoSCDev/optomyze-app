@@ -151,17 +151,20 @@ const ConversationsMetrics = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('conversations-metrics.title')}</h1>
-          <p className="text-muted-foreground">{t('conversations-metrics.description')}</p>
-        </div>
-      </div>
+      {/* No section heading: this renders inside the Optomyze Metrics
+          dashboard as its Conversations tab, which already names it. */}
+      <p className="text-muted-foreground">{t('conversations-metrics.description')}</p>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
-          <TabsTrigger value="overview">{t('conversations-metrics.tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="daily-report">{t('conversations-metrics.tabs.daily-report')}</TabsTrigger>
+        {/* Sized to its labels rather than stretched across `max-w-md`:
+            two toggles do not need half the content width each. */}
+        <TabsList className="h-9 mb-6">
+          <TabsTrigger value="overview" className="text-xs">
+            {t('conversations-metrics.tabs.overview')}
+          </TabsTrigger>
+          <TabsTrigger value="daily-report" className="text-xs">
+            {t('conversations-metrics.tabs.daily-report')}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-0">

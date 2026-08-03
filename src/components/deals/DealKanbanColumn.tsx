@@ -25,6 +25,10 @@ interface DealKanbanColumnProps {
   onAddDeal: (columnId: string) => void;
   onDealClick?: (dealId: string) => void;
   onTagClick?: (deal: any) => void;
+  onDeleteDeal?: (deal: any) => void;
+  onArchiveDeal?: (deal: any) => void;
+  onAssignUser?: (deal: any) => void;
+  onMoveFunnel?: (deal: any) => void;
   activeId?: string | null;
   overId?: string | null;
   showProducts?: boolean;
@@ -36,7 +40,7 @@ interface DealKanbanColumnProps {
   onSortChange?: (columnId: string, sort: StageSort) => void;
 }
 
-const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, activeId, overId, showProducts = true, showCharges = true, onLoadMore, isLoadingMore = false, sortOrder = 'newest', onSortChange }: DealKanbanColumnProps) => {
+const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, onDeleteDeal, onArchiveDeal, onAssignUser, onMoveFunnel, activeId, overId, showProducts = true, showCharges = true, onLoadMore, isLoadingMore = false, sortOrder = 'newest', onSortChange }: DealKanbanColumnProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const { currencyCode: companyCurrency } = useCurrency();
 
@@ -82,7 +86,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   return (
     <motion.div
       ref={setNodeRef}
-      className={`rounded-xl border border-border bg-card text-card-foreground shadow-sm p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
+      className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm p-4 w-[25rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
         isOver || isDropTarget ? 'ring-2 ring-deal/50 bg-deal/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -170,6 +174,10 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
               isDragging={activeId === deal.id}
               onDealClick={onDealClick}
               onTagClick={onTagClick}
+              onDeleteDeal={onDeleteDeal}
+              onArchiveDeal={onArchiveDeal}
+              onAssignUser={onAssignUser}
+              onMoveFunnel={onMoveFunnel}
               showProducts={showProducts}
               showCharges={showCharges}
             />

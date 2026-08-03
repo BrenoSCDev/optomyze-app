@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
+import QuickstartPanel from '@/components/quickstart/QuickstartPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
@@ -108,6 +109,7 @@ const Index = () => {
 
   const renderDashboard = () => {
     switch (activeSection) {
+      case 'quickstart': return <QuickstartPanel />;
       case 'optomyze-metrics': return <OptomyzeMetrics />;
       case 'plan-usage': return <PlanUsage />;
       case 'meta-ads': return <MetaAds />;

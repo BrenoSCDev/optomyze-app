@@ -33,7 +33,7 @@ export interface InboxMessageUser {
 
 /** Preview of a quoted/replied-to message, snapshotted at receive time. */
 export interface InboxReplySnapshot {
-  type: 'text' | 'image' | 'video' | 'audio' | 'sticker' | 'document' | 'location' | 'contact' | 'story_reply' | null;
+  type: 'text' | 'image' | 'video' | 'audio' | 'sticker' | 'document' | 'location' | 'contact' | 'story_reply' | 'ephemeral' | null;
   text?: string | null;
   participant?: string | null;
 }
@@ -48,7 +48,11 @@ export interface InboxMessage {
   id: number;
   inbox_chat_id: number;
   direction: 'incoming' | 'outgoing';
-  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'sticker' | 'shared_post' | 'story_reply';
+  /**
+   * `ephemeral` is Instagram's disappearing ("view once") media. Meta never
+   * provides a URL for it, so the message carries no media_url by design.
+   */
+  type: 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'sticker' | 'shared_post' | 'story_reply' | 'ephemeral';
   text: string | null;
   metadata?: InboxMessageMetadata | null;
   media_url?: string | null;

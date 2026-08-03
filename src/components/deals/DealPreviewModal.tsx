@@ -15,6 +15,7 @@ import {
   FileText, Upload, Download, Eye, Trash2, File,
   CircleDot, GitBranch, Clock, AlertCircle, Activity,
   CheckCircle, XCircle, StickyNote, ListTodo, CalendarDays, MessageSquare,
+  MoreVertical, UserCheck, Archive,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import AssignUserModal from '@/components/leads/AssignUserModal';
+import MoveFunnelModal from '@/components/leads/MoveFunnelModal';
+import { saleService } from '@/services/saleApi';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DealPreviewModalProps {
   isOpen: boolean;
@@ -53,10 +61,14 @@ interface DealPreviewModalProps {
   dealId: string | null;
   /** Fired after a change the board behind the modal should reflect. */
   onDealUpdated?: () => void;
+  /** Fired when the deal no longer belongs on the board behind (deleted,
+   *  archived, or moved to another funnel). The modal closes itself. */
+  onDealRemoved?: (dealId: string) => void;
 }
 
-const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId, onDealUpdated }) => {
+const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId, onDealUpdated, onDealRemoved }) => {
   const { t } = useLanguage();
+  const { funnels: allFunnels } = useAuth();
   const { currencyCode: companyCurrency } = useCurrency();
   const [sale, setSale] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
@@ -72,6 +84,51 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
   const [lostDialogOpen, setLostDialogOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [movingStageId, setMovingStageId] = useState<number | null>(null);
+
+  // Deal-level actions: assign, move funnel, archive, delete.
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [moveFunnelOpen, setMoveFunnelOpen] = useState(false);
+  const [deleteDealOpen, setDeleteDealOpen] = useState(false);
+  const [isDeletingDeal, setIsDeletingDeal] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+
+  // Deal funnels this deal could move to — the one it is in excluded.
+  const moveFunnelOptions = React.useMemo(() => (allFunnels || [])
+    .filter((f: any) => f.is_active && f.type === 'deal' && Number(f.id) !== Number(sale?.funnel_id))
+    .map((f: any) => ({ id: f.id, name: f.name })), [allFunnels, sale?.funnel_id]);
+
+  /** Archiving keeps the deal but takes it off the board, so the modal closes. */
+  const handleArchiveDeal = async () => {
+    if (!sale) return;
+    const archiving = sale.is_active !== false;
+    try {
+      setIsArchiving(true);
+      await saleService.setSaleArchived(Number(sale.id), archiving);
+      toast.success(archiving ? t('deal-card.archive-success') : t('deal-card.unarchive-success'));
+      onDealRemoved?.(String(sale.id));
+      onClose();
+    } catch {
+      toast.error(t('deal-card.archive-error'));
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleDeleteDeal = async () => {
+    if (!sale) return;
+    try {
+      setIsDeletingDeal(true);
+      await saleService.deleteSale(Number(sale.id));
+      toast.success(t('deal-card.delete-success'));
+      setDeleteDealOpen(false);
+      onDealRemoved?.(String(sale.id));
+      onClose();
+    } catch {
+      toast.error(t('deal-card.delete-error'));
+    } finally {
+      setIsDeletingDeal(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && dealId) {
@@ -441,6 +498,45 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {/* Deal-level actions, mirroring the card's menu. */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-deal/20 text-deal hover:bg-deal/10 hover:text-deal h-8 w-8 sm:h-9 sm:w-9"
+                            title={t('deal-card.more-actions')}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-background border-border z-[90]">
+                          <DropdownMenuItem className="cursor-pointer" onClick={() => setAssignOpen(true)}>
+                            <UserCheck className="w-4 h-4" />
+                            {t('deal-card.assign-user')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer" onClick={() => setMoveFunnelOpen(true)}>
+                            <GitBranch className="w-4 h-4" />
+                            {t('deal-card.move-funnel')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            disabled={isArchiving}
+                            onClick={() => { void handleArchiveDeal(); }}
+                          >
+                            <Archive className="w-4 h-4" />
+                            {sale.is_active === false ? t('deal-card.unarchive') : t('deal-card.archive')}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            onClick={() => setDeleteDealOpen(true)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            {t('deal-card.delete')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                       <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:bg-muted hover:text-foreground h-8 w-8 sm:h-10 sm:w-10">
                         <X className="h-5 w-5" />
                       </Button>
@@ -683,22 +779,22 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
                           <Tabs defaultValue="notes">
                             <TabsList className="mb-4">
-                              <TabsTrigger value="notes" className="gap-2">
+                              <TabsTrigger value="notes" className="gap-2 text-xs">
                                 <StickyNote className="h-4 w-4" />
                                 {t('deal-preview.tab-notes')}
                               </TabsTrigger>
-                              <TabsTrigger value="tasks" className="gap-2">
+                              <TabsTrigger value="tasks" className="gap-2 text-xs">
                                 <ListTodo className="h-4 w-4" />
                                 {t('deal-preview.tab-tasks')}
                               </TabsTrigger>
                               {sale.lead?.id && (
-                                <TabsTrigger value="appointments" className="gap-2">
+                                <TabsTrigger value="appointments" className="gap-2 text-xs">
                                   <CalendarDays className="h-4 w-4" />
                                   {t('deal-preview.tab-appointments')}
                                 </TabsTrigger>
                               )}
                               {sale.lead?.id && (
-                                <TabsTrigger value="conversation" className="gap-2">
+                                <TabsTrigger value="conversation" className="gap-2 text-xs">
                                   <MessageSquare className="h-4 w-4" />
                                   {t('deal-preview.tab-conversation')}
                                 </TabsTrigger>
@@ -1010,6 +1106,58 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                   {t('lead-details.mark-as-lost')}
                 </>
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Assign User */}
+      {sale && (
+        <AssignUserModal
+          isOpen={assignOpen}
+          onClose={() => setAssignOpen(false)}
+          entity="deal"
+          leadId={Number(sale.id)}
+          users={users as any}
+          currentAssignedUserId={sale.user?.id}
+          onUserAssigned={() => { void fetchDealData(String(sale.id)); onDealUpdated?.(); }}
+        />
+      )}
+
+      {/* Move to another deal funnel */}
+      {sale && (
+        <MoveFunnelModal
+          isOpen={moveFunnelOpen}
+          onClose={() => setMoveFunnelOpen(false)}
+          entity="deal"
+          leadId={String(sale.id)}
+          funnels={moveFunnelOptions}
+          onMoved={() => {
+            // The deal now belongs to a different board; this one must drop it.
+            onDealRemoved?.(String(sale.id));
+            setMoveFunnelOpen(false);
+            onClose();
+          }}
+        />
+      )}
+
+      {/* Delete Deal Confirmation */}
+      <AlertDialog open={deleteDealOpen} onOpenChange={(open) => !open && setDeleteDealOpen(false)}>
+        <AlertDialogContent className="bg-background border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deal-card.delete-title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deal-card.delete-confirmation')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingDeal}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteDeal}
+              disabled={isDeletingDeal}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingDeal
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('common.deleting')}</>
+                : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

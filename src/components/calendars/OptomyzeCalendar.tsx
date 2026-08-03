@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { Appointment, getCompanyAppointments } from '@/services/appointmentApi';
 import { AppointmentType, getAppointmentTypes } from '@/services/appointmentTypeApi';
 import AppointmentModal from './AppointmentModal';
+import CalendarSwitcher from './CalendarSwitcher';
+import { useCalendars } from '@/contexts/CalendarsContext';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import {
   WorkspaceTask, fetchTaskCalendar, isTaskDone, isTaskOverdue,
@@ -58,6 +60,10 @@ const OptomyzeCalendar: React.FC = () => {
   const { t, language } = useLanguage();
   const locale = language || undefined;
 
+  // Which calendar is being viewed. Everything on the grid — appointments and
+  // tasks alike — is scoped to it.
+  const { selected: activeCalendar, selectedIds } = useCalendars();
+
   const [view, setView] = useState<View>('month');
   const [cursor, setCursor] = useState<Date>(() => startOfDay(new Date()));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -81,7 +87,7 @@ const OptomyzeCalendar: React.FC = () => {
     try {
       setLoading(true);
       const [list, typeList] = await Promise.all([
-        getCompanyAppointments(),
+        getCompanyAppointments(selectedIds),
         getAppointmentTypes().catch(() => [] as AppointmentType[]),
       ]);
       setAppointments(list);
@@ -91,7 +97,9 @@ const OptomyzeCalendar: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+    // Refetches when the active calendar changes, which is what makes the
+    // switch feel like a filter rather than a page load.
+  }, [t, selectedIds.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
 
@@ -140,12 +148,12 @@ const OptomyzeCalendar: React.FC = () => {
     const iso = (d: Date) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    fetchTaskCalendar(iso(addDays(first, -1)), iso(addDays(last, 1)))
+    fetchTaskCalendar(iso(addDays(first, -1)), iso(addDays(last, 1)), {}, activeCalendar?.id ?? null)
       .then(list => { if (!cancelled) setTasks(list); })
       .catch(() => { if (!cancelled) setTasks([]); });
 
     return () => { cancelled = true; };
-  }, [showTasks, days, taskReloadKey]);
+  }, [showTasks, days, taskReloadKey, activeCalendar?.id]);
 
   const tasksByDay = useMemo(() => {
     const map = new Map<string, WorkspaceTask[]>();
@@ -244,6 +252,10 @@ const OptomyzeCalendar: React.FC = () => {
     <div className="flex h-full min-h-0 flex-col">
       {/* Toolbar — the only chrome; there is deliberately no page header. */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+        {/* First in the toolbar: which calendar you are on frames everything
+            else the grid shows. */}
+        <CalendarSwitcher />
+
         <Button variant="outline" size="sm" onClick={() => setCursor(startOfDay(new Date()))}>
           {t('calendar.today')}
         </Button>

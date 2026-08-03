@@ -10,9 +10,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Activity, ChevronDown, ChevronRight, Loader2, RefreshCw, Search,
-  CheckCircle2, XCircle, Clock, Wifi, WifiOff,
+  CheckCircle2, XCircle, Clock, Wifi,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -181,19 +181,22 @@ const ApiRequestLogs = () => {
           </h1>
           <p className="text-muted-foreground">{t('api.logs.description')}</p>
         </div>
-        <Badge variant="outline" className={cn('gap-1.5 px-3 py-1.5', isLive ? 'border-green-500/40 text-green-600' : 'border-muted text-muted-foreground')}>
-          {isLive ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
-          {isLive ? t('api.logs.live') : t('api.logs.connecting')}
-        </Badge>
+        {/* Only the live state is worth a badge — a "connecting" chip flashed on
+            every load and said nothing the user could act on. */}
+        {isLive && (
+          <Badge variant="outline" className="gap-1.5 px-3 py-1.5 border-green-500/40 text-green-600">
+            <Wifi className="h-3.5 w-3.5" />
+            {t('api.logs.live')}
+          </Badge>
+        )}
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card className="glass-card">
+          {/* No card subtitle: the page header above already carries one, and a
+              second line of explanatory text read as a repeat. */}
           <CardHeader>
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <CardDescription>{t('api.logs.feed-description')}</CardDescription>
-              </div>
+            <div className="flex items-center justify-end gap-2">
               <Button variant="outline" size="sm" onClick={loadLogs} disabled={loading}>
                 <RefreshCw className={cn('h-4 w-4 mr-2', loading && 'animate-spin')} />
                 {t('common.refresh')}

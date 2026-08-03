@@ -40,6 +40,7 @@ import {
   PieChart,
   Globe,
   Contact,
+  Rocket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -48,6 +49,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { MENU_SECTION_ORDER } from '../lib/menuSections';
+import { useQuickstart } from '@/contexts/QuickstartContext';
 import { useTheme } from '../contexts/ThemeContext';
 import optomyzeLogo from '@/assets/optomyze.png';
 import optomyzeLogoLight from '@/assets/optomyze-light.png';
@@ -178,6 +180,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     : [
         { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false },
       ];
+
+  // Onboarding checklist: shown until the company dismisses it.
+  const { visible: quickstartVisible } = useQuickstart();
 
   // Hovering no longer expands the rail; collapsed state is purely the toggle.
   const effectivelyCollapsed = isCollapsed;
@@ -590,6 +595,18 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
           </div>
         ) : (
         <>
+        {/* 0 — Quickstart, pinned above everything while the company is still
+            working through onboarding. Disappears for good once dismissed. */}
+        {quickstartVisible && (
+          <div className="space-y-1 pb-3 mb-3 border-b" style={{ borderColor: 'hsl(var(--sidebar-border))' }}>
+            {renderDirectLink({
+              id: 'quickstart',
+              label: t('quickstart.title'),
+              icon: <Rocket className="h-5 w-5" />,
+            })}
+          </div>
+        )}
+
         {/* 1 — Internal management */}
         <div className="space-y-1">
           {MENU_SECTION_ORDER.map((sectionId) => {
