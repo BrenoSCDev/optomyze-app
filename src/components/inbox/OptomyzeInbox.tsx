@@ -7,6 +7,7 @@ import { getEcho } from '@/services/echo';
 import {
   ChatConversation, ChatContact, ChatMessage,
   fetchConversations, fetchContacts, openPrivateConversation, createGroupConversation,
+  markConversationRead,
 } from '@/services/inboxChatApi';
 import ConversationList from './ConversationList';
 import MessageThread from './MessageThread';
@@ -30,6 +31,10 @@ const OptomyzeInbox: React.FC = () => {
   conversationsRef.current = conversations;
   const selectedRef = useRef(selectedConversation);
   selectedRef.current = selectedConversation;
+  // Same reason as the refs above: the websocket callbacks are dependency-free
+  // so the subscription is not rebuilt on every render.
+  const userIdRef = useRef<number | undefined>(user?.id);
+  userIdRef.current = user?.id;
 
   // ─── Load data ───────────────────────────────────────────────────────────
   const loadInboxData = useCallback(async (showFullLoader = true) => {
@@ -202,7 +207,16 @@ const OptomyzeInbox: React.FC = () => {
     setConversations(prev => {
       const idx = prev.findIndex(c => c.id === msg.conversation_id);
       if (idx === -1) return prev;
-      const updated = { ...prev[idx], last_message: msg, last_message_at: msg.created_at };
+
+      // Unread unless it is your own message, or you are looking at the
+      // thread right now — in which case MessageThread marks it read.
+      const isMine = msg.sender?.id === userIdRef.current;
+      const isOpen = selectedRef.current?.id === msg.conversation_id;
+      const unread = isMine || isOpen
+        ? (prev[idx].unread_count ?? 0)
+        : (prev[idx].unread_count ?? 0) + 1;
+
+      const updated = { ...prev[idx], last_message: msg, last_message_at: msg.created_at, unread_count: unread };
       const rest = prev.filter((_, i) => i !== idx);
       return [updated, ...rest];
     });
@@ -214,9 +228,27 @@ const OptomyzeInbox: React.FC = () => {
     });
   }, []);
 
+  /**
+   * Opening a conversation is what marks it read.
+   *
+   * The badge clears immediately: the user has demonstrably seen the messages
+   * by opening them, and the call is idempotent. Fetching the thread marks it
+   * read server-side too, so this is belt-and-braces for the list state.
+   */
   const handleSelectConversation = useCallback((conv: ChatConversation) => {
     setSelectedConversation(conv);
     setMobileView('thread');
+
+    if (!conv.unread_count) return;
+
+    setConversations(prev => prev.map(c => (c.id === conv.id ? { ...c, unread_count: 0 } : c)));
+
+    markConversationRead(conv.id).catch(() => {
+      // Put it back: the messages are still unread server-side.
+      setConversations(prev =>
+        prev.map(c => (c.id === conv.id ? { ...c, unread_count: conv.unread_count } : c))
+      );
+    });
   }, []);
 
   const handleContactClick = useCallback(async (contact: ChatContact) => {

@@ -9,6 +9,10 @@
  * Note `reports` is the section labelled "Activity" (nav.reports); the id is
  * kept because it is referenced across the sidebar, the header and the menu
  * search index.
+ *
+ * `integrations` is absent on purpose: its only child was the app catalogue,
+ * so the wrapper was one expand standing between the user and a single
+ * destination. It is now a direct link ("App Store") in the second group.
  */
 export const MENU_SECTION_ORDER = [
   'dashboard',
@@ -16,8 +20,7 @@ export const MENU_SECTION_ORDER = [
   'reports',
   'products',
   'organization',
-  'integrations',
-  'aiAgents',
+  'automations',
   'api',
 ] as const;
 

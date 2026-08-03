@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, MoreVertical, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings, Star, Archive, ArchiveRestore } from 'lucide-react';
 import { HiOutlineDevicePhoneMobile } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,12 +33,6 @@ import EndConversationDialog from './EndConversationDialog';
 import { ChatSession } from '@/types/inbox';
 import { fetchActiveSession } from '@/services/chatSessionApi';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
@@ -328,6 +322,40 @@ const InboxPrivateVideo: React.FC<{
   );
 };
 
+/**
+ * One action in the conversation header.
+ *
+ * The tooltip is the button's only label, so it doubles as the accessible
+ * name. A disabled trigger swallows pointer events — and with them the
+ * tooltip — so the wrapper stays focusable and the explanation survives:
+ * "why is this greyed out" is exactly when the label is most wanted.
+ */
+const ChatHeaderAction: React.FC<{
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}> = ({ label, onClick, disabled = false, className, children }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span className="inline-flex">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+          className={cn('h-8 w-8 text-muted-foreground hover:text-foreground', className)}
+        >
+          {children}
+        </Button>
+      </span>
+    </TooltipTrigger>
+    <TooltipContent side="bottom">{label}</TooltipContent>
+  </Tooltip>
+);
+
 interface ChatConversationProps {
   chat: InboxChat | null;
   onBack?: () => void;
@@ -335,6 +363,9 @@ interface ChatConversationProps {
   onMessageSent?: (message: InboxMessage) => void;
   /** Hide the "open lead preview" link/modal - useful when already embedded in that lead's own page. */
   hideLeadPreview?: boolean;
+  /** Pin/unpin and archive/restore, mirrored from the conversation list. */
+  onToggleFavorite?: (chat: InboxChat) => void;
+  onToggleArchived?: (chat: InboxChat) => void;
 }
 
 interface PendingMessage {
@@ -349,7 +380,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   onBack,
   showBackButton = false,
   onMessageSent,
-  hideLeadPreview = false
+  hideLeadPreview = false,
+  onToggleFavorite,
+  onToggleArchived
 }) => {
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
@@ -933,41 +966,60 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               )}
             </div>
           </div>
-          {/* Chat actions menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={handleToggleAiAgent}
-                disabled={!boundAgent || togglingAi}
+          {/*
+            Chat actions, laid out as icon buttons rather than hidden behind a
+            menu. Each one names itself on hover and to screen readers, since
+            an icon alone does not say what it does — and a disabled action
+            still explains why it is unavailable.
+          */}
+          <div className="flex shrink-0 items-center gap-0.5">
+            {onToggleFavorite && (
+              <ChatHeaderAction
+                label={chat.is_favorite ? t('chat.inbox.unfavorite') : t('chat.inbox.favorite')}
+                onClick={() => onToggleFavorite(chat)}
+                className={chat.is_favorite ? 'text-amber-500 hover:text-amber-500' : undefined}
               >
-                {togglingAi
-                  ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  : <Bot className="h-4 w-4" />}
-                {aiAgentActive
-                  ? t('chat.inbox.ai-agent-pause')
-                  : t('chat.inbox.ai-agent-activate')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowEndConversation(true)}
-                disabled={!activeSession}
+                <Star className={cn('h-4 w-4', chat.is_favorite && 'fill-amber-400')} />
+              </ChatHeaderAction>
+            )}
+
+            {onToggleArchived && (
+              <ChatHeaderAction
+                label={chat.is_archived ? t('chat.inbox.unarchive') : t('chat.inbox.archive')}
+                onClick={() => onToggleArchived(chat)}
               >
-                <CircleSlash className="h-4 w-4" />
-                {t('chat.inbox.end-conversation')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowClearConfirm(true)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-                {t('chat.inbox.clear-messages')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {chat.is_archived
+                  ? <ArchiveRestore className="h-4 w-4" />
+                  : <Archive className="h-4 w-4" />}
+              </ChatHeaderAction>
+            )}
+
+            <ChatHeaderAction
+              label={aiAgentActive ? t('chat.inbox.ai-agent-pause') : t('chat.inbox.ai-agent-activate')}
+              onClick={handleToggleAiAgent}
+              disabled={!boundAgent || togglingAi}
+              className={aiAgentActive ? 'text-emerald-600 hover:text-emerald-600 dark:text-emerald-400' : undefined}
+            >
+              {togglingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+            </ChatHeaderAction>
+
+            <ChatHeaderAction
+              label={t('chat.inbox.end-conversation')}
+              onClick={() => setShowEndConversation(true)}
+              disabled={!activeSession}
+            >
+              <CircleSlash className="h-4 w-4" />
+            </ChatHeaderAction>
+
+            {/* Still opens a confirmation, so a mis-click destroys nothing. */}
+            <ChatHeaderAction
+              label={t('chat.inbox.clear-messages')}
+              onClick={() => setShowClearConfirm(true)}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </ChatHeaderAction>
+          </div>
         </div>
       </div>
 

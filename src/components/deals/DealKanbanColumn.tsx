@@ -82,7 +82,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
   return (
     <motion.div
       ref={setNodeRef}
-      className={`deal-glass-card p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
+      className={`rounded-xl border border-border bg-card text-card-foreground shadow-sm p-4 w-[22rem] flex-shrink-0 transition-colors duration-base ease-standard relative min-h-[400px] overflow-hidden ${
         isOver || isDropTarget ? 'ring-2 ring-deal/50 bg-deal/5' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -146,7 +146,7 @@ const DealKanbanColumn = ({ column, index, onAddDeal, onDealClick, onTagClick, a
         {/* Drop placeholder */}
         {activeId && isDropTarget && (
           <motion.div
-            className="deal-glass-card border-2 border-dashed border-deal bg-deal/10 rounded-lg p-3 min-h-[60px] flex items-center justify-center mb-2"
+            className="rounded-lg border-2 border-dashed border-deal bg-deal/10 p-3 min-h-[60px] flex items-center justify-center mb-2"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}

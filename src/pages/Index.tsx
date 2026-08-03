@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { DEVICE_PREFERENCE_KEYS } from '@/lib/devicePreferences';
 import TopHeader from '@/components/layout/TopHeader';
 
 // Lazy-loaded feature components — each becomes a separate Rollup chunk,
@@ -37,9 +38,32 @@ const ManageProducts         = lazy(() => import('@/components/products/ManagePr
 const ContractsPlaceholder   = lazy(() => import('@/components/placeholders/ContractsPlaceholder'));
 const OpenTicket             = lazy(() => import('@/components/support/OpenTicket'));
 
+/**
+ * Whether the sidebar was left collapsed.
+ *
+ * Read synchronously in useState's initialiser rather than applied by an
+ * effect: the sidebar and the content margin both animate off this value, so
+ * restoring it a render late would show the menu snapping shut on every load.
+ *
+ * localStorage rather than the server-side user preferences on purpose — how
+ * much screen the menu should take is a property of the machine you are on,
+ * not of the account. The same person wants it collapsed on a laptop and open
+ * on a wide monitor. Being listed in DEVICE_PREFERENCE_KEYS is also what stops
+ * a logout or a company switch from wiping it.
+ */
+const SIDEBAR_COLLAPSED_KEY = DEVICE_PREFERENCE_KEYS.sidebarCollapsed;
+
+const readSidebarCollapsed = (): boolean => {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+  } catch {
+    return false;   // private mode
+  }
+};
+
 const Index = () => {
   const { t } = useLanguage();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -69,7 +93,15 @@ const Index = () => {
   }, [funnelId]);
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch { /* private mode — the choice just won't outlive the tab */ }
+
+      return next;
+    });
   };
 
   // On desktop, use header layout if selected; on mobile always use sidebar (drawer)

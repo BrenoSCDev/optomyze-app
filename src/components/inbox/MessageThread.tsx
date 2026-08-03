@@ -93,15 +93,18 @@ const MessageThread: React.FC<MessageThreadProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingGroup, setIsDeletingGroup] = useState(false);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messageIdsRef = useRef<Set<number>>(new Set());
+  /** False until this conversation has been scrolled to the bottom once. */
+  const hasScrolledRef = useRef(false);
 
   // Reset state when conversation changes
   useEffect(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
     setShowGroupPanel(false);
+    // The next thread gets a jump to the bottom, not an animated scroll.
+    hasScrolledRef.current = false;
   }, [conversation?.id]);
 
   // ─── Load messages for selected conversation ──────────────────────────
@@ -147,11 +150,31 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     return () => { cancelled = true; };
   }, [conversation?.id]);
 
-  // Scroll to bottom on initial load or new messages
+  /**
+   * Keep the thread pinned to the newest message.
+   *
+   * Sets scrollTop on the thread's own container rather than calling
+   * scrollIntoView on a sentinel. scrollIntoView walks up and scrolls *every*
+   * scrollable ancestor, so opening a conversation dragged the whole page down
+   * with it and left the header off-screen with no way back.
+   *
+   * The first paint of a conversation jumps; later messages animate. Smoothly
+   * scrolling a freshly opened thread would mean watching it travel from the
+   * oldest message to the newest.
+   */
   useEffect(() => {
-    if (!isLoadingMessages && messages.length > 0) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (isLoadingMessages || messages.length === 0) return;
+
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const isFirstPaint = !hasScrolledRef.current;
+    hasScrolledRef.current = true;
+
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: isFirstPaint ? 'auto' : 'smooth',
+    });
   }, [isLoadingMessages, messages.length]);
 
   // ─── WebSocket subscription ───────────────────────────────────────────
@@ -174,6 +197,27 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       });
     });
 
+    /**
+     * Someone caught up on this conversation.
+     *
+     * Marks every message of ours sent at or before their read_at as seen by
+     * them. Cheaper and more robust than refetching, and it is the only way
+     * the sender learns about a read that happened after their last fetch.
+     */
+    channel.listen('.conversation.read', (payload: any) => {
+      const readerId = Number(payload?.user_id);
+      const readAt = payload?.read_at ? new Date(payload.read_at).getTime() : null;
+
+      if (!readerId || !readAt || readerId === currentUserId) return;
+
+      setMessages(prev => prev.map(m => {
+        if (m.sender?.id !== currentUserId || !m.read_by) return m;
+        if (m.read_by.includes(readerId)) return m;
+        if (new Date(m.created_at).getTime() > readAt) return m;
+        return { ...m, read_by: [...m.read_by, readerId] };
+      }));
+    });
+
     // Listen for deleted messages
     channel.listen('.messages.deleted', (payload: any) => {
       const deletedIds: number[] = payload?.deleted_message_ids ?? [];
@@ -189,9 +233,10 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     });
 
     return () => {
+      channel.stopListening('.conversation.read');
       echo.leave(channelName);
     };
-  }, [conversation?.id]);
+  }, [conversation?.id, currentUserId]);
 
   // ─── Load older messages on scroll to top ─────────────────────────────
   const handleScroll = useCallback(async () => {
@@ -502,6 +547,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                       selectMode={selectMode}
                       isSelected={selectedIds.has(msg.id)}
                       onToggleSelect={toggleSelectMessage}
+                      participantCount={conversation.participants?.length ?? 2}
                     />
                   );
                 })}
@@ -512,7 +558,6 @@ const MessageThread: React.FC<MessageThreadProps> = ({
                 )}
               </>
             )}
-            <div ref={bottomRef} />
           </div>
 
           {/* Input */}

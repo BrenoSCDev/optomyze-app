@@ -58,9 +58,11 @@ export const MENU_ENTRIES: MenuEntry[] = [
   { id: 'manage-teams',   labelKey: 'organization.teams',  trailKeys: ['nav.organization'] },
   { id: 'optomyze-inbox', labelKey: 'nav.optomyze-teams',  trailKeys: ['nav.organization'] },
 
-  // ── Integrations & agents ──
-  { id: 'integrations',   labelKey: 'nav.integrations',           trailKeys: [] },
-  { id: 'manage-agents',  labelKey: 'ai-agents.manage.menu-title', trailKeys: ['nav.ai-agents'] },
+  // ── App Store & automations ──
+  // 'integrations' is still the section id the router knows; only the label
+  // moved to "App Store".
+  { id: 'integrations',   labelKey: 'nav.app-store',              trailKeys: [], keywords: ['apps', 'integrations', 'store'] },
+  { id: 'manage-agents',  labelKey: 'ai-agents.manage.menu-title', trailKeys: ['nav.automations'] },
 
   // ── API ──
   { id: 'api-tokens',     labelKey: 'nav.api', trailKeys: ['nav.api'], keywords: ['token', 'api'] },

@@ -6,11 +6,15 @@
 
 import api from './api';
 
+/** Channel accounts an agent can staff. `chat_widget` is a website chat widget. */
+export type AiAgentChannelType = 'whatsapp_instance' | 'instagram' | 'chat_widget';
+export type AiAgentChannel = 'whatsapp' | 'instagram' | 'website';
+
 export interface AiAgentChannelBinding {
-  channelable_type: 'whatsapp_instance' | 'instagram';
+  channelable_type: AiAgentChannelType;
   channelable_id: number;
   label: string;
-  channel: 'whatsapp' | 'instagram';
+  channel: AiAgentChannel;
 }
 
 export interface AiAgent {
@@ -53,10 +57,10 @@ export interface AiAgentTool {
 }
 
 export interface ChannelAccount {
-  channelable_type: 'whatsapp_instance' | 'instagram';
+  channelable_type: AiAgentChannelType;
   channelable_id: number;
   label: string;
-  channel: 'whatsapp' | 'instagram';
+  channel: AiAgentChannel;
   bound_agent: { id: number; name: string } | null;
 }
 

@@ -25,6 +25,7 @@ import {
   UserRound,
   FlaskConical,
   Info,
+  Globe,
 } from 'lucide-react';
 import { SiWhatsapp, SiInstagram } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
@@ -598,9 +599,9 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
                               disabled={claimedByOther}
                               onCheckedChange={() => toggleChannel(account)}
                             />
-                            {account.channel === 'whatsapp'
-                              ? <SiWhatsapp className="w-4 h-4 text-[#25D366]" />
-                              : <SiInstagram className="w-4 h-4 text-[#E1306C]" />}
+                            {account.channel === 'whatsapp' && <SiWhatsapp className="w-4 h-4 text-[#25D366]" />}
+                            {account.channel === 'instagram' && <SiInstagram className="w-4 h-4 text-[#E1306C]" />}
+                            {account.channel === 'website' && <Globe className="w-4 h-4 text-[#0EA5E9]" />}
                             <span className="text-sm font-medium text-foreground flex-1 truncate">
                               {account.label}
                             </span>

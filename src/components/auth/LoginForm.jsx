@@ -47,7 +47,14 @@ const LoginForm = () => {
     setIsLoading(true);
     
     try {
-      await login(email, password);
+      const result = await login(email, password);
+
+      // Belongs to several companies: stay put and let the Login page swap in
+      // the company picker. There is no session to navigate into yet.
+      if (result?.requires_company_selection) {
+        return;
+      }
+
       toast({
         title: 'Welcome back!',
         description: 'You have been successfully logged in.',

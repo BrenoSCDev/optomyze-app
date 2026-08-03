@@ -1,7 +1,7 @@
 /**
- * LEAD TASKS
+ * RECORD TASKS
  *
- * The Tasks tab inside a contact. Replaces the old TasksSection, which ran on
+ * The Tasks tab inside a contact or a deal. Replaces the old TasksSection, which ran on
  * the legacy taskApi and its own create/edit/delete modals; this reads and
  * writes through the task workspace, so a task raised here is the same record
  * the Tasks module shows.
@@ -9,7 +9,10 @@
  * Self-loading on purpose. The old panel took `tasks` as a prop threaded down
  * from whichever screen embedded it, which meant every host had to own task
  * state, refresh logic and three modals. Hosts now render `<LeadTasksPanel
- * leadId={...} />` and nothing else.
+ * leadId={...} />` — or `saleId={...}` for a deal — and nothing else.
+ *
+ * A task links to a lead or a deal, never both from here: whichever id the
+ * host supplies is the one tasks are filtered by and created against.
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -33,12 +36,23 @@ import {
 } from '@/services/taskWorkspaceApi';
 
 interface Props {
-  leadId: number | string;
+  /** Tasks for a contact. Mutually exclusive with `saleId`. */
+  leadId?: number | string;
+  /** Tasks for a deal. Mutually exclusive with `leadId`. */
+  saleId?: number | string;
 }
 
-const LeadTasksPanel: React.FC<Props> = ({ leadId }) => {
+const LeadTasksPanel: React.FC<Props> = ({ leadId, saleId }) => {
   const { t } = useLanguage();
   const numericLeadId = Number(leadId);
+  const numericSaleId = Number(saleId);
+
+  // One link field, chosen by whichever the host gave us. Used for both the
+  // filter and the create payload so they can never disagree.
+  const link = numericSaleId
+    ? { sale_id: numericSaleId }
+    : { lead_id: numericLeadId };
+  const linkedId = numericSaleId || numericLeadId;
 
   const [tasks, setTasks] = useState<WorkspaceTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,13 +68,13 @@ const LeadTasksPanel: React.FC<Props> = ({ leadId }) => {
   /* ------------------------------------------------------------------ load */
 
   const load = useCallback(async () => {
-    if (!numericLeadId) return;
+    if (!linkedId) return;
     try {
       setLoading(true);
       // `archived: 'all'` — a contact's history should still show work that was
       // archived, unlike the workspace where archived is noise by default.
       const res = await fetchTasks(
-        { lead_id: numericLeadId, archived: 'all', include_subtasks: true, sort_by: 'due_date' },
+        { ...link, archived: 'all', include_subtasks: true, sort_by: 'due_date' },
         1,
         100,
       );
@@ -70,7 +84,7 @@ const LeadTasksPanel: React.FC<Props> = ({ leadId }) => {
     } finally {
       setLoading(false);
     }
-  }, [numericLeadId, t]);
+  }, [linkedId, numericSaleId, t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -111,7 +125,7 @@ const LeadTasksPanel: React.FC<Props> = ({ leadId }) => {
 
     try {
       setCreating(true);
-      await createTask({ title, task_list_id: targetListId, lead_id: numericLeadId });
+      await createTask({ title, task_list_id: targetListId, ...link });
       setNewTitle('');
       load();
     } catch {

@@ -21,13 +21,33 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useInbox } from '@/contexts/InboxContext';
-import { fetchInboxChats } from '@/services/globalInboxApi';
+import {
+  fetchInboxChats,
+  markInboxChatRead,
+  setInboxChatArchived,
+  setInboxChatFavorite,
+} from '@/services/globalInboxApi';
 import { InboxChannel, InboxChat, InboxMessage } from '@/types/inbox';
 import ChatList, { ReadFilter } from './ChatList';
 import ChatConversation from './ChatConversation';
 import ChatDetails from './ChatDetails';
 
 type ViewMode = 'list' | 'conversation' | 'details';
+
+/**
+ * The list's order, matching what the backend returns.
+ *
+ * Favourites are pinned above everything else regardless of when they last
+ * had a message; within each group the most recent conversation leads. The
+ * client re-sorts because websocket events insert and reorder rows between
+ * fetches, and a plain recency sort here would silently undo the pinning.
+ */
+const sortChats = (chats: InboxChat[]): InboxChat[] =>
+  [...chats].sort((a, b) => {
+    const pinned = Number(!!b.is_favorite) - Number(!!a.is_favorite);
+    if (pinned !== 0) return pinned;
+    return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+  });
 
 const GlobalInbox: React.FC = () => {
   const { t } = useLanguage();
@@ -52,9 +72,12 @@ const GlobalInbox: React.FC = () => {
   // the number currently paginated into `chats`.
   const [totalChats, setTotalChats] = useState(0);
   const [channelFilter, setChannelFilter] = useState<InboxChannel | 'all'>('all');
-  // Read-state tabs. Held here rather than in ChatList so that wiring the
-  // actual filtering into loadChats() later is a one-line change.
+  // Read-state tabs, resolved by the backend — the list is paginated, so
+  // filtering here would only ever search the conversations already loaded.
   const [readFilter, setReadFilter] = useState<ReadFilter>('all');
+  /** Archived conversations are put away: hidden unless shown on their own. */
+  const [showArchived, setShowArchived] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -73,12 +96,46 @@ const GlobalInbox: React.FC = () => {
     };
   }, []);
 
-  // Fetch chats on mount and whenever the channel filter or search changes
+  // Fetch chats on mount and whenever any filter or the search changes
   useEffect(() => {
     loadChats();
     setSelectedChat(null);
     setMobileView('list');
-  }, [channelFilter, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelFilter, searchQuery, readFilter, showArchived, favoritesOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * A message arriving in the conversation you are already looking at is read
+   * on arrival — you are watching it land.
+   *
+   * Without this the message would stay unread server-side: the badge would
+   * come back on the next refresh, and colleagues would keep seeing it as
+   * waiting. Keyed on the newest inbound id so it fires once per message
+   * rather than on every re-render of the thread.
+   */
+  const lastReadInboundRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!selectedChat) {
+      lastReadInboundRef.current = null;
+      return;
+    }
+
+    const inbound = (selectedChat.messages || []).filter(m => m.direction === 'incoming');
+    const newestId = inbound.length ? inbound[inbound.length - 1].id : null;
+
+    if (!newestId || lastReadInboundRef.current === newestId) return;
+
+    // Nothing to do when the thread has already been marked up to here.
+    if (!inbound.some(m => m.status !== 'read')) {
+      lastReadInboundRef.current = newestId;
+      return;
+    }
+
+    lastReadInboundRef.current = newestId;
+    markInboxChatRead(selectedChat.id).catch(() => {
+      lastReadInboundRef.current = null;   // let the next render retry
+    });
+  }, [selectedChat]);
 
   // Close chat on Esc key
   useEffect(() => {
@@ -92,16 +149,22 @@ const GlobalInbox: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedChat, setSelectedChat]);
 
+  /** The filter set the backend is currently being asked for. */
+  const currentFilters = () => ({
+    channel: channelFilter,
+    search: searchQuery,
+    readState: readFilter,
+    archived: showArchived,
+    favorite: favoritesOnly,
+  });
+
   const loadChats = async () => {
     setIsLoading(true);
     setError(null);
     setChatPage(1);
     try {
-      const response = await fetchInboxChats(1, channelFilter, searchQuery);
-      const sortedChats = (response.data || []).sort((a, b) =>
-        new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-      );
-      setChats(sortedChats);
+      const response = await fetchInboxChats(1, currentFilters());
+      setChats(sortChats(response.data || []));
       setTotalChats(response.meta.total);
       setHasMoreChats(response.meta.current_page < response.meta.last_page);
     } catch (err) {
@@ -122,13 +185,11 @@ const GlobalInbox: React.FC = () => {
     setIsLoadingMoreChats(true);
     const nextPage = chatPage + 1;
     try {
-      const response = await fetchInboxChats(nextPage, channelFilter, searchQuery);
+      const response = await fetchInboxChats(nextPage, currentFilters());
       setChats(prev => {
         const existingIds = new Set(prev.map(c => c.id));
         const newChats = (response.data || []).filter(c => !existingIds.has(c.id));
-        return [...prev, ...newChats].sort((a, b) =>
-          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-        );
+        return sortChats([...prev, ...newChats]);
       });
       // Re-read the total: rows can be added or removed between page fetches.
       setTotalChats(response.meta.total);
@@ -141,9 +202,59 @@ const GlobalInbox: React.FC = () => {
     }
   };
 
+  /**
+   * Opening a conversation is what marks it read.
+   *
+   * The badge clears immediately rather than waiting for the round trip — the
+   * user has demonstrably seen the messages by opening them, and the server
+   * call is idempotent. The broadcast that follows clears it for colleagues.
+   */
   const handleSelectChat = (chat: InboxChat) => {
     setSelectedChat(chat);
     setMobileView('conversation');
+
+    if (!chat.unread_count) return;
+
+    setChats(prev => prev.map(c => (c.id === chat.id ? { ...c, unread_count: 0 } : c)));
+
+    markInboxChatRead(chat.id).catch(() => {
+      // Put the badge back: the messages are still unread server-side.
+      setChats(prev => prev.map(c => (c.id === chat.id ? { ...c, unread_count: chat.unread_count } : c)));
+    });
+  };
+
+  /** Pin or unpin, re-sorting so the row moves to where it now belongs. */
+  const handleToggleFavorite = async (chat: InboxChat) => {
+    const next = !chat.is_favorite;
+    setChats(prev => sortChats(prev.map(c => (c.id === chat.id ? { ...c, is_favorite: next } : c))));
+
+    try {
+      await setInboxChatFavorite(chat.id, next);
+    } catch {
+      setChats(prev => sortChats(prev.map(c => (c.id === chat.id ? { ...c, is_favorite: !next } : c))));
+      toast({ title: t('chat.inbox.error-title'), variant: 'destructive' });
+    }
+  };
+
+  /**
+   * Archive or restore. The row leaves the current list either way, since the
+   * default view hides archived chats and the archived view shows only them.
+   */
+  const handleToggleArchived = async (chat: InboxChat) => {
+    const next = !chat.is_archived;
+    setChats(prev => prev.filter(c => c.id !== chat.id));
+
+    if (selectedChat?.id === chat.id) {
+      setSelectedChat(null);
+      setMobileView('list');
+    }
+
+    try {
+      await setInboxChatArchived(chat.id, next);
+    } catch {
+      loadChats();
+      toast({ title: t('chat.inbox.error-title'), variant: 'destructive' });
+    }
   };
 
   const handleBackToList = () => {
@@ -184,6 +295,12 @@ const GlobalInbox: React.FC = () => {
     onChannelFilterChange: setChannelFilter,
     readFilter,
     onReadFilterChange: setReadFilter,
+    showArchived,
+    onShowArchivedChange: setShowArchived,
+    favoritesOnly,
+    onFavoritesOnlyChange: setFavoritesOnly,
+    onToggleFavorite: handleToggleFavorite,
+    onToggleArchived: handleToggleArchived,
     // A websocket can prepend a chat that wasn't in the last count, so floor
     // the total at what's actually loaded — the header must never claim
     // fewer conversations than the list is showing. Corrects on next fetch.
@@ -239,7 +356,12 @@ const GlobalInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0 min-h-0">
-              <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
+              <ChatConversation
+                chat={selectedChat}
+                onMessageSent={handleMessageSent}
+                onToggleFavorite={handleToggleFavorite}
+                onToggleArchived={handleToggleArchived}
+              />
             </div>
 
             {/* Details - Right Panel */}
@@ -268,7 +390,12 @@ const GlobalInbox: React.FC = () => {
 
             {/* Conversation - Center Panel */}
             <div className="flex-1 min-w-0 min-h-0">
-              <ChatConversation chat={selectedChat} onMessageSent={handleMessageSent} />
+              <ChatConversation
+                chat={selectedChat}
+                onMessageSent={handleMessageSent}
+                onToggleFavorite={handleToggleFavorite}
+                onToggleArchived={handleToggleArchived}
+              />
             </div>
           </div>
 
@@ -311,6 +438,8 @@ const GlobalInbox: React.FC = () => {
                     onBack={handleBackToList}
                     showBackButton
                     onMessageSent={handleMessageSent}
+                    onToggleFavorite={handleToggleFavorite}
+                    onToggleArchived={handleToggleArchived}
                   />
                 </motion.div>
               )}

@@ -3,10 +3,11 @@ import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import LoginForm from '../components/auth/LoginForm';
+import CompanyPicker from '../components/auth/CompanyPicker';
 import AuthLayout from '../components/auth/AuthLayout';
 
 const Login = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, pendingSelection } = useAuth();
 
   if (isLoading) {
     return (
@@ -20,9 +21,11 @@ const Login = () => {
     return <Navigate to="/" replace />;
   }
 
+  // Credentials were accepted but the person belongs to several companies;
+  // the session only begins once they pick one.
   return (
     <AuthLayout>
-      <LoginForm />
+      {pendingSelection ? <CompanyPicker /> : <LoginForm />}
     </AuthLayout>
   );
 };

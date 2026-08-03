@@ -156,6 +156,7 @@ export interface TaskFilters {
   assignee_id?: number[];
   tag_id?: number[];
   lead_id?: number | null;
+  sale_id?: number | null;
   due_from?: string;
   due_to?: string;
   overdue?: boolean;

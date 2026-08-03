@@ -180,7 +180,7 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
     >
       <Accordion type="multiple" value={openStages} onValueChange={setOpenStages} className="space-y-3">
         {columns.map((column) => (
-          <AccordionItem key={column.id} value={column.id} className="deal-glass-card border-deal/10 rounded-lg overflow-hidden">
+          <AccordionItem key={column.id} value={column.id} className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
             <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-deal/5">
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-3 h-3 rounded-full flex-shrink-0 ring-2 ring-deal/20" style={{ backgroundColor: column.stageColor || '#14b8a6' }} />
@@ -278,13 +278,13 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                                 {showCharges && (parseFloat(deal.charges_total || '0') > 0 || parseFloat(deal.discount_total || '0') > 0) && (
                                   <div className="flex flex-col gap-0.5 mt-1">
                                     {parseFloat(deal.charges_total || '0') > 0 && (
-                                      <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
+                                      <span className="flex items-center gap-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">
                                         <TrendingUp className="h-2.5 w-2.5" />
                                         +{formatCurrency(parseFloat(deal.charges_total))}
                                       </span>
                                     )}
                                     {parseFloat(deal.discount_total || '0') > 0 && (
-                                      <span className="flex items-center gap-0.5 text-[10px] text-rose-400">
+                                      <span className="flex items-center gap-0.5 text-[10px] text-rose-600 dark:text-rose-400">
                                         <TrendingDown className="h-2.5 w-2.5" />
                                         -{formatCurrency(parseFloat(deal.discount_total))}
                                       </span>

@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Archive, ArchiveRestore, ChevronLeft, ChevronRight, Download, Filter, Grid3x3,
-  List, MessageSquare, Pencil, Phone, Plus, Search, SlidersHorizontal, Tag, UserPlus, X,
+  List, MessageSquare, Phone, Plus, Search, SlidersHorizontal, Tag, UserPlus, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -33,14 +33,17 @@ import { cn } from '@/lib/utils';
 import { formatPhoneNumber } from '@/lib/phone';
 import UserAvatar from '@/components/ui/user-avatar';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
-import LeadEditModal from '@/components/leads/LeadEditModal';
+import MoveFunnelModal from '@/components/leads/MoveFunnelModal';
+import ContactCreationDialog from './ContactCreationDialog';
+import { IoFunnelOutline } from 'react-icons/io5';
 import TagManagementModal from '@/components/leads/TagManagementModal';
 import AssignUserModal, { CompanyUser } from '@/components/leads/AssignUserModal';
 import api from '@/services/api';
 import QuickChatModal from './QuickChatModal';
 import {
   Contact, ContactFilters, ContactsMeta, bulkArchiveContacts, bulkAssignContacts,
-  bulkTagContacts, contactAvatarPath, contactDisplayName, fetchContacts, setContactArchived,
+  bulkMoveContactsToFunnel, bulkTagContacts, contactAvatarPath, contactDisplayName, fetchContacts,
+  setContactArchived,
 } from '@/services/contactApi';
 import SourcePlatformIcon, { sourcePlatformMeta } from './SourcePlatformIcon';
 
@@ -68,13 +71,15 @@ const ManageContacts: React.FC = () => {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [previewTab, setPreviewTab] = useState<string | undefined>(undefined);
-  const [editTarget, setEditTarget] = useState<Contact | null>(null);
+  const [funnelTarget, setFunnelTarget] = useState<Contact | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [tagTarget, setTagTarget] = useState<Contact | null>(null);
   const [assignTarget, setAssignTarget] = useState<Contact | null>(null);
   const [chatTarget, setChatTarget] = useState<Contact | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkTagOpen, setBulkTagOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkFunnelOpen, setBulkFunnelOpen] = useState(false);
 
   // Reference data the tag/assign modals need. Fetched once, lazily — the
   // list itself doesn't need either.
@@ -107,6 +112,19 @@ const ManageContacts: React.FC = () => {
     }
   };
 
+  /**
+   * The API omits contact funnels entirely when the company has contact
+   * pipelines disabled, so "no contact funnels" is an exact proxy for the
+   * feature being off — no separate settings fetch required.
+   */
+  const contactFunnels = (funnels ?? []).filter((f: any) => f.type === 'contact');
+  const pipelinesEnabled = contactFunnels.length > 0;
+
+  /** Where a contact can actually be filed: active funnels only. */
+  const addableFunnels = contactFunnels
+    .filter((f: any) => f.is_active)
+    .map((f: any) => ({ id: f.id, name: f.name }));
+
   /** Quick actions shared by the table row and the grid card. */
   const rowActions = (c: Contact) => [
     { key: 'chat',   Icon: MessageSquare, label: t('contacts.action-chat'),   run: () => setChatTarget(c) },
@@ -114,7 +132,11 @@ const ManageContacts: React.FC = () => {
     // pointer events, so its tooltip would never open — which is the only
     // thing this control is here to say.
     { key: 'call',   Icon: Phone,         label: t('contacts.action-call-soon'), run: () => {}, soon: true },
-    { key: 'edit',   Icon: Pencil,        label: t('contacts.action-edit'),   run: () => setEditTarget(c) },
+    // Hidden entirely when the company doesn't run contact pipelines —
+    // there is nowhere to file a contact, so the action would be a dead end.
+    ...(pipelinesEnabled
+      ? [{ key: 'funnel', Icon: IoFunnelOutline, label: t('contacts.action-add-to-funnel'), run: () => setFunnelTarget(c) }]
+      : []),
     { key: 'tags',   Icon: Tag,           label: t('contacts.action-tags'),   run: () => setTagTarget(c) },
     { key: 'assign', Icon: UserPlus,      label: t('contacts.action-assign'), run: () => setAssignTarget(c) },
     c.is_active === false
@@ -203,14 +225,6 @@ const ManageContacts: React.FC = () => {
       return next;
     });
   };
-
-  /**
-   * The API omits contact funnels entirely when the company has contact
-   * pipelines disabled, so "no contact funnels" is an exact proxy for the
-   * feature being off — no separate settings fetch required.
-   */
-  const contactFunnels = (funnels ?? []).filter((f: any) => f.type === 'contact');
-  const pipelinesEnabled = contactFunnels.length > 0;
 
   const activeFilterCount =
     (funnelFilter !== 'all' ? 1 : 0) + (priorityFilter !== 'all' ? 1 : 0) +
@@ -376,7 +390,7 @@ const ManageContacts: React.FC = () => {
             <Download />
             <span className="hidden sm:inline">{t('contacts.export')}</span>
           </Button>
-          <Button size="sm" onClick={() => toast.info(t('contacts.create-soon'))}>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus />
             <span className="hidden sm:inline">{t('contacts.new')}</span>
           </Button>
@@ -395,6 +409,16 @@ const ManageContacts: React.FC = () => {
           </Button>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            {/* Same gate as the row action: nowhere to file them, no button. */}
+            {pipelinesEnabled && (
+              <Button
+                variant="outline" size="sm" disabled={bulkBusy}
+                onClick={() => setBulkFunnelOpen(true)}
+              >
+                <IoFunnelOutline />
+                {t('contacts.bulk-add-to-funnel')}
+              </Button>
+            )}
             <Button
               variant="outline" size="sm" disabled={bulkBusy}
               onClick={() => setBulkTagOpen(true)}
@@ -626,6 +650,39 @@ const ManageContacts: React.FC = () => {
 
       {/* Bulk tag / assign pickers. Lightweight on purpose: the per-lead
           modals expect a single lead and its current values. */}
+      {/* Bulk add-to-funnel. Mirrors the tag picker: pick one, it applies to
+          the whole selection and closes. */}
+      <Dialog open={bulkFunnelOpen} onOpenChange={setBulkFunnelOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('contacts.bulk-add-to-funnel-title')}</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            {selected.size} {t('contacts.selected')}
+          </p>
+          <div className="max-h-64 space-y-1 overflow-y-auto">
+            {addableFunnels.length === 0 && (
+              <p className="py-4 text-center text-sm text-muted-foreground">{t('contacts.no-funnels')}</p>
+            )}
+            {addableFunnels.map((f: any) => (
+              <button
+                key={f.id}
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => {
+                  setBulkFunnelOpen(false);
+                  runBulk(() => bulkMoveContactsToFunnel(selectedIds, f.id), 'contacts.bulk-moved-to-funnel');
+                }}
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors duration-fast ease-standard hover:bg-surface-3"
+              >
+                <IoFunnelOutline className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate">{f.name}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={bulkTagOpen} onOpenChange={setBulkTagOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -714,16 +771,21 @@ const ManageContacts: React.FC = () => {
         onLeadDeleted={load}
       />
 
-      {/* Mounted only when open: LeadEditModal requires a lead, and the list
-          row is a partial projection of one. */}
-      {editTarget && (
-        <LeadEditModal
-          isOpen
-          onClose={() => setEditTarget(null)}
-          lead={editTarget as any}
-          onUpdate={() => { setEditTarget(null); load(); }}
-        />
-      )}
+      <ContactCreationDialog
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={load}
+      />
+
+      {/* Puts the contact into a pipeline. Only reachable when the company
+          runs contact funnels — see contactFunnels. */}
+      <MoveFunnelModal
+        isOpen={!!funnelTarget}
+        onClose={() => setFunnelTarget(null)}
+        leadId={funnelTarget ? String(funnelTarget.id) : ''}
+        funnels={addableFunnels}
+        onMoved={() => { setFunnelTarget(null); load(); }}
+      />
 
       <TagManagementModal
         isOpen={!!tagTarget}

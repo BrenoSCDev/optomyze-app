@@ -324,11 +324,24 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-sm font-medium truncate text-foreground/80">{conversationDisplayName(conv)}</span>
+                          <span className={`text-sm truncate ${conv.unread_count
+                            ? 'font-semibold text-foreground'
+                            : 'font-medium text-foreground/80'}`}>
+                            {conversationDisplayName(conv)}
+                          </span>
                           <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{time}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs truncate text-muted-foreground">{preview}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-xs truncate ${conv.unread_count
+                            ? 'text-foreground/70'
+                            : 'text-muted-foreground'}`}>
+                            {preview}
+                          </span>
+                          {conv.unread_count ? (
+                            <span className="min-w-[1.25rem] shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none text-primary-foreground tabular-nums">
+                              {conv.unread_count > 99 ? '99+' : conv.unread_count}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </button>
@@ -399,9 +412,16 @@ const ConversationList: React.FC<ConversationListProps> = ({
                     >
                       <ConversationAvatar conv={conv} currentUserId={currentUserId} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{conversationDisplayName(conv)}</p>
+                        <p className={`text-sm truncate text-foreground ${conv.unread_count ? 'font-semibold' : 'font-medium'}`}>
+                          {conversationDisplayName(conv)}
+                        </p>
                         <p className="text-xs text-muted-foreground">{memberCount} members</p>
                       </div>
+                      {conv.unread_count ? (
+                        <span className="min-w-[1.25rem] shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none text-primary-foreground tabular-nums">
+                          {conv.unread_count > 99 ? '99+' : conv.unread_count}
+                        </span>
+                      ) : null}
                     </button>
                   );
                 })}

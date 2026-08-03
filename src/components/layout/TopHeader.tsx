@@ -319,16 +319,10 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
         { id: 'tasks', label: t('nav.tasks') },
       ],
     },
-    integrations: {
-      icon: <Plug className="h-3.5 w-3.5" />,
-      labelKey: 'nav.integrations',
-      children: [
-        { id: 'integrations', label: 'Apps' },
-      ],
-    },
-    aiAgents: {
+    // No `integrations` section: the app catalogue is a direct link now.
+    automations: {
       icon: <Bot className="h-3.5 w-3.5" />,
-      labelKey: 'nav.ai-agents',
+      labelKey: 'nav.automations',
       children: [
         { id: 'manage-agents', label: t('ai-agents.manage.menu-title') },
       ],

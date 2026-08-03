@@ -14,7 +14,7 @@ import {
   DollarSign, Package, TrendingUp, TrendingDown,
   FileText, Upload, Download, Eye, Trash2, File,
   CircleDot, GitBranch, Clock, AlertCircle, Activity,
-  CheckCircle, XCircle,
+  CheckCircle, XCircle, StickyNote, ListTodo, CalendarDays, MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,13 @@ import { PrivateFilePreview } from '@/components/ui/PrivateImage';
 import SaleDocumentUploadModal from '@/components/leads/SaleDocumentUploadModal';
 import { DealCreationDialog, type EditDeal } from '@/components/deals/DealCreationDialog';
 import { ActivityTimeline, adaptRecord } from '@/components/activity';
+import { dealFunnelService } from '@/services/dealFunnelApi';
+import DealStageJourney from './DealStageJourney';
+import NotesThread from '@/components/notes/NotesThread';
+import LeadTasksPanel from '@/components/leads/LeadTasksPanel';
+import LeadAppointmentsTab from '@/components/leads/LeadAppointmentsTab';
+import LeadChatSection from '@/components/leads/LeadChatSection';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -44,9 +51,11 @@ interface DealPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   dealId: string | null;
+  /** Fired after a change the board behind the modal should reflect. */
+  onDealUpdated?: () => void;
 }
 
-const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId }) => {
+const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, dealId, onDealUpdated }) => {
   const { t } = useLanguage();
   const { currencyCode: companyCurrency } = useCurrency();
   const [sale, setSale] = useState<any>(null);
@@ -62,6 +71,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [lostDialogOpen, setLostDialogOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [movingStageId, setMovingStageId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen && dealId) {
@@ -82,6 +92,12 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
       const data = response.data;
       setSale(data.sale);
       setUsers(data.users || []);
+
+      // The journey needs the whole pipeline, not just the current stage.
+      // Loaded here rather than lazily so the header isn't empty on first paint.
+      if (data.sale?.funnel_id) {
+        loadFunnelStages(data.sale.funnel_id);
+      }
     } catch (err) {
       console.error('Error fetching deal:', err);
       setError(t('deal-preview.load-failed'));
@@ -90,15 +106,47 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
     }
   };
 
+  const loadFunnelStages = async (funnelId: number) => {
+    try {
+      const res = await api.get(`/api/funnels/${funnelId}/stages`);
+      setFunnelStages(res.data.stages || []);
+    } catch {
+      // The journey simply doesn't render; the rest of the deal still does.
+    }
+  };
+
   const handleOpenEdit = async () => {
     if (!sale?.funnel_id) return;
     if (funnelStages.length === 0) {
-      try {
-        const res = await api.get(`/api/funnels/${sale.funnel_id}/stages`);
-        setFunnelStages(res.data.stages || []);
-      } catch { /* ignore */ }
+      await loadFunnelStages(sale.funnel_id);
     }
     setEditDialogOpen(true);
+  };
+
+  /**
+   * Move the deal to another stage from the journey.
+   *
+   * Optimistic: the dot moves as soon as the click lands and rolls back if the
+   * server refuses, so the pipeline feels like the kanban board rather than a
+   * form submission.
+   */
+  const handleStageClick = async (stage: { id: number; name: string }) => {
+    if (!sale || movingStageId || stage.id === sale.stage?.id) return;
+
+    const previousStage = sale.stage;
+    setMovingStageId(stage.id);
+    setSale((prev: any) => (prev ? { ...prev, stage: { ...prev.stage, ...stage } } : prev));
+
+    try {
+      await dealFunnelService.moveDealToStage(sale.id, stage.id);
+      toast.success(t('deal-preview.stage-moved').replace('{stage}', stage.name));
+      onDealUpdated?.();
+    } catch (err: any) {
+      setSale((prev: any) => (prev ? { ...prev, stage: previousStage } : prev));
+      toast.error(err?.response?.data?.message || t('deal-preview.stage-move-failed'));
+    } finally {
+      setMovingStageId(null);
+    }
   };
 
   const formatCurrency = (amount: number | string, currency: string = companyCurrency) => {
@@ -122,9 +170,9 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'closed': return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
-      case 'lost': return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
-      case 'pending': return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+      case 'closed': return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+      case 'lost': return 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30';
+      case 'pending': return 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30';
       default: return 'bg-deal/15 text-deal border-deal/30';
     }
   };
@@ -250,7 +298,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed inset-x-0 bottom-0 top-[5vh] z-[60] flex flex-col rounded-t-2xl border border-deal/20 bg-background overflow-hidden"
+              className="fixed inset-x-0 bottom-0 top-[5vh] z-[60] flex flex-col rounded-t-2xl border border-border bg-background overflow-hidden"
             >
               {/* Loading State */}
               {loading && (
@@ -295,7 +343,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
               {sale && !loading && !error && (
                 <>
                   {/* Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-deal/10">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-border">
                     <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
                       <Avatar className="h-12 w-12 shrink-0 rounded-full">
                         <AvatarFallback className="bg-deal/20 text-deal text-base sm:text-lg font-semibold rounded-full">
@@ -401,13 +449,22 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                   {/* Body */}
                   <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-dark">
+                    {/* Pipeline position — click a stage to move the deal. */}
+                    <DealStageJourney
+                      stages={funnelStages}
+                      currentStageId={sale.stage?.id}
+                      funnelName={sale.funnel?.name}
+                      onStageClick={handleStageClick}
+                      movingStageId={movingStageId}
+                    />
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Left Column - 2/3 */}
                       <div className="lg:col-span-2 space-y-5">
                         {/* Lead Information */}
                         {sale.lead && (
-                          <div className="deal-glass-card p-5">
-                            <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                            <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                               <User className="h-4 w-4" />
                               {t('deal-preview.lead-info')}
                             </h3>
@@ -474,15 +531,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                         {/* Products / Items */}
                         {sale.items && sale.items.length > 0 && (
-                          <div className="deal-glass-card p-5">
-                            <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                            <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                               <Package className="h-4 w-4" />
                               {t('deal-preview.products')} ({sale.items.length})
                             </h3>
                             <div className="overflow-x-auto">
                               <table className="w-full text-sm">
                                 <thead>
-                                  <tr className="border-b border-deal/10">
+                                  <tr className="border-b border-border">
                                     <th className="text-left py-2 text-xs text-muted-foreground font-medium">{t('deal-preview.product')}</th>
                                     <th className="text-center py-2 text-xs text-muted-foreground font-medium">{t('deal-preview.qty')}</th>
                                     <th className="text-right py-2 text-xs text-muted-foreground font-medium">{t('deal-preview.unit-price')}</th>
@@ -505,8 +562,8 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         )}
 
                         {/* Financial Summary */}
-                        <div className="deal-glass-card p-5">
-                          <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                          <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             <DollarSign className="h-4 w-4" />
                             {t('deal-preview.financial-summary')}
                           </h3>
@@ -522,15 +579,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 {sale.charges.map((charge: any) => (
                                   <div key={charge.id} className="flex justify-between text-sm">
                                     <span className="flex items-center gap-1.5 text-muted-foreground">
-                                      <TrendingUp className="h-3 w-3 text-emerald-400" />
+                                      <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                                       {charge.name} ({charge.type === 'percentage' ? `${charge.value}%` : t('deal-preview.fixed')})
                                     </span>
-                                    <span className="text-emerald-400">+{formatCurrency(charge.calculated_amount, currency)}</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400">+{formatCurrency(charge.calculated_amount, currency)}</span>
                                   </div>
                                 ))}
                                 <div className="flex justify-between text-sm border-t border-deal/10 pt-1">
                                   <span className="text-muted-foreground font-medium">{t('deal-preview.total-charges')}</span>
-                                  <span className="text-emerald-400 font-medium">+{formatCurrency(sale.charges_total, currency)}</span>
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">+{formatCurrency(sale.charges_total, currency)}</span>
                                 </div>
                               </>
                             )}
@@ -541,15 +598,15 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 {sale.discounts.map((discount: any) => (
                                   <div key={discount.id} className="flex justify-between text-sm">
                                     <span className="flex items-center gap-1.5 text-muted-foreground">
-                                      <TrendingDown className="h-3 w-3 text-rose-400" />
+                                      <TrendingDown className="h-3 w-3 text-rose-600 dark:text-rose-400" />
                                       {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : t('deal-preview.fixed')})
                                     </span>
-                                    <span className="text-rose-400">-{formatCurrency(discount.calculated_amount, currency)}</span>
+                                    <span className="text-rose-600 dark:text-rose-400">-{formatCurrency(discount.calculated_amount, currency)}</span>
                                   </div>
                                 ))}
                                 <div className="flex justify-between text-sm border-t border-deal/10 pt-1">
                                   <span className="text-muted-foreground font-medium">{t('deal-preview.total-discounts')}</span>
-                                  <span className="text-rose-400 font-medium">-{formatCurrency(sale.discount_total, currency)}</span>
+                                  <span className="text-rose-600 dark:text-rose-400 font-medium">-{formatCurrency(sale.discount_total, currency)}</span>
                                 </div>
                               </>
                             )}
@@ -565,8 +622,8 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         </div>
 
                         {/* Deal Details */}
-                        <div className="deal-glass-card p-5">
-                          <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                          <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             <Clock className="h-4 w-4" />
                             {t('deal-preview.deal-details')}
                           </h3>
@@ -612,10 +669,78 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                           )}
                         </div>
 
+                        {/*
+                          Collaboration workspace: notes, appointments and the
+                          conversation, all without leaving the deal.
+
+                          Appointments and conversations belong to the *person*,
+                          not the opportunity — you meet a contact, you don't
+                          meet a deal — so both reuse the lead components against
+                          sale.lead_id rather than duplicating them. Notes are
+                          different: a note about payment terms is about this
+                          deal, so those are deal-scoped.
+                        */}
+                        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                          <Tabs defaultValue="notes">
+                            <TabsList className="mb-4">
+                              <TabsTrigger value="notes" className="gap-2">
+                                <StickyNote className="h-4 w-4" />
+                                {t('deal-preview.tab-notes')}
+                              </TabsTrigger>
+                              <TabsTrigger value="tasks" className="gap-2">
+                                <ListTodo className="h-4 w-4" />
+                                {t('deal-preview.tab-tasks')}
+                              </TabsTrigger>
+                              {sale.lead?.id && (
+                                <TabsTrigger value="appointments" className="gap-2">
+                                  <CalendarDays className="h-4 w-4" />
+                                  {t('deal-preview.tab-appointments')}
+                                </TabsTrigger>
+                              )}
+                              {sale.lead?.id && (
+                                <TabsTrigger value="conversation" className="gap-2">
+                                  <MessageSquare className="h-4 w-4" />
+                                  {t('deal-preview.tab-conversation')}
+                                </TabsTrigger>
+                              )}
+                            </TabsList>
+
+                            <TabsContent value="notes" className="mt-0">
+                              <NotesThread type="deal" id={sale.id} />
+                            </TabsContent>
+
+                            {/* Tasks hang off the deal itself, not the lead:
+                                "send the signed contract" is work on this
+                                opportunity, and dies with it. */}
+                            <TabsContent value="tasks" className="mt-0">
+                              <LeadTasksPanel saleId={sale.id} />
+                            </TabsContent>
+
+                            {sale.lead?.id && (
+                              <TabsContent value="appointments" className="mt-0">
+                                <LeadAppointmentsTab
+                                  leadId={sale.lead.id}
+                                  leadTimezone={sale.lead.timezone}
+                                />
+                              </TabsContent>
+                            )}
+
+                            {sale.lead?.id && (
+                              <TabsContent value="conversation" className="mt-0">
+                                <LeadChatSection
+                                  chat={sale.lead.whatsapp_inbox_chat ?? null}
+                                  leadId={sale.lead.id}
+                                  leadPhone={sale.lead.phone}
+                                />
+                              </TabsContent>
+                            )}
+                          </Tabs>
+                        </div>
+
                         {/* Record Log */}
                         {sale.records && sale.records.length > 0 && (
-                          <div className="deal-glass-card p-5">
-                            <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                            <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                               <Activity className="h-4 w-4" />
                               {t('deal-preview.activity-log')} ({sale.records.length})
                             </h3>
@@ -631,7 +756,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                       {/* Right Column - 1/3 */}
                       <div className="space-y-5">
                         {/* Quick Stats */}
-                        <div className="deal-glass-card p-5">
+                        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
                           <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3">
                             {t('deal-preview.quick-overview')}
                           </h3>
@@ -656,7 +781,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                         </div>
 
                         {/* Documents */}
-                        <div className="deal-glass-card p-5">
+                        <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-deal uppercase tracking-wider flex items-center gap-2">
                               <FileText className="h-4 w-4" />
@@ -704,7 +829,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                     </Button>
                                     <Button
                                       variant="ghost" size="icon"
-                                      className="h-7 w-7 text-muted-foreground hover:text-rose-400"
+                                      className="h-7 w-7 text-muted-foreground hover:text-rose-600 dark:text-rose-400"
                                       onClick={() => setConfirmDeleteDoc(doc)}
                                       disabled={deletingDocId === doc.id}
                                     >
@@ -719,8 +844,8 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
 
                         {/* Assigned User */}
                         {sale.user && (
-                          <div className="deal-glass-card p-5">
-                            <h3 className="text-sm font-semibold text-deal uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-5">
+                            <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                               <User className="h-4 w-4" />
                               {t('deal-preview.assigned-to')}
                             </h3>
@@ -766,7 +891,7 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
       {/* Document Preview */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] bg-background border-deal/20 p-0 overflow-hidden [&>button]:hidden">
-          <DialogHeader className="p-4 border-b border-deal/10">
+          <DialogHeader className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-foreground truncate pr-4">{previewDoc?.filename}</DialogTitle>
               <div className="flex items-center gap-2">

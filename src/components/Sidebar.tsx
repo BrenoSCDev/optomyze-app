@@ -22,7 +22,6 @@ import {
   ChevronLeft,
   Menu,
   X,
-  Plug,
   Tag,
   Bot,
   Key,
@@ -44,6 +43,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import CompanySwitcher from '@/components/layout/CompanySwitcher';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -60,6 +60,7 @@ import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 import { VscSettings } from "react-icons/vsc";
 import { MdBusinessCenter, MdCurrencyExchange } from "react-icons/md";
+import { TiFlowMerge } from "react-icons/ti";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -71,7 +72,12 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobileOpen = false, onMobileClose }: SidebarProps) => {
-  const [expandedSection, setExpandedSection] = useState<string>('dashboard');
+  /**
+   * Every section starts closed. This used to default to 'dashboard', which
+   * meant a submenu the user had not asked for was pushed open on every load
+   * and after every refresh, regardless of where they actually were.
+   */
+  const [expandedSection, setExpandedSection] = useState<string>('');
   /**
    * The sidebar has two modes. `main` is the normal three-group navigation;
    * `settings` replaces the whole nav with the settings destinations plus a
@@ -147,11 +153,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     { id: 'preferences', label: t('nav.preferences'), icon: () => <VscSettings size={16} />, restrictedFor: [] },
   ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
 
-  const integrationsItems = [
-    { id: 'integrations', label: 'Apps', icon: () => <RiAppsFill /> },
-  ];
-
-  const aiAgentsItems = [
+  const automationsItems = [
     { id: 'manage-agents', label: t('ai-agents.manage.menu-title'), icon: () => <Bot size={16} />, badge: 'Beta' },
   ];
 
@@ -177,10 +179,6 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
         { id: 'manage-products', label: t('products.manage'), icon: () => <Package size={16} />, isExternal: false },
       ];
 
-  const mainItems = [
-    { id: 'integrations', label: t('nav.integrations'), icon: Plug },
-  ];
-
   // Hovering no longer expands the rail; collapsed state is purely the toggle.
   const effectivelyCollapsed = isCollapsed;
 
@@ -192,6 +190,9 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     { id: 'contacts', label: t('nav.contacts'), icon: <Contact className="h-5 w-5" /> },
     { id: 'global-inbox', label: t('nav.inbox'), icon: <Inbox className="h-5 w-5" /> },
     { id: 'optomyze-calendar', label: t('nav.calendar'), icon: <CalendarDays className="h-5 w-5" /> },
+    // Product name, deliberately untranslated — it reads the same in all four
+    // languages, so t('nav.app-store') returns "App Store" everywhere.
+    { id: 'integrations', label: t('nav.app-store'), icon: <RiAppsFill className="h-5 w-5" /> },
   ];
 
   /** Wraps a collapsed-rail control in a tooltip; a no-op when expanded. */
@@ -447,8 +448,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       { id: 'record-logs', label: t('reports.record-logs'), icon: () => <FileStack size={14} /> },
       { id: 'tasks', label: t('nav.tasks'), icon: () => <CheckSquare size={14} /> },
     ]),
-    integrations: () => renderExpandableSection('integrations', <Plug className="h-5 w-5" />, t('nav.integrations'), integrationsItems),
-    aiAgents: () => renderExpandableSection('aiAgents', <Bot className="h-5 w-5" />, t('nav.ai-agents'), aiAgentsItems),
+    automations: () => renderExpandableSection('automations', <TiFlowMerge className="h-5 w-5" />, t('nav.automations'), automationsItems),
     api: () => renderExpandableSection('api', <Database className="h-5 w-5" />, t('nav.api'), apiItems),
     organization: () => renderExpandableSection('organization', <Building className="h-5 w-5" />, t('nav.organization'), organizationItems),
     products: () => renderExpandableSection('products', <Package className="h-5 w-5" />, t('nav.products'), productsItems),
@@ -561,6 +561,10 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
                 {t('nav.settings')}
               </p>
             )}
+
+            {/* Which company this session is in. Renders nothing unless the
+                person holds accounts in more than one — see CompanySwitcher. */}
+            <CompanySwitcher collapsed={effectivelyCollapsed} />
 
             {settingsItems.map((item) => withRailTooltip(item.label, (
               <button

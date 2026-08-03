@@ -111,7 +111,11 @@ export interface InboxChat {
   external_contact_id: string;
   contact_name?: string | null;
   is_group: number;
-  is_archived: number;
+  is_archived: number | boolean;
+  /** Pinned to the top of the list regardless of last activity. */
+  is_favorite?: boolean;
+  /** Inbound messages nobody has opened the conversation to see yet. */
+  unread_count?: number;
   ai_agent_service?: boolean;
   bound_agent?: { id: number; name: string; status: 'enabled' | 'disabled' } | null;
   last_message_at: string;

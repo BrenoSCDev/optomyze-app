@@ -88,7 +88,7 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
         ref={setNodeRef}
         {...attributes}
         {...listeners}
-        className={`deal-glass-card p-3 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative border-t-2 border-t-deal touch-none ${
+        className={`rounded-xl border border-border bg-card text-card-foreground shadow-sm p-3 cursor-grab active:cursor-grabbing transition-colors duration-base ease-standard relative border-t-2 border-t-deal touch-none ${
           isDragging ? 'invisible' : ''
         }`}
       >
@@ -217,19 +217,19 @@ const DealCard = ({ deal, isDragging, onDealClick, onTagClick, showProducts = tr
             {chargesTotal > 0 && (
               <div className="flex items-center justify-between text-[11px]">
                 <span className="flex items-center gap-0.5 text-muted-foreground">
-                  <TrendingUp className="h-2.5 w-2.5 text-emerald-400" />
+                  <TrendingUp className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
                   Charges
                 </span>
-                <span className="text-emerald-400">+{formatCurrency(chargesTotal, currency)}</span>
+                <span className="text-emerald-600 dark:text-emerald-400">+{formatCurrency(chargesTotal, currency)}</span>
               </div>
             )}
             {discountTotal > 0 && (
               <div className="flex items-center justify-between text-[11px]">
                 <span className="flex items-center gap-0.5 text-muted-foreground">
-                  <TrendingDown className="h-2.5 w-2.5 text-rose-400" />
+                  <TrendingDown className="h-2.5 w-2.5 text-rose-600 dark:text-rose-400" />
                   Discounts
                 </span>
-                <span className="text-rose-400">-{formatCurrency(discountTotal, currency)}</span>
+                <span className="text-rose-600 dark:text-rose-400">-{formatCurrency(discountTotal, currency)}</span>
               </div>
             )}
           </div>

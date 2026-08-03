@@ -36,7 +36,7 @@ import { toast } from 'sonner';
 import { LeadDocument } from '@/services/documentApi';
 import LeadTasksPanel from './LeadTasksPanel';
 import DocumentsSection from './DocumentsSection';
-import ObservationsSection from './ObservationsSection';
+import NotesThread from '@/components/notes/NotesThread';
 import { Observation } from '@/services/observationApi';
 import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadInboxChat, LeadInboxMessage } from './LeadChatSection';
@@ -254,13 +254,9 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
 
         {/* Observations Tab */}
         <TabsContent value="observations" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <ObservationsSection
-            observations={observations}
-            leadId={lead.id}
-            onObservationCreated={onObservationCreated}
-            onObservationUpdated={onObservationUpdated}
-            onObservationDeleted={onObservationDeleted}
-          />
+          {/* Threaded notes, shared with the deal view so both behave the
+              same and a change lands in both. */}
+          <NotesThread type="lead" id={lead.id} />
         </TabsContent>
 
         {/* Appointments Tab */}

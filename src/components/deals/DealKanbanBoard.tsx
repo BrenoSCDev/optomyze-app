@@ -325,7 +325,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
           {/* Refresh */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
+            className="hover:bg-muted hover:text-foreground"
             onClick={async () => {
               if (onRefresh) {
                 setIsRefreshing(true);
@@ -349,7 +349,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
           {/* Export Button */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
+            className="hover:bg-muted hover:text-foreground"
             onClick={handleExport}
             disabled={isExporting}
           >
@@ -364,7 +364,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
           {/* Create Tag */}
           <Button
             variant="outline" size="sm"
-            className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
+            className="hover:bg-muted hover:text-foreground"
             onClick={() => setTagDialogOpen(true)}
           >
             <Tags className="h-4 w-4 sm:mr-1" />
@@ -373,7 +373,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
 
           <Button
             variant="outline" size="sm"
-            className={`deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground ${
+            className={`hover:bg-muted hover:text-foreground ${
               activeFilterCount > 0 ? 'ring-2 ring-deal/50 bg-deal/10' : ''
             }`}
             onClick={() => setFilterDialogOpen(true)}
@@ -505,6 +505,9 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
         isOpen={previewOpen}
         onClose={() => { setPreviewOpen(false); setPreviewDealId(null); }}
         dealId={previewDealId}
+        // Moving a deal through the journey inside the modal changes which
+        // column it belongs to, so the board behind has to reload.
+        onDealUpdated={onRefresh}
       />
 
       {/* Create Tag Dialog */}

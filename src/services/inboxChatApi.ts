@@ -25,6 +25,12 @@ export interface ChatMessage {
   file_url: string | null;
   sender: ChatSender;
   created_at: string;
+  /**
+   * Ids of the other participants who have read this message. Only populated
+   * for messages you sent — "did they see it" is the sender's question — and
+   * null on everyone else's.
+   */
+  read_by?: number[] | null;
 }
 
 export interface ChatConversation {
@@ -42,7 +48,23 @@ export interface ChatConversation {
   last_message: ChatMessage | null;
   last_message_at: string | null;
   created_at: string;
+  /** Messages you have not seen. Per participant: yours, not the group's. */
+  unread_count?: number;
 }
+
+/**
+ * Mark a conversation read for the current user.
+ *
+ * Idempotent and cheap when there is nothing unread, so it is safe to call on
+ * every open. Fetching the thread marks it read too; this exists for the cases
+ * where the thread is already open when a message lands.
+ */
+export const markConversationRead = async (
+  conversationId: number
+): Promise<{ unread_count: number; changed: boolean }> => {
+  const res = await api.post(`/api/chat/${conversationId}/read`);
+  return res.data;
+};
 
 /** Safe display name for a conversation, never empty. */
 export const conversationDisplayName = (

@@ -39,7 +39,7 @@ const DealSettingsDropdown = ({
         <Button
           variant="outline"
           size="sm"
-          className="deal-glass-card hover:bg-muted dark:hover:bg-deal/10 hover:text-foreground"
+          className="hover:bg-muted hover:text-foreground"
         >
           <Settings className="h-4 w-4 sm:mr-1" />
           <span className="hidden sm:inline">{t('deal.page.settings')}</span>

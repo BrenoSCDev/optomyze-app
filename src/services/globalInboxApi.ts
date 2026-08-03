@@ -7,21 +7,73 @@
 import api from './api';
 import { InboxChannel, InboxChatResponse, InboxMessage, InboxReplySnapshot, PaginationMeta } from '@/types/inbox';
 
+/** Which conversations the list is asking for. */
+export interface InboxChatFilters {
+  channel?: InboxChannel | 'all';
+  search?: string;
+  /** 'all' (default) | 'unread' | 'read' */
+  readState?: 'all' | 'unread' | 'read';
+  /** Archived chats are hidden unless this is true, and then shown alone. */
+  archived?: boolean;
+  favorite?: boolean;
+}
+
 /**
- * Fetch paginated inbox chats (20 per page), optionally filtered by channel
- * and/or searched by lead first/last name, phone, or chat contact name.
- * Search runs on the backend so it works across companies with hundreds of
- * chats, not just the currently loaded page.
+ * Fetch paginated inbox chats (20 per page).
+ *
+ * Every filter resolves on the backend — the list is paginated, so filtering
+ * the loaded page would only ever search the conversations already fetched.
+ * Favourites come back pinned above everything else regardless of recency.
  */
-export const fetchInboxChats = async (page = 1, channel?: InboxChannel | 'all', search?: string): Promise<InboxChatResponse> => {
+export const fetchInboxChats = async (page = 1, filters: InboxChatFilters = {}): Promise<InboxChatResponse> => {
   const params: Record<string, string | number> = { page };
-  if (channel && channel !== 'all') {
-    params.channel = channel;
+
+  if (filters.channel && filters.channel !== 'all') {
+    params.channel = filters.channel;
   }
-  if (search && search.trim() !== '') {
-    params.search = search.trim();
+  if (filters.search && filters.search.trim() !== '') {
+    params.search = filters.search.trim();
   }
+  if (filters.readState && filters.readState !== 'all') {
+    params.read_state = filters.readState;
+  }
+  if (filters.archived) {
+    params.archived = 1;
+  }
+  if (filters.favorite) {
+    params.favorite = 1;
+  }
+
   const response = await api.get('/api/inbox/chats', { params });
+  return response.data;
+};
+
+/**
+ * Mark every inbound message in a conversation as read.
+ *
+ * Idempotent and cheap when there is nothing to mark, so it is safe to call
+ * on every open.
+ */
+export const markInboxChatRead = async (chatId: number): Promise<{ unread_count: number; marked: number }> => {
+  const response = await api.post(`/api/inbox/chats/${chatId}/read`);
+  return response.data;
+};
+
+export interface ChatFlagsResponse {
+  data: { id: number; is_archived: boolean; is_favorite: boolean };
+}
+
+/** Omit `archived` to flip whatever the current value is. */
+export const setInboxChatArchived = async (chatId: number, archived?: boolean): Promise<ChatFlagsResponse> => {
+  const response = await api.patch(`/api/inbox/chats/${chatId}/archived`,
+    archived === undefined ? {} : { archived });
+  return response.data;
+};
+
+/** Omit `favorite` to flip whatever the current value is. */
+export const setInboxChatFavorite = async (chatId: number, favorite?: boolean): Promise<ChatFlagsResponse> => {
+  const response = await api.patch(`/api/inbox/chats/${chatId}/favorite`,
+    favorite === undefined ? {} : { favorite });
   return response.data;
 };
 

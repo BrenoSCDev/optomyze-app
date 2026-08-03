@@ -34,6 +34,12 @@ type ApiErrorShape = {
   response?: { data?: { errors?: Record<string, string[]>; message?: string } };
 };
 
+/**
+ * Radix Select cannot hold an empty string as an item value, so "no funnel"
+ * needs a sentinel. It is mapped back to null before it reaches the config.
+ */
+const NO_FUNNEL = '__none__';
+
 const IDENTIFICATION_MODES: { value: ChatIdentificationMode; labelKey: string; hintKey: string }[] = [
   { value: 'none', labelKey: 'widgets.chat.identification-none', hintKey: 'widgets.chat.identification-none-hint' },
   { value: 'basic', labelKey: 'widgets.chat.identification-basic', hintKey: 'widgets.chat.identification-basic-hint' },
@@ -117,7 +123,9 @@ const ChatWidgetBuilder: React.FC<ChatWidgetBuilderProps> = ({
       return;
     }
 
-    if (!config.mapping.funnel_id || !config.mapping.stage_id) {
+    // A funnel is optional — leads may be created unfiled. Only a half-filled
+    // pair is rejected, since a stage without its funnel is meaningless.
+    if (config.mapping.funnel_id && !config.mapping.stage_id) {
       setActiveTab('mapping');
       toast({ title: t('widgets.validation.mapping-required'), variant: 'destructive' });
       return;
@@ -536,11 +544,16 @@ const ChatWidgetBuilder: React.FC<ChatWidgetBuilderProps> = ({
               <div className="space-y-1.5">
                 <Label className="text-sm">{t('widgets.mapping.funnel')}</Label>
                 <Select
-                  value={config.mapping.funnel_id ? String(config.mapping.funnel_id) : ''}
-                  onValueChange={(value) => patchMapping({ funnel_id: Number(value), stage_id: null })}
+                  value={config.mapping.funnel_id ? String(config.mapping.funnel_id) : NO_FUNNEL}
+                  // Clearing the funnel clears the stage with it — a stage only
+                  // means anything inside its own funnel.
+                  onValueChange={(value) =>
+                    patchMapping({ funnel_id: value === NO_FUNNEL ? null : Number(value), stage_id: null })
+                  }
                 >
                   <SelectTrigger><SelectValue placeholder={t('widgets.mapping.select-funnel')} /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={NO_FUNNEL}>{t('widgets.mapping.no-funnel')}</SelectItem>
                     {funnels.map((funnel) => (
                       <SelectItem key={funnel.id} value={String(funnel.id)}>{funnel.name}</SelectItem>
                     ))}

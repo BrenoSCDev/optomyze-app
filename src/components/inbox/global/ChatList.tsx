@@ -6,7 +6,7 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Loader2, Film, Search, X, RefreshCw, Filter } from 'lucide-react';
+import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Loader2, Film, Search, X, RefreshCw, Filter, Star, Archive, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,7 +23,7 @@ import { usePrivateFile } from '@/hooks/usePrivateFile';
 import InboxAvatar from './InboxAvatar';
 import ChannelIcon from './ChannelIcon';
 
-/** Read-state tabs. Purely presentational until the filtering lands. */
+/** Read-state tabs; resolved by the backend, see fetchInboxChats. */
 export type ReadFilter = 'all' | 'unread' | 'read';
 
 const CHANNEL_FILTERS: (InboxChannel | 'all')[] = [
@@ -60,6 +60,14 @@ interface ChatListProps {
   onChannelFilterChange?: (channel: InboxChannel | 'all') => void;
   readFilter?: ReadFilter;
   onReadFilterChange?: (filter: ReadFilter) => void;
+  /** Show only archived conversations instead of only unarchived ones. */
+  showArchived?: boolean;
+  onShowArchivedChange?: (value: boolean) => void;
+  /** Narrow the list to pinned conversations. */
+  favoritesOnly?: boolean;
+  onFavoritesOnlyChange?: (value: boolean) => void;
+  onToggleFavorite?: (chat: InboxChat) => void;
+  onToggleArchived?: (chat: InboxChat) => void;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
@@ -78,6 +86,12 @@ const ChatList: React.FC<ChatListProps> = ({
   onChannelFilterChange,
   readFilter = 'all',
   onReadFilterChange,
+  showArchived = false,
+  onShowArchivedChange,
+  favoritesOnly = false,
+  onFavoritesOnlyChange,
+  onToggleFavorite,
+  onToggleArchived,
 }) => {
   const { t } = useLanguage();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -294,25 +308,63 @@ const ChatList: React.FC<ChatListProps> = ({
         </div>
       )}
 
-      {/* Read-state tabs. Presentational for now — filtering lands later. */}
+      {/* Read-state tabs, plus the two list-scope toggles. All resolved by
+          the backend — see fetchInboxChats. */}
       {onReadFilterChange && (
-        <div className="mt-2.5 flex items-center gap-4">
-          {readTabs.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onReadFilterChange(key)}
-              aria-current={readFilter === key}
-              className={cn(
-                'relative -mb-px border-b-2 pb-2 pt-0.5 text-xs font-medium transition-colors',
-                readFilter === key
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="mt-2.5 flex items-end justify-between gap-2">
+          <div className="flex items-center gap-4">
+            {readTabs.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onReadFilterChange(key)}
+                aria-current={readFilter === key}
+                className={cn(
+                  'relative -mb-px border-b-2 pb-2 pt-0.5 text-xs font-medium transition-colors',
+                  readFilter === key
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1 pb-1.5">
+            {onFavoritesOnlyChange && (
+              <button
+                type="button"
+                aria-pressed={favoritesOnly}
+                title={t('chat.inbox.filter-favorites')}
+                onClick={() => onFavoritesOnlyChange(!favoritesOnly)}
+                className={cn(
+                  'rounded p-1 transition-colors',
+                  favoritesOnly
+                    ? 'bg-amber-400/15 text-amber-500'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Star className={cn('h-3.5 w-3.5', favoritesOnly && 'fill-amber-400')} />
+              </button>
+            )}
+            {onShowArchivedChange && (
+              <button
+                type="button"
+                aria-pressed={showArchived}
+                title={t('chat.inbox.filter-archived')}
+                onClick={() => onShowArchivedChange(!showArchived)}
+                className={cn(
+                  'rounded p-1 transition-colors',
+                  showArchived
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Archive className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -373,12 +425,61 @@ const ChatList: React.FC<ChatListProps> = ({
                 <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium truncate">
+                    <span className={cn('truncate', chat.unread_count ? 'font-semibold text-foreground' : 'font-medium')}>
+                      {chat.is_favorite && (
+                        <Star className="mr-1 inline h-3 w-3 shrink-0 fill-amber-400 text-amber-400 align-[-1px]" />
+                      )}
                       {getLeadName(chat)}
                     </span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
-                      <Clock className="h-3 w-3" />
-                      {formatTime(chat.last_message_at)}
+
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      {/* Row actions: shown on hover, and kept visible while
+                          pinned so the state is discoverable without hovering. */}
+                      <span
+                        className={cn(
+                          'flex items-center gap-0.5 transition-opacity',
+                          chat.is_favorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
+                        )}
+                      >
+                        {onToggleFavorite && (
+                          <button
+                            type="button"
+                            aria-label={chat.is_favorite ? t('chat.inbox.unfavorite') : t('chat.inbox.favorite')}
+                            title={chat.is_favorite ? t('chat.inbox.unfavorite') : t('chat.inbox.favorite')}
+                            onClick={(e) => { e.stopPropagation(); onToggleFavorite(chat); }}
+                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-amber-500"
+                          >
+                            <Star className={cn('h-3.5 w-3.5', chat.is_favorite && 'fill-amber-400 text-amber-400')} />
+                          </button>
+                        )}
+                        {onToggleArchived && (
+                          <button
+                            type="button"
+                            aria-label={chat.is_archived ? t('chat.inbox.unarchive') : t('chat.inbox.archive')}
+                            title={chat.is_archived ? t('chat.inbox.unarchive') : t('chat.inbox.archive')}
+                            onClick={(e) => { e.stopPropagation(); onToggleArchived(chat); }}
+                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          >
+                            {chat.is_archived
+                              ? <ArchiveRestore className="h-3.5 w-3.5" />
+                              : <Archive className="h-3.5 w-3.5" />}
+                          </button>
+                        )}
+                      </span>
+
+                      {chat.unread_count ? (
+                        <span
+                          className="min-w-[1.25rem] rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-semibold leading-none text-primary-foreground tabular-nums"
+                          aria-label={t('chat.inbox.unread-count').replace('{count}', String(chat.unread_count))}
+                        >
+                          {chat.unread_count > 99 ? '99+' : chat.unread_count}
+                        </span>
+                      ) : null}
+
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {formatTime(chat.last_message_at)}
+                      </span>
                     </span>
                   </div>
                   {(() => {

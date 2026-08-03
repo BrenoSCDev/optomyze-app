@@ -34,7 +34,7 @@ export interface UserPreferences {
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: 'dark',
   language: 'en',
-  optus_enabled: false,
+  optus_enabled: true,
   notification_sound: 'default',
   default_search_target: 'leads',
 };

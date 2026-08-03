@@ -3,6 +3,7 @@ import { ChatMessage } from '@/services/inboxChatApi';
 import { Check } from 'lucide-react';
 import AudioMessagePlayer from './AudioMessage';
 import { extractTime } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import ClickableUser from '@/components/users/ClickableUser';
 
@@ -14,6 +15,8 @@ interface MessageBubbleProps {
   selectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (id: number) => void;
+  /** Decides whether read state reads as "Seen" or "Seen by N". */
+  participantCount?: number;
 }
 
 function formatDaySeparator(iso: string): string {
@@ -38,8 +41,9 @@ function getInitials(name: string | null | undefined): string {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message, isOwn, showSender, showDaySeparator,
-  selectMode = false, isSelected = false, onToggleSelect,
+  selectMode = false, isSelected = false, onToggleSelect, participantCount = 2,
 }) => {
+  const { t } = useLanguage();
   const time = extractTime(message.created_at);
   const fileUrl = usePrivateFile(message.file_url);
   const avatarUrl = usePrivateFile(message.sender.profile_pic_url);
@@ -132,6 +136,22 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           <span className={`text-[10px] text-muted-foreground mt-1 px-1 ${message.type === 'audio' ? '' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-fast ${isOwn ? 'text-right' : 'text-left'}`}>
             {time}
           </span>
+
+          {/*
+            Read state, on your own messages only — "did they see it" is the
+            sender's question. read_by is null on everyone else's messages, so
+            this renders nothing there. In a group it counts heads; one-to-one
+            it is simply seen or not.
+          */}
+          {isOwn && message.read_by && (
+            <span className="mt-0.5 px-1 text-[10px] text-muted-foreground">
+              {message.read_by.length === 0
+                ? t('chat.internal.sent')
+                : participantCount > 2
+                  ? t('chat.internal.seen-by-count').replace('{count}', String(message.read_by.length))
+                  : t('chat.internal.seen')}
+            </span>
+          )}
         </div>
       </div>
     </>

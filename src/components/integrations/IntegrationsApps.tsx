@@ -12,7 +12,6 @@ import {
   Download,
   Package,
   AlertCircle,
-  Bot,
   Check,
   Search,
   FlaskConical,
@@ -47,6 +46,7 @@ import OpenAiConfigModal from './OpenAiConfigModal';
 import WidgetsSlab from '../widgets/WidgetsSlab';
 import { Input } from '@/components/ui/input';
 import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
+import { SiTwilio } from "react-icons/si";
 import { cn } from '@/lib/utils';
 
 interface Integration {
@@ -57,8 +57,6 @@ interface Integration {
   comingSoon?: boolean;
   beta?: boolean;
   popular?: boolean;
-  /** Widgets and other built-in tools need no install step. */
-  alwaysAvailable?: boolean;
   icon: React.ReactNode;
 }
 
@@ -135,6 +133,12 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     hoverBorder: 'hover:border-[#7C3AED]/40',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(124,58,237,0.5)]',
   },
+  twilio: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(242,47,70,0.10),rgba(242,47,70,0.02))]',
+    iconColor: 'text-[#F22F46]',
+    hoverBorder: 'hover:border-[#F22F46]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(242,47,70,0.5)]',
+  },
   'chat-widget': {
     gradient: 'bg-[linear-gradient(135deg,rgba(14,165,233,0.10),rgba(14,165,233,0.02))]',
     iconColor: 'text-[#0EA5E9]',
@@ -160,12 +164,6 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     iconColor: 'text-[#D97757]',
     hoverBorder: 'hover:border-[#D97757]/40',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(217,119,87,0.5)]',
-  },
-  deepseek: {
-    gradient: 'bg-[linear-gradient(135deg,rgba(83,108,232,0.10),rgba(83,108,232,0.02))]',
-    iconColor: 'text-[#536CE8]',
-    hoverBorder: 'hover:border-[#536CE8]/40',
-    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(83,108,232,0.5)]',
   },
   'google-calendar': {
     gradient: 'bg-[linear-gradient(135deg,rgba(66,133,244,0.10),rgba(66,133,244,0.02))]',
@@ -461,14 +459,21 @@ const IntegrationsApps: React.FC = () => {
           available: false,
           comingSoon: true,
           icon: <RiClaudeFill className="w-7 h-7" />
-        },
+        }
+      ]
+    },
+    {
+      id: 'calling',
+      title: t('integrations.categories.calling') || 'Calling',
+      comingSoon: true,
+      integrations: [
         {
-          key: 'deepseek',
-          name: 'DeepSeek',
-          description: t('integrations.deepseek.description') || 'Integrate DeepSeek AI for powerful reasoning and code generation capabilities.',
+          key: 'twilio',
+          name: 'Twilio',
+          description: t('integrations.twilio.description') || 'Place and receive calls from the CRM, with recordings and call logging on the contact.',
           available: false,
           comingSoon: true,
-          icon: <Bot className="w-7 h-7" />
+          icon: <SiTwilio className="w-7 h-7" />
         }
       ]
     },
@@ -480,8 +485,7 @@ const IntegrationsApps: React.FC = () => {
           key: 'form-widget',
           name: t('integrations.form-widget.name') || 'Website Form Widget',
           description: t('integrations.form-widget.description') || 'Build embeddable website forms that create leads in your CRM automatically.',
-          available: true,
-          alwaysAvailable: true,
+          available: false,
           popular: true,
           icon: <LayoutTemplate className="w-7 h-7" />
         },
@@ -489,8 +493,7 @@ const IntegrationsApps: React.FC = () => {
           key: 'chat-widget',
           name: t('integrations.chat-widget.name') || 'Website Chat Widget',
           description: t('integrations.chat-widget.description') || 'Add a live chat bubble to your website and answer visitors straight from the inbox.',
-          available: true,
-          alwaysAvailable: true,
+          available: false,
           beta: true,
           icon: <MessagesSquare className="w-7 h-7" />
         }
@@ -541,8 +544,9 @@ const IntegrationsApps: React.FC = () => {
         const updated = prev.map(category => ({
           ...category,
           integrations: category.integrations.map(integration => {
+            // 'form-widget' → 'form_widget_available'
             const apiKey = `${integration.key.replace('-', '_')}_available`;
-            const isAvailable = integration.alwaysAvailable || response.data[apiKey] || false;
+            const isAvailable = response.data[apiKey] || false;
             return {
               ...integration,
               available: isAvailable,

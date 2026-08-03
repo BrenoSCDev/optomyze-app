@@ -97,6 +97,16 @@ export const bulkAssignContacts = async (leadIds: number[], userId: number | nul
   return res.data?.updated ?? 0;
 };
 
+/**
+ * Files a selection of contacts into a funnel, at its entry stage.
+ * Contacts already in that funnel are skipped, so the count returned can be
+ * lower than the number selected.
+ */
+export const bulkMoveContactsToFunnel = async (leadIds: number[], funnelId: number): Promise<number> => {
+  const res = await api.post('/api/leads/bulk/move-funnel', { lead_ids: leadIds, funnel_id: funnelId });
+  return res.data?.updated ?? 0;
+};
+
 export const bulkTagContacts = async (
   leadIds: number[], tagIds: number[], mode: 'attach' | 'replace' = 'attach'
 ): Promise<number> => {

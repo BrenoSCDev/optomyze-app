@@ -38,7 +38,24 @@ interface ChatUpdatedEvent {
     id: number;
     lead_id: number | null;
     ai_agent_service: boolean;
+    is_archived?: boolean;
+    is_favorite?: boolean;
   };
+  timestamp: string;
+}
+
+/**
+ * Messages in a conversation were marked read.
+ *
+ * `direction` decides what it means: 'incoming' is a colleague opening the
+ * conversation (clear the unread badge), 'outgoing' is the website visitor
+ * reading what we sent (turn our own bubbles' ticks).
+ */
+interface MessagesReadEvent {
+  chat_id: number;
+  direction: 'incoming' | 'outgoing';
+  message_ids: number[];
+  unread_count: number;
   timestamp: string;
 }
 
@@ -66,6 +83,16 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
   const [selectedChat, setSelectedChat] = useState<InboxChat | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+
+  /**
+   * The open conversation, readable from the websocket callbacks.
+   *
+   * Those callbacks are deliberately dependency-free so the subscription is
+   * not torn down and rebuilt on every selection; a ref is how they see
+   * current state without becoming unstable.
+   */
+  const selectedChatRef = useRef<InboxChat | null>(null);
+  selectedChatRef.current = selectedChat;
 
   // Play notification sound for new messages - uses user's selected sound from preferences
   const playMessageSoundRef = useRef(() => {
@@ -96,16 +123,26 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
           // Update last_message_at from chat metadata
           existingChat.last_message_at = chatMetadata.last_message_at;
 
+          // An arriving inbound message is unread until someone opens the
+          // conversation — unless this is the conversation already open, in
+          // which case the reader is looking straight at it and the thread
+          // marks it read on arrival.
+          if (message.direction === 'incoming' && selectedChatRef.current?.id !== existingChat.id) {
+            existingChat.unread_count = (existingChat.unread_count || 0) + 1;
+          }
+
           updatedChats[existingChatIndex] = existingChat;
         } else {
           console.warn('💬 Duplicate message prevented:', message.id);
           return prevChats;
         }
 
-        // Re-sort chats by last_message_at (move updated chat to top)
-        return updatedChats.sort((a, b) =>
-          new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-        );
+        // Favourites stay pinned; the rest order by most recent activity.
+        return updatedChats.sort((a, b) => {
+          const pinned = Number(!!b.is_favorite) - Number(!!a.is_favorite);
+          if (pinned !== 0) return pinned;
+          return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+        });
 
       } else {
         // New chat - create it with the message
@@ -185,19 +222,57 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
     );
   }, []);
 
-  // Merge chat-level state updates (AI agent ownership toggled on/off)
+  // Merge chat-level state updates (AI agent ownership, archived, favourited)
   const handleChatUpdated = useCallback((event: ChatUpdatedEvent) => {
     const { chat } = event;
 
+    const merge = <T extends InboxChat>(c: T): T => ({
+      ...c,
+      ai_agent_service: chat.ai_agent_service,
+      ...(chat.is_archived === undefined ? {} : { is_archived: chat.is_archived }),
+      ...(chat.is_favorite === undefined ? {} : { is_favorite: chat.is_favorite }),
+    });
+
+    setChats(prevChats => prevChats.map(c => (c.id === chat.id ? merge(c) : c)));
+
+    setSelectedChat(prevSelected =>
+      prevSelected && prevSelected.id === chat.id ? merge(prevSelected) : prevSelected
+    );
+  }, []);
+
+  /**
+   * Someone read messages in a conversation.
+   *
+   * Inbound: a colleague opened it, so the unread badge clears for everyone.
+   * Outgoing: the website visitor read what we sent, so those bubbles get
+   * their read state — this is the website channel's equivalent of the
+   * delivery receipts WhatsApp and Instagram push over their webhooks.
+   */
+  const handleMessagesRead = useCallback((event: MessagesReadEvent) => {
+    const { chat_id, direction, message_ids, unread_count } = event;
+    const readIds = new Set(message_ids || []);
+
+    const markRead = (m: InboxMessage): InboxMessage =>
+      readIds.has(m.id) ? { ...m, status: 'read' } : m;
+
     setChats(prevChats =>
-      prevChats.map(c =>
-        c.id === chat.id ? { ...c, ai_agent_service: chat.ai_agent_service } : c
-      )
+      prevChats.map(c => {
+        if (c.id !== chat_id) return c;
+        return {
+          ...c,
+          messages: (c.messages || []).map(markRead),
+          ...(direction === 'incoming' ? { unread_count: unread_count ?? 0 } : {}),
+        };
+      })
     );
 
     setSelectedChat(prevSelected =>
-      prevSelected && prevSelected.id === chat.id
-        ? { ...prevSelected, ai_agent_service: chat.ai_agent_service }
+      prevSelected && prevSelected.id === chat_id
+        ? {
+            ...prevSelected,
+            messages: (prevSelected.messages || []).map(markRead),
+            ...(direction === 'incoming' ? { unread_count: unread_count ?? 0 } : {}),
+          }
         : prevSelected
     );
   }, []);
@@ -255,10 +330,16 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       handleMessageUpdated(event);
     });
 
-    // Listen for inbox.chat.updated events (AI agent ownership changes)
+    // Listen for inbox.chat.updated events (AI agent ownership, archive, pin)
     channel.listen('.inbox.chat.updated', (event: ChatUpdatedEvent) => {
       console.log('💬 Received inbox.chat.updated event:', event);
       handleChatUpdated(event);
+    });
+
+    // Listen for inbox.messages.read events (unread badges, read receipts)
+    channel.listen('.inbox.messages.read', (event: MessagesReadEvent) => {
+      console.log('💬 Received inbox.messages.read event:', event);
+      handleMessagesRead(event);
     });
 
     console.log('💬 Subscribed to Inbox message channel successfully');
@@ -270,6 +351,7 @@ export const InboxProvider: React.FC<InboxProviderProps> = ({ children }) => {
       channel.stopListening('.inbox.messages.cleared');
       channel.stopListening('.inbox.message.updated');
       channel.stopListening('.inbox.chat.updated');
+      channel.stopListening('.inbox.messages.read');
       // Don't call echo.leave() here - NotificationContext might still need the channel
     };
   }, [user?.company_id, handleNewMessage, handleChatCleared, handleMessageUpdated, handleChatUpdated]);
