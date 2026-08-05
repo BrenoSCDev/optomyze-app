@@ -8,7 +8,6 @@
 import { memo } from 'react';
 
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatPhoneNumber } from '@/lib/phone';
 import { 
   GripVertical,
@@ -81,13 +80,6 @@ const DealCard = ({
    * along underneath it, showing two cards at once.
    */
 
-  const getInitials = (name: string) => {
-    const parts = name.split(' ').filter(n => n.length > 0);
-    if (parts.length === 0) return '';
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
   const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -123,11 +115,15 @@ const DealCard = ({
         <div className="flex items-center gap-2.5 mb-2">
           {/* Visual affordance only — the whole card is draggable. */}
           <GripVertical className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors" />
-          <Avatar className="h-8 w-8 shrink-0 rounded-full">
-            <AvatarFallback className="bg-deal/20 text-deal text-xs font-semibold rounded-full">
-              {getInitials(deal.name || leadName)}
-            </AvatarFallback>
-          </Avatar>
+          {/* The person behind the deal, not the deal's own initials — a
+              board of deals is a board of people, and the same face here and
+              on the contact funnel is what makes them recognisable. */}
+          <UserAvatar
+            name={leadName}
+            profilePicPath={deal.lead?.whatsapp_inbox_chat?.profile_pic_url}
+            avatarKey={deal.lead?.avatar_key}
+            className="h-8 w-8 shrink-0 text-xs font-semibold"
+          />
 
           <div className="flex-1 min-w-0">
             <button

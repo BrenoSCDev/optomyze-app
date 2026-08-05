@@ -929,7 +929,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName()} channel={chat.channel} />
+          <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName()} channel={chat.channel} avatarKey={chat.lead?.avatar_key} />
           <div className="flex-1 min-w-0">
             {chat.lead?.id && !hideLeadPreview ? (
               <button onClick={() => setLeadPreviewOpen(true)} className="font-semibold truncate hover:underline hover:text-primary transition-colors block text-left max-w-full">
@@ -1089,6 +1089,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         profilePicPath={chat.profile_pic_url}
                         name={getLeadName()}
                         size="sm"
+                        avatarKey={chat.lead?.avatar_key}
                       />
                     )}
                     <div className="relative max-w-[75%]">

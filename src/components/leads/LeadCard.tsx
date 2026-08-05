@@ -112,6 +112,7 @@ const LeadCard = ({ lead, isDragging, isMoving = false, onTagClick, onLeadClick,
             <UserAvatar
               name={lead.name}
               profilePicPath={lead.avatar}
+              avatarKey={lead.avatarKey}
               className="w-10 h-10 text-sm font-medium"
             />
           </div>

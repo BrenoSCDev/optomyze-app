@@ -523,7 +523,7 @@ const ChatList: React.FC<ChatListProps> = ({
                     />
                   </span>
                 ) : (
-                  <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} />
+                  <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} avatarKey={chat.lead?.avatar_key} />
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">

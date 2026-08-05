@@ -7,7 +7,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ClickableUser from '@/components/users/ClickableUser';
 import UserAvatar from '@/components/ui/user-avatar';
 import {
@@ -120,13 +119,6 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
     localStorage.setItem(DEAL_ACCORDION_KEY, JSON.stringify(openStages));
   }, [openStages]);
 
-  const getInitials = (name: string) => {
-    const parts = name.split(' ').filter(n => n.length > 0);
-    if (parts.length === 0) return '';
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
   const formatCurrency = (amount: number, currency: string = companyCurrency) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0,
@@ -235,11 +227,14 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                           >
                             <TableCell>
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 rounded-full">
-                                  <AvatarFallback className="bg-deal/20 text-deal text-xs font-medium rounded-full">
-                                    {getInitials(deal.name || leadName)}
-                                  </AvatarFallback>
-                                </Avatar>
+                                {/* The person behind the deal, matching the
+                                    deal cards and the contact funnel. */}
+                                <UserAvatar
+                                  name={leadName}
+                                  profilePicPath={deal.lead?.whatsapp_inbox_chat?.profile_pic_url}
+                                  avatarKey={deal.lead?.avatar_key}
+                                  className="h-8 w-8 text-xs font-medium"
+                                />
                                 <div className="min-w-0">
                                   <p className="font-medium text-foreground text-sm truncate max-w-[160px]">{deal.name}</p>
                                   {deal.notes && (

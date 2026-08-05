@@ -36,6 +36,8 @@ export interface Lead {
   priority: 'high' | 'medium' | 'low';
   stage: string;
   avatar?: string;
+  /** Illustrated face shown when the contact has no photo of their own. */
+  avatarKey?: string | null;
   notes?: string;
   assignedTo?: string;
   createdAt: string;

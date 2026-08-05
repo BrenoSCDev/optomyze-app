@@ -91,6 +91,8 @@ export interface InboxLead {
   company_id: number;
   first_name: string;
   last_name: string;
+  /** Illustrated face shown when the contact has no photo of their own. */
+  avatar_key?: string | null;
   phone: string;
   username?: string | null;
   funnel_id: number;

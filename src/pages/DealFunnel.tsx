@@ -9,11 +9,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import TopHeader from '@/components/layout/TopHeader';
 import DealsManagement from '@/components/deals/DealsManagement';
 
 const DealFunnel = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeSection, setActiveSection] = useState('deals');
@@ -58,7 +59,7 @@ const DealFunnel = () => {
       <div className="relative z-10 flex h-full pt-16">
                   <Sidebar
             isCollapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onToggle={toggleSidebar}
             activeSection={activeSection}
             onSectionChange={handleSectionChange}
             mobileOpen={mobileSidebarOpen}

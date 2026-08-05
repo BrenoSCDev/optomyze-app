@@ -217,6 +217,7 @@ const KanbanBoard = ({ funnel, availableTags, onCreateLead, onCreateTag, onOpenF
           priority: lead.priority || 'medium',
           stage: stage.id.toString(),
           avatar: lead.whatsapp_inbox_chat?.profile_pic_url || lead.platform_data?.profile_picture,
+          avatarKey: lead.avatar_key,
           notes: lead.notes,
           createdAt: lead.created_at,
           assignedTo: lead.assigned_to,

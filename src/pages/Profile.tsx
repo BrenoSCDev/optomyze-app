@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { Camera, Edit, Save, X, Eye, EyeOff, AlertCircle, Upload, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import TopHeader from '@/components/layout/TopHeader';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPhoneNumber } from '@/lib/phone';
@@ -26,7 +27,7 @@ const Profile = () => {
   const { user, updateUser } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -350,7 +351,7 @@ const Profile = () => {
       <div className="relative z-10 flex h-full pt-16">
                   <Sidebar
             isCollapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onToggle={toggleSidebar}
             activeSection="profile"
             onSectionChange={handleSectionChange}
             mobileOpen={mobileSidebarOpen}

@@ -17,6 +17,8 @@ export interface Contact {
   email: string | null;
   phone: string | null;
   username: string | null;
+  /** Illustrated face shown when the contact has no photo of their own. */
+  avatar_key?: string | null;
   priority: 'low' | 'medium' | 'high' | 'urgent' | null;
   /** false = archived. Archived contacts are hidden unless filtered for. */
   is_active: boolean;

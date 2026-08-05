@@ -513,14 +513,6 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
       {/* View Content */}
       {viewMode === 'kanban' ? (
         <>
-          <style>{`
-            .deal-kanban-board { max-width: 640px; overflow-x: auto; }
-            @media (min-width: 768px) { .deal-kanban-board { max-width: 768px; } }
-            @media (min-width: 1024px) { .deal-kanban-board { max-width: 1024px; } }
-            @media (min-width: 1280px) { .deal-kanban-board { max-width: 1200px; } }
-            @media (min-width: 1536px) { .deal-kanban-board { max-width: 1600px; } }
-          `}</style>
-
           <DndContext
             sensors={sensors}
             collisionDetection={kanbanCollisionDetection}
@@ -529,7 +521,24 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div className="flex gap-6 pb-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 deal-kanban-board">
+            {/*
+              Two elements on purpose, matching the contact board.
+
+              The outer one is the viewport: `w-full` takes whatever the layout
+              gives it, so it follows the sidebar collapsing and the window
+              resizing instead of being told a width. The inner row is
+              `min-w-max`, so it grows to fit the columns rather than squeezing
+              them to fit the screen — that combination is what makes the board
+              scroll horizontally instead of clipping.
+
+              This replaced a hardcoded max-width ladder (640px, then a step per
+              breakpoint, capped at 1600px). Those numbers were a guess at the
+              viewport, so the board was cut off on any screen the ladder did
+              not anticipate, and never used more than 1600px however wide the
+              monitor was.
+            */}
+            <div className="w-full overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+            <div className="flex gap-6 pb-6 min-w-max">
               {columns.map((column, index) => (
               <DealKanbanColumn
                   key={column.id}
@@ -552,6 +561,7 @@ const DealKanbanBoard = ({ funnel, availableTags, onRefresh, filters, onFiltersC
                   onSortChange={onStageSortChange}
                 />
               ))}
+            </div>
             </div>
 
             <DragOverlay dropAnimation={KANBAN_DROP_ANIMATION}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
+import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
 import TopHeader from '@/components/layout/TopHeader';
 import OptomyzeMetrics from '@/components/dashboards/OptomyzeMetrics';
 import PlanUsage from '@/components/dashboards/PlanUsage';
@@ -16,7 +17,7 @@ import { FaMeta } from 'react-icons/fa6';
 import { SiGoogleads } from 'react-icons/si';
 
 const Demo = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, toggleSidebar] = useSidebarCollapsed();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -46,7 +47,7 @@ const Demo = () => {
       <div className="relative z-10 flex pt-16">
                   <Sidebar
             isCollapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onToggle={toggleSidebar}
             activeSection="optomyze-metrics"
             onSectionChange={() => {}}
             mobileOpen={mobileSidebarOpen}

@@ -20,6 +20,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import UserAvatar from '@/components/ui/user-avatar';
+import { leadDisplayName } from '@/lib/leadName';
 import { PrivateAvatarImage } from '@/components/ui/PrivateImage';
 import ClickableUser from '@/components/users/ClickableUser';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -402,11 +404,13 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                   {/* Header */}
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-4 sm:p-6 pb-4 border-b border-border">
                     <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                      <Avatar className="h-12 w-12 shrink-0 rounded-full">
-                        <AvatarFallback className="bg-deal/20 text-deal text-base sm:text-lg font-semibold rounded-full">
-                          {getInitials(sale.name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      {/* The person behind the deal, matching the board. */}
+                      <UserAvatar
+                        name={leadDisplayName(sale.lead, sale.name)}
+                        profilePicPath={sale.lead?.whatsapp_inbox_chat?.profile_pic_url}
+                        avatarKey={sale.lead?.avatar_key}
+                        className="h-12 w-12 shrink-0 text-base sm:text-lg font-semibold"
+                      />
                       <div className="min-w-0 flex-1">
                         <h2 className="text-lg sm:text-2xl font-bold text-foreground break-words">{sale.name}</h2>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">

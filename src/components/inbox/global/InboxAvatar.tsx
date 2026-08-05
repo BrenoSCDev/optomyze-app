@@ -13,6 +13,7 @@ import React from 'react';
 import { InboxChannel } from '@/types/inbox';
 import { cn } from '@/lib/utils';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
+import { leadAvatarSrc } from '@/lib/leadAvatars';
 import ChannelIcon from './ChannelIcon';
 
 const SIZE_CLASSES: Record<'sm' | 'md' | 'lg', string> = {
@@ -45,15 +46,19 @@ interface InboxAvatarProps {
   className?: string;
   /** Custom fallback icon shown instead of initials (e.g. for system/bot senders). */
   icon?: React.ReactNode;
+  /** The contact's illustrated face, used only when there is no real photo. */
+  avatarKey?: string | null;
 }
 
-const InboxAvatar: React.FC<InboxAvatarProps> = ({ profilePicPath, name, channel, size = 'md', className, icon }) => {
+const InboxAvatar: React.FC<InboxAvatarProps> = ({ profilePicPath, name, channel, size = 'md', className, icon, avatarKey }) => {
   const url = usePrivateFile(profilePicPath ?? undefined);
+  // An explicit icon (system/bot senders) still wins over the face.
+  const fallbackFace = url || icon ? null : leadAvatarSrc(avatarKey);
 
   return (
     <div className={cn('relative shrink-0', SIZE_CLASSES[size], className)}>
-      {url ? (
-        <img src={url} alt={name} className="w-full h-full rounded-full object-cover" />
+      {url || fallbackFace ? (
+        <img src={url ?? fallbackFace!} alt={name} className="w-full h-full rounded-full object-cover" />
       ) : (
         <div className="w-full h-full rounded-full bg-primary/15 text-primary flex items-center justify-center font-semibold">
           {icon ?? getInitials(name)}

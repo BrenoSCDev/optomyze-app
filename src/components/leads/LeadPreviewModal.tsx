@@ -335,6 +335,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                           || lead.inbox_chats?.find((c: any) => c.channel === 'instagram')?.profile_pic_url
                           || null
                         }
+                        avatarKey={lead.avatar_key}
                         className="h-12 w-12 sm:h-14 sm:w-14 text-base sm:text-lg font-bold shrink-0"
                       />
                       <div className="min-w-0 flex-1">

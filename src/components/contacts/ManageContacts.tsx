@@ -502,6 +502,7 @@ const ManageContacts: React.FC = () => {
                       <UserAvatar
                         name={contactDisplayName(c)}
                         profilePicPath={contactAvatarPath(c)}
+                        avatarKey={c.avatar_key}
                         className="h-8 w-8 shrink-0 text-[11px]"
                       />
                       <div className="min-w-0">
@@ -568,6 +569,7 @@ const ManageContacts: React.FC = () => {
                     <UserAvatar
                       name={contactDisplayName(c)}
                       profilePicPath={contactAvatarPath(c)}
+                      avatarKey={c.avatar_key}
                       className="h-9 w-9 shrink-0 text-xs"
                     />
                     <div className="min-w-0">
