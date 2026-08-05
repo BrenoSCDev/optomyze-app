@@ -296,7 +296,10 @@ const TaskDetailModal: React.FC<Props> = ({
                   </span>
                 )}
 
-                <div className="ml-auto flex items-center gap-1">
+                {/* pr-7 reserves the lane the Dialog's own close button
+                    occupies (absolute right-4), so Delete no longer sits
+                    underneath it. */}
+                <div className="ml-auto flex items-center gap-1 pr-7">
                   {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
 
                   <Tooltip>

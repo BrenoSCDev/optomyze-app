@@ -9,11 +9,15 @@
  * this keeps the bubble reading as part of the app's chrome instead of
  * flipping to a near-white circle in dark mode.
  *
- * Sits lower than a typical launcher (`bottom-2`): funnel and table screens
- * put pagination controls along the bottom of the content area, and at
- * `bottom-5` the bubble covered them. Low keeps it clear of both those and the
- * horizontal scrollbar; the right gutter is deliberately tight so it hugs the
- * edge of the viewport rather than floating over content.
+ * Sits low (`bottom-4`) rather than at a typical launcher height: funnel and
+ * table screens put pagination controls along the bottom of the content area,
+ * and at `bottom-5` the bubble covered them.
+ *
+ * `right-4` is a floor, not a preference. A scroll gutter is 12px at its
+ * widest — the app shell's own scrollbar, or the document scrollbar on the
+ * routes that still scroll the page — so anything tighter parks the launcher
+ * on top of it. 16px clears the widest gutter with room to spare and keeps the
+ * bubble reading as chrome floating over the app rather than as part of it.
  */
 
 import { useEffect, useState } from 'react';
@@ -23,6 +27,7 @@ import { Bot, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptus } from '@/contexts/OptusContext';
+import { isPublicRoute } from '@/lib/publicRoutes';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import OptusChat from './OptusChat';
 
@@ -51,10 +56,12 @@ const OptusBubble = () => {
     if (!enabled) setOpen(false);
   }, [enabled]);
 
-  if (!enabled || !isAuthenticated) return null;
+  // A signed-in user opening a booking link in the same browser is still a
+  // visitor on that page — internal chrome has no business there.
+  if (!enabled || !isAuthenticated || isPublicRoute()) return null;
 
   return createPortal(
-    <div className="fixed bottom-2 right-1 z-[80] flex flex-col items-end gap-3 sm:right-2">
+    <div className="fixed bottom-4 right-4 z-[80] flex flex-col items-end gap-3">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -63,7 +70,7 @@ const OptusBubble = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
-            className="flex h-[min(44rem,calc(100dvh-6rem))] w-[min(30rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-border bg-popover shadow-elevation-xl"
+            className="flex h-[min(44rem,calc(100dvh-6rem))] w-[min(30rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-popover shadow-elevation-xl"
           >
             <OptusChat />
           </motion.div>

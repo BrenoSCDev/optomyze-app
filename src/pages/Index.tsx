@@ -164,7 +164,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    // h-dvh, not min-h-screen: the header and sidebar are fixed, so the shell
+    // is exactly one viewport and <main> below owns the scrolling. Letting the
+    // shell grow instead hands scrolling to the document, which puts a
+    // full-height browser scrollbar alongside the fixed chrome and under the
+    // floating assistant.
+    <div className="h-dvh bg-background relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-dark">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -179,7 +184,7 @@ const Index = () => {
         onSectionChange={(section) => { setActiveSection(section); setMobileSidebarOpen(false); }}
       />
 
-      <div className="relative z-10 flex pt-16">
+      <div className="relative z-10 flex h-full pt-16">
         {/* Sidebar: hidden on desktop when using header layout, always available on mobile */}
                   <Sidebar
             isCollapsed={sidebarCollapsed}
@@ -191,7 +196,7 @@ const Index = () => {
           />
 
         <motion.main
-          className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-base ease-standard"
+          className="app-scroll flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden transition-colors duration-base ease-standard"
           initial={false}
           animate={{
             marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)
@@ -200,11 +205,14 @@ const Index = () => {
           {(() => {
             // Sections that own their own chrome and manage scrolling
             // internally: they get the full content box with no page padding.
+            // h-full rather than a 100vh-minus-header calculation — <main> is
+            // already exactly that box, and the calc silently drifted whenever
+            // the header height changed.
             const isInboxSection = activeSection === 'global-inbox'
               || activeSection === 'optomyze-inbox'
               || activeSection === 'tasks';
             return (
-              <div className={isInboxSection ? 'p-0 h-[calc(100vh-4rem)]' : 'p-4 sm:p-8'}>
+              <div className={isInboxSection ? 'p-0 h-full' : 'p-4 sm:p-8'}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeSection}

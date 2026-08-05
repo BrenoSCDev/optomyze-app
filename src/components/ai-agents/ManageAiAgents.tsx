@@ -133,7 +133,7 @@ const ManageAiAgents: React.FC = () => {
       : <SiInstagram className="w-3 h-3 text-[#E1306C]" />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <div className="px-4 sm:px-6 py-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">

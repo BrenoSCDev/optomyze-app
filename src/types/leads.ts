@@ -18,6 +18,7 @@ export type SourcePlatform =
   | 'email'
   | 'website'
   | 'api'
+  | 'calendar'
   | 'other';
 
 export interface Lead {

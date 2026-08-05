@@ -33,12 +33,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  TrendingUp, 
   Mail, 
   Phone, 
   Clock, 
   Tag,
-  User,
   ArrowRightLeft,
   Loader2,
 } from 'lucide-react';
@@ -48,6 +46,8 @@ import { useCurrency } from '@/hooks/useCurrency';
 import { leadService } from '@/services/leadApi';
 import { toast } from 'sonner';
 import TagBadge from '@/components/tags/TagBadge';
+import SourcePlatformIcon from './SourcePlatformIcon';
+import UserAvatar from '@/components/ui/user-avatar';
 import ClickableUser from '@/components/users/ClickableUser';
 
 const ACCORDION_STORAGE_KEY = 'funnel_table_open_stages';
@@ -167,26 +167,6 @@ const FunnelTableView = ({
     if (parts.length === 0) return '';
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const colors: Record<string, string> = {
-      urgent: 'bg-red-500/20 text-red-400 border-red-500/30',
-      high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-      medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      low: 'bg-green-500/20 text-green-400 border-green-500/30',
-    };
-    return colors[priority] || 'bg-muted text-muted-foreground';
-  };
-
-  const getSourceColor = (source: string) => {
-    const colors: Record<string, string> = {
-      'Meta Ads': 'bg-blue-500/20 text-blue-400',
-      'Google Ads': 'bg-green-500/20 text-green-400',
-      'Organic': 'bg-purple-500/20 text-purple-400',
-      'Referral': 'bg-orange-500/20 text-orange-400',
-    };
-    return colors[source] || 'bg-muted/50 text-muted-foreground';
   };
 
   const formatCurrency = (amount: number, currency: string = companyCurrency) => {
@@ -323,12 +303,10 @@ const FunnelTableView = ({
                       <TableRow className="border-border hover:bg-transparent">
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-name') || 'Name'}</TableHead>
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-contact') || 'Contact'}</TableHead>
-                        <TableHead className="text-muted-foreground">{t('funnel.page.table-score') || 'Score'}</TableHead>
                         {showEstimatedValues && (
                           <TableHead className="text-muted-foreground">{t('funnel.page.table-value') || 'Value'}</TableHead>
                         )}
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-source') || 'Source'}</TableHead>
-                        <TableHead className="text-muted-foreground">{t('funnel.page.table-priority') || 'Priority'}</TableHead>
                         <TableHead className="text-muted-foreground">{t('funnel.page.table-tags') || 'Tags'}</TableHead>
                         {showAssignedUser && (
                           <TableHead className="text-muted-foreground">{t('funnel.page.table-assigned') || 'Assigned'}</TableHead>
@@ -356,9 +334,14 @@ const FunnelTableView = ({
                                 <p className="font-medium text-foreground text-sm truncate max-w-[180px]">
                                   {lead.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground truncate max-w-[180px]">
-                                  {lead.company}
-                                </p>
+                                {/* Only a real value gets a second line — this
+                                    used to render the literal "N/A" for every
+                                    contact without an industry. */}
+                                {lead.company && lead.company !== 'N/A' && (
+                                  <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                                    {lead.company}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </TableCell>
@@ -377,14 +360,6 @@ const FunnelTableView = ({
                             </div>
                           </TableCell>
 
-                          {/* Score */}
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3 text-accent" />
-                              <span className="text-sm font-medium text-accent">{lead.score}%</span>
-                            </div>
-                          </TableCell>
-
                           {/* Value */}
                           {showEstimatedValues && (
                             <TableCell>
@@ -398,18 +373,10 @@ const FunnelTableView = ({
                             </TableCell>
                           )}
 
-                          {/* Source */}
+                          {/* Source — the same icon the cards and filters use,
+                              rather than this table's own coloured text badge. */}
                           <TableCell>
-                            <Badge className={`text-xs ${getSourceColor(lead.source)}`}>
-                              {lead.source}
-                            </Badge>
-                          </TableCell>
-
-                          {/* Priority */}
-                          <TableCell>
-                            <Badge className={`text-xs capitalize ${getPriorityBadge(lead.priority)}`}>
-                              {lead.priority}
-                            </Badge>
+                            <SourcePlatformIcon source={lead.source} className="w-4 h-4" />
                           </TableCell>
 
                           {/* Tags */}
@@ -440,7 +407,11 @@ const FunnelTableView = ({
                             <TableCell>
                               {lead.assigned_user ? (
                                 <ClickableUser userId={lead.assigned_user.id} className="gap-1.5">
-                                  <User className="h-3 w-3 text-muted-foreground" />
+                                  <UserAvatar
+                                    name={lead.assigned_user.name}
+                                    profilePicPath={lead.assigned_user.profile_pic}
+                                    className="h-6 w-6 text-[10px]"
+                                  />
                                   <span className="text-xs text-muted-foreground">{lead.assigned_user.name}</span>
                                 </ClickableUser>
                               ) : (

@@ -11,6 +11,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 import { ThemeMode, useUserPreferences } from './UserPreferencesContext';
+import { isPublicRoute } from '@/lib/publicRoutes';
 
 export type { ThemeMode };
 
@@ -20,6 +21,18 @@ interface ThemeContextType {
 }
 
 function applyModeToDOM(mode: ThemeMode) {
+  /*
+   * Public pages own their own colour scheme.
+   *
+   * This provider sits above the router and applies on mount, and a child's
+   * effect runs before its parent's — so without this guard the CRM user's
+   * stored theme would overwrite whatever a visitor had chosen on a booking
+   * page a moment earlier.
+   */
+  if (isPublicRoute()) {
+    return;
+  }
+
   const root = document.documentElement;
   if (mode === 'dark') {
     root.classList.add('dark');

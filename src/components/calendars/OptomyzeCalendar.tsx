@@ -18,8 +18,11 @@ import { cn } from '@/lib/utils';
 import { Appointment, getCompanyAppointments } from '@/services/appointmentApi';
 import { AppointmentType, getAppointmentTypes } from '@/services/appointmentTypeApi';
 import AppointmentModal from './AppointmentModal';
+import AppointmentDetailModal from './AppointmentDetailModal';
 import CalendarSwitcher from './CalendarSwitcher';
 import { useCalendars } from '@/contexts/CalendarsContext';
+import { getEcho } from '@/services/echo';
+import { useAuth } from '@/contexts/AuthContext';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import {
   WorkspaceTask, fetchTaskCalendar, isTaskDone, isTaskOverdue,
@@ -63,6 +66,7 @@ const OptomyzeCalendar: React.FC = () => {
   // Which calendar is being viewed. Everything on the grid — appointments and
   // tasks alike — is scoped to it.
   const { selected: activeCalendar, selectedIds } = useCalendars();
+  const { user } = useAuth();
 
   const [view, setView] = useState<View>('month');
   const [cursor, setCursor] = useState<Date>(() => startOfDay(new Date()));
@@ -73,6 +77,10 @@ const OptomyzeCalendar: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [slotStart, setSlotStart] = useState<string | null>(null);
+
+  // Clicking an appointment opens the read-only view; editing is a deliberate
+  // step from there, so a glance can never change a confirmed booking.
+  const [detail, setDetail] = useState<Appointment | null>(null);
 
   // Tasks share the grid with appointments. On by default because "what is on
   // today" is the question this page exists to answer, but dismissable for
@@ -211,12 +219,19 @@ const OptomyzeCalendar: React.FC = () => {
   };
 
   const openExisting = (a: Appointment) => {
+    setDetail(a);
+  };
+
+  /** From the detail view into the edit form, without losing the record. */
+  const openEditor = (a: Appointment) => {
+    setDetail(null);
     setEditing(a);
     setSlotStart(null);
     setModalOpen(true);
   };
 
   const handleSaved = (saved: Appointment) => {
+    setDetail(prev => (prev && prev.id === saved.id ? saved : prev));
     setAppointments(prev =>
       prev.some(a => a.id === saved.id)
         ? prev.map(a => (a.id === saved.id ? saved : a))
@@ -225,6 +240,68 @@ const OptomyzeCalendar: React.FC = () => {
   };
 
   const handleDeleted = (id: number) => setAppointments(prev => prev.filter(a => a.id !== id));
+
+  /**
+   * LIVE FEED
+   *
+   * Appointments arrive from more places than this screen: the lead panel, the
+   * public booking page, the API, automations. Without this the grid was a
+   * snapshot from page load, and a booking taken while someone watched the
+   * calendar simply did not appear until they refreshed.
+   *
+   * Subscribed per company and filtered to the calendar on screen, so a
+   * booking on another calendar does not silently appear on this one. The
+   * effect deliberately depends only on the company and the active calendar —
+   * not on the appointment list — so a re-render never churns the subscription.
+   */
+  useEffect(() => {
+    const companyId = (user as { company_id?: number } | null)?.company_id;
+    if (!companyId) return;
+
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channel = echo.private(`appointments.${companyId}`);
+
+    const belongsHere = (calendarId?: number | null) => {
+      // No calendar selected yet means the board is showing everything.
+      if (!activeCalendar) return true;
+      // An appointment from a path that predates calendars has no id; showing
+      // it is better than dropping it, and the server files it on the default.
+      if (calendarId == null) return true;
+
+      return Number(calendarId) === Number(activeCalendar.id);
+    };
+
+    channel.listen('.appointment.live', (event: any) => {
+      if (event?.action === 'deleted') {
+        handleDeleted(Number(event.id));
+        return;
+      }
+
+      const incoming = event?.appointment as Appointment | undefined;
+      if (!incoming) return;
+
+      if (!belongsHere(incoming.calendar_id)) {
+        // It may have just been *moved* off this calendar, so drop any copy
+        // we are still holding.
+        handleDeleted(Number(incoming.id));
+        return;
+      }
+
+      handleSaved(incoming);
+    });
+
+    return () => {
+      // Only stop listening — the channel itself is left joined, matching how
+      // the inbox handles its shared channel. Leaving would break any future
+      // subscriber that joined the same one.
+      channel.stopListening('.appointment.live');
+    };
+    // handleSaved/handleDeleted are plain setState updaters and stable enough;
+    // adding them here would resubscribe on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeCalendar?.id]);
 
   /* ---------- rendering ---------- */
 
@@ -494,6 +571,15 @@ const OptomyzeCalendar: React.FC = () => {
           </div>
         </div>
       )}
+
+      <AppointmentDetailModal
+        open={!!detail}
+        appointment={detail}
+        onClose={() => setDetail(null)}
+        onSaved={handleSaved}
+        onDeleted={id => { handleDeleted(id); setDetail(null); }}
+        onEdit={openEditor}
+      />
 
       <AppointmentModal
         open={modalOpen}

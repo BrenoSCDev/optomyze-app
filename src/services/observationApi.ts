@@ -8,7 +8,8 @@ export interface ObservationUser {
 }
 
 /** What a note can be attached to. Short keys, matching the API. */
-export type NotableType = 'lead' | 'deal';
+/** Records that carry threaded notes. Mirrors ObservationController::NOTABLE_TYPES. */
+export type NotableType = 'lead' | 'deal' | 'appointment';
 
 export interface Observation {
   id: number;

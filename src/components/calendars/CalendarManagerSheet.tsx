@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react';
-import { Archive, ArchiveRestore, CalendarDays, ListChecks, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, CalendarDays, Link2, ListChecks, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCalendars } from '@/contexts/CalendarsContext';
 import { Calendar, calendarService } from '@/services/calendarApi';
 import CalendarFormDialog from './CalendarFormDialog';
+import CalendarBookingPanel from './CalendarBookingPanel';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -39,6 +40,7 @@ const CalendarManagerSheet: React.FC<Props> = ({ isOpen, onClose }) => {
   const [editing, setEditing] = useState<Calendar | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [deleting, setDeleting] = useState<Calendar | null>(null);
+  const [bookingFor, setBookingFor] = useState<Calendar | null>(null);
   const [busy, setBusy] = useState(false);
   const [archived, setArchived] = useState<Calendar[]>([]);
   const [showArchived, setShowArchived] = useState(false);
@@ -162,6 +164,20 @@ const CalendarManagerSheet: React.FC<Props> = ({ isOpen, onClose }) => {
                       </Tooltip>
                     )}
 
+                    {/* Public booking lives beside the calendar it belongs to,
+                        not in a settings area. */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost" size="icon" className="h-8 w-8"
+                          onClick={() => setBookingFor(calendar)}
+                        >
+                          <Link2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{t('booking.title')}</TooltipContent>
+                    </Tooltip>
+
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -216,6 +232,12 @@ const CalendarManagerSheet: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
         </SheetContent>
       </Sheet>
+
+      <CalendarBookingPanel
+        isOpen={!!bookingFor}
+        onClose={() => setBookingFor(null)}
+        calendar={bookingFor}
+      />
 
       <CalendarFormDialog
         isOpen={formOpen}

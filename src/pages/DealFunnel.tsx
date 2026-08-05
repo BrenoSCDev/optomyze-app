@@ -38,7 +38,9 @@ const DealFunnel = () => {
 
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    // Same fixed shell as Index: exactly one viewport tall, with <main> owning
+    // the scroll so the document never grows a second scrollbar.
+    <div className="h-dvh bg-background relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-dark">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -53,7 +55,7 @@ const DealFunnel = () => {
         onSectionChange={handleSectionChange}
       />
 
-      <div className="relative z-10 flex pt-16">
+      <div className="relative z-10 flex h-full pt-16">
                   <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -64,7 +66,7 @@ const DealFunnel = () => {
           />
 
         <motion.main
-          className="flex-1 min-w-0 overflow-x-hidden transition-colors duration-base ease-standard"
+          className="app-scroll flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden transition-colors duration-base ease-standard"
           initial={false}
           animate={{
             marginLeft: isMobile ? 0 : (sidebarCollapsed ? 64 : 256)

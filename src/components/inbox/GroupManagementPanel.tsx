@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, UserPlus, Shield, Users, Loader2, Hash } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import UserAvatar from '@/components/ui/user-avatar';
 import {
   ChatConversation, ChatContact,
   addGroupMembers, promoteToAdmin,
@@ -12,24 +13,6 @@ interface GroupManagementPanelProps {
   contacts: ChatContact[];
   onClose: () => void;
   onConversationUpdated: (conv: ChatConversation) => void;
-}
-
-function getInitials(name: string | null | undefined): string {
-  // Names arrive from the API and can be null (deleted user / unnamed group).
-  return (name ?? '')
-    .split(' ')
-    .filter(Boolean)
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function getAvatarUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  return `${baseUrl}/${url.replace(/^\//, '')}`;
 }
 
 const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
@@ -124,7 +107,6 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
               <p className="text-xs text-muted-foreground py-2 text-center">No contacts to add</p>
             ) : (
               availableContacts.map(contact => {
-                const picUrl = getAvatarUrl(contact.profile_pic_url);
                 return (
                   <button
                     key={contact.id}
@@ -132,13 +114,13 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors text-xs
                       ${selectedNewMembers.has(contact.id) ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/40'}`}
                   >
-                    <div className="w-6 h-6 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
-                      {picUrl ? (
-                        <img src={picUrl} alt={contact.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[9px] font-semibold text-primary">{getInitials(contact.name)}</span>
-                      )}
-                    </div>
+                    {/* UserAvatar fetches through the authenticated media
+                        route and falls back to initials on its own. */}
+                    <UserAvatar
+                      name={contact.name}
+                      profilePicPath={contact.profile_pic_url}
+                      className="h-6 w-6 text-[9px]"
+                    />
                     <span className="truncate text-foreground">{contact.name}</span>
                     <span className="text-muted-foreground ml-auto">{contact.role}</span>
                   </button>
@@ -162,19 +144,16 @@ const GroupManagementPanel: React.FC<GroupManagementPanelProps> = ({
       {/* Members list */}
       <div className="flex-1 overflow-y-auto">
         {conversation.participants.map(participant => {
-          const picUrl = getAvatarUrl(participant.profile_pic_url);
           const isMe = participant.id === currentUserId;
           const isParticipantAdmin = participant.conversation_role === 'admin';
 
           return (
             <div key={participant.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-border/20">
-              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
-                {picUrl ? (
-                  <img src={picUrl} alt={participant.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-[10px] font-semibold text-primary">{getInitials(participant.name)}</span>
-                )}
-              </div>
+              <UserAvatar
+                name={participant.name}
+                profilePicPath={participant.profile_pic_url}
+                className="h-8 w-8 text-[10px]"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-medium text-foreground truncate">{participant.name}</span>

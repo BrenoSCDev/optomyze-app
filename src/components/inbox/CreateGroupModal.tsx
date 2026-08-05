@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Search, Check, ImagePlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ChatContact } from '@/services/inboxChatApi';
+import UserAvatar from '@/components/ui/user-avatar';
 
 interface CreateGroupModalProps {
   open: boolean;
@@ -21,13 +22,6 @@ function getInitials(name: string | null | undefined): string {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-}
-
-function getAvatarUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-  return `${baseUrl}/${url.replace(/^\//, '')}`;
 }
 
 const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCreateGroup, contacts }) => {
@@ -144,7 +138,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCr
                 <div className="max-h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-border">
                   {filteredContacts.map(contact => {
                     const isSelected = selectedIds.includes(contact.id);
-                    const picUrl = getAvatarUrl(contact.profile_pic_url);
                     return (
                       <button
                         key={contact.id}
@@ -152,13 +145,13 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ open, onClose, onCr
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left
                           ${isSelected ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/30 border border-transparent'}`}
                       >
-                        <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-semibold text-xs shrink-0 overflow-hidden">
-                          {picUrl ? (
-                            <img src={picUrl} alt={contact.name} className="w-full h-full object-cover" />
-                          ) : (
-                            getInitials(contact.name)
-                          )}
-                        </div>
+                        {/* Profile pictures are private files — UserAvatar
+                            fetches them through the authenticated route. */}
+                        <UserAvatar
+                          name={contact.name}
+                          profilePicPath={contact.profile_pic_url}
+                          className="h-8 w-8 text-xs"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{contact.name}</p>
                           <p className="text-[10px] text-muted-foreground">{contact.role}</p>

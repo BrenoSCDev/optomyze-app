@@ -1,12 +1,8 @@
 import React, { useId, useState } from 'react';
 import {
-  Search, Plus, Users, MessageSquare, UserCheck, Hash, RefreshCw, Filter, X,
+  Search, Plus, Users, MessageSquare, UserCheck, Hash, RefreshCw, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup,
-  DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -125,7 +121,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const instanceId = useId();
   const [tab, setTab] = useState<Tab>('all');
   const [readFilter, setReadFilter] = useState<ReadFilter>('all');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [search, setSearch] = useState('');
 
   const lowerSearch = search.toLowerCase();
@@ -146,6 +141,8 @@ const ConversationList: React.FC<ConversationListProps> = ({
 
   const typeLabel = (id: Tab): string => {
     switch (id) {
+      // "People" rather than "Contacts": in Teams these are colleagues, and
+      // "contacts" already means leads everywhere else in the CRM.
       case 'all': return t('chat.inbox.filter-all');
       case 'contacts': return t('chat.teams.filter-contacts');
       case 'groups': return t('chat.teams.filter-groups');
@@ -214,42 +211,32 @@ const ConversationList: React.FC<ConversationListProps> = ({
               </Tooltip>
             )}
 
-            <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t('chat.inbox.filter-conversations')}
-                      className={cn('relative', tab !== 'all' && 'text-primary')}
-                    >
-                      <Filter />
-                      {tab !== 'all' && (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary" />
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                {!isFilterOpen && (
-                  <TooltipContent>{t('chat.inbox.filter-conversations')}</TooltipContent>
-                )}
-              </Tooltip>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                  {t('chat.inbox.filter-channel-label')}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={tab} onValueChange={(v) => setTab(v as Tab)}>
-                  {(['all', 'contacts', 'groups'] as Tab[]).map(id => (
-                    <DropdownMenuRadioItem key={id} value={id} className="text-sm">
-                      {typeLabel(id)}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
+        </div>
+
+        {/* Type tabs.
+
+            These used to live inside the filter dropdown behind an unlabelled
+            funnel icon, which meant the directory of everyone in the company
+            was effectively invisible — the reason it read as removed. On the
+            surface, starting a chat with a colleague is one click. */}
+        <div className="mt-2.5 flex items-center gap-1 rounded-lg bg-muted/40 p-0.5">
+          {(['all', 'contacts', 'groups'] as Tab[]).map(id => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              aria-pressed={tab === id}
+              className={cn(
+                'flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors',
+                tab === id
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {typeLabel(id)}
+            </button>
+          ))}
         </div>
 
         {/* Search */}
@@ -258,7 +245,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={t('chat.inbox.search-chats-placeholder')}
+            placeholder={t('chat.teams.search-placeholder')}
             className="flex h-9 w-full rounded-md border border-input-border bg-input-bg pl-8 pr-8 text-sm text-foreground placeholder:text-input-placeholder outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background transition-colors duration-fast ease-standard"
           />
           {search && (

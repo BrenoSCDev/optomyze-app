@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OptusProvider } from "@/contexts/OptusContext";
 import { QuickstartProvider } from "@/contexts/QuickstartContext";
+import PublicBooking from "./pages/PublicBooking";
 import { CalendarsProvider } from "@/contexts/CalendarsContext";
 import OptusBubble from "@/components/support/OptusBubble";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -46,6 +47,9 @@ const App = () => (
               <Toaster />
               <Sonner position="top-right" richColors />
               <Routes>
+                {/* Public booking page — no auth, no CRM chrome. Placed
+                    before the protected routes so nothing wraps it. */}
+                <Route path="/book/:slug" element={<PublicBooking />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<PasswordReset />} />
                 <Route path="/set-password" element={<SetPassword />} />

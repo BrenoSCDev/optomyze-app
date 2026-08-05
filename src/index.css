@@ -450,6 +450,47 @@
     background: hsl(var(--background));
   }
 
+  /* ---- App shell scroll container -------------------------------------
+     Inside the authenticated shell the document does not scroll: the header
+     and sidebar are fixed, so <main> owns the scrolling instead. It still
+     wants the substantial page-scrollbar look above rather than the 6px
+     gutter used for panels — it *is* the page scroll, it just is not the
+     document's. Declared separately so the styling follows the element that
+     actually scrolls, instead of leaking onto the viewport and running the
+     full height of the window past the fixed chrome.
+
+     The routes that genuinely scroll the document (login, the public booking
+     page, the standalone funnel-stages screen) keep the html/body rules. */
+  .app-scroll {
+    scrollbar-width: auto;
+    scrollbar-color: hsl(var(--border-strong)) hsl(var(--background));
+  }
+
+  .app-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .app-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  .app-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 6px;
+    border: 3px solid hsl(var(--background));
+    background-clip: content-box;
+  }
+
+  .app-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.7);
+    background-clip: content-box;
+  }
+
+  .app-scroll::-webkit-scrollbar-corner {
+    background: hsl(var(--background));
+  }
+
   /* Custom Scrollbar Styling */
   .scrollbar-thin {
     scrollbar-width: thin;

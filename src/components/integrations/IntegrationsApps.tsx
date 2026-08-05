@@ -358,6 +358,7 @@ const IntegrationsApps: React.FC = () => {
   const [widgetsSlabType, setWidgetsSlabType] = useState<'form' | 'chat' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [activeView, setActiveView] = useState<'marketplace' | 'my-apps'>('marketplace');
   const { token, user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -658,23 +659,58 @@ const IntegrationsApps: React.FC = () => {
     fetchIntegrationStatuses();
   }, []);
 
+  // An integration counts as "installed" once the API reports it as available
+  // for this company — that is exactly what the My Apps view lists.
+  const isMyApps = activeView === 'my-apps';
+  const installedCount = useMemo(
+    () => categories.flatMap((category) => category.integrations).filter((integration) => integration.available).length,
+    [categories]
+  );
+
+  const viewOptions = useMemo(
+    () => ([
+      { id: 'marketplace' as const, label: t('integrations.tab-marketplace') || 'Marketplace' },
+      { id: 'my-apps' as const, label: t('integrations.tab-my-apps') || 'My Apps' },
+    ]),
+    [t]
+  );
+
+  // Categories scoped to the active view — My Apps only keeps categories that
+  // actually hold an installed app, so it never offers an empty tab.
+  const visibleCategories = useMemo(
+    () => (isMyApps
+      ? categories
+          .map((category) => ({ ...category, integrations: category.integrations.filter((i) => i.available) }))
+          .filter((category) => category.integrations.length > 0)
+      : categories),
+    [categories, isMyApps]
+  );
+
   // Marketplace-style pill filters, derived from the category list
   const filterOptions = useMemo(
     () => [
       { id: 'all', label: t('integrations.filter-all') || 'All' },
-      ...categories.map((category) => ({ id: category.id, label: category.title })),
-      { id: 'coming-soon', label: t('integrations.coming-soon') },
+      ...visibleCategories.map((category) => ({ id: category.id, label: category.title })),
+      // Nothing installed can be "coming soon", so that filter is marketplace-only.
+      ...(isMyApps ? [] : [{ id: 'coming-soon', label: t('integrations.coming-soon') }]),
     ],
-    [categories, t]
+    [visibleCategories, isMyApps, t]
   );
+
+  // Drop a category filter that no longer exists in the current view
+  useEffect(() => {
+    if (!filterOptions.some((option) => option.id === activeFilter)) {
+      setActiveFilter('all');
+    }
+  }, [filterOptions, activeFilter]);
 
   // Flatten categories into a single searchable/filterable list of cards
   const filteredIntegrations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     const integrations = activeFilter === 'coming-soon'
-      ? categories.flatMap((category) => category.integrations).filter((integration) => integration.comingSoon)
-      : categories
+      ? visibleCategories.flatMap((category) => category.integrations).filter((integration) => integration.comingSoon)
+      : visibleCategories
           .filter((category) => activeFilter === 'all' || category.id === activeFilter)
           .flatMap((category) => category.integrations);
 
@@ -683,12 +719,12 @@ const IntegrationsApps: React.FC = () => {
       integration.name.toLowerCase().includes(query) ||
       integration.description.toLowerCase().includes(query)
     );
-  }, [categories, activeFilter, searchQuery]);
+  }, [visibleCategories, activeFilter, searchQuery]);
 
   // Error state
   if (error && categories.length === 0) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="bg-background p-6">
         <div className="max-w-4xl mx-auto">
           <div className="glass-card p-6 text-center border-red-500/20">
             <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
@@ -707,23 +743,50 @@ const IntegrationsApps: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <div className="px-4 sm:px-6 py-6">
         {/* Page Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
-            <RiAppsFill className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4 border-b border-border">
+          <div className="flex items-center gap-3 pb-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shrink-0">
+              <RiAppsFill className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{t('integrations.title')}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {t('integrations.description')}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{t('integrations.title')}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {t('integrations.description')}
-            </p>
+
+          {/* Marketplace / My Apps switch — same underline tab styling as the
+              category tabs below, so the two rows read as one system. */}
+          <div className="flex gap-6 shrink-0 self-start sm:self-end">
+            {viewOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setActiveView(option.id)}
+                className={cn(
+                  "relative whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-fast",
+                  activeView === option.id
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground font-medium hover:text-foreground/80"
+                )}
+              >
+                {option.label}
+                {option.id === 'my-apps' && installedCount > 0 && (
+                  <span className="ml-1.5 text-[11px] text-muted-foreground">{installedCount}</span>
+                )}
+                <span
+                  className={cn(
+                    "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-fast",
+                    activeView === option.id ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* Divider */}
-        <div className="border-b border-border mb-4" />
 
         {/* Tabs + Search Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 border-b border-border">
@@ -768,9 +831,25 @@ const IntegrationsApps: React.FC = () => {
         {/* Integration Grid */}
         {filteredIntegrations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Search className="w-10 h-10 text-muted-foreground mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-results')}</h3>
-            <p className="text-muted-foreground text-sm max-w-sm">{t('integrations.no-results-description')}</p>
+            {isMyApps && installedCount === 0 ? (
+              <>
+                <Package className="w-10 h-10 text-muted-foreground mb-3" />
+                <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-installed-apps')}</h3>
+                <p className="text-muted-foreground text-sm max-w-sm mb-4">{t('integrations.no-installed-apps-description')}</p>
+                <button
+                  onClick={() => setActiveView('marketplace')}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm transition-colors duration-base ease-standard hover:bg-primary/90"
+                >
+                  {t('integrations.tab-marketplace')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Search className="w-10 h-10 text-muted-foreground mb-3" />
+                <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-results')}</h3>
+                <p className="text-muted-foreground text-sm max-w-sm">{t('integrations.no-results-description')}</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

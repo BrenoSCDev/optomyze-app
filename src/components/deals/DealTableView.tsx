@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ClickableUser from '@/components/users/ClickableUser';
+import UserAvatar from '@/components/ui/user-avatar';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -18,7 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Clock, User, Package, Mail, Phone, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { DollarSign, Clock, Package, Mail, Phone, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import { formatPhoneNumber } from '@/lib/phone';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -303,7 +304,13 @@ const DealTableView = ({ columns, funnel, onAddDeal, onDealClick, setColumns, sh
                             <TableCell>
                               {deal.user ? (
                                 <ClickableUser userId={deal.user.id} className="gap-1.5">
-                                  <User className="h-3 w-3 text-deal/50" />
+                                  {/* The owner's actual photo, matching the
+                                      contact funnel table and the cards. */}
+                                  <UserAvatar
+                                    name={deal.user.name}
+                                    profilePicPath={deal.user.profile_pic}
+                                    className="h-6 w-6 text-[10px]"
+                                  />
                                   <span className="text-xs text-muted-foreground">{deal.user.name}</span>
                                 </ClickableUser>
                               ) : (
