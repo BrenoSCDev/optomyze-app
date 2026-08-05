@@ -305,9 +305,9 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
     settings: {
       icon: <Settings className="h-3.5 w-3.5" />,
       labelKey: 'nav.settings',
+      // Companies is out of the navigation for now — see Sidebar.tsx.
       children: [
         { id: 'crm-panel', label: t('nav.crm-panel') },
-        { id: 'companies', label: t('nav.companies') },
         { id: 'preferences', label: t('nav.preferences') },
       ],
     },

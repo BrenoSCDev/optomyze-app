@@ -79,6 +79,10 @@ interface LeadEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   lead: Lead;
+  /**
+   * Unread while the company picker is out of the form — kept because the
+   * caller still passes it and it is what the picker would read again.
+   */
   companies?: CompanyOption[];
   onUpdate: () => void;
 }
@@ -87,7 +91,6 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
   isOpen,
   onClose,
   lead,
-  companies = [],
   onUpdate
 }) => {
   const { t } = useLanguage();
@@ -440,121 +443,22 @@ const LeadEditModal: React.FC<LeadEditModalProps> = ({
 
                   {/* Tracking Tab */}
                   <TabsContent value="tracking" className="mt-0 space-y-4">
-                    {/* Company Selection */}
-                    <div className="space-y-2">
-                      <Label htmlFor="lead_company_id" className="text-foreground">
-                        {t('lead-details.company')}
-                      </Label>
-                      <Select
-                        value={formData.lead_company_id?.toString() || '_none'}
-                        onValueChange={(value) => setFormData(prev => ({ 
-                          ...prev, 
-                          lead_company_id: value === '_none' ? null : Number(value) 
-                        }))}
-                      >
-                        <SelectTrigger className="bg-background border-border text-foreground">
-                          <SelectValue placeholder={t('lead-details.select-company')} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border">
-                          <SelectItem value="_none" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <span className="text-muted-foreground">{t('lead-details.no-company')}</span>
-                          </SelectItem>
-                          {companies.map((company) => (
-                            <SelectItem 
-                              key={company.id} 
-                              value={company.id.toString()} 
-                              className="text-popover-foreground hover:bg-accent focus:bg-accent"
-                            >
-                              {company.legal_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {/*
+                      Company, job title, status and priority are no longer
+                      edited here.
 
-                    {/* Job Title */}
-                    <div className="space-y-2">
-                      <Label htmlFor="job_title" className="text-foreground">
-                        {t('lead-details.job-title')}
-                      </Label>
-                      <Input
-                        id="job_title"
-                        value={formData.job_title}
-                        onChange={(e) => updateField('job_title', e.target.value)}
-                        placeholder={t('lead-details.job-title-placeholder')}
-                        className="bg-background border-border text-foreground"
-                      />
-                    </div>
+                      Company because the module is out of the navigation for
+                      now; job title and priority because neither drives
+                      anything in the CRM yet; status because it is already
+                      toggled from the lead's own actions, and two controls for
+                      one flag is one too many.
 
-                    {/* Active Status */}
-                    <div className="space-y-2">
-                      <Label htmlFor="is_active" className="text-foreground">
-                        {t('lead-details.status-label')}
-                      </Label>
-                      <Select
-                        value={formData.is_active ? 'active' : 'inactive'}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, is_active: value === 'active' }))}
-                      >
-                        <SelectTrigger className="bg-background border-border text-foreground">
-                          <SelectValue placeholder={t('lead-details.status-select')} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border">
-                          <SelectItem value="active" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                              {t('lead-details.active')}
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="inactive" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                              {t('lead-details.inactive')}
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Priority */}
-                    <div className="space-y-2">
-                      <Label htmlFor="priority" className="text-foreground">
-                        {t('lead-details.priority-label')}
-                      </Label>
-                      <Select
-                        value={formData.priority}
-                        onValueChange={(value) => updateField('priority', value)}
-                      >
-                        <SelectTrigger className="bg-background border-border text-foreground">
-                          <SelectValue placeholder={t('lead-details.priority-select')} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border">
-                          <SelectItem value="low" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                              {t('lead-details.priority-low')}
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="medium" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                              {t('lead-details.priority-medium')}
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="high" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                              {t('lead-details.priority-high')}
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="urgent" className="text-popover-foreground hover:bg-accent focus:bg-accent">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                              {t('lead-details.priority-urgent')}
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      They stay in formData and in the payload on purpose — the
+                      values are read from the lead and written straight back,
+                      so nothing is cleared by saving from a form that no longer
+                      shows them. Restoring any of these fields is a matter of
+                      putting its block back.
+                    */}
 
                     {/* Tags Display */}
                     {lead.tags && lead.tags.length > 0 && (

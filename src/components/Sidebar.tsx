@@ -61,7 +61,7 @@ import { SiGoogleads } from "react-icons/si";
 import { RiAppsFill } from "react-icons/ri";
 import { BsDatabaseFillGear } from "react-icons/bs";
 import { VscSettings } from "react-icons/vsc";
-import { MdBusinessCenter, MdCurrencyExchange } from "react-icons/md";
+import { MdCurrencyExchange } from "react-icons/md";
 import { TiFlowMerge } from "react-icons/ti";
 
 interface SidebarProps {
@@ -148,10 +148,13 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
       })),
   ];
 
+  // Companies is deliberately absent: the module earns nothing in the CRM as it
+  // stands, so it is out of the navigation. Everything behind it — the screen,
+  // its route in Index.tsx, the API — is left intact and one line away from
+  // coming back.
   const settingsItems = [
     { id: 'crm-panel', label: t('nav.crm-panel'), icon: () => <img src={icon} alt="CRM" className="h-4 w-4" />, restrictedFor: [] },
     { id: 'business-profile', label: t('nav.business-profile'), icon: () => <Building2 size={16} />, restrictedFor: [] },
-    { id: 'companies', label: t('nav.companies'), icon: () => <MdBusinessCenter size={16}/>, restrictedFor: ['agent'] },
     { id: 'preferences', label: t('nav.preferences'), icon: () => <VscSettings size={16} />, restrictedFor: [] },
   ].filter(item => !item.restrictedFor.includes(user?.role?.toLowerCase() || ''));
 

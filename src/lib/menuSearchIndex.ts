@@ -78,7 +78,9 @@ export const MENU_ENTRIES: MenuEntry[] = [
   // ── Settings ──
   { id: 'crm-panel',        labelKey: 'nav.crm-panel',        trailKeys: ['nav.settings'] },
   { id: 'business-profile', labelKey: 'nav.business-profile', trailKeys: ['nav.settings'] },
-  { id: 'companies',        labelKey: 'nav.companies',        trailKeys: ['nav.settings'] },
+  // Companies is out of the navigation for now (see Sidebar.tsx), and search is
+  // navigation — leaving it here would keep the screen one keystroke away and
+  // make the removal look like a bug in the sidebar.
   { id: 'preferences',      labelKey: 'nav.preferences',      trailKeys: ['nav.settings'] },
   { id: 'open-ticket',      labelKey: 'nav.support',          trailKeys: [] },
 
