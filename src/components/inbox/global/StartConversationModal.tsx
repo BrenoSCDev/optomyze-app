@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatPhoneNumber } from '@/lib/phone';
 import ChannelIcon from './ChannelIcon';
+import { leadDisplayName } from '@/lib/leadName';
 
 interface StartConversationModalProps {
   open: boolean;
@@ -98,7 +99,7 @@ const StartConversationModal: React.FC<StartConversationModalProps> = ({ open, o
 
   const handleSelectLead = (lead: LeadSearchResult) => {
     setSelectedLead(lead);
-    setQuery(`${lead.first_name} ${lead.last_name}`.trim());
+    setQuery(leadDisplayName(lead));
     setSearchResults([]);
   };
 

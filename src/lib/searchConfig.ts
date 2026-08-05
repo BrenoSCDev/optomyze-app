@@ -10,6 +10,7 @@ import { Compass, Users, UserCircle } from 'lucide-react';
 import { MdCurrencyExchange } from 'react-icons/md';
 import type { ComponentType } from 'react';
 import { readCachedPreferences } from '@/contexts/UserPreferencesContext';
+import { leadDisplayName } from '@/lib/leadName';
 
 // ── Unified search result shape ────────────────────────────────────────
 export interface UnifiedSearchResult {
@@ -48,7 +49,7 @@ const SEARCH_TARGETS: Record<SearchTargetId, SearchTargetConfig> = {
     mapper: (data) =>
       data.map((l) => ({
         id: l.id,
-        title: `${l.first_name} ${l.last_name}`,
+        title: leadDisplayName(l, `#${l.id}`),
         meta: { funnel_id: l.funnel_id },
       })),
   },

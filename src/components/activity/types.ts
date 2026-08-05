@@ -1,5 +1,6 @@
 import type { RecordItem, RecordLead, RecordSale } from '@/services/recordsApi';
 import type { LeadTransactionNotification, DealTransactionNotification } from '@/contexts/NotificationContext';
+import { leadDisplayName } from '@/lib/leadName';
 
 export type ActivityDomain = 'lead' | 'deal';
 
@@ -81,13 +82,13 @@ export const adaptRecord = (record: RecordItem, domain: ActivityDomain): Activit
     domain === 'lead'
       ? {
           leadName: record.recordable
-            ? `${(record.recordable as RecordLead).first_name} ${(record.recordable as RecordLead).last_name}`.trim()
+            ? leadDisplayName(record.recordable as RecordLead)
             : null,
         }
       : {
           dealName: (record.recordable as RecordSale)?.name ?? null,
           leadName: (record.recordable as RecordSale)?.lead
-            ? `${(record.recordable as RecordSale).lead!.first_name} ${(record.recordable as RecordSale).lead!.last_name}`.trim()
+            ? leadDisplayName((record.recordable as RecordSale).lead!)
             : null,
         };
 
@@ -116,7 +117,7 @@ export const adaptLeadTransactionPayload = (
   createdAt: payload.created_at,
   actor: resolveActor(payload.user, payload.source),
   subject: {
-    leadName: payload.lead ? `${payload.lead.first_name} ${payload.lead.last_name}`.trim() : null,
+    leadName: payload.lead ? leadDisplayName(payload.lead) : null,
   },
 });
 
@@ -133,6 +134,6 @@ export const adaptDealTransactionPayload = (
   actor: resolveActor(payload.user, payload.source),
   subject: {
     dealName: payload.deal?.name ?? null,
-    leadName: payload.deal?.lead ? `${payload.deal.lead.first_name} ${payload.deal.lead.last_name}`.trim() : null,
+    leadName: payload.deal?.lead ? leadDisplayName(payload.deal.lead) : null,
   },
 });

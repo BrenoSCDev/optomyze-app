@@ -19,6 +19,7 @@ import { Appointment, getCompanyAppointments } from '@/services/appointmentApi';
 import { AppointmentType, getAppointmentTypes } from '@/services/appointmentTypeApi';
 import AppointmentModal from './AppointmentModal';
 import AppointmentDetailModal from './AppointmentDetailModal';
+import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import CalendarSwitcher from './CalendarSwitcher';
 import { useCalendars } from '@/contexts/CalendarsContext';
 import { getEcho } from '@/services/echo';
@@ -81,6 +82,10 @@ const OptomyzeCalendar: React.FC = () => {
   // Clicking an appointment opens the read-only view; editing is a deliberate
   // step from there, so a glance can never change a confirmed booking.
   const [detail, setDetail] = useState<Appointment | null>(null);
+  // The contact behind a booking, opened from the detail view. Held here so the
+  // two modals are siblings — nesting the lead view inside the appointment
+  // dialog puts two focus traps on screen at once.
+  const [leadPreviewId, setLeadPreviewId] = useState<string | null>(null);
 
   // Tasks share the grid with appointments. On by default because "what is on
   // today" is the question this page exists to answer, but dismissable for
@@ -579,6 +584,19 @@ const OptomyzeCalendar: React.FC = () => {
         onSaved={handleSaved}
         onDeleted={id => { handleDeleted(id); setDetail(null); }}
         onEdit={openEditor}
+        onOpenLead={leadId => {
+          // The appointment closes on the way through: coming back to it after
+          // reading the contact is one click on the booking again, and leaving
+          // it open behind a full lead view only competes for attention.
+          setDetail(null);
+          setLeadPreviewId(String(leadId));
+        }}
+      />
+
+      <LeadPreviewModal
+        isOpen={!!leadPreviewId}
+        onClose={() => setLeadPreviewId(null)}
+        leadId={leadPreviewId}
       />
 
       <AppointmentModal

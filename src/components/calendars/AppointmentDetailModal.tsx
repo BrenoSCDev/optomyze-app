@@ -31,6 +31,7 @@ import { Appointment, deleteAppointment, updateAppointment } from '@/services/ap
 import NotesThread from '@/components/notes/NotesThread';
 import UserAvatar from '@/components/ui/user-avatar';
 import { cn } from '@/lib/utils';
+import { leadDisplayName } from '@/lib/leadName';
 
 type Status = Appointment['status'];
 
@@ -74,10 +75,16 @@ interface Props {
   onDeleted: (id: number) => void;
   /** Hands the appointment to the edit form. */
   onEdit: (appointment: Appointment) => void;
+  /**
+   * Opens the contact behind the booking. Handled by the calendar rather than
+   * here so the lead view is a sibling of this modal, not nested inside it —
+   * two stacked dialogs fight over the focus trap.
+   */
+  onOpenLead: (leadId: number) => void;
 }
 
 const AppointmentDetailModal: React.FC<Props> = ({
-  open, appointment, onClose, onSaved, onDeleted, onEdit,
+  open, appointment, onClose, onSaved, onDeleted, onEdit, onOpenLead,
 }) => {
   const { t, language } = useLanguage();
   const locale = language || undefined;
@@ -126,9 +133,8 @@ const AppointmentDetailModal: React.FC<Props> = ({
   const start = current ? parseWallClock(current.scheduled_at) : null;
   const end = current?.end_at ? parseWallClock(current.end_at) : null;
 
-  const leadName = current?.lead
-    ? `${current.lead.first_name} ${current.lead.last_name ?? ''}`.trim()
-    : null;
+  const lead = current?.lead ?? null;
+  const leadName = lead ? leadDisplayName(lead, t('appointment-detail.contact')) : null;
 
   return (
     <>
@@ -199,9 +205,24 @@ const AppointmentDetailModal: React.FC<Props> = ({
                     </Fact>
                   )}
 
-                  {leadName && (
+                  {lead && (
                     <Fact icon={UserIcon} label={t('appointment-detail.contact')}>
-                      <span className="text-foreground">{leadName}</span>
+                      {/* The contact is the reason the booking exists, so it is
+                          the way through to them rather than a dead label. */}
+                      <button
+                        type="button"
+                        onClick={() => onOpenLead(lead.id)}
+                        className="group flex items-center gap-2 text-left"
+                      >
+                        <UserAvatar
+                          name={leadName ?? ''}
+                          profilePicPath={lead.profile_pic_url ?? null}
+                          className="h-6 w-6 text-[10px]"
+                        />
+                        <span className="text-foreground underline-offset-2 group-hover:text-primary group-hover:underline">
+                          {leadName}
+                        </span>
+                      </button>
                     </Fact>
                   )}
 

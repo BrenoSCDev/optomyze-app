@@ -47,6 +47,7 @@ import { formatEnumLabel } from '@/lib/format';
 import SourcePlatformIcon from './SourcePlatformIcon';
 import UserAvatar from '@/components/ui/user-avatar';
 import ClickableUser from '@/components/users/ClickableUser';
+import { leadDisplayName } from '@/lib/leadName';
 
 interface AssignedUser {
   id: number;
@@ -540,7 +541,7 @@ const LeadContactContent = ({ lead }: { lead: Lead }) => {
           </div>
         </div>
         <button
-          onClick={() => copyToClipboard(`${lead.first_name} ${lead.last_name}`, t('lead-details.full-name'))}
+          onClick={() => copyToClipboard(leadDisplayName(lead), t('lead-details.full-name'))}
           className="p-2 rounded-md opacity-0 group-hover:opacity-100 hover:bg-muted transition-colors duration-fast ease-standard"
           title={`${t('common.copy')} ${t('lead-details.full-name').toLowerCase()}`}
         >

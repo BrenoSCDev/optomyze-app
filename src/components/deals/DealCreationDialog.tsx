@@ -54,6 +54,7 @@ import {
   LeadProduct,
   ProductSearchResult,
 } from '@/services/leadProductSearchApi';
+import { leadDisplayName } from '@/lib/leadName';
 
 type PricingModel = 'product' | 'commission' | 'hybrid';
 type ChargeType = 'percentage' | 'fixed';
@@ -164,7 +165,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
           })),
         } as LeadWithProducts;
         setSelectedLead(mockLead);
-        setLeadQuery(`${editDeal.lead.first_name} ${editDeal.lead.last_name}`);
+        setLeadQuery(leadDisplayName(editDeal.lead));
       }
     } else if (selectedStageId) {
       setStageId(selectedStageId);
@@ -207,7 +208,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
 
   const handleSelectLead = (lead: LeadWithProducts) => {
     setSelectedLead(lead);
-    setLeadQuery(`${lead.first_name} ${lead.last_name}`);
+    setLeadQuery(leadDisplayName(lead));
     setShowLeadDropdown(false);
   };
 
@@ -433,7 +434,7 @@ export const DealCreationDialog: React.FC<DealCreationDialogProps> = ({
               {isEditMode ? (
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
                   <User className="h-4 w-4 text-deal" />
-                  <span className="text-sm text-foreground">{editDeal?.lead ? `${editDeal.lead.first_name} ${editDeal.lead.last_name}` : t('deal-form.unknown-lead')}</span>
+                  <span className="text-sm text-foreground">{editDeal?.lead ? leadDisplayName(editDeal.lead, t('deal-form.unknown-lead')) : t('deal-form.unknown-lead')}</span>
                   <span className="ml-auto text-xs text-muted-foreground">{t('deal-form.locked')}</span>
                 </div>
               ) : (

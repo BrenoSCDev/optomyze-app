@@ -28,7 +28,13 @@ export interface Appointment {
   updated_at: string;
   appointment_type?: AppointmentType | null;
   user?: { id: number; name: string; email: string } | null;
-  lead?: { id: number; first_name: string; last_name: string } | null;
+  lead?: {
+    id: number;
+    first_name: string;
+    last_name: string | null;
+    /** Resolved server-side from the contact's chat; leads have no image column. */
+    profile_pic_url?: string | null;
+  } | null;
   products?: AppointmentProduct[];
 }
 

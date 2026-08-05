@@ -58,6 +58,7 @@ import LeadEditModal from './LeadEditModal';
 import { LeadDocument } from '@/services/documentApi';
 import { Observation } from '@/services/observationApi';
 import { setContactArchived } from '@/services/contactApi';
+import { leadDisplayName } from '@/lib/leadName';
 
 interface LeadPreviewModalProps {
   isOpen: boolean;
@@ -483,7 +484,7 @@ const LeadPreviewModal: React.FC<LeadPreviewModalProps> = ({ isOpen, onClose, le
                         {user?.company?.product_module === 'ERP' ? (
                           <BudgetSection
                             leadId={lead.id}
-                            customerName={`${lead.first_name} ${lead.last_name}`}
+                            customerName={leadDisplayName(lead)}
                             leadEmail={lead.email}
                             leadPhone={lead.phone}
                             erpBudgetIds={erpBudgetIds}
