@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, GripVertical, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Users, Globe } from 'lucide-react';
 import { IoFunnelOutline as FunnelIcon } from 'react-icons/io5';
 import { funnelManagerQueueApi, FunnelManagerQueue, FunnelManagerQueuePayload, QueueUser } from '@/services/funnelManagerQueueApi';
 import { userApi } from '@/services/userApi';
@@ -84,6 +84,7 @@ const FunnelManagersQueueSection = () => {
   const [editingQueue, setEditingQueue] = useState<FunnelManagerQueue | null>(null);
   const [formName, setFormName] = useState('');
   const [formActive, setFormActive] = useState(true);
+  const [formGlobal, setFormGlobal] = useState(false);
   const [formUsers, setFormUsers] = useState<Array<{ id: number; name: string; email: string }>>([]);
   const [formFunnelIds, setFormFunnelIds] = useState<number[]>([]);
   const [formSaving, setFormSaving] = useState(false);
@@ -99,6 +100,10 @@ const FunnelManagersQueueSection = () => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // Whichever queue currently holds the global flag, so the form can warn that
+  // switching it on takes it away from that one.
+  const currentGlobalQueue = queues.find(q => q.is_global) ?? null;
 
   const loadData = useCallback(async () => {
     try {
@@ -127,6 +132,7 @@ const FunnelManagersQueueSection = () => {
     setEditingQueue(null);
     setFormName('');
     setFormActive(true);
+    setFormGlobal(false);
     setFormUsers([]);
     setFormFunnelIds([]);
     setUserSearch('');
@@ -137,6 +143,7 @@ const FunnelManagersQueueSection = () => {
     setEditingQueue(queue);
     setFormName(queue.name);
     setFormActive(queue.is_active);
+    setFormGlobal(queue.is_global);
     setFormUsers(
       [...queue.users]
         .sort((a, b) => a.pivot.order - b.pivot.order)
@@ -154,6 +161,7 @@ const FunnelManagersQueueSection = () => {
       const payload: FunnelManagerQueuePayload = {
         name: formName.trim(),
         is_active: formActive,
+        is_global: formGlobal,
         users: formUsers.map((u, i) => ({ id: u.id, order: i })),
         funnel_ids: formFunnelIds,
       };
@@ -264,6 +272,15 @@ const FunnelManagersQueueSection = () => {
                       <Badge variant={queue.is_active ? 'default' : 'secondary'} className="shrink-0">
                         {queue.is_active ? t('common.active') : t('common.inactive')}
                       </Badge>
+                      {/* The company's fallback. Worth calling out on the card:
+                          it is the queue that catches everything the funnels do
+                          not, so which one holds it matters at a glance. */}
+                      {queue.is_global && (
+                        <Badge variant="outline" className="shrink-0 gap-1 border-primary/40 text-primary">
+                          <Globe className="h-3 w-3" />
+                          {t('queues.global-badge')}
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Users */}
@@ -339,6 +356,27 @@ const FunnelManagersQueueSection = () => {
             <div className="flex items-center justify-between">
               <Label>{t('common.active')}</Label>
               <Switch checked={formActive} onCheckedChange={setFormActive} />
+            </div>
+
+            {/* Global fallback */}
+            <div className="flex items-start justify-between gap-4 rounded-lg border border-border/60 p-3">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                  {t('queues.global-label')}
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {t('queues.global-desc')}
+                </p>
+                {/* Only one queue can hold it, so say what turning it on costs
+                    rather than letting the other queue silently lose the flag. */}
+                {formGlobal && currentGlobalQueue && currentGlobalQueue.id !== editingQueue?.id && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    {t('queues.global-replaces').replace('{name}', currentGlobalQueue.name)}
+                  </p>
+                )}
+              </div>
+              <Switch checked={formGlobal} onCheckedChange={setFormGlobal} />
             </div>
 
             {/* Users (ordered) */}

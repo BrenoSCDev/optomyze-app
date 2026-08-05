@@ -20,6 +20,8 @@ export interface FunnelManagerQueue {
   company_id: number;
   name: string;
   is_active: boolean;
+  /** At most one queue per company carries this — the company's fallback. */
+  is_global: boolean;
   current_index: number;
   created_at: string;
   updated_at: string;
@@ -30,6 +32,7 @@ export interface FunnelManagerQueue {
 export interface FunnelManagerQueuePayload {
   name: string;
   is_active: boolean;
+  is_global: boolean;
   users: Array<{ id: number; order: number }>;
   funnel_ids: number[];
 }
