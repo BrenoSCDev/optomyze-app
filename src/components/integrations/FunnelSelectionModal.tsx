@@ -137,7 +137,7 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
           {/* Instance Info */}
           <div className="p-3 bg-muted/50 rounded-lg border border-border">
             <p className="text-sm text-muted-foreground">
-              {t('integrations.panel.test.instance-name')}
+              {t('integrations.panel.account.identifier-label')}
             </p>
             <p className="font-medium text-foreground">{instance.instance_name}</p>
           </div>

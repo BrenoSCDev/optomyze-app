@@ -1,7 +1,7 @@
 /**
  * CONNECTION STATUS MODAL
  *
- * Checks whether a WhatsApp Evolution instance is really connected by reading
+ * Checks whether a WhatsApp account is really connected by reading
  * Evolution's /instance/connectionState — this is the default way of verifying
  * a connection, no test message required. When connected, the paired WhatsApp
  * account (name / picture / number) is shown back to the user.
@@ -16,6 +16,7 @@ import { Loader2, RefreshCw, QrCode, AlertTriangle } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import api from '../../services/api';
 import WhatsAppProfileCard, { WhatsAppProfile } from './WhatsAppProfileCard';
+import { accountStatusLabel } from './whatsappAccount';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -120,7 +121,7 @@ const ConnectionStatusModal: React.FC<ConnectionStatusModalProps> = ({
           <div className="border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">{t('integrations.panel.test.instance-name')}</p>
+                <p className="text-sm text-muted-foreground">{t('integrations.panel.account.identifier-label')}</p>
                 <p className="font-medium truncate">{instance.instance_name}</p>
               </div>
               <Badge
@@ -133,7 +134,7 @@ const ConnectionStatusModal: React.FC<ConnectionStatusModalProps> = ({
                       : ''
                 }
               >
-                {result?.status || instance.status || 'created'}
+                {accountStatusLabel(t, result?.status || instance.status)}
               </Badge>
             </div>
           </div>

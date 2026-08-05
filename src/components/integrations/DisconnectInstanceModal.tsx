@@ -1,7 +1,7 @@
 /**
- * DISCONNECT INSTANCE MODAL
+ * DISCONNECT ACCOUNT MODAL
  *
- * Confirmation modal for disconnecting a WhatsApp Evolution API instance.
+ * Confirmation modal for unlinking the phone from a WhatsApp account.
  * Warns that the number will stop receiving leads in the CRM, and offers
  * an optional bulk reassignment of every chat on this instance to another
  * existing instance in the company — so when the same phone number gets
@@ -27,6 +27,7 @@ import { SiWhatsapp } from 'react-icons/si';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../hooks/use-toast';
 import api from '../../services/api';
+import { accountStatusLabel } from './whatsappAccount';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -134,7 +135,7 @@ const DisconnectInstanceModal: React.FC<DisconnectInstanceModalProps> = ({
               </div>
               <div className="flex-1">
                 <p className="font-medium">{instance.instance_name}</p>
-                <Badge variant="secondary" className="text-xs mt-1">{instance.status || 'connected'}</Badge>
+                <Badge variant="secondary" className="text-xs mt-1">{accountStatusLabel(t, instance.status || 'connected')}</Badge>
               </div>
             </div>
           </div>

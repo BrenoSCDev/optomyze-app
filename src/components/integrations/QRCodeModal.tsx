@@ -1,7 +1,7 @@
 /**
  * QR CODE MODAL
  *
- * Modal for generating and displaying WhatsApp Evolution API QR codes.
+ * The QR code that links a phone to a WhatsApp account.
  * While the QR code is on screen we poll Evolution's connection state, so the
  * moment the user finishes scanning we can swap the code for the connected
  * WhatsApp account (name / picture / number).
@@ -17,6 +17,7 @@ import { Loader2, RefreshCw, Info, Smartphone } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import api from '../../services/api';
 import WhatsAppProfileCard from './WhatsAppProfileCard';
+import { accountStatusLabel } from './whatsappAccount';
 import { ConnectionStatusResponse } from './ConnectionStatusModal';
 
 interface WhatsAppInstance {
@@ -148,14 +149,14 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
           <div className="border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">{t('integrations.panel.test.instance-name')}</p>
+                <p className="text-sm text-muted-foreground">{t('integrations.panel.account.identifier-label')}</p>
                 <p className="font-medium truncate">{instance.instance_name}</p>
               </div>
               <Badge
                 variant="secondary"
                 className={connected ? 'bg-green-500/15 text-green-600 dark:text-green-400' : ''}
               >
-                {connection?.status || instance.status || 'created'}
+                {accountStatusLabel(t, connection?.status || instance.status)}
               </Badge>
             </div>
           </div>

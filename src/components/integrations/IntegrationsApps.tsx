@@ -400,7 +400,7 @@ const IntegrationsApps: React.FC = () => {
         {
           key: 'wpp_evo',
           name: 'WhatsApp',
-          description: t('integrations.whatsapp-evo.description') || 'Connect WhatsApp via Evolution API to manage customer conversations directly from your CRM.',
+          description: t('integrations.whatsapp-evo.description') || 'Connect a WhatsApp number and handle every customer conversation from your CRM.',
           available: false,
           beta: true,
           popular: true,

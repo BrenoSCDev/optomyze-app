@@ -1,7 +1,8 @@
 /**
- * TEST INSTANCE MODAL
- * 
- * Modal for testing WhatsApp Evolution API instances
+ * TEST ACCOUNT MODAL
+ *
+ * Sends a real message from a connected WhatsApp account. The connection check
+ * proves the number is linked; this proves messages actually leave.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,6 +18,7 @@ import { Info, Phone, MessageSquare, Loader2, CheckCircle } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { toast } from '../../hooks/use-toast';
 import api from '../../services/api';
+import { accountStatusLabel } from './whatsappAccount';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -114,14 +116,14 @@ const TestInstanceModal: React.FC<TestInstanceModalProps> = ({
           <div className="border border-border rounded-lg p-4 bg-muted/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('integrations.panel.test.instance-name')}</p>
+                <p className="text-sm text-muted-foreground">{t('integrations.panel.account.identifier-label')}</p>
                 <p className="font-medium">{instance.instance_name}</p>
               </div>
               <Badge 
                 variant="secondary"
                 className={localStatus === 'connected' ? 'bg-green-500/15 text-green-600 dark:text-green-400' : ''}
               >
-                {localStatus}
+                {accountStatusLabel(t, localStatus)}
               </Badge>
             </div>
           </div>

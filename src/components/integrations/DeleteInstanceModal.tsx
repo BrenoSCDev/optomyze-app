@@ -1,7 +1,8 @@
 /**
- * DELETE INSTANCE MODAL
- * 
- * Confirmation modal for deleting WhatsApp Evolution API instances
+ * DELETE ACCOUNT MODAL
+ *
+ * Confirms removing a WhatsApp account for good — it is torn down on the
+ * Evolution server too, so the number stops reaching the CRM entirely.
  */
 
 import React, { useState } from 'react';
@@ -11,6 +12,8 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Badge } from '../ui/badge';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
+import { useToast } from '../../hooks/use-toast';
+import { accountStatusLabel } from './whatsappAccount';
 
 interface WhatsAppInstance {
   instance_name: string;
@@ -33,6 +36,7 @@ const DeleteInstanceModal: React.FC<DeleteInstanceModalProps> = ({
   onInstanceDeleted
 }) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -46,8 +50,16 @@ const DeleteInstanceModal: React.FC<DeleteInstanceModalProps> = ({
       
       onInstanceDeleted(instance.id);
       onOpenChange(false);
-    } catch (err: any) {
-      console.error('Error deleting instance:', err);
+    } catch (err) {
+      // A delete only fails when the account could not be torn down on the
+      // server, which leaves it in the list. Saying nothing looked like the
+      // button was broken.
+      console.error('Error deleting WhatsApp account:', err);
+      toast({
+        title: t('integrations.panel.delete.error-title'),
+        description: t('integrations.panel.delete.error-description'),
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -79,7 +91,7 @@ const DeleteInstanceModal: React.FC<DeleteInstanceModalProps> = ({
                 <p className="font-medium">{instance.instance_name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="secondary" className="text-xs">
-                    {instance.status || 'created'}
+                    {accountStatusLabel(t, instance.status)}
                   </Badge>
                 </div>
               </div>
