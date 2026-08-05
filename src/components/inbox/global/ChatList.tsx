@@ -6,7 +6,7 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Loader2, Film, Search, X, RefreshCw, Filter, Star, Archive, ArchiveRestore } from 'lucide-react';
+import { Inbox, MessageSquare, Clock, Image as ImageIcon, Mic, MapPin, FileText, User, Loader2, Film, Search, X, RefreshCw, Filter, Star, Archive, ArchiveRestore, CheckSquare, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,6 +15,7 @@ import {
   DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { InboxChat, InboxChannel } from '@/types/inbox';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn, extractTime } from '@/lib/utils';
@@ -68,6 +69,17 @@ interface ChatListProps {
   onFavoritesOnlyChange?: (value: boolean) => void;
   onToggleFavorite?: (chat: InboxChat) => void;
   onToggleArchived?: (chat: InboxChat) => void;
+
+  /*
+   * Bulk selection. Owned by the parent, which is what performs the actions
+   * and reconciles the list afterwards; the list only reports intent.
+   */
+  selectionMode?: boolean;
+  onSelectionModeChange?: (value: boolean) => void;
+  selectedIds?: number[];
+  onSelectedIdsChange?: (ids: number[]) => void;
+  /** Rendered above the rows while a selection exists. */
+  bulkBar?: React.ReactNode;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
@@ -92,6 +104,11 @@ const ChatList: React.FC<ChatListProps> = ({
   onFavoritesOnlyChange,
   onToggleFavorite,
   onToggleArchived,
+  selectionMode = false,
+  onSelectionModeChange,
+  selectedIds = [],
+  onSelectedIdsChange,
+  bulkBar,
 }) => {
   const { t } = useLanguage();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -123,7 +140,7 @@ const ChatList: React.FC<ChatListProps> = ({
     return chat.channel === 'whatsapp' ? formatPhoneNumber(chat.external_contact_id) : chat.external_contact_id;
   };
 
-  const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'video' | 'location' | 'document' | 'contact'; text: string; imagePath?: string } => {
+  const getLastMessage = (chat: InboxChat): { type: 'text' | 'image' | 'audio' | 'video' | 'location' | 'document' | 'contact' | 'product'; text: string; imagePath?: string } => {
     if (chat.messages && chat.messages.length > 0) {
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage.type === 'image') {
@@ -149,6 +166,14 @@ const ChatList: React.FC<ChatListProps> = ({
         return {
           type: 'location',
           text: t('chat.inbox.location') || 'Location'
+        };
+      }
+      if (lastMessage.type === 'product') {
+        // The title is stored as the message text, so a catalog item reads as
+        // its own name here rather than a bare "Product".
+        return {
+          type: 'product',
+          text: lastMessage.text || t('chat.inbox.product'),
         };
       }
       if (lastMessage.type === 'document') {
@@ -197,6 +222,24 @@ const ChatList: React.FC<ChatListProps> = ({
 
   const conversationCount = totalCount ?? chats.length;
 
+  const selectedSet = React.useMemo(() => new Set(selectedIds), [selectedIds]);
+  // "All" means the rows actually loaded, not the backend's total — those are
+  // the only ids the client can name, and the count next to the checkbox says
+  // so by matching the list rather than the header.
+  const allLoadedSelected = chats.length > 0 && chats.every(c => selectedSet.has(c.id));
+
+  const toggleSelected = (chatId: number) => {
+    if (!onSelectedIdsChange) return;
+    onSelectedIdsChange(
+      selectedSet.has(chatId) ? selectedIds.filter(id => id !== chatId) : [...selectedIds, chatId]
+    );
+  };
+
+  const exitSelection = () => {
+    onSelectedIdsChange?.([]);
+    onSelectionModeChange?.(false);
+  };
+
   const readTabs: { key: ReadFilter; label: string }[] = [
     { key: 'all', label: t('chat.inbox.tab-all-messages') },
     { key: 'unread', label: t('chat.inbox.tab-unread') },
@@ -219,6 +262,24 @@ const ChatList: React.FC<ChatListProps> = ({
         </h2>
 
         <div className="flex items-center gap-0.5 shrink-0">
+          {onSelectionModeChange && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-pressed={selectionMode}
+                  onClick={() => (selectionMode ? exitSelection() : onSelectionModeChange(true))}
+                  aria-label={t('chat.inbox.bulk.select')}
+                  className={cn('h-8 w-8', selectionMode && 'text-primary')}
+                >
+                  <CheckSquare className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('chat.inbox.bulk.select')}</TooltipContent>
+            </Tooltip>
+          )}
+
           {onRefresh && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -367,6 +428,32 @@ const ChatList: React.FC<ChatListProps> = ({
           </div>
         </div>
       )}
+
+      {/* Select-all strip plus the parent's action bar. Only while selecting,
+          so the header keeps its usual shape the rest of the time. */}
+      {selectionMode && (
+        <div className="mt-2.5 space-y-2 pb-2">
+          <div className="flex items-center justify-between gap-2">
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                checked={allLoadedSelected}
+                onCheckedChange={(v) =>
+                  onSelectedIdsChange?.(v === true ? chats.map(c => c.id) : [])
+                }
+              />
+              {selectedIds.length > 0
+                ? t('chat.inbox.bulk.selected-count').replace('{count}', String(selectedIds.length))
+                : t('chat.inbox.bulk.select-all')}
+            </label>
+
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={exitSelection}>
+              {t('common.cancel')}
+            </Button>
+          </div>
+
+          {selectedIds.length > 0 && bulkBar}
+        </div>
+      )}
     </div>
   );
 
@@ -412,17 +499,32 @@ const ChatList: React.FC<ChatListProps> = ({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              onClick={() => onSelectChat(chat)}
+              onClick={() => (selectionMode ? toggleSelected(chat.id) : onSelectChat(chat))}
               className={cn(
                 "p-3 rounded-lg cursor-pointer transition-colors duration-fast ease-standard group",
                 "hover:bg-muted/60",
-                selectedChat?.id === chat.id
-                  ? "bg-muted border-l-2 border-primary text-foreground"
-                  : "bg-background/50"
+                selectionMode && selectedSet.has(chat.id)
+                  ? "bg-primary/10"
+                  : selectedChat?.id === chat.id && !selectionMode
+                    ? "bg-muted border-l-2 border-primary text-foreground"
+                    : "bg-background/50"
               )}
             >
               <div className="flex items-start gap-3">
-                <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} />
+                {/* While selecting, the checkbox replaces the avatar rather
+                    than crowding in beside it — the row is narrow, and what
+                    matters here is the tick, not the face. */}
+                {selectionMode ? (
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                    <Checkbox
+                      checked={selectedSet.has(chat.id)}
+                      onCheckedChange={() => toggleSelected(chat.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </span>
+                ) : (
+                  <InboxAvatar profilePicPath={chat.profile_pic_url} name={getLeadName(chat)} channel={chat.channel} />
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className={cn('truncate', chat.unread_count ? 'font-semibold text-foreground' : 'font-medium')}>
@@ -434,11 +536,15 @@ const ChatList: React.FC<ChatListProps> = ({
 
                     <span className="flex shrink-0 items-center gap-1.5">
                       {/* Row actions: shown on hover, and kept visible while
-                          pinned so the state is discoverable without hovering. */}
+                          pinned so the state is discoverable without hovering.
+                          Hidden while selecting — a per-row action there would
+                          act on one chat while the user is aiming at many. */}
                       <span
                         className={cn(
                           'flex items-center gap-0.5 transition-opacity',
-                          chat.is_favorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
+                          selectionMode
+                            ? 'hidden'
+                            : chat.is_favorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
                         )}
                       >
                         {onToggleFavorite && (
@@ -528,6 +634,16 @@ const ChatList: React.FC<ChatListProps> = ({
                       return (
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm text-muted-foreground truncate">
+                            {lastMsg.text}
+                          </span>
+                        </div>
+                      );
+                    }
+                    if (lastMsg.type === 'product') {
+                      return (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <ShoppingBag className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-sm text-muted-foreground truncate">
                             {lastMsg.text}
                           </span>

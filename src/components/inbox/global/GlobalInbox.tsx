@@ -26,11 +26,24 @@ import {
   markInboxChatRead,
   setInboxChatArchived,
   setInboxChatFavorite,
+  bulkSetInboxChatsArchived,
+  bulkSetInboxChatsFavorite,
+  bulkClearInboxChatMessages,
+  bulkEndInboxConversations,
+  BulkActionResult,
 } from '@/services/globalInboxApi';
 import { InboxChannel, InboxChat, InboxMessage } from '@/types/inbox';
 import ChatList, { ReadFilter } from './ChatList';
 import ChatConversation from './ChatConversation';
 import ChatDetails from './ChatDetails';
+import { cn } from '@/lib/utils';
+import BulkEndConversationDialog from './BulkEndConversationDialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Archive, ArchiveRestore, Eraser, Loader2, MessageSquareOff, Star } from 'lucide-react';
 
 type ViewMode = 'list' | 'conversation' | 'details';
 
@@ -80,6 +93,13 @@ const GlobalInbox: React.FC = () => {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Bulk selection
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [endDialogOpen, setEndDialogOpen] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce the raw input into the query actually sent to the backend, so
@@ -257,6 +277,139 @@ const GlobalInbox: React.FC = () => {
     }
   };
 
+  /*
+   * ── Bulk actions ──────────────────────────────────────────────────────
+   *
+   * Every one of these ends by reloading the list rather than patching it in
+   * place. A bulk action can move dozens of rows in and out of the current
+   * filter at once — archiving empties them from the default view, ending a
+   * conversation changes what the row says — and reproducing the backend's
+   * ordering and filtering client-side for that many rows is how the list
+   * quietly drifts out of step with the server.
+   */
+  const selectedChats = chats.filter(c => selectedIds.includes(c.id));
+  const allSelectedFavorite = selectedChats.length > 0 && selectedChats.every(c => c.is_favorite);
+
+  const exitSelection = () => {
+    setSelectedIds([]);
+    setSelectionMode(false);
+  };
+
+  /** Runs a bulk call, reports honestly, and puts the list back in step. */
+  const runBulk = async (
+    action: () => Promise<BulkActionResult>,
+    successKey: string
+  ) => {
+    setBulkBusy(true);
+
+    try {
+      const result = await action();
+
+      toast({
+        title: t(successKey).replace('{count}', String(result.processed)),
+        // Skipped is normal, not a failure — say so only when it happened,
+        // rather than reporting a clean run as partial.
+        description: result.skipped
+          ? t('chat.inbox.bulk.skipped').replace('{count}', String(result.skipped))
+          : undefined,
+      });
+
+      exitSelection();
+
+      if (selectedChat && selectedIds.includes(selectedChat.id)) {
+        setSelectedChat(null);
+        setMobileView('list');
+      }
+
+      loadChats();
+    } catch {
+      toast({ title: t('chat.inbox.error-title'), variant: 'destructive' });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkFavorite = () =>
+    runBulk(
+      () => bulkSetInboxChatsFavorite(selectedIds, !allSelectedFavorite),
+      allSelectedFavorite ? 'chat.inbox.bulk.unfavorited' : 'chat.inbox.bulk.favorited'
+    );
+
+  // In the archived view the only sensible direction is out of it.
+  const handleBulkArchive = () =>
+    runBulk(
+      () => bulkSetInboxChatsArchived(selectedIds, !showArchived),
+      showArchived ? 'chat.inbox.bulk.unarchived' : 'chat.inbox.bulk.archived'
+    );
+
+  const handleBulkClear = () => {
+    setConfirmClear(false);
+    runBulk(() => bulkClearInboxChatMessages(selectedIds), 'chat.inbox.bulk.cleared');
+  };
+
+  const handleBulkEnd = (input: { closingReasonId: number; notes?: string; sendClosingMessage: boolean }) => {
+    setEndDialogOpen(false);
+    runBulk(
+      () => bulkEndInboxConversations(selectedIds, input.closingReasonId, {
+        notes: input.notes,
+        sendClosingMessage: input.sendClosingMessage,
+      }),
+      'chat.inbox.bulk.ended'
+    );
+  };
+
+  /** The action row shown under the select-all strip. */
+  const bulkBar = (
+    <div className="flex items-center gap-1">
+      {[
+        {
+          key: 'favorite',
+          label: allSelectedFavorite ? t('chat.inbox.unfavorite') : t('chat.inbox.favorite'),
+          icon: <Star className={cn('h-4 w-4', allSelectedFavorite && 'fill-amber-400 text-amber-400')} />,
+          onClick: handleBulkFavorite,
+          danger: false,
+        },
+        {
+          key: 'archive',
+          label: showArchived ? t('chat.inbox.unarchive') : t('chat.inbox.archive'),
+          icon: showArchived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />,
+          onClick: handleBulkArchive,
+          danger: false,
+        },
+        {
+          key: 'end',
+          label: t('chat.inbox.end-conversation'),
+          icon: <MessageSquareOff className="h-4 w-4" />,
+          onClick: () => setEndDialogOpen(true),
+          danger: false,
+        },
+        {
+          key: 'clear',
+          label: t('chat.inbox.bulk.clear-messages'),
+          icon: <Eraser className="h-4 w-4" />,
+          onClick: () => setConfirmClear(true),
+          danger: true,
+        },
+      ].map(action => (
+        <Tooltip key={action.key}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn('h-8 w-8', action.danger && 'text-destructive hover:text-destructive hover:bg-destructive/10')}
+              onClick={action.onClick}
+              disabled={bulkBusy}
+              aria-label={action.label}
+            >
+              {bulkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : action.icon}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{action.label}</TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
+  );
+
   const handleBackToList = () => {
     setMobileView('list');
   };
@@ -301,6 +454,14 @@ const GlobalInbox: React.FC = () => {
     onFavoritesOnlyChange: setFavoritesOnly,
     onToggleFavorite: handleToggleFavorite,
     onToggleArchived: handleToggleArchived,
+    selectionMode,
+    onSelectionModeChange: (value: boolean) => {
+      setSelectionMode(value);
+      if (!value) setSelectedIds([]);
+    },
+    selectedIds,
+    onSelectedIdsChange: setSelectedIds,
+    bulkBar,
     // A websocket can prepend a chat that wasn't in the last count, so floor
     // the total at what's actually loaded — the header must never claim
     // fewer conversations than the list is showing. Corrects on next fetch.
@@ -465,6 +626,35 @@ const GlobalInbox: React.FC = () => {
         </div>
       )}
 
+      {/* Clearing deletes messages and cannot be undone, so it asks first and
+          says exactly what goes and what stays. */}
+      <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('chat.inbox.bulk.clear-title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('chat.inbox.bulk.clear-description').replace('{count}', String(selectedIds.length))}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkClear}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('chat.inbox.bulk.clear-confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <BulkEndConversationDialog
+        open={endDialogOpen}
+        onOpenChange={setEndDialogOpen}
+        count={selectedIds.length}
+        submitting={bulkBusy}
+        onConfirm={handleBulkEnd}
+      />
     </div>
   );
 };

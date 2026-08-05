@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, LogOut, UserCircle, ChevronDown, Loader2, Check, Menu,
+import { Search, Bell, Loader2, Check, Menu,
   BarChart3, Users, Settings, Database, Plug, MessageCircle, Inbox, CalendarDays, Package,
   Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus
 } from 'lucide-react';
@@ -61,7 +61,6 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [connected, setConnected] = useState(false);
   const [searchResults, setSearchResults] = useState<UnifiedSearchResult[]>([]);
@@ -74,7 +73,7 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { user, funnels, logout } = useAuth();
+  const { user, funnels } = useAuth();
   const { t } = useLanguage();
   const { preferences } = useUserPreferences();
   const userProfilePicUrl = usePrivateFile(user?.profile_pic);
@@ -657,37 +656,45 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* User Menu */}
+        {/*
+          User: a link straight to the profile, not a menu.
+
+          The dropdown held two items — "My profile" and sign out — so it cost a
+          click to reach the only destination it had. Sign out moved to the
+          bottom of the sidebar, under Support, which leaves this as a plain
+          navigation target.
+        */}
         {user && (
-          <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2 py-1.5 h-auto hover:bg-primary/10">
-                <div className="flex-shrink-0">
-                  {userProfilePicUrl ? (
-                    <img src={userProfilePicUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-border-strong" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-border-strong">
-                      <span className="text-primary font-semibold text-sm">{user.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
-                    </div>
-                  )}
+          <Link
+            to="/profile"
+            aria-label={t('header.my-profile')}
+            title={t('header.my-profile')}
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors duration-fast hover:bg-primary/10"
+          >
+            {/* Centred against the two lines of text beside it. */}
+            <div className="flex-shrink-0 self-center">
+              {userProfilePicUrl ? (
+                <img src={userProfilePicUrl} alt={user.name} className="w-9 h-9 rounded-full object-cover border border-border-strong" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border border-border-strong">
+                  <span className="text-primary font-semibold text-sm">{user.name ? user.name.charAt(0).toUpperCase() : '?'}</span>
                 </div>
-                {<span className="hidden lg:block text-sm font-medium text-foreground max-w-24 truncate">{user.name}</span>}
-                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-fast hidden sm:block ${userDropdownOpen ? 'rotate-180' : ''}`} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 glass-card backdrop-blur-md bg-background/95 border border-border-strong" sideOffset={8}>
-              <DropdownMenuItem className="cursor-pointer hover:bg-accent hover:text-accent-foreground">
-                <Link to="/profile" className="flex items-center w-full">
-                  <UserCircle className="h-4 w-4" />
-                  {t('header.my-profile')}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-accent hover:text-accent-foreground" onClick={logout}>
-                <LogOut className="h-4 w-4" />
-                {t('nav.logout')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              )}
+            </div>
+
+            {/* Name over email. Hidden on small screens, where the picture
+                alone is the target and the header has no room for two lines. */}
+            <div className="hidden lg:flex min-w-0 flex-col leading-tight">
+              <span className="max-w-36 truncate text-sm font-medium text-foreground">
+                {user.name}
+              </span>
+              {user.email && (
+                <span className="max-w-36 truncate text-xs text-muted-foreground">
+                  {user.email}
+                </span>
+              )}
+            </div>
+          </Link>
         )}
       </div>
     </motion.header>

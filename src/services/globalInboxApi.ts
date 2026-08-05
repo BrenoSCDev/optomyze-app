@@ -77,6 +77,59 @@ export const setInboxChatFavorite = async (chatId: number, favorite?: boolean): 
   return response.data;
 };
 
+/**
+ * What a bulk action did.
+ *
+ * `skipped` is not a failure: ending conversations passes over chats that had
+ * no open session, which is ordinary when a range is selected. The UI reports
+ * both numbers rather than claiming everything succeeded.
+ */
+export interface BulkActionResult {
+  processed: number;
+  skipped: number;
+  messages_sent?: number;
+}
+
+/**
+ * The bulk value is explicit, unlike the per-chat calls that flip what they
+ * find — across a mixed selection, flipping each one would archive half and
+ * unarchive the rest.
+ */
+export const bulkSetInboxChatsArchived = async (chatIds: number[], archived: boolean): Promise<BulkActionResult> => {
+  const response = await api.post('/api/inbox/chats/bulk/archived', { chat_ids: chatIds, archived });
+  return response.data;
+};
+
+export const bulkSetInboxChatsFavorite = async (chatIds: number[], favorite: boolean): Promise<BulkActionResult> => {
+  const response = await api.post('/api/inbox/chats/bulk/favorite', { chat_ids: chatIds, favorite });
+  return response.data;
+};
+
+/** Empties the conversations; it does not remove them from the inbox. */
+export const bulkClearInboxChatMessages = async (chatIds: number[]): Promise<BulkActionResult> => {
+  const response = await api.post('/api/inbox/chats/bulk/clear-messages', { chat_ids: chatIds });
+  return response.data;
+};
+
+/**
+ * `sendClosingMessage` sends a real message to every contact whose
+ * conversation is closed, so it is opt-in at the call site as well as on the
+ * server rather than defaulting on.
+ */
+export const bulkEndInboxConversations = async (
+  chatIds: number[],
+  closingReasonId: number,
+  options: { notes?: string; sendClosingMessage?: boolean } = {}
+): Promise<BulkActionResult> => {
+  const response = await api.post('/api/inbox/chats/bulk/end', {
+    chat_ids: chatIds,
+    closing_reason_id: closingReasonId,
+    notes: options.notes || undefined,
+    send_closing_message: options.sendClosingMessage ?? false,
+  });
+  return response.data;
+};
+
 export interface ChatMessagesResponse {
   data: InboxMessage[]; // newest first from API
   meta: PaginationMeta;

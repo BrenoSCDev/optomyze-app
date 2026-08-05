@@ -30,6 +30,7 @@ import InboxAvatar from './InboxAvatar';
 import MessageComposer from './MessageComposer';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import EndConversationDialog from './EndConversationDialog';
+import ProductMessage, { ProductDetails } from './ProductMessage';
 import { ChatSession } from '@/types/inbox';
 import { fetchActiveSession } from '@/services/chatSessionApi';
 import { useAuth } from '@/contexts/AuthContext';
@@ -892,6 +893,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       case 'document': return t('chat.inbox.reply-document');
       case 'location': return t('chat.inbox.reply-location');
       case 'contact': return t('chat.inbox.reply-contact');
+      case 'product': return t('chat.inbox.product');
       case 'story_reply': return t('chat.inbox.reply-story');
       case 'ephemeral': return t('chat.inbox.reply-ephemeral');
       default: return t('chat.inbox.reply-message');
@@ -1138,6 +1140,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         message.type === 'location' ? "p-2" :
                         message.type === 'document' ? "p-2" :
                         message.type === 'sticker' ? "p-0" :
+                        message.type === 'product' ? "p-2" :
                         message.type === 'contact' ? "p-3" : "p-3",
                         message.type === 'sticker'
                           ? "bg-transparent border-0 shadow-none"
@@ -1295,6 +1298,29 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                           )}>
                             {formatMessageTime(message.sent_at)}
                           </span>
+                        </div>
+                      ) : message.type === 'product' ? (
+                        <div className="space-y-1">
+                          <ProductMessage
+                            product={(message.metadata ?? {}) as ProductDetails}
+                            mediaPath={message.media_url}
+                            fallbackTitle={message.text}
+                            isOutgoing={message.direction === 'outgoing' && !isInternalNote(message)}
+                          />
+                          <div className={cn(
+                            "flex items-center gap-1",
+                            message.direction === 'outgoing' ? "justify-end" : "justify-start"
+                          )}>
+                            <span className={cn(
+                              "text-xs",
+                              message.direction === 'outgoing' ? "text-blue-100" : "text-muted-foreground"
+                            )}>
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.direction === 'outgoing' && message.status && !isInternalNote(message) && (
+                              <MessageStatusTicks status={message.status} variant="onBlue" />
+                            )}
+                          </div>
                         </div>
                       ) : message.type === 'contact' && message.metadata ? (
                         <div className="space-y-1">

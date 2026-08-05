@@ -41,6 +41,7 @@ import {
   Globe,
   Contact,
   Rocket,
+  LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -91,7 +92,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     setExpandedSection(expandedSection === sectionName ? '' : sectionName);
   };
   
-  const { funnels, user } = useAuth();
+  const { funnels, user, logout } = useAuth();
   const { t } = useLanguage();
   const { mode } = useTheme();
   const navigate = useNavigate();
@@ -673,6 +674,31 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
             </div>
           </button>
           ), 'support-entry')}
+
+          {/* Sign out, last. It moved here from the header's user menu, which
+              existed only to hold it and "My profile" — the avatar is now a
+              direct link, and this is the one action that ends the session, so
+              it sits at the very bottom where nothing is clicked by accident. */}
+          {withRailTooltip(t('nav.logout'), (
+          <button
+            type="button"
+            onClick={() => { onMobileClose?.(); logout(); }}
+            className={`nav-item w-full text-destructive hover:!bg-destructive/10 hover:!text-destructive ${
+              effectivelyCollapsed ? 'justify-center px-0' : ''
+            }`}
+          >
+            <div className="flex items-center gap-3 [&>svg]:shrink-0">
+              <LogOut className="h-5 w-5" />
+              <AnimatePresence>
+                {!effectivelyCollapsed && (
+                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    {t('nav.logout')}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+          </button>
+          ), 'logout-entry')}
         </div>
         </>
         )}
