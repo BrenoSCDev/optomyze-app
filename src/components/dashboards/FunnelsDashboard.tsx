@@ -8,10 +8,11 @@
  */
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { Plus, Trash2, AlertCircle, Eye, ListTree, Pencil, Users, FileStack } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, AlertTriangle, Eye, ListTree, Loader2, Pencil, Users, FileStack } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -254,6 +255,9 @@ const FunnelsDashboard = ({ embedded = false }: FunnelsDashboardProps) => {
   const [showNewFunnelModal, setShowNewFunnelModal] = useState(false);
   const [showEditFunnelModal, setShowEditFunnelModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Funnel | null>(null);
+  // How many contacts the pending delete would unfile. null while it is still
+  // being counted, so the dialog can wait rather than flash a wrong "0".
+  const [deleteImpact, setDeleteImpact] = useState<number | null>(null);
   const [deletingFunnelId, setDeletingFunnelId] = useState<number | null>(null);
   const [togglingFunnelId, setTogglingFunnelId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
@@ -409,6 +413,30 @@ const FunnelsDashboard = ({ embedded = false }: FunnelsDashboardProps) => {
       });
     } finally {
       setCreating(false);
+    }
+  };
+
+  /**
+   * Open the confirmation, and go and count what it would cost.
+   *
+   * Deleting a funnel no longer deletes the contacts in it — they are unfiled
+   * and stay reachable from Contacts — but that is only reassuring if the
+   * dialog says how many are about to move. The count is fetched rather than
+   * derived from anything already loaded, because the board holds one page per
+   * stage, not the whole funnel.
+   */
+  const requestDelete = async (funnel: Funnel) => {
+    setDeleteTarget(funnel);
+    setDeleteImpact(null);
+
+    try {
+      const { data } = await api.get<{ lead_count: number }>(`/api/funnels/${funnel.id}/delete-impact`);
+      setDeleteImpact(data.lead_count);
+    } catch (error) {
+      // A failed count must not block the delete — it only means the dialog
+      // falls back to its generic warning.
+      console.error('Error loading funnel delete impact:', error);
+      setDeleteImpact(0);
     }
   };
 
@@ -677,7 +705,7 @@ const FunnelsDashboard = ({ embedded = false }: FunnelsDashboardProps) => {
                 onView={(f) => navigate(f.type === 'deal' ? `/deals/${f.id}` : `/leads/${f.id}`)}
                 onManageStages={(f) => setStagesModalFunnelId(f.id.toString())}
                 onEdit={openEditModal}
-                onDeleteRequest={setDeleteTarget}
+                onDeleteRequest={requestDelete}
                 onToggleActive={toggleFunnelActive}
                 isToggling={togglingFunnelId === funnel.id}
                 isDeleting={deletingFunnelId === funnel.id}
@@ -922,9 +950,28 @@ const FunnelsDashboard = ({ embedded = false }: FunnelsDashboardProps) => {
               {t('funnels.delete-confirm')} '{deleteTarget?.name}'? {t('funnels.delete-warning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {/* What actually happens to the contacts. Only shown once counted,
+              and only when there are any — "0 contacts will be unfiled" is
+              noise on an empty funnel. */}
+          {deleteImpact === null ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t('funnels.delete-impact-loading')}
+            </div>
+          ) : deleteImpact > 0 && (
+            <Alert className="border-amber-500/30 bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
+                {t('funnels.delete-impact-leads').replace('{count}', String(deleteImpact))}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <AlertDialogFooter>
             <AlertDialogCancel>{t('funnels.cancel')}</AlertDialogCancel>
             <AlertDialogAction
+              disabled={deleteImpact === null}
               onClick={() => {
                 if (deleteTarget) {
                   const target = deleteTarget;

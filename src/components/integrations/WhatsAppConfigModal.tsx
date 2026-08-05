@@ -255,11 +255,18 @@ const WhatsAppConfigModal: React.FC<WhatsAppConfigModalProps> = ({
     ));
   };
 
-  const handleFunnelUpdated = (instanceId: number, funnelId: number) => {
-    const selectedFunnel = funnels.find(f => f.id === funnelId);
+  // funnelId is null when the account is deliberately left unfiled, which has
+  // to clear the badge rather than leave the previous funnel showing.
+  const handleFunnelUpdated = (instanceId: number, funnelId: number | null) => {
+    const selectedFunnel = funnelId === null ? null : funnels.find(f => f.id === funnelId);
+
     setInstances(prev => prev.map(inst =>
       inst.id === instanceId
-        ? { ...inst, funnel_id: funnelId, funnel: selectedFunnel ? { id: funnelId, name: selectedFunnel.name } : undefined }
+        ? {
+            ...inst,
+            funnel_id: funnelId ?? undefined,
+            funnel: selectedFunnel ? { id: selectedFunnel.id, name: selectedFunnel.name } : undefined,
+          }
         : inst
     ));
   };

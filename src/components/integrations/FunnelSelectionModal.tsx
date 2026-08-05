@@ -50,8 +50,16 @@ interface FunnelSelectionModalProps {
   onOpenChange: (open: boolean) => void;
   instance: WhatsAppInstance | null;
   funnels: Funnel[];
-  onFunnelUpdated?: (instanceId: number, funnelId: number) => void;
+  onFunnelUpdated?: (instanceId: number, funnelId: number | null) => void;
 }
+
+/**
+ * Sentinel for "no funnel".
+ *
+ * A Select cannot hold an empty string as a value, and null is what the API
+ * wants, so the choice travels as this and is translated at the boundary.
+ */
+const NO_FUNNEL = 'none';
 
 const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   open,
@@ -63,16 +71,15 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   const { t } = useLanguage();
   const { toast } = useToast();
   const [selectedFunnelId, setSelectedFunnelId] = useState<string>('');
-  const [showValidation, setShowValidation] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Pre-select the current funnel when modal opens
+  // Pre-select the current funnel — or NO_FUNNEL, which is a real saved state
+  // and not the same as "nothing chosen yet".
   React.useEffect(() => {
-    if (open && instance?.funnel_id) {
-      setSelectedFunnelId(String(instance.funnel_id));
-    } else if (!open) {
+    if (open) {
+      setSelectedFunnelId(instance?.funnel_id ? String(instance.funnel_id) : NO_FUNNEL);
+    } else {
       setSelectedFunnelId('');
-      setShowValidation(false);
     }
   }, [open, instance?.funnel_id]);
 
@@ -81,25 +88,24 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
   };
 
   const handleConfirm = async () => {
-    if (!selectedFunnelId) {
-      setShowValidation(true);
-      return;
-    }
+    if (!instance || !selectedFunnelId) return;
 
-    if (!instance) return;
+    const funnelId = selectedFunnelId === NO_FUNNEL ? null : parseInt(selectedFunnelId, 10);
 
     setIsSaving(true);
     try {
       await api.put(`/api/integrations/whatsapp-evo-integrations/${instance.id}/funnel`, {
-        funnel_id: parseInt(selectedFunnelId, 10),
+        funnel_id: funnelId,
       });
 
       toast({
         title: t('integrations.panel.funnel.success-title'),
-        description: t('integrations.panel.funnel.success-description'),
+        description: funnelId === null
+          ? t('integrations.panel.funnel.cleared-description')
+          : t('integrations.panel.funnel.success-description'),
       });
 
-      onFunnelUpdated?.(instance.id, parseInt(selectedFunnelId, 10));
+      onFunnelUpdated?.(instance.id, funnelId);
       handleClose();
     } catch (error) {
       console.error('Error associating funnel:', error);
@@ -115,7 +121,6 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
 
   const handleFunnelChange = (value: string) => {
     setSelectedFunnelId(value);
-    setShowValidation(false);
   };
 
   if (!instance) return null;
@@ -146,13 +151,16 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
           <div className="space-y-2 z-100">
             <Label htmlFor="funnel-select">{t('integrations.panel.funnel.select-label')}</Label>
             <Select value={selectedFunnelId} onValueChange={handleFunnelChange}>
-              <SelectTrigger 
-                id="funnel-select" 
-                className={`w-full bg-background ${showValidation && !selectedFunnelId ? 'border-destructive' : ''}`}
-              >
+              <SelectTrigger id="funnel-select" className="w-full bg-background">
                 <SelectValue placeholder={t('integrations.panel.funnel.select-placeholder')} />
               </SelectTrigger>
               <SelectContent>
+                {/* Running an account with no funnel is a supported setup, not
+                    an unfinished one — the contacts it creates simply arrive
+                    unfiled. Listed first so it reads as a choice. */}
+                <SelectItem value={NO_FUNNEL}>
+                  {t('integrations.panel.funnel.no-funnel')}
+                </SelectItem>
                 {funnels.map((funnel) => (
                   <SelectItem key={funnel.id} value={String(funnel.id)}>
                     {funnel.name}
@@ -160,18 +168,15 @@ const FunnelSelectionModal: React.FC<FunnelSelectionModalProps> = ({
                 ))}
               </SelectContent>
             </Select>
-            {showValidation && !selectedFunnelId && (
-              <p className="text-sm text-destructive">
-                {t('integrations.panel.funnel.validation-error')}
-              </p>
-            )}
           </div>
 
-          {/* Info Message */}
+          {/* What the choice actually does, which differs between the two. */}
           <Alert className="border-blue-500/30 bg-blue-500/10">
             <Info className="h-4 w-4 text-blue-500" />
             <AlertDescription className="text-sm text-foreground">
-              {t('integrations.panel.funnel.info-message')}
+              {selectedFunnelId === NO_FUNNEL
+                ? t('integrations.panel.funnel.no-funnel-info')
+                : t('integrations.panel.funnel.info-message')}
             </AlertDescription>
           </Alert>
         </div>
