@@ -149,6 +149,8 @@ export interface SendMessagePayload {
   lead_id: number;
   text: string;
   message_mode?: 'external' | 'internal';
+  /** Quote an earlier message from the same conversation. */
+  reply_to_message_id?: number | null;
 }
 
 export interface SentMessageData {
@@ -199,13 +201,15 @@ export const sendInboxMedia = async (
   leadId: number,
   type: 'image' | 'audio',
   file: File,
-  messageMode: 'external' | 'internal' = 'external'
+  messageMode: 'external' | 'internal' = 'external',
+  replyToMessageId?: number | null
 ): Promise<SendMessageResponse> => {
   const formData = new FormData();
   formData.append('lead_id', String(leadId));
   formData.append('type', type);
   formData.append('file', file);
   formData.append('message_mode', messageMode);
+  if (replyToMessageId) formData.append('reply_to_message_id', String(replyToMessageId));
   const response = await api.post(
     `/api/inbox/instances/${instanceId}/media`,
     formData,
@@ -226,11 +230,12 @@ export const sendInboxMedia = async (
 export const sendWebsiteChatMessage = async (
   chatId: number,
   text: string,
-  messageMode: 'external' | 'internal' = 'external'
+  messageMode: 'external' | 'internal' = 'external',
+  replyToMessageId?: number | null
 ): Promise<SendMessageResponse> => {
   const response = await api.post(
     `/api/inbox/chats/${chatId}/website-messages`,
-    { text, message_mode: messageMode }
+    { text, message_mode: messageMode, reply_to_message_id: replyToMessageId }
   );
   return response.data;
 };
@@ -257,13 +262,15 @@ export const sendInstagramMedia = async (
   chatId: number,
   type: 'image' | 'audio',
   file: File,
-  messageMode: 'external' | 'internal' = 'external'
+  messageMode: 'external' | 'internal' = 'external',
+  replyToMessageId?: number | null
 ): Promise<SendMessageResponse> => {
   const formData = new FormData();
   formData.append('chat_id', String(chatId));
   formData.append('type', type);
   formData.append('file', file);
   formData.append('message_mode', messageMode);
+  if (replyToMessageId) formData.append('reply_to_message_id', String(replyToMessageId));
   const response = await api.post(
     `/api/inbox/instagram/${integrationId}/media`,
     formData,

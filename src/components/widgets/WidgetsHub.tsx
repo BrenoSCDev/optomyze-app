@@ -354,7 +354,7 @@ const WidgetsHub: React.FC<WidgetsHubProps> = ({ isEmbedded = false, type }) => 
 
       {/* Embed code dialog */}
       <Dialog open={!!embedWidget} onOpenChange={(open) => !open && setEmbedWidget(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t('widgets.embed.title')}</DialogTitle>
           </DialogHeader>

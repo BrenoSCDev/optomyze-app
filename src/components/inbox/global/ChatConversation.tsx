@@ -10,7 +10,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings, Star, Archive, ArchiveRestore, EyeOff } from 'lucide-react';
+import { MessageSquare, Phone, ArrowLeft, Send, Loader2, X, MapPin, ExternalLink, StickyNote, Trash2, Inbox, Bot, Check, CheckCheck, Clock, AlertCircle, Smile, Captions, AtSign, CircleSlash, Settings, Star, Archive, ArchiveRestore, EyeOff, Reply } from 'lucide-react';
 import { HiOutlineDevicePhoneMobile } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -399,6 +399,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [leadPreviewOpen, setLeadPreviewOpen] = useState(false);
   const [messageMode, setMessageMode] = useState<'external' | 'internal'>('external');
+  // Held with the message itself rather than a bare id so the citation bar can
+  // render without a lookup. Never cleared in an effect: it is only honoured
+  // when it belongs to the open conversation (see `replyingTo` below), so
+  // switching chats discards it on its own.
+  const [replyTarget, setReplyTarget] = useState<InboxMessage | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
@@ -410,6 +415,14 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
+
+  // Replying and reacting both address an existing message by its provider id,
+  // so both are offered on exactly the channels that give us one. Website chat
+  // qualifies trivially: the message ids are ours.
+  const supportsMessageActions = chat?.channel === 'whatsapp'
+    || chat?.channel === 'instagram'
+    || chat?.channel === 'website';
+  const replyingTo = supportsMessageActions && replyTarget?.inbox_chat_id === chat?.id ? replyTarget : null;
 
   // Track local message IDs to avoid duplicates
   const localMessageIdsRef = useRef<Set<number>>(new Set());
@@ -645,20 +658,23 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     const text = messageText.trim();
     const tempId = `pending-${Date.now()}`;
     const currentMode = messageMode;
+    const quotedId = replyingTo?.id ?? null;
 
     setMessageText('');
+    setReplyTarget(null);
     setIsSending(true);
     setPendingMessages(prev => [...prev, { id: tempId, text, status: 'sending', messageMode: currentMode }]);
 
     try {
       const response = chat.channel === 'website'
-        ? await sendWebsiteChatMessage(chat.id, text, currentMode)
+        ? await sendWebsiteChatMessage(chat.id, text, currentMode, quotedId)
         : chat.channel === 'instagram'
-          ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode)
+          ? await sendInstagramMessage(chat.channelable_id, chat.id, text, currentMode, quotedId ?? undefined)
           : await sendInboxMessage(chat.channelable_id, {
               lead_id: chat.lead!.id,
               text,
-              message_mode: currentMode
+              message_mode: currentMode,
+              reply_to_message_id: quotedId
             });
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
@@ -689,6 +705,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       setPendingMessages(prev =>
         prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m)
       );
+
+      // Put the citation back so a retry still quotes what the agent picked.
+      if (replyingTo) setReplyTarget(replyingTo);
 
       const isWindowExpired = error?.response?.data?.message === 'instagram_window_expired';
 
@@ -722,13 +741,15 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     if (chat.channel !== 'instagram' && !chat?.lead?.id) return;
 
     const tempId = `pending-media-${Date.now()}`;
+    const quotedId = replyingTo?.id ?? null;
+    setReplyTarget(null);
     setIsSendingMedia(true);
     setPendingMessages(prev => [...prev, { id: tempId, text: type === 'image' ? '📷 Image' : '🎤 Audio', status: 'sending', messageMode: mode }]);
 
     try {
       const response = chat.channel === 'instagram'
-        ? await sendInstagramMedia(chat.channelable_id, chat.id, type, file, mode)
-        : await sendInboxMedia(chat.channelable_id, chat.lead!.id, type, file, mode);
+        ? await sendInstagramMedia(chat.channelable_id, chat.id, type, file, mode, quotedId)
+        : await sendInboxMedia(chat.channelable_id, chat.lead!.id, type, file, mode, quotedId);
 
       setPendingMessages(prev => prev.filter(m => m.id !== tempId));
 
@@ -746,6 +767,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
         user_id: response.message.user_id,
         message_mode: response.message.message_mode || mode,
         user: response.message.user,
+        reply_to_message_id: response.message.reply_to_message_id,
+        reply_to_snapshot: response.message.reply_to_snapshot,
       };
 
       if (!localMessageIdsRef.current.has(sentMessage.id)) {
@@ -756,6 +779,9 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
       onMessageSent?.(sentMessage);
     } catch (error: any) {
       setPendingMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'error' } : m));
+
+      // Put the citation back so a retry still quotes what the agent picked.
+      if (replyingTo) setReplyTarget(replyingTo);
 
       const isWindowExpired = error?.response?.data?.message === 'instagram_window_expired';
 
@@ -769,7 +795,7 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
     } finally {
       setIsSendingMedia(false);
     }
-  }, [chat?.lead, chat?.channelable_id, chat?.channel, chat?.id, onMessageSent, t]);
+  }, [chat?.lead, chat?.channelable_id, chat?.channel, chat?.id, replyingTo, onMessageSent, t]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -867,7 +893,20 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
   const handleReact = async (message: InboxMessage, emoji: string) => {
     const currentEmoji = message.reactions?.agent?.emoji;
+    // Tapping the emoji already applied removes it — the same endpoint with an
+    // empty string, not a re-send of the same emoji.
     const newEmoji = currentEmoji === emoji ? '' : emoji;
+
+    // Applied optimistically: the payload is tiny and the previous state is
+    // right here to roll back to if the request fails.
+    const previousReactions = message.reactions;
+    const optimisticReactions = { ...(message.reactions ?? {}) };
+    if (newEmoji === '') {
+      delete optimisticReactions.agent;
+    } else {
+      optimisticReactions.agent = { emoji: newEmoji };
+    }
+    setLocalMessages(prev => prev.map(m => m.id === message.id ? { ...m, reactions: optimisticReactions } : m));
 
     try {
       const response = await sendInboxReaction(message.id, newEmoji);
@@ -875,6 +914,8 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
 
       setLocalMessages(prev => prev.map(m => m.id === message.id ? { ...m, reactions: updatedReactions } : m));
     } catch (error: any) {
+      setLocalMessages(prev => prev.map(m => m.id === message.id ? { ...m, reactions: previousReactions } : m));
+
       toast({
         title: t('chat.inbox.reaction-error'),
         description: error?.response?.data?.message || '',
@@ -1093,12 +1134,25 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       />
                     )}
                     <div className="relative max-w-[75%]">
-                    {/* WhatsApp reactions are temporarily hidden — not working correctly yet. Code kept intact for Instagram and for re-enabling later. */}
-                    {chat.channel === 'instagram' && !isInternalNote(message) && (
+                    {/* Hover actions: reply, then the reaction picker. */}
+                    {supportsMessageActions && !isInternalNote(message) && (
                       <div className={cn(
                         "absolute top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-                        message.direction === 'outgoing' ? "-left-8" : "-right-8"
+                        message.direction === 'outgoing' ? "-left-16" : "-right-16"
                       )}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => setReplyTarget(message)}
+                            className="p-1 rounded-full bg-card border border-border/60 shadow-sm hover:bg-muted"
+                            aria-label={t('chat.inbox.reply-to-message')}
+                          >
+                            <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">{t('chat.inbox.reply-to-message')}</TooltipContent>
+                      </Tooltip>
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
@@ -1610,6 +1664,19 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
             onAttach={chat.channel === 'website' ? undefined : () => imageInputRef.current?.click()}
             isAttaching={isSendingMedia}
             onSendAudio={chat.channel === 'website' ? undefined : (file) => handleSendMedia(file, 'audio', messageMode)}
+            replyPreview={replyingTo ? {
+              author: replyingTo.direction === 'outgoing'
+                ? (replyingTo.user?.name || t('chat.inbox.you'))
+                : getLeadName(),
+              excerpt: getReplyPreviewLabel(replyingTo),
+              // Evolution can't attach a quote to a WhatsApp voice note (see
+              // sendMediaMessage in the API); the link stays CRM-side only.
+              // Shown only while recording — see MessageComposer.
+              warning: chat.channel === 'whatsapp'
+                ? t('chat.inbox.reply-audio-not-supported')
+                : undefined,
+              onCancel: () => setReplyTarget(null),
+            } : undefined}
           />
         </div>
       ) : (

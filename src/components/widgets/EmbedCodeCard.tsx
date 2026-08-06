@@ -58,7 +58,11 @@ const EmbedCodeCard: React.FC<EmbedCodeCardProps> = ({ widget, embedBaseUrl, onR
   };
 
   return (
-    <div className="space-y-4">
+    // min-w-0: the snippet's longest line is a single unbreakable token, and
+    // this card sits in a grid (the embed dialog), where the default
+    // min-width:auto would let that line stretch the track instead of
+    // scrolling inside the <pre> below.
+    <div className="min-w-0 space-y-4">
       <div>
         <h3 className="text-sm font-semibold text-foreground">{t('widgets.embed.title')}</h3>
         <p className="text-xs text-muted-foreground">

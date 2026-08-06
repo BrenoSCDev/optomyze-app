@@ -13,7 +13,7 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { Send, Paperclip, Mic, StickyNote, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Paperclip, Mic, StickyNote, Sparkles, Loader2, X, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -77,6 +77,19 @@ export interface MessageComposerProps {
 
   /** When provided, enables the voice recorder. Called with the recorded clip on send. */
   onSendAudio?: (file: File) => void;
+
+  /**
+   * Message being quoted, shown as a citation bar above the input. `warning`
+   * covers the case where the channel can't carry the quote on a voice note
+   * (WhatsApp), so it only appears once recording actually starts — it is
+   * irrelevant to a text or image reply and would just be noise there.
+   */
+  replyPreview?: {
+    author: string;
+    excerpt: string;
+    warning?: string;
+    onCancel: () => void;
+  };
 }
 
 const MessageComposer: React.FC<MessageComposerProps> = ({
@@ -92,6 +105,7 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
   onAttach,
   isAttaching,
   onSendAudio,
+  replyPreview,
 }) => {
   const { t } = useLanguage();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -161,6 +175,32 @@ const MessageComposer: React.FC<MessageComposerProps> = ({
           : "border-border focus-within:ring-primary/30"
       )}
     >
+      {/* Citation bar for the message being replied to */}
+      {replyPreview && (
+        <div className="flex items-start gap-2 border-b border-border/60 px-3 py-2">
+          <div className="min-w-0 flex-1 border-l-2 border-primary/50 pl-2">
+            <p className="text-xs font-medium text-primary truncate">{replyPreview.author}</p>
+            <p className="text-xs text-muted-foreground truncate">{replyPreview.excerpt}</p>
+            {replyPreview.warning && isRecording && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="h-3 w-3 shrink-0" />
+                <span className="truncate">{replyPreview.warning}</span>
+              </p>
+            )}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={replyPreview.onCancel}
+            aria-label={t('chat.composer.cancel-reply')}
+            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+
       {/* Internal note indicator */}
       {isInternal && !isRecording && (
         <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-medium text-amber-700 dark:text-amber-400">
