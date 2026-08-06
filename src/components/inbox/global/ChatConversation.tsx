@@ -27,6 +27,7 @@ import DocumentMessage from './DocumentMessage';
 import { usePrivateFile } from '@/hooks/usePrivateFile';
 import ContactMessage from './ContactMessage';
 import InboxAvatar from './InboxAvatar';
+import MessageText from './MessageText';
 import MessageComposer from './MessageComposer';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import EndConversationDialog from './EndConversationDialog';
@@ -307,9 +308,11 @@ const InboxPrivateVideo: React.FC<{
         <div className="w-48 h-32 rounded-md bg-muted/40 animate-pulse" />
       )}
       {caption && (
-        <p className={cn('text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-2 pt-1', isInternalNote && 'text-amber-900 dark:text-amber-100')}>
-          {caption}
-        </p>
+        <MessageText
+          text={caption}
+          onAccent={direction === 'outgoing' && !isInternalNote}
+          className={cn('px-2 pt-1', isInternalNote && 'text-amber-900 dark:text-amber-100')}
+        />
       )}
       <div className={cn('flex items-center gap-1 px-2 pb-1', direction === 'outgoing' ? 'justify-end' : 'justify-start')}>
         <span className={cn('text-xs', isInternalNote ? 'text-amber-600 dark:text-amber-400' : direction === 'outgoing' ? 'text-blue-100' : 'text-muted-foreground')}>
@@ -1243,9 +1246,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             sentAt={message.sent_at}
                           />
                           {message.text && (
-                            <p className={cn("text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-2 pt-1", isInternalNote(message) && "text-amber-900 dark:text-amber-100")}>
-                              {message.text}
-                            </p>
+                            <MessageText
+                              text={message.text}
+                              onAccent={message.direction === 'outgoing' && !isInternalNote(message)}
+                              className={cn('px-2 pt-1', isInternalNote(message) && 'text-amber-900 dark:text-amber-100')}
+                            />
                           )}
                         </div>
                       ) : message.type === 'audio' && message.media_url ? (
@@ -1260,9 +1265,10 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                             sentAt={message.sent_at}
                           />
                           {message.text && (
-                            <p className="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
-                              {message.text}
-                            </p>
+                            <MessageText
+                              text={message.text}
+                              onAccent={message.direction === 'outgoing' && !isInternalNote(message)}
+                            />
                           )}
                         </div>
                       ) : message.type === 'location' && message.latitude != null && message.longitude != null ? (
@@ -1415,12 +1421,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                         </div>
                       ) : (
                         <>
-                          <p className={cn(
-                            "text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
-                            isInternalNote(message) && "text-amber-900 dark:text-amber-100"
-                          )}>
-                            {message.text}
-                          </p>
+                          <MessageText
+                            text={message.text}
+                            onAccent={message.direction === 'outgoing' && !isInternalNote(message)}
+                            className={cn(isInternalNote(message) && "text-amber-900 dark:text-amber-100")}
+                          />
                           <div className={cn(
                             "flex items-center gap-1 mt-1",
                             message.direction === 'outgoing' ? "justify-end" : "justify-start"
@@ -1565,12 +1570,11 @@ const ChatConversation: React.FC<ChatConversationProps> = ({
                       </span>
                     </div>
                   )}
-                  <p className={cn(
-                    "text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
-                    pending.messageMode === 'internal' && "text-amber-900 dark:text-amber-100"
-                  )}>
-                    {pending.text}
-                  </p>
+                  <MessageText
+                    text={pending.text}
+                    onAccent={pending.messageMode !== 'internal'}
+                    className={cn(pending.messageMode === 'internal' && "text-amber-900 dark:text-amber-100")}
+                  />
                   <div className="flex items-center gap-1 mt-1 justify-end">
                     {pending.status === 'sending' ? (
                       <span className={cn(
