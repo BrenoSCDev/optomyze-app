@@ -122,7 +122,34 @@ export interface AppointmentNotification {
   read: boolean;
 }
 
-export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification | DealTransactionNotification | AppointmentNotification;
+/**
+ * A contract (or proposal, quote, NDA) reached a milestone.
+ *
+ * `type` carries the server's event key rather than a single 'document' value,
+ * because the four outcomes want different words and different urgency — a
+ * refusal is not a signature with a minus sign.
+ */
+export interface DocumentNotification {
+  id: string;
+  type: 'document_signed' | 'document_rejected' | 'document_expired' | 'document_sent';
+  message: string;
+  priority: 'low' | 'normal' | 'high';
+  document: {
+    id: number;
+    number: string;
+    title: string;
+    status: string;
+    category: string | null;
+    lead_id: number | null;
+    sale_id: number | null;
+    owner_id: number | null;
+  };
+  actor: { id: number; name: string } | null;
+  timestamp: string;
+  read: boolean;
+}
+
+export type AppNotification = LeadNotification | ChatGroupNotification | ChatMessageNotification | LeadTransactionNotification | DealTransactionNotification | AppointmentNotification | DocumentNotification;
 
 // Global event emitter for lead transactions (used by activity dashboards)
 type LeadTransactionListener = (payload: LeadTransactionNotification['transaction']) => void;
@@ -193,7 +220,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [markAsRead]);
 
   // Add a new notification - STABLE callback
-  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'> | Omit<DealTransactionNotification, 'read'> | Omit<AppointmentNotification, 'read'>) => {
+  // Spelled out rather than `Omit<AppNotification, 'read'>`: Omit over a union
+  // collapses it to the keys the members share, which would reduce every
+  // notification to { id, type, message, timestamp } and reject the rest.
+  const addNotification = useCallback((data: Omit<LeadNotification, 'read'> | Omit<ChatGroupNotification, 'read'> | Omit<ChatMessageNotification, 'read'> | Omit<LeadTransactionNotification, 'read'> | Omit<DealTransactionNotification, 'read'> | Omit<AppointmentNotification, 'read'> | Omit<DocumentNotification, 'read'>) => {
     const notification = { ...data, read: false } as AppNotification;
 
     setNotifications(prev => {
@@ -387,6 +417,25 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         lead: payload.lead ?? null,
         assigned_user: payload.assigned_user ?? null,
         actor: payload.actor,
+        timestamp: payload.timestamp ?? new Date().toISOString(),
+      });
+    });
+
+    // Document milestone (contract signed / refused / expired / sent)
+    channel.listen('.document.transaction', (payload: any) => {
+      console.log('🔔 Received document.transaction event:', payload);
+
+      // The server already decided this event is worth a notification and who
+      // is eligible; the only thing left to filter is the person who caused it.
+      if (payload.actor?.id === user.id) return;
+
+      addNotification({
+        id: payload.id ?? `document_${payload.document?.id}_${Date.now()}`,
+        type: payload.type,
+        message: payload.message,
+        priority: payload.priority ?? 'normal',
+        document: payload.document,
+        actor: payload.actor ?? null,
         timestamp: payload.timestamp ?? new Date().toISOString(),
       });
     });

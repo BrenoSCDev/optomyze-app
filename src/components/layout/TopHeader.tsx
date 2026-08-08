@@ -12,7 +12,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, Loader2, Check, Menu,
   BarChart3, Users, Settings, Database, Plug, MessageCircle, Inbox, CalendarDays, Package,
-  Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus
+  Headphones, PieChart, Building, ClipboardList, Handshake, ListTodo, Tag, Key, Shield, UsersRound, Bot, TicketPlus,
+  FileCheck2, FileX2, FileClock, FileSignature
 } from 'lucide-react';
 import LeadPreviewModal from '@/components/leads/LeadPreviewModal';
 import DealPreviewModal from '@/components/deals/DealPreviewModal';
@@ -243,6 +244,10 @@ const TopHeader = ({ sidebarCollapsed, onMobileMenuToggle, activeSection, onSect
       setIsLeadModalOpen(true);
     } else if (notif.type === 'private_message') {
       navigate('/?section=optomyze-inbox');
+    } else if (notif.type?.startsWith('document_')) {
+      // The board is the module's entry point; deep-linking to the document
+      // itself needs a route the module does not have yet.
+      navigate('/?section=documents');
     }
   };
 
@@ -749,6 +754,24 @@ const NotificationAvatar = ({ notif }: { notif: AppNotification }) => {
     return (
       <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
         <span className="text-emerald-500 font-semibold text-xs">{initials}</span>
+      </div>
+    );
+  }
+
+  // Documents get an icon rather than initials: the notable party is the
+  // contract, and the counterparty who acted is often not a CRM user at all.
+  if (notif.type?.startsWith('document_')) {
+    const { Icon, tone } = notif.type === 'document_signed'
+      ? { Icon: FileCheck2, tone: 'bg-emerald-500/20 text-emerald-500' }
+      : notif.type === 'document_rejected'
+        ? { Icon: FileX2, tone: 'bg-destructive/20 text-destructive' }
+        : notif.type === 'document_expired'
+          ? { Icon: FileClock, tone: 'bg-amber-500/20 text-amber-500' }
+          : { Icon: FileSignature, tone: 'bg-primary/20 text-primary' };
+
+    return (
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${tone}`}>
+        <Icon className="w-4 h-4" />
       </div>
     );
   }

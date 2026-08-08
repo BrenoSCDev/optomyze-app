@@ -33,6 +33,7 @@ import {
   FileText,
   Headphones,
   FileStack,
+  FileSignature,
   ListTodo,
   TicketPlus,
   Building,
@@ -199,6 +200,7 @@ const Sidebar = ({ isCollapsed, onToggle, activeSection, onSectionChange, mobile
     { id: 'contacts', label: t('nav.contacts'), icon: <Contact className="h-5 w-5" /> },
     { id: 'global-inbox', label: t('nav.inbox'), icon: <Inbox className="h-5 w-5" /> },
     { id: 'optomyze-calendar', label: t('nav.calendar'), icon: <CalendarDays className="h-5 w-5" /> },
+    { id: 'documents', label: t('nav.documents'), icon: <FileSignature className="h-5 w-5" /> },
     // Product name, deliberately untranslated — it reads the same in all four
     // languages, so t('nav.app-store') returns "App Store" everywhere.
     { id: 'integrations', label: t('nav.app-store'), icon: <RiAppsFill className="h-5 w-5" /> },

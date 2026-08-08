@@ -14,7 +14,7 @@ import {
   DollarSign, Package, TrendingUp, TrendingDown,
   FileText, Upload, Download, Eye, Trash2, File,
   CircleDot, GitBranch, Clock, AlertCircle, Activity,
-  CheckCircle, XCircle, StickyNote, ListTodo, CalendarDays, MessageSquare,
+  CheckCircle, XCircle, StickyNote, ListTodo, CalendarDays, MessageSquare, FileSignature,
   MoreVertical, UserCheck, Archive,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ import { dealFunnelService } from '@/services/dealFunnelApi';
 import DealStageJourney from './DealStageJourney';
 import NotesThread from '@/components/notes/NotesThread';
 import LeadTasksPanel from '@/components/leads/LeadTasksPanel';
+import DocumentsTab from '@/components/documents/DocumentsTab';
 import LeadAppointmentsTab from '@/components/leads/LeadAppointmentsTab';
 import LeadChatSection from '@/components/leads/LeadChatSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -791,6 +792,10 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 <ListTodo className="h-4 w-4" />
                                 {t('deal-preview.tab-tasks')}
                               </TabsTrigger>
+                              <TabsTrigger value="signatures" className="gap-2 text-xs">
+                                <FileSignature className="h-4 w-4" />
+                                {t('deal-preview.tab-documents')}
+                              </TabsTrigger>
                               {sale.lead?.id && (
                                 <TabsTrigger value="appointments" className="gap-2 text-xs">
                                   <CalendarDays className="h-4 w-4" />
@@ -814,6 +819,23 @@ const DealPreviewModal: React.FC<DealPreviewModalProps> = ({ isOpen, onClose, de
                                 opportunity, and dies with it. */}
                             <TabsContent value="tasks" className="mt-0">
                               <LeadTasksPanel saleId={sale.id} />
+                            </TabsContent>
+
+                            {/* Contracts belong to the opportunity being
+                                closed, so they hang off the deal — but the
+                                counterparty is the lead, which is who the
+                                first signer is prefilled from. */}
+                            <TabsContent value="signatures" className="mt-0">
+                              <DocumentsTab
+                                saleId={sale.id}
+                                leadId={sale.lead?.id ?? null}
+                                defaultSigner={{
+                                  name: sale.lead?.name ?? undefined,
+                                  email: sale.lead?.email ?? undefined,
+                                  phone: sale.lead?.phone ?? undefined,
+                                  leadId: sale.lead?.id,
+                                }}
+                              />
                             </TabsContent>
 
                             {sale.lead?.id && (

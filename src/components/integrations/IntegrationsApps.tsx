@@ -43,6 +43,8 @@ import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
 import FacebookMessengerConfigModal from './FacebookMessengerConfigModal';
 import OpenAiConfigModal from './OpenAiConfigModal';
+import SignatureProviderConfigModal from './SignatureProviderConfigModal';
+import clicksignIcon from '@/assets/clicksign-app.png';
 import WidgetsSlab from '../widgets/WidgetsSlab';
 import { Input } from '@/components/ui/input';
 import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
@@ -144,6 +146,12 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     iconColor: 'text-[#0EA5E9]',
     hoverBorder: 'hover:border-[#0EA5E9]/40',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(14,165,233,0.5)]',
+  },
+  clicksign: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(249,115,22,0.12),rgba(249,115,22,0.02))]',
+    iconColor: 'text-[#F97316]',
+    hoverBorder: 'hover:border-[#F97316]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(249,115,22,0.5)]',
   },
   openai: {
     // OpenAI's brand color is black — in dark mode the tint and icon flip
@@ -356,6 +364,7 @@ const IntegrationsApps: React.FC = () => {
   const [showFacebookConfigModal, setShowFacebookConfigModal] = useState(false);
   const [showOpenAiConfigModal, setShowOpenAiConfigModal] = useState(false);
   const [widgetsSlabType, setWidgetsSlabType] = useState<'form' | 'chat' | null>(null);
+  const [signatureProviderKey, setSignatureProviderKey] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeView, setActiveView] = useState<'marketplace' | 'my-apps'>('marketplace');
@@ -460,6 +469,20 @@ const IntegrationsApps: React.FC = () => {
           available: false,
           comingSoon: true,
           icon: <RiClaudeFill className="w-7 h-7" />
+        }
+      ]
+    },
+    {
+      id: 'signatures',
+      title: t('integrations.categories.signatures'),
+      integrations: [
+        {
+          key: 'clicksign',
+          name: 'Clicksign',
+          description: t('integrations.clicksign.description'),
+          available: false,
+          beta: true,
+          icon: <img src={clicksignIcon} alt="Clicksign" className="w-7 h-7 object-contain" />
         }
       ]
     },
@@ -581,6 +604,10 @@ const IntegrationsApps: React.FC = () => {
         setShowFacebookConfigModal(true);
       } else if (integrationKey === 'openai') {
         setShowOpenAiConfigModal(true);
+      } else if (integrationKey === 'clicksign') {
+        // The modal is provider-agnostic; the key just selects which driver
+        // it configures, so future vendors reuse it as-is.
+        setSignatureProviderKey('clicksign');
       } else if (integrationKey === 'form-widget') {
         setWidgetsSlabType('form');
       } else if (integrationKey === 'chat-widget') {
@@ -895,6 +922,12 @@ const IntegrationsApps: React.FC = () => {
         <OpenAiConfigModal
           open={showOpenAiConfigModal}
           onOpenChange={setShowOpenAiConfigModal}
+          onConfigurationSaved={handleConfigSaved}
+        />
+        <SignatureProviderConfigModal
+          open={signatureProviderKey !== null}
+          onOpenChange={(open) => !open && setSignatureProviderKey(null)}
+          providerKey={signatureProviderKey ?? undefined}
           onConfigurationSaved={handleConfigSaved}
         />
         <WidgetsSlab

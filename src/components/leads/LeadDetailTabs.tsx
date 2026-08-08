@@ -42,6 +42,7 @@ import { LeadProduct } from './ProductsSection';
 import LeadChatSection, { LeadInboxChat, LeadInboxMessage } from './LeadChatSection';
 import LeadCustomFieldsTab from './LeadCustomFieldsTab';
 import LeadAppointmentsTab from './LeadAppointmentsTab';
+import DocumentsTab from '@/components/documents/DocumentsTab';
 import { formatPhoneNumber } from '@/lib/phone';
 import { formatEnumLabel } from '@/lib/format';
 import SourcePlatformIcon from './SourcePlatformIcon';
@@ -202,14 +203,13 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
             <Calendar className="w-3.5 h-3.5 sm:mr-1.5" />
             <span className="hidden sm:inline">{t('lead-details.tabs.appointments')}</span>
           </TabsTrigger>
-          {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
-          {/* <TabsTrigger
-            value="contracts"
+          <TabsTrigger
+            value="signatures"
             className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
           >
             <FileSignature className="w-3.5 h-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">{t('lead-details.tabs.contracts')}</span>
-          </TabsTrigger> */}
+            <span className="hidden sm:inline">{t('lead-details.tabs.documents-module')}</span>
+          </TabsTrigger>
           <TabsTrigger
             value="custom-fields"
             className="flex-1 min-w-[44px] sm:min-w-[80px] text-xs data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-colors duration-fast ease-standard"
@@ -265,10 +265,19 @@ const LeadDetailTabs: React.FC<LeadDetailTabsProps> = ({
           <LeadAppointmentsTab leadId={lead.id} leadTimezone={lead.timezone} />
         </TabsContent>
 
-        {/* Contracts Tab - COMMENTED OUT: Feature to be implemented later */}
-        {/* <TabsContent value="contracts" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-          <ContractsContent />
-        </TabsContent> */}
+        {/* Signatures Tab */}
+        <TabsContent value="signatures" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          {/* Same component the deal view mounts, so both behave identically. */}
+          <DocumentsTab
+            leadId={lead.id}
+            defaultSigner={{
+              name: leadDisplayName(lead),
+              email: lead.email ?? undefined,
+              phone: lead.phone ?? undefined,
+              leadId: lead.id,
+            }}
+          />
+        </TabsContent>
 
         {/* Custom Fields Tab */}
         <TabsContent value="custom-fields" className="mt-0 focus-visible:outline-none focus-visible:ring-0">

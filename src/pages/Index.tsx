@@ -18,6 +18,7 @@ const RecordLogsDashboard    = lazy(() => import('@/components/reports/RecordLog
 const PreferencesPanel       = lazy(() => import('@/components/settings/PreferencesPanel'));
 const BusinessProfilePanel   = lazy(() => import('@/components/settings/BusinessProfilePanel'));
 const ManageContacts         = lazy(() => import('@/components/contacts/ManageContacts'));
+const DocumentsModule        = lazy(() => import('@/components/documents/DocumentsModule'));
 const CrmPanel               = lazy(() => import('@/components/settings/CrmPanel'));
 const LeadsManagement        = lazy(() => import('@/components/leads/LeadsManagement'));
 const ManageLeadCompanies    = lazy(() => import('@/components/companies/ManageLeadCompanies').then(m => ({ default: m.ManageLeadCompanies })));
@@ -82,6 +83,7 @@ const Index = () => {
       case 'crm-panel': return <CrmPanel />;
       case 'business-profile': return <BusinessProfilePanel />;
       case 'contacts': return <ManageContacts />;
+      case 'documents': return <DocumentsModule />;
       case 'preferences': return <PreferencesPanel />;
       case 'companies': return <ManageLeadCompanies />;
       case 'record-logs': return <RecordLogsDashboard />;
