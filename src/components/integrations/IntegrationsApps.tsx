@@ -2,8 +2,10 @@
  * INTEGRATIONS APPS PAGE
  *
  * Marketplace-style catalog of available app integrations.
- * Supports search and category filters across a single dense grid
- * of branded integration cards.
+ *
+ * Categories live in a left rail rather than a tab strip: there are now more
+ * of them than fit on one line, and a vertical list also has room for the
+ * per-category counts. The grid drops to three columns to pay for the rail.
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -19,6 +21,13 @@ import {
   Clock,
   LayoutTemplate,
   MessagesSquare,
+  Megaphone,
+  Sparkles,
+  PenLine,
+  Phone,
+  CreditCard,
+  Grid2x2,
+  LayoutGrid,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -42,13 +51,13 @@ import GoogleAdsConfigModal from './GoogleAdsConfigModal';
 import WhatsAppConfigModal from './WhatsAppConfigModal';
 import InstagramConfigModal from './InstagramConfigModal';
 import FacebookMessengerConfigModal from './FacebookMessengerConfigModal';
-import OpenAiConfigModal from './OpenAiConfigModal';
+import LlmProviderConfigModal from './LlmProviderConfigModal';
 import SignatureProviderConfigModal from './SignatureProviderConfigModal';
 import clicksignIcon from '@/assets/clicksign-app.png';
 import WidgetsSlab from '../widgets/WidgetsSlab';
 import { Input } from '@/components/ui/input';
-import { RiGeminiLine, RiClaudeFill, RiAppsFill } from "react-icons/ri";
-import { SiTwilio } from "react-icons/si";
+import { RiGeminiFill, RiClaudeFill, RiAppsFill } from "react-icons/ri";
+import { SiTwilio, SiStripe } from "react-icons/si";
 import { cn } from '@/lib/utils';
 
 interface Integration {
@@ -65,6 +74,8 @@ interface Integration {
 interface IntegrationCategory {
   id: string;
   title: string;
+  /** Shown beside the category in the left rail. */
+  icon: React.ReactNode;
   comingSoon?: boolean;
   integrations: Integration[];
 }
@@ -191,7 +202,19 @@ const BRAND_STYLES: Record<string, BrandStyle> = {
     hoverBorder: 'hover:border-[#EA4335]/40',
     hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(234,67,53,0.5)]',
   },
+  stripe: {
+    gradient: 'bg-[linear-gradient(135deg,rgba(99,91,255,0.10),rgba(99,91,255,0.02))]',
+    iconColor: 'text-[#635BFF]',
+    hoverBorder: 'hover:border-[#635BFF]/40',
+    hoverShadow: 'hover:shadow-[0_12px_30px_-14px_rgba(99,91,255,0.5)]',
+  },
 };
+
+/**
+ * Card keys that map onto LLM driver keys in the backend registry. These share
+ * one install endpoint and one config modal rather than having their own.
+ */
+const LLM_PROVIDER_KEYS = ['openai', 'gemini', 'claude'];
 
 const DEFAULT_BRAND: BrandStyle = {
   gradient: '',
@@ -362,7 +385,7 @@ const IntegrationsApps: React.FC = () => {
   const [showWhatsAppConfigModal, setShowWhatsAppConfigModal] = useState(false);
   const [showInstagramConfigModal, setShowInstagramConfigModal] = useState(false);
   const [showFacebookConfigModal, setShowFacebookConfigModal] = useState(false);
-  const [showOpenAiConfigModal, setShowOpenAiConfigModal] = useState(false);
+  const [llmProviderKey, setLlmProviderKey] = useState<string | null>(null);
   const [widgetsSlabType, setWidgetsSlabType] = useState<'form' | 'chat' | null>(null);
   const [signatureProviderKey, setSignatureProviderKey] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -377,6 +400,7 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'ads-analytics',
       title: t('integrations.categories.ads-analytics') || 'Ads & Analytics',
+      icon: <Megaphone className="h-4 w-4" />,
       integrations: [
         {
           key: 'meta-ads',
@@ -404,7 +428,8 @@ const IntegrationsApps: React.FC = () => {
     },
     {
       id: 'social-messaging',
-      title: t('integrations.categories.social-messaging') || 'Social Messaging Platforms',
+      title: t('integrations.categories.social-messaging') || 'Chat Apps',
+      icon: <MessagesSquare className="h-4 w-4" />,
       integrations: [
         {
           key: 'wpp_evo',
@@ -445,6 +470,7 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'artificial-intelligence',
       title: t('integrations.categories.ai') || 'Artificial Intelligence',
+      icon: <Sparkles className="h-4 w-4" />,
       integrations: [
         {
           key: 'openai',
@@ -452,6 +478,7 @@ const IntegrationsApps: React.FC = () => {
           description: t('integrations.openai.description') || 'Leverage OpenAI GPT models for intelligent automation and customer interactions.',
           available: false,
           beta: true,
+          popular: true,
           icon: <SiOpenai className="w-7 h-7" />
         },
         {
@@ -459,22 +486,39 @@ const IntegrationsApps: React.FC = () => {
           name: 'Gemini',
           description: t('integrations.gemini.description') || 'Integrate Google Gemini for advanced AI capabilities and multimodal processing.',
           available: false,
-          comingSoon: true,
-          icon: <RiGeminiLine className="w-7 h-7" />
+          beta: true,
+          icon: <RiGeminiFill className="w-7 h-7" />
         },
         {
           key: 'claude',
           name: 'Claude',
           description: t('integrations.claude.description') || 'Use Anthropic Claude for safe and helpful AI assistance in your workflows.',
           available: false,
-          comingSoon: true,
+          beta: true,
           icon: <RiClaudeFill className="w-7 h-7" />
+        }
+      ]
+    },
+    {
+      id: 'payments',
+      title: t('integrations.categories.payments') || 'Payments',
+      icon: <CreditCard className="h-4 w-4" />,
+      comingSoon: true,
+      integrations: [
+        {
+          key: 'stripe',
+          name: 'Stripe',
+          description: t('integrations.stripe.description') || 'Charge customers, send payment links and reconcile invoices without leaving the CRM.',
+          available: false,
+          comingSoon: true,
+          icon: <SiStripe className="w-7 h-7" />
         }
       ]
     },
     {
       id: 'signatures',
       title: t('integrations.categories.signatures'),
+      icon: <PenLine className="h-4 w-4" />,
       integrations: [
         {
           key: 'clicksign',
@@ -489,6 +533,7 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'calling',
       title: t('integrations.categories.calling') || 'Calling',
+      icon: <Phone className="h-4 w-4" />,
       comingSoon: true,
       integrations: [
         {
@@ -504,6 +549,7 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'widgets',
       title: t('integrations.categories.widgets') || 'Widgets',
+      icon: <LayoutTemplate className="h-4 w-4" />,
       integrations: [
         {
           key: 'form-widget',
@@ -526,6 +572,7 @@ const IntegrationsApps: React.FC = () => {
     {
       id: 'google-apps',
       title: t('integrations.categories.google-apps') || 'Google Apps',
+      icon: <Grid2x2 className="h-4 w-4" />,
       comingSoon: true,
       integrations: [
         {
@@ -602,8 +649,10 @@ const IntegrationsApps: React.FC = () => {
         setShowInstagramConfigModal(true);
       } else if (integrationKey === 'facebook') {
         setShowFacebookConfigModal(true);
-      } else if (integrationKey === 'openai') {
-        setShowOpenAiConfigModal(true);
+      } else if (LLM_PROVIDER_KEYS.includes(integrationKey)) {
+        // The modal is provider-agnostic; the key selects which vendor it
+        // configures, so a new LLM appears here with no branch of its own.
+        setLlmProviderKey(integrationKey);
       } else if (integrationKey === 'clicksign') {
         // The modal is provider-agnostic; the key just selects which driver
         // it configures, so future vendors reuse it as-is.
@@ -631,6 +680,8 @@ const IntegrationsApps: React.FC = () => {
       let endpoint: string;
       if (integrationKey === 'wpp_evo') {
         endpoint = '/api/integrations/whatsapp-evo-integrations';
+      } else if (LLM_PROVIDER_KEYS.includes(integrationKey)) {
+        endpoint = `/api/integrations/llm/${integrationKey}`;
       } else {
         endpoint = `/api/integrations/${integrationKey}`;
       }
@@ -713,16 +764,41 @@ const IntegrationsApps: React.FC = () => {
     [categories, isMyApps]
   );
 
-  // Marketplace-style pill filters, derived from the category list
-  const filterOptions = useMemo(
-    () => [
-      { id: 'all', label: t('integrations.filter-all') || 'All' },
-      ...visibleCategories.map((category) => ({ id: category.id, label: category.title })),
+  // Left-rail entries, derived from the category list. Counts honour the
+  // current search so the rail never advertises apps the query filtered away.
+  const filterOptions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const matches = (integration: Integration) =>
+      !query ||
+      integration.name.toLowerCase().includes(query) ||
+      integration.description.toLowerCase().includes(query);
+
+    const all = visibleCategories.flatMap((category) => category.integrations);
+
+    return [
+      {
+        id: 'all',
+        label: t('integrations.filter-all') || 'All',
+        icon: <LayoutGrid className="h-4 w-4" />,
+        count: all.filter(matches).length,
+      },
+      ...visibleCategories.map((category) => ({
+        id: category.id,
+        label: category.title,
+        icon: category.icon,
+        count: category.integrations.filter(matches).length,
+      })),
       // Nothing installed can be "coming soon", so that filter is marketplace-only.
-      ...(isMyApps ? [] : [{ id: 'coming-soon', label: t('integrations.coming-soon') }]),
-    ],
-    [visibleCategories, isMyApps, t]
-  );
+      ...(isMyApps
+        ? []
+        : [{
+            id: 'coming-soon',
+            label: t('integrations.coming-soon'),
+            icon: <Clock className="h-4 w-4" />,
+            count: all.filter((integration) => integration.comingSoon && matches(integration)).length,
+          }]),
+    ];
+  }, [visibleCategories, isMyApps, searchQuery, t]);
 
   // Drop a category filter that no longer exists in the current view
   useEffect(() => {
@@ -815,83 +891,101 @@ const IntegrationsApps: React.FC = () => {
           </div>
         </div>
 
-        {/* Tabs + Search Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 border-b border-border">
-          {/* Category Tabs */}
-          <div className="flex gap-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none] min-w-0">
-            {filterOptions.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setActiveFilter(option.id)}
-                className={cn(
-                  "relative whitespace-nowrap pb-3 pt-1 text-[13px] transition-colors duration-fast",
-                  activeFilter === option.id
-                    ? "text-foreground font-semibold"
-                    : "text-muted-foreground font-medium hover:text-foreground/80"
-                )}
-              >
-                {option.label}
-                <span
-                  className={cn(
-                    "absolute left-0 right-0 -bottom-px h-0.5 rounded-full bg-primary transition-opacity duration-fast",
-                    activeFilter === option.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-              </button>
-            ))}
-          </div>
-
-          {/* Search */}
-          <div className="w-full sm:w-64 shrink-0 pb-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('integrations.search-placeholder') || 'Search integrations...'}
-                className="pl-9"
-              />
-            </div>
+        {/* Search */}
+        <div className="flex justify-end mb-5">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('integrations.search-placeholder') || 'Search integrations...'}
+              className="pl-9"
+            />
           </div>
         </div>
 
-        {/* Integration Grid */}
-        {filteredIntegrations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            {isMyApps && installedCount === 0 ? (
-              <>
-                <Package className="w-10 h-10 text-muted-foreground mb-3" />
-                <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-installed-apps')}</h3>
-                <p className="text-muted-foreground text-sm max-w-sm mb-4">{t('integrations.no-installed-apps-description')}</p>
-                <button
-                  onClick={() => setActiveView('marketplace')}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm transition-colors duration-base ease-standard hover:bg-primary/90"
-                >
-                  {t('integrations.tab-marketplace')}
-                </button>
-              </>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Category rail. Below lg it lays back down into a scrolling row,
+              which is the one place the old tab strip still works. */}
+          <aside className="lg:w-56 lg:shrink-0">
+            <nav
+              className={cn(
+                "flex gap-1 pb-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]",
+                "lg:flex-col lg:pb-0 lg:overflow-visible lg:sticky lg:top-4"
+              )}
+            >
+              {filterOptions.map((option) => {
+                const isActive = activeFilter === option.id;
+
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => setActiveFilter(option.id)}
+                    className={cn(
+                      "group flex items-center gap-2.5 shrink-0 rounded-lg px-3 py-2 text-[13px] whitespace-nowrap transition-colors duration-fast",
+                      isActive
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-muted-foreground font-medium hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <span className={cn("shrink-0", !isActive && "group-hover:text-foreground")}>
+                      {option.icon}
+                    </span>
+                    <span className="flex-1 text-left">{option.label}</span>
+                    <span
+                      className={cn(
+                        "text-[11px] tabular-nums",
+                        isActive ? "text-primary/70" : "text-muted-foreground/60"
+                      )}
+                    >
+                      {option.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
+
+          {/* Integration Grid */}
+          <div className="flex-1 min-w-0">
+            {filteredIntegrations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                {isMyApps && installedCount === 0 ? (
+                  <>
+                    <Package className="w-10 h-10 text-muted-foreground mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-installed-apps')}</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm mb-4">{t('integrations.no-installed-apps-description')}</p>
+                    <button
+                      onClick={() => setActiveView('marketplace')}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm transition-colors duration-base ease-standard hover:bg-primary/90"
+                    >
+                      {t('integrations.tab-marketplace')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-10 h-10 text-muted-foreground mb-3" />
+                    <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-results')}</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm">{t('integrations.no-results-description')}</p>
+                  </>
+                )}
+              </div>
             ) : (
-              <>
-                <Search className="w-10 h-10 text-muted-foreground mb-3" />
-                <h3 className="text-lg font-semibold text-foreground mb-1">{t('integrations.no-results')}</h3>
-                <p className="text-muted-foreground text-sm max-w-sm">{t('integrations.no-results-description')}</p>
-              </>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredIntegrations.map((integration) => (
+                  <IntegrationCard
+                    key={integration.key}
+                    integration={integration}
+                    onAction={handleIntegrationAction}
+                    loading={loading && integration.key === 'meta-ads'}
+                    installing={installingIntegrations.has(integration.key)}
+                    justInstalled={justInstalledIntegrations.has(integration.key)}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredIntegrations.map((integration) => (
-              <IntegrationCard
-                key={integration.key}
-                integration={integration}
-                onAction={handleIntegrationAction}
-                loading={loading && integration.key === 'meta-ads'}
-                installing={installingIntegrations.has(integration.key)}
-                justInstalled={justInstalledIntegrations.has(integration.key)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
 
         {/* Config Modals */}
         <MetaAdsConfigModal
@@ -919,9 +1013,10 @@ const IntegrationsApps: React.FC = () => {
           onOpenChange={setShowFacebookConfigModal}
           onConfigurationSaved={handleConfigSaved}
         />
-        <OpenAiConfigModal
-          open={showOpenAiConfigModal}
-          onOpenChange={setShowOpenAiConfigModal}
+        <LlmProviderConfigModal
+          open={llmProviderKey !== null}
+          onOpenChange={(open) => !open && setLlmProviderKey(null)}
+          providerKey={llmProviderKey ?? undefined}
           onConfigurationSaved={handleConfigSaved}
         />
         <SignatureProviderConfigModal

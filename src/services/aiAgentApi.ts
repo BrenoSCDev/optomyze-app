@@ -1,7 +1,8 @@
 /**
  * AI AGENT API SERVICE
  *
- * CRUD + configuration for native AI Agents (ChatGPT-powered inbox agents).
+ * CRUD + configuration for native AI Agents. The LLM behind an agent is
+ * chosen per agent — see llmProviderApi for the vendor accounts themselves.
  */
 
 import api from './api';
@@ -111,10 +112,11 @@ export const getAiAgentExecutions = async (id: number, page = 1) => {
   return response.data;
 };
 
-export const getOpenAiModels = async (): Promise<string[]> => {
-  const response = await api.get('/api/integrations/openai/models');
-  return response.data.models || [];
-};
+/**
+ * Chat models the company's key for `provider` can actually reach. Lives in
+ * llmProviderApi — re-exported here so the agent form has one import.
+ */
+export { getLlmCatalog, getLlmModels } from './llmProviderApi';
 
 export interface PreviewChatMessage {
   role: 'user' | 'assistant';

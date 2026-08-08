@@ -54,10 +54,10 @@ import {
   syncAiAgentChannels,
   getAiAgentTools,
   getChannelAccounts,
-  getOpenAiModels,
   previewAiAgentChat,
   PreviewChatToolCall,
 } from '@/services/aiAgentApi';
+import { getLlmCatalog, type LlmProvider } from '@/services/llmProviderApi';
 
 interface AiAgentStudioProps {
   open: boolean;
@@ -72,12 +72,14 @@ interface PreviewBubble {
   toolCalls?: PreviewChatToolCall[];
 }
 
-const FALLBACK_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini'];
 const MIN_DELAY = 10;
 
 const defaultFormData = {
   name: '',
   description: '',
+  // Overwritten from the backend's registry once the catalog loads; these are
+  // only what the form shows in the instant before that resolves.
+  provider: 'openai',
   model: 'gpt-4o-mini',
   temperature: 0.7,
   max_tokens: 1024,
@@ -108,7 +110,7 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set());
   const [tools, setTools] = useState<AiAgentTool[]>([]);
   const [channelAccounts, setChannelAccounts] = useState<ChannelAccount[]>([]);
-  const [models, setModels] = useState<string[]>(FALLBACK_MODELS);
+  const [providers, setProviders] = useState<LlmProvider[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingMeta, setLoadingMeta] = useState(false);
 
@@ -144,24 +146,47 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
 
   const channelKey = (type: string, id: number) => `${type}:${id}`;
 
-  const fetchMeta = useCallback(async () => {
+  const selectedProvider = providers.find(p => p.key === formData.provider) ?? null;
+  const models = selectedProvider?.models ?? [];
+
+  // An agent can be configured against a provider that isn't connected yet,
+  // but it cannot be enabled — say so here rather than at the enable step.
+  const providerConnected = selectedProvider?.account?.connection_status === 'connected';
+
+  /** Point the agent at a different vendor, carrying it to that vendor's default model. */
+  const changeProvider = (key: string) => {
+    const next = providers.find(p => p.key === key);
+
+    setFormData(prev => ({
+      ...prev,
+      provider: key,
+      // Model ids are vendor-specific, so the old one is never valid here.
+      model: next?.default_model ?? next?.models[0] ?? prev.model,
+    }));
+  };
+
+  /**
+   * @returns the catalog's default provider, so a *new* agent can start on it
+   *          rather than on the placeholder in defaultFormData.
+   */
+  const fetchMeta = useCallback(async (): Promise<LlmProvider | null> => {
     setLoadingMeta(true);
     try {
-      const [toolsData, accountsData] = await Promise.all([
+      const [toolsData, accountsData, catalog] = await Promise.all([
         getAiAgentTools(),
         getChannelAccounts(),
+        getLlmCatalog(),
       ]);
       setTools(toolsData);
       setChannelAccounts(accountsData);
+      setProviders(catalog.providers);
 
-      try {
-        const modelsData = await getOpenAiModels();
-        if (modelsData.length > 0) setModels(modelsData);
-      } catch {
-        // Integration not configured yet — keep the fallback list.
-      }
+      return catalog.providers.find(p => p.key === catalog.default_provider)
+        ?? catalog.providers[0]
+        ?? null;
     } catch (error) {
       console.error('Error loading AI agent form data:', error);
+      return null;
     } finally {
       setLoadingMeta(false);
     }
@@ -170,7 +195,18 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
   useEffect(() => {
     if (!open) return;
 
-    fetchMeta();
+    // A new agent starts on whichever provider the backend registry defaults
+    // to; an existing one keeps the provider it was saved with.
+    fetchMeta().then(fallback => {
+      if (!agent && fallback) {
+        setFormData(prev => ({
+          ...prev,
+          provider: fallback.key,
+          model: fallback.default_model ?? fallback.models[0] ?? prev.model,
+        }));
+      }
+    });
+
     previewSeqRef.current += 1;
     clearPreviewTimers();
     setPreviewMessages([]);
@@ -182,6 +218,7 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
       setFormData({
         name: agent.name,
         description: agent.description || '',
+        provider: agent.provider,
         model: agent.model,
         temperature: agent.temperature,
         max_tokens: agent.max_tokens,
@@ -244,7 +281,7 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
       const payload: AiAgentPayload = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
-        provider: 'openai',
+        provider: formData.provider,
         model: formData.model,
         temperature: formData.temperature,
         max_tokens: formData.max_tokens,
@@ -430,15 +467,38 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
                     title={t('ai-agents.form.tab-general')}
                   />
                   <div className="space-y-4 pl-0 sm:pl-11">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="agent-name">{t('ai-agents.form.name')}</Label>
+                      <Input
+                        id="agent-name"
+                        value={formData.name}
+                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder={t('ai-agents.form.name-placeholder')}
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="agent-name">{t('ai-agents.form.name')}</Label>
-                        <Input
-                          id="agent-name"
-                          value={formData.name}
-                          onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder={t('ai-agents.form.name-placeholder')}
-                        />
+                        <Label>{t('ai-agents.form.provider')}</Label>
+                        <Select value={formData.provider} onValueChange={changeProvider}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="z-[70]">
+                            {providers.map(provider => (
+                              <SelectItem key={provider.key} value={provider.key}>
+                                <span className="flex items-center gap-2">
+                                  {provider.label}
+                                  {provider.account?.connection_status !== 'connected' && (
+                                    <span className="text-[11px] text-muted-foreground">
+                                      {t('ai-agents.form.provider-not-connected-short')}
+                                    </span>
+                                  )}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1.5">
                         <Label>{t('ai-agents.form.model')}</Label>
@@ -457,6 +517,15 @@ const AiAgentStudio: React.FC<AiAgentStudioProps> = ({ open, onOpenChange, agent
                         </Select>
                       </div>
                     </div>
+
+                    {selectedProvider && !providerConnected && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400">
+                        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                        <span>
+                          {t('ai-agents.form.provider-not-connected').replace('{provider}', selectedProvider.label)}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="space-y-1.5">
                       <Label htmlFor="agent-description">{t('ai-agents.form.description-label')}</Label>
